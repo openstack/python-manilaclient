@@ -16,7 +16,7 @@ import os
 import setuptools
 
 
-from cinderclient.openstack.common import setup
+from manilaclient.openstack.common import setup
 
 requires = setup.parse_requirements()
 depend_links = setup.parse_dependency_links()
