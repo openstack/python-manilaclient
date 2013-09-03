@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cinderclient import base
+from manilaclient import base
 
 
 class QuotaClassSet(base.Resource):

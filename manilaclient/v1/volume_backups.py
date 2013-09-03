@@ -17,7 +17,7 @@
 Volume Backups interface (1.1 extension).
 """
 
-from cinderclient import base
+from manilaclient import base
 
 
 class VolumeBackup(base.Resource):

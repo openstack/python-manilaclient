@@ -16,7 +16,7 @@
 
 """Volume Type interface."""
 
-from cinderclient import base
+from manilaclient import base
 
 
 class VolumeType(base.Resource):

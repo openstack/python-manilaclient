@@ -27,13 +27,13 @@ import pkgutil
 import sys
 import logging
 
-from cinderclient import client
-from cinderclient import exceptions as exc
-import cinderclient.extension
-from cinderclient.openstack.common import strutils
-from cinderclient import utils
-from cinderclient.v1 import shell as shell_v1
-from cinderclient.v2 import shell as shell_v2
+from manilaclient import client
+from manilaclient import exceptions as exc
+import manilaclient.extension
+from manilaclient.openstack.common import strutils
+from manilaclient import utils
+from manilaclient.v1 import shell as shell_v1
+from manilaclient.v2 import shell as shell_v2
 
 DEFAULT_OS_VOLUME_API_VERSION = "1"
 DEFAULT_CINDER_ENDPOINT_TYPE = 'publicURL'
@@ -42,10 +42,10 @@ DEFAULT_CINDER_SERVICE_TYPE = 'compute'
 logger = logging.getLogger(__name__)
 
 
-class CinderClientArgumentParser(argparse.ArgumentParser):
+class manilaclientArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
-        super(CinderClientArgumentParser, self).__init__(*args, **kwargs)
+        super(manilaclientArgumentParser, self).__init__(*args, **kwargs)
 
     def error(self, message):
         """error(message: string)
@@ -67,7 +67,7 @@ class CinderClientArgumentParser(argparse.ArgumentParser):
 class OpenStackCinderShell(object):
 
     def get_base_parser(self):
-        parser = CinderClientArgumentParser(
+        parser = manilaclientArgumentParser(
             prog='cinder',
             description=__doc__.strip(),
             epilog='See "cinder help COMMAND" '
@@ -83,11 +83,11 @@ class OpenStackCinderShell(object):
 
         parser.add_argument('--version',
                             action='version',
-                            version=cinderclient.__version__)
+                            version=manilaclient.__version__)
 
         parser.add_argument('--debug',
                             action='store_true',
-                            default=utils.env('CINDERCLIENT_DEBUG',
+                            default=utils.env('manilaclient_DEBUG',
                                               default=False),
                             help="Print debugging output")
 
@@ -185,7 +185,7 @@ class OpenStackCinderShell(object):
                             'Defaults to env[OS_CACERT]')
 
         parser.add_argument('--insecure',
-                            default=utils.env('CINDERCLIENT_INSECURE',
+                            default=utils.env('manilaclient_INSECURE',
                                               default=False),
                             action='store_true',
                             help=argparse.SUPPRESS)
@@ -254,14 +254,14 @@ class OpenStackCinderShell(object):
                 self._discover_via_python_path(version),
                 self._discover_via_contrib_path(version)):
 
-            extension = cinderclient.extension.Extension(name, module)
+            extension = manilaclient.extension.Extension(name, module)
             extensions.append(extension)
 
         return extensions
 
     def _discover_via_python_path(self, version):
         for (module_loader, name, ispkg) in pkgutil.iter_modules():
-            if name.endswith('python_cinderclient_ext'):
+            if name.endswith('python_manilaclient_ext'):
                 if not hasattr(module_loader, 'load_module'):
                     # Python 2.6 compat: actually get an ImpImporter obj
                     module_loader = module_loader.find_module(name)

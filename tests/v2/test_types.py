@@ -14,7 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cinderclient.v2 import volume_types
+from manilaclient.v2 import volume_types
 from tests import utils
 from tests.v2 import fakes
 

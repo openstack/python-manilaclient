@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# python-cinderclient documentation build configuration file, created by
+# python-manilaclient documentation build configuration file, created by
 # sphinx-quickstart on Sun Dec  6 14:19:25 2009.
 #
 # This file is execfile()d with current directory set to its containing dir.
@@ -42,7 +42,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'python-cinderclient'
+project = u'python-manilaclient'
 copyright = u'Rackspace, based on work by Jacob Kaplan-Moss'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -164,7 +164,7 @@ html_static_path = ['_static']
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'python-cinderclientdoc'
+htmlhelp_basename = 'python-manilaclientdoc'
 
 
 # -- Options for LaTeX output -------------------------------------------------
@@ -179,7 +179,7 @@ htmlhelp_basename = 'python-cinderclientdoc'
 # (source start file, target name, title, author, documentclass [howto/manual])
 # .
 latex_documents = [
-    ('index', 'python-cinderclient.tex', u'python-cinderclient Documentation',
+    ('index', 'python-manilaclient.tex', u'python-manilaclient Documentation',
     u'Rackspace - based on work by Jacob Kaplan-Moss', 'manual'),
 ]
 

@@ -1,5 +1,5 @@
-from cinderclient import exceptions
-from cinderclient.v1 import volume_types
+from manilaclient import exceptions
+from manilaclient.v1 import volume_types
 from tests import utils
 from tests.v1 import fakes
 

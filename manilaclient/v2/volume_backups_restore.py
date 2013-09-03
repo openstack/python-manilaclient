@@ -18,7 +18,7 @@
 This is part of the Volume Backups interface.
 """
 
-from cinderclient import base
+from manilaclient import base
 
 
 class VolumeBackupsRestore(base.Resource):

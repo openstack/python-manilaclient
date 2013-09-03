@@ -2,7 +2,7 @@ Python bindings to the OpenStack Cinder API
 ===========================================
 
 This is a client for the OpenStack Cinder API. There's a Python API (the
-``cinderclient`` module), and a command-line script (``cinder``). Each
+``manilaclient`` module), and a command-line script (``cinder``). Each
 implements 100% of the OpenStack Cinder API.
 
 See the `OpenStack CLI guide`_ for information on how to use the ``cinder``
@@ -16,13 +16,13 @@ The project is hosted on `Launchpad`_, where bugs can be filed. The code is
 hosted on `Github`_. Patches must be submitted using `Gerrit`_, *not* Github
 pull requests.
 
-.. _Github: https://github.com/openstack/python-cinderclient
-.. _Launchpad: https://launchpad.net/python-cinderclient
+.. _Github: https://github.com/openstack/python-manilaclient
+.. _Launchpad: https://launchpad.net/python-manilaclient
 .. _Gerrit: http://wiki.openstack.org/GerritWorkflow
 
 This code a fork of `Jacobian's python-cloudservers`__ If you need API support
 for the Rackspace API solely or the BSD license, you should use that repository.
-python-cinderclient is licensed under the Apache License like the rest of OpenStack.
+python-manilaclient is licensed under the Apache License like the rest of OpenStack.
 
 __ http://github.com/jacobian/python-cloudservers
 
@@ -144,7 +144,7 @@ There's also a complete Python API, but it has not yet been documented.
 Quick-start using keystone::
 
     # use v2.0 auth with http://example.com:5000/v2.0/")
-    >>> from cinderclient.v1 import client
+    >>> from manilaclient.v1 import client
     >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="volume")
     >>> nt.volumes.list()
     [...]

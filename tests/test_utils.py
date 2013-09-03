@@ -1,7 +1,7 @@
 
-from cinderclient import exceptions
-from cinderclient import utils
-from cinderclient import base
+from manilaclient import exceptions
+from manilaclient import utils
+from manilaclient import base
 from tests import utils as test_utils
 
 UUID = '8e8ec658-c7b0-4243-bdf8-6f7f2952c0d0'

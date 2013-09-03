@@ -3,8 +3,8 @@ import mock
 
 import requests
 
-from cinderclient.v1 import client
-from cinderclient import exceptions
+from manilaclient.v1 import client
+from manilaclient import exceptions
 from tests import utils
 
 

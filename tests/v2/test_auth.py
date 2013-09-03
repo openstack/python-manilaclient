@@ -19,8 +19,8 @@ import json
 import mock
 import requests
 
-from cinderclient import exceptions
-from cinderclient.v2 import client
+from manilaclient import exceptions
+from manilaclient.v2 import client
 from tests import utils
 
 

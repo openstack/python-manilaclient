@@ -15,8 +15,8 @@
 
 import fixtures
 
-from cinderclient import client
-from cinderclient import shell
+from manilaclient import client
+from manilaclient import shell
 from tests import utils
 from tests.v2 import fakes
 

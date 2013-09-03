@@ -22,8 +22,8 @@ Base utilities to build API operation managers and objects on top of.
 import contextlib
 import hashlib
 import os
-from cinderclient import exceptions
-from cinderclient import utils
+from manilaclient import exceptions
+from manilaclient import utils
 
 
 # Python 2.4 compat
@@ -92,8 +92,8 @@ class Manager(utils.HookableMixin):
         Delete is not handled because listings are assumed to be performed
         often enough to keep the cache reasonably up-to-date.
         """
-        base_dir = utils.env('CINDERCLIENT_UUID_CACHE_DIR',
-                             default="~/.cinderclient")
+        base_dir = utils.env('manilaclient_UUID_CACHE_DIR',
+                             default="~/.manilaclient")
 
         # NOTE(sirp): Keep separate UUID caches for each username + endpoint
         # pair

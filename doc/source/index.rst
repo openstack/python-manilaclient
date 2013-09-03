@@ -2,7 +2,7 @@ Python API
 ==========
 In order to use the python api directly, you must first obtain an auth token and identify which endpoint you wish to speak to. Once you have done so, you can use the API like so::
 
-    >>> from cinderclient import client
+    >>> from manilaclient import client
     >>> cinder = client.Client('1', $OS_USER_NAME, $OS_PASSWORD, $OS_TENANT_NAME, $OS_AUTH_URL)
     >>> cinder.volumes.list()
     []
@@ -30,11 +30,11 @@ Release Notes
 1.0.4
 -----
 * Added suport for backup-service commands
-.. _1163546: http://bugs.launchpad.net/python-cinderclient/+bug/1163546
-.. _1161857: http://bugs.launchpad.net/python-cinderclient/+bug/1161857
-.. _1160898: http://bugs.launchpad.net/python-cinderclient/+bug/1160898
-.. _1161857: http://bugs.launchpad.net/python-cinderclient/+bug/1161857
-.. _1156994: http://bugs.launchpad.net/python-cinderclient/+bug/1156994
+.. _1163546: http://bugs.launchpad.net/python-manilaclient/+bug/1163546
+.. _1161857: http://bugs.launchpad.net/python-manilaclient/+bug/1161857
+.. _1160898: http://bugs.launchpad.net/python-manilaclient/+bug/1160898
+.. _1161857: http://bugs.launchpad.net/python-manilaclient/+bug/1161857
+.. _1156994: http://bugs.launchpad.net/python-manilaclient/+bug/1156994
 
 1.0.3
 -----
@@ -46,15 +46,15 @@ Release Notes
 * Correct parsing of volume metadata
 * Enable force delete of volumes and snapshots in error state
 * Implement clone volume API call
-* Add list-extensions call to cinderclient
+* Add list-extensions call to manilaclient
 * Add bootable column to list output
-* Add retries to cinderclient operations
+* Add retries to manilaclient operations
 * Add Type/Extra-Specs support
 * Add volume and snapshot rename commands
-.. _1155655: http://bugs.launchpad.net/python-cinderclient/+bug/1155655
-.. _1130730: http://bugs.launchpad.net/python-cinderclient/+bug/1130730
-.. _1068521: http://bugs.launchpad.net/python-cinderclient/+bug/1068521
-.. _1052161: http://bugs.launchpad.net/python-cinderclient/+bug/1052161
-.. _1071003: http://bugs.launchpad.net/python-cinderclient/+bug/1071003
-.. _1065275: http://bugs.launchpad.net/python-cinderclient/+bug/1065275
-.. _1053432: http://bugs.launchpad.net/python-cinderclient/+bug/1053432
+.. _1155655: http://bugs.launchpad.net/python-manilaclient/+bug/1155655
+.. _1130730: http://bugs.launchpad.net/python-manilaclient/+bug/1130730
+.. _1068521: http://bugs.launchpad.net/python-manilaclient/+bug/1068521
+.. _1052161: http://bugs.launchpad.net/python-manilaclient/+bug/1052161
+.. _1071003: http://bugs.launchpad.net/python-manilaclient/+bug/1071003
+.. _1065275: http://bugs.launchpad.net/python-manilaclient/+bug/1065275
+.. _1053432: http://bugs.launchpad.net/python-manilaclient/+bug/1053432

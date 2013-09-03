@@ -13,8 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cinderclient import base
-from cinderclient import utils
+from manilaclient import base
+from manilaclient import utils
 
 
 class Extension(utils.HookableMixin):

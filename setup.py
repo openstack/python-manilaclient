@@ -36,7 +36,7 @@ setuptools.setup(
     description="Client library for OpenStack Cinder API.",
     long_description=read_file("README.rst"),
     license="Apache License, Version 2.0",
-    url="https://github.com/openstack/python-cinderclient",
+    url="https://github.com/openstack/python-manilaclient",
     packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     cmdclass=setup.get_cmdclass(),
     install_requires=requires,

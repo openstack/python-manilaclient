@@ -1,14 +1,14 @@
-from cinderclient import client
-from cinderclient.v1 import limits
-from cinderclient.v1 import quota_classes
-from cinderclient.v1 import quotas
-from cinderclient.v1 import shares
-from cinderclient.v1 import share_snapshots
-from cinderclient.v1 import volumes
-from cinderclient.v1 import volume_snapshots
-from cinderclient.v1 import volume_types
-from cinderclient.v1 import volume_backups
-from cinderclient.v1 import volume_backups_restore
+from manilaclient import client
+from manilaclient.v1 import limits
+from manilaclient.v1 import quota_classes
+from manilaclient.v1 import quotas
+from manilaclient.v1 import shares
+from manilaclient.v1 import share_snapshots
+from manilaclient.v1 import volumes
+from manilaclient.v1 import volume_snapshots
+from manilaclient.v1 import volume_types
+from manilaclient.v1 import volume_backups
+from manilaclient.v1 import volume_backups_restore
 
 
 class Client(object):

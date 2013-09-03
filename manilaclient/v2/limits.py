@@ -1,6 +1,6 @@
 # Copyright 2013 OpenStack LLC.
 
-from cinderclient import base
+from manilaclient import base
 
 
 class Limits(base.Resource):

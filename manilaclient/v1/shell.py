@@ -20,8 +20,8 @@ import os
 import sys
 import time
 
-from cinderclient import exceptions
-from cinderclient import utils
+from manilaclient import exceptions
+from manilaclient import utils
 
 
 def _poll_for_status(poll_fn, obj_id, action, final_ok_states,

@@ -14,8 +14,8 @@
 
 import urlparse
 
-from cinderclient import client as base_client
-from cinderclient.v2 import client
+from manilaclient import client as base_client
+from manilaclient.v2 import client
 from tests import fakes
 import tests.utils as utils
 

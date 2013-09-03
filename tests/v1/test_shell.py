@@ -19,9 +19,9 @@ import os
 
 import fixtures
 
-from cinderclient import client
-from cinderclient import shell
-from cinderclient.v1 import shell as shell_v1
+from manilaclient import client
+from manilaclient import shell
+from manilaclient.v1 import shell as shell_v1
 from tests.v1 import fakes
 from tests import utils
 

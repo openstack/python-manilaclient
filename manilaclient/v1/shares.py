@@ -19,9 +19,9 @@ import os
 import re
 import urllib
 
-from cinderclient import base
-from cinderclient import exceptions
-from cinderclient import utils
+from manilaclient import base
+from manilaclient import exceptions
+from manilaclient import utils
 
 
 class Share(base.Resource):

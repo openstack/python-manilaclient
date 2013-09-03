@@ -17,8 +17,8 @@
 import os
 import urllib
 
-from cinderclient import base
-from cinderclient import utils
+from manilaclient import base
+from manilaclient import utils
 
 
 class ShareSnapshot(base.Resource):

@@ -5,8 +5,8 @@ import uuid
 
 import prettytable
 
-from cinderclient import exceptions
-from cinderclient.openstack.common import strutils
+from manilaclient import exceptions
+from manilaclient.openstack.common import strutils
 
 
 def arg(*args, **kwargs):

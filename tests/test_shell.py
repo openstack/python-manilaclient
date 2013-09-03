@@ -6,8 +6,8 @@ import sys
 import fixtures
 from testtools import matchers
 
-from cinderclient import exceptions
-import cinderclient.shell
+from manilaclient import exceptions
+import manilaclient.shell
 from tests import utils
 
 
@@ -31,7 +31,7 @@ class ShellTest(utils.TestCase):
         orig = sys.stdout
         try:
             sys.stdout = cStringIO.StringIO()
-            _shell = cinderclient.shell.OpenStackCinderShell()
+            _shell = manilaclient.shell.OpenStackCinderShell()
             _shell.main(argstr.split())
         except SystemExit:
             exc_type, exc_value, exc_traceback = sys.exc_info()

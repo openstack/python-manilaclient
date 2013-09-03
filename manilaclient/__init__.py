@@ -14,9 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cinderclient.openstack.common import version
+from manilaclient.openstack.common import version
 
-version_info = version.VersionInfo('python-cinderclient')
+version_info = version.VersionInfo('python-manilaclient')
 # We have a circular import problem when we first run python setup.py sdist
 # It's harmless, so deflect it.
 try:

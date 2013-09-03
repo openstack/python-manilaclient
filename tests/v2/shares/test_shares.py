@@ -15,8 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cinderclient import extension
-from cinderclient.v2 import shares
+from manilaclient import extension
+from manilaclient.v2 import shares
 
 from tests import utils
 from tests.v2.shares import fakes

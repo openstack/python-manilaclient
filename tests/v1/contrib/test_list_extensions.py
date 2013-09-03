@@ -1,5 +1,5 @@
-from cinderclient import extension
-from cinderclient.v1.contrib import list_extensions
+from manilaclient import extension
+from manilaclient.v1.contrib import list_extensions
 
 from tests import utils
 from tests.v1 import fakes

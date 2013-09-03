@@ -27,14 +27,14 @@ if not hasattr(urlparse, 'parse_qsl'):
 
 import requests
 
-from cinderclient import exceptions
-from cinderclient import service_catalog
-from cinderclient import utils
+from manilaclient import exceptions
+from manilaclient import service_catalog
+from manilaclient import utils
 
 
 class HTTPClient(object):
 
-    USER_AGENT = 'python-cinderclient'
+    USER_AGENT = 'python-manilaclient'
 
     def __init__(self, user, password, projectid, auth_url, insecure=False,
                  timeout=None, tenant_id=None, proxy_tenant_id=None,
@@ -360,8 +360,8 @@ class HTTPClient(object):
 
 def get_client_class(version):
     version_map = {
-        '1': 'cinderclient.v1.client.Client',
-        '2': 'cinderclient.v2.client.Client',
+        '1': 'manilaclient.v1.client.Client',
+        '2': 'manilaclient.v2.client.Client',
     }
     try:
         client_path = version_map[str(version)]

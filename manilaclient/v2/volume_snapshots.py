@@ -17,7 +17,7 @@
 
 import urllib
 
-from cinderclient import base
+from manilaclient import base
 
 
 class Snapshot(base.Resource):

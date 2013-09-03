@@ -1,5 +1,5 @@
-from cinderclient import exceptions
-from cinderclient import service_catalog
+from manilaclient import exceptions
+from manilaclient import service_catalog
 from tests import utils
 
 
