@@ -21,7 +21,7 @@ from cinderclient.openstack.common import setup
 requires = setup.parse_requirements()
 depend_links = setup.parse_dependency_links()
 tests_require = setup.parse_requirements(['tools/test-requires'])
-project = 'python-cinderclient'
+project = 'python-manilaclient'
 
 
 def read_file(file_name):
@@ -55,6 +55,6 @@ setuptools.setup(
         "Programming Language :: Python"
     ],
     entry_points={
-        "console_scripts": ["cinder = cinderclient.shell:main"]
+        "console_scripts": ["manila = manilaclient.shell:main"]
     }
 )
