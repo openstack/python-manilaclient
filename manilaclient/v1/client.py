@@ -4,11 +4,6 @@ from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
 from manilaclient.v1 import shares
 from manilaclient.v1 import share_snapshots
-from manilaclient.v1 import volumes
-from manilaclient.v1 import volume_snapshots
-from manilaclient.v1 import volume_types
-from manilaclient.v1 import volume_backups
-from manilaclient.v1 import volume_backups_restore
 
 
 class Client(object):
@@ -21,7 +16,7 @@ class Client(object):
 
     Then call methods on its managers::
 
-        >>> client.volumes.list()
+        >>> client.shares.list()
         ...
 
     """
@@ -40,13 +35,8 @@ class Client(object):
         self.limits = limits.LimitsManager(self)
 
         # extensions
-        self.volumes = volumes.VolumeManager(self)
-        self.volume_snapshots = volume_snapshots.SnapshotManager(self)
-        self.volume_types = volume_types.VolumeTypeManager(self)
         self.quota_classes = quota_classes.QuotaClassSetManager(self)
         self.quotas = quotas.QuotaSetManager(self)
-        self.backups = volume_backups.VolumeBackupManager(self)
-        self.restores = volume_backups_restore.VolumeBackupRestoreManager(self)
         self.shares = shares.ShareManager(self)
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
