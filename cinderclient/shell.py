@@ -35,9 +35,9 @@ from cinderclient import utils
 from cinderclient.v1 import shell as shell_v1
 from cinderclient.v2 import shell as shell_v2
 
-DEFAULT_OS_VOLUME_API_VERSION = "1"
-DEFAULT_CINDER_ENDPOINT_TYPE = 'publicURL'
-DEFAULT_CINDER_SERVICE_TYPE = 'compute'
+DEFAULT_OS_SHARE_API_VERSION = "1"
+DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
+DEFAULT_MANILA_SERVICE_TYPE = 'share'
 
 logger = logging.getLogger(__name__)
 
@@ -162,16 +162,16 @@ class OpenStackCinderShell(object):
         parser.add_argument('--endpoint-type',
                             metavar='<endpoint-type>',
                             default=utils.env('CINDER_ENDPOINT_TYPE',
-                            default=DEFAULT_CINDER_ENDPOINT_TYPE),
+                            default=DEFAULT_MANILA_ENDPOINT_TYPE),
                             help='Defaults to env[CINDER_ENDPOINT_TYPE] or '
-                            + DEFAULT_CINDER_ENDPOINT_TYPE + '.')
+                            + DEFAULT_MANILA_ENDPOINT_TYPE + '.')
         parser.add_argument('--endpoint_type',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-volume-api-version',
                             metavar='<compute-api-ver>',
                             default=utils.env('OS_VOLUME_API_VERSION',
-                            default=DEFAULT_OS_VOLUME_API_VERSION),
+                            default=DEFAULT_OS_SHARE_API_VERSION),
                             help='Accepts 1 or 2,defaults '
                                  'to env[OS_VOLUME_API_VERSION].')
         parser.add_argument('--os_volume_api_version',
@@ -372,10 +372,10 @@ class OpenStackCinderShell(object):
              args.url, args.region_name, args.os_cacert)
 
         if not endpoint_type:
-            endpoint_type = DEFAULT_CINDER_ENDPOINT_TYPE
+            endpoint_type = DEFAULT_MANILA_ENDPOINT_TYPE
 
         if not service_type:
-            service_type = DEFAULT_CINDER_SERVICE_TYPE
+            service_type = DEFAULT_MANILA_SERVICE_TYPE
             service_type = utils.get_service_type(args.func) or service_type
 
         #FIXME(usrleon): Here should be restrict for project id same as
