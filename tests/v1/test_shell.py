@@ -29,11 +29,11 @@ from tests import utils
 class ShellTest(utils.TestCase):
 
     FAKE_ENV = {
-        'CINDER_USERNAME': 'username',
-        'CINDER_PASSWORD': 'password',
-        'CINDER_PROJECT_ID': 'project_id',
+        'MANILA_USERNAME': 'username',
+        'MANILA_PASSWORD': 'password',
+        'MANILA_PROJECT_ID': 'project_id',
         'OS_VOLUME_API_VERSION': '1.1',
-        'CINDER_URL': 'http://no.where',
+        'MANILA_URL': 'http://no.where',
     }
 
     # Patch os.environ to avoid required auth info.
@@ -44,7 +44,7 @@ class ShellTest(utils.TestCase):
             self.useFixture(fixtures.EnvironmentVariable(var,
                                                          self.FAKE_ENV[var]))
 
-        self.shell = shell.OpenStackCinderShell()
+        self.shell = shell.OpenStackManilaShell()
 
         #HACK(bcwaldon): replace this when we start using stubs
         self.old_get_client_class = client.get_client_class

@@ -3,13 +3,13 @@ Python API
 In order to use the python api directly, you must first obtain an auth token and identify which endpoint you wish to speak to. Once you have done so, you can use the API like so::
 
     >>> from manilaclient import client
-    >>> cinder = client.Client('1', $OS_USER_NAME, $OS_PASSWORD, $OS_TENANT_NAME, $OS_AUTH_URL)
-    >>> cinder.volumes.list()
+    >>> manila = client.Client('1', $OS_USER_NAME, $OS_PASSWORD, $OS_TENANT_NAME, $OS_AUTH_URL)
+    >>> manila.volumes.list()
     []
-    >>> myvol = cinder.volumes.create(display_name="test-vol", size=1)
+    >>> myvol = manila.volumes.create(display_name="test-vol", size=1)
     >>> myvol.id
     ce06d0a8-5c1b-4e2c-81d2-39eca6bbfb70
-    >>> cinder.volumes.list()
+    >>> manila.volumes.list()
     [<Volume: ce06d0a8-5c1b-4e2c-81d2-39eca6bbfb70>]
     >>>myvol.delete
 
@@ -22,7 +22,7 @@ In order to use the CLI, you must provide your OpenStack username, password, ten
     export OS_TENANT_ID=b363706f891f48019483f8bd6503c54b
     export OS_AUTH_URL=http://auth.example.com:5000/v2.0
 
-Once you've configured your authentication parameters, you can run ``cinder help`` to see a complete listing of available commands.
+Once you've configured your authentication parameters, you can run ``manila help`` to see a complete listing of available commands.
 
 
 Release Notes
@@ -39,7 +39,7 @@ Release Notes
 1.0.3
 -----
 
-* Added support for V2 Cinder API
+* Added support for V2 Manila API
 * Corected upload-volume-to-image help messaging
 * Align handling of metadata args for all methods
 * Update OSLO version

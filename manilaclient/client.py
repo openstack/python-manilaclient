@@ -272,7 +272,7 @@ class HTTPClient(object):
         auth_url = self.auth_url
         if self.version == "v2.0":
             while auth_url:
-                if "CINDER_RAX_AUTH" in os.environ:
+                if "MANILA_RAX_AUTH" in os.environ:
                     auth_url = self._rax_auth(auth_url)
                 else:
                     auth_url = self._v2_auth(auth_url)
@@ -290,7 +290,7 @@ class HTTPClient(object):
             try:
                 while auth_url:
                     auth_url = self._v1_auth(auth_url)
-            # In some configurations cinder makes redirection to
+            # In some configurations manila makes redirection to
             # v2.0 keystone endpoint. Also, new location does not contain
             # real endpoint, only hostname and port.
             except exceptions.AuthorizationFailure:

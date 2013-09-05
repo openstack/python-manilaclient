@@ -211,7 +211,7 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
             {"headers": {'location':'http://127.0.0.1:5001'},
              "status_code": 305,
              "text": "Use proxy"},
-            # Configured on admin port, cinder redirects to v2.0 port.
+            # Configured on admin port, manila redirects to v2.0 port.
             # When trying to connect on it, keystone auth succeed by v1.0
             # protocol (through headers) but tokens are being returned in
             # body (looks like keystone bug). Leaved for compatibility.

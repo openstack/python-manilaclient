@@ -190,7 +190,7 @@ def install_dependencies(venv=VENV):
 
     pip_install('-r', PIP_REQUIRES)
     pip_install('-r', TEST_REQUIRES)
-    # Tell the virtual env how to "import cinder"
+    # Tell the virtual env how to "import manila"
     pthfile = os.path.join(venv, "lib", PY_VERSION, "site-packages",
                         "manilaclient.pth")
     f = open(pthfile, 'w')

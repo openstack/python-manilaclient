@@ -1,4 +1,4 @@
-Cinder Style Commandments
+Manila Style Commandments
 =========================
 
 Step 1: Read http://www.python.org/dev/peps/pep-0008/
@@ -16,7 +16,7 @@ Imports
   # vim: tabstop=4 shiftwidth=4 softtabstop=4
   {{stdlib imports in human alphabetical order}}
   \n
-  {{cinder imports in human alphabetical order}}
+  {{manila imports in human alphabetical order}}
   \n
   \n
   {{begin your code}}
@@ -42,11 +42,11 @@ Human Alphabetical Order Examples
   import time
   import unittest
 
-  from cinder import flags
-  from cinder import test
-  from cinder.auth import users
-  from cinder.endpoint import api
-  from cinder.endpoint import cloud
+  from manila import flags
+  from manila import test
+  from manila.auth import users
+  from manila.endpoint import api
+  from manila.endpoint import cloud
 
 Docstrings
 ----------

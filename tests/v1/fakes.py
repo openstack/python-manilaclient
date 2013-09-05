@@ -28,7 +28,7 @@ def _stub_volume(**kwargs):
         'display_description': None,
         "attachments": [],
         "bootable": "false",
-        "availability_zone": "cinder",
+        "availability_zone": "manila",
         "created_at": "2012-08-27T00:00:00.000000",
         "display_description": None,
         "display_name": None,

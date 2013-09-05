@@ -15,7 +15,7 @@
 #    under the License.
 
 """
-Command-line interface to the OpenStack Cinder API.
+Command-line interface to the OpenStack Manila API.
 """
 
 import argparse
@@ -64,13 +64,13 @@ class manilaclientArgumentParser(argparse.ArgumentParser):
                       'subp': progparts[2]})
 
 
-class OpenStackCinderShell(object):
+class OpenStackManilaShell(object):
 
     def get_base_parser(self):
         parser = manilaclientArgumentParser(
-            prog='cinder',
+            prog='manila',
             description=__doc__.strip(),
-            epilog='See "cinder help COMMAND" '
+            epilog='See "manila help COMMAND" '
                    'for help on a specific command.',
             add_help=False,
             formatter_class=OpenStackHelpFormatter,
@@ -94,7 +94,7 @@ class OpenStackCinderShell(object):
         parser.add_argument('--os-username',
                             metavar='<auth-user-name>',
                             default=utils.env('OS_USERNAME',
-                                              'CINDER_USERNAME'),
+                                              'MANILA_USERNAME'),
                             help='Defaults to env[OS_USERNAME].')
         parser.add_argument('--os_username',
                             help=argparse.SUPPRESS)
@@ -102,7 +102,7 @@ class OpenStackCinderShell(object):
         parser.add_argument('--os-password',
                             metavar='<auth-password>',
                             default=utils.env('OS_PASSWORD',
-                                              'CINDER_PASSWORD'),
+                                              'MANILA_PASSWORD'),
                             help='Defaults to env[OS_PASSWORD].')
         parser.add_argument('--os_password',
                             help=argparse.SUPPRESS)
@@ -110,7 +110,7 @@ class OpenStackCinderShell(object):
         parser.add_argument('--os-tenant-name',
                             metavar='<auth-tenant-name>',
                             default=utils.env('OS_TENANT_NAME',
-                                              'CINDER_PROJECT_ID'),
+                                              'MANILA_PROJECT_ID'),
                             help='Defaults to env[OS_TENANT_NAME].')
         parser.add_argument('--os_tenant_name',
                             help=argparse.SUPPRESS)
@@ -118,7 +118,7 @@ class OpenStackCinderShell(object):
         parser.add_argument('--os-tenant-id',
                             metavar='<auth-tenant-id>',
                             default=utils.env('OS_TENANT_ID',
-                                              'CINDER_TENANT_ID'),
+                                              'MANILA_TENANT_ID'),
                             help='Defaults to env[OS_TENANT_ID].')
         parser.add_argument('--os_tenant_id',
                             help=argparse.SUPPRESS)
@@ -126,7 +126,7 @@ class OpenStackCinderShell(object):
         parser.add_argument('--os-auth-url',
                             metavar='<auth-url>',
                             default=utils.env('OS_AUTH_URL',
-                                              'CINDER_URL'),
+                                              'MANILA_URL'),
                             help='Defaults to env[OS_AUTH_URL].')
         parser.add_argument('--os_auth_url',
                             help=argparse.SUPPRESS)
@@ -134,7 +134,7 @@ class OpenStackCinderShell(object):
         parser.add_argument('--os-region-name',
                             metavar='<region-name>',
                             default=utils.env('OS_REGION_NAME',
-                                              'CINDER_REGION_NAME'),
+                                              'MANILA_REGION_NAME'),
                             help='Defaults to env[OS_REGION_NAME].')
         parser.add_argument('--os_region_name',
                             help=argparse.SUPPRESS)
@@ -147,23 +147,23 @@ class OpenStackCinderShell(object):
 
         parser.add_argument('--service-name',
                             metavar='<service-name>',
-                            default=utils.env('CINDER_SERVICE_NAME'),
-                            help='Defaults to env[CINDER_SERVICE_NAME]')
+                            default=utils.env('MANILA_SERVICE_NAME'),
+                            help='Defaults to env[MANILA_SERVICE_NAME]')
         parser.add_argument('--service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--volume-service-name',
                             metavar='<volume-service-name>',
-                            default=utils.env('CINDER_VOLUME_SERVICE_NAME'),
-                            help='Defaults to env[CINDER_VOLUME_SERVICE_NAME]')
+                            default=utils.env('MANILA_VOLUME_SERVICE_NAME'),
+                            help='Defaults to env[MANILA_VOLUME_SERVICE_NAME]')
         parser.add_argument('--volume_service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--endpoint-type',
                             metavar='<endpoint-type>',
-                            default=utils.env('CINDER_ENDPOINT_TYPE',
+                            default=utils.env('MANILA_ENDPOINT_TYPE',
                             default=DEFAULT_MANILA_ENDPOINT_TYPE),
-                            help='Defaults to env[CINDER_ENDPOINT_TYPE] or '
+                            help='Defaults to env[MANILA_ENDPOINT_TYPE] or '
                             + DEFAULT_MANILA_ENDPOINT_TYPE + '.')
         parser.add_argument('--endpoint_type',
                             help=argparse.SUPPRESS)
@@ -209,17 +209,17 @@ class OpenStackCinderShell(object):
 
         # alias for --os-password, left in for backwards compatibility
         parser.add_argument('--apikey', '--password', dest='apikey',
-                            default=utils.env('CINDER_API_KEY'),
+                            default=utils.env('MANILA_API_KEY'),
                             help=argparse.SUPPRESS)
 
         # alias for --os-tenant-name, left in for backward compatibility
         parser.add_argument('--projectid', '--tenant_name', dest='projectid',
-                            default=utils.env('CINDER_PROJECT_ID'),
+                            default=utils.env('MANILA_PROJECT_ID'),
                             help=argparse.SUPPRESS)
 
         # alias for --os-auth-url, left in for backward compatibility
         parser.add_argument('--url', '--auth_url', dest='url',
-                            default=utils.env('CINDER_URL'),
+                            default=utils.env('MANILA_URL'),
                             help=argparse.SUPPRESS)
 
         return parser
@@ -444,7 +444,7 @@ class OpenStackCinderShell(object):
             if not utils.isunauthenticated(args.func):
                 self.cs.authenticate()
         except exc.Unauthorized:
-            raise exc.CommandError("Invalid OpenStack Cinder credentials.")
+            raise exc.CommandError("Invalid OpenStack Manila credentials.")
         except exc.AuthorizationFailure:
             raise exc.CommandError("Unable to authorize user")
 
@@ -459,7 +459,7 @@ class OpenStackCinderShell(object):
         """Print arguments for bash_completion.
 
         Prints all of the commands and options to stdout so that the
-        cinder.bash_completion script doesn't have to hard code them.
+        manila.bash_completion script doesn't have to hard code them.
         """
         commands = set()
         options = set()
@@ -498,9 +498,9 @@ class OpenStackHelpFormatter(argparse.HelpFormatter):
 
 def main():
     try:
-        OpenStackCinderShell().main(map(strutils.safe_decode, sys.argv[1:]))
+        OpenStackManilaShell().main(map(strutils.safe_decode, sys.argv[1:]))
     except KeyboardInterrupt:
-        print >> sys.stderr, "... terminating cinder client"
+        print >> sys.stderr, "... terminating manila client"
         sys.exit(130)
     except Exception, e:
         logger.debug(e, exc_info=1)

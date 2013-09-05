@@ -31,7 +31,7 @@ class ShellTest(utils.TestCase):
         orig = sys.stdout
         try:
             sys.stdout = cStringIO.StringIO()
-            _shell = manilaclient.shell.OpenStackCinderShell()
+            _shell = manilaclient.shell.OpenStackManilaShell()
             _shell.main(argstr.split())
         except SystemExit:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -50,7 +50,7 @@ class ShellTest(utils.TestCase):
         required = [
             '.*?^usage: ',
             '.*?(?m)^\s+create\s+Add a new volume.',
-            '.*?(?m)^See "cinder help COMMAND" for help on a specific command',
+            '.*?(?m)^See "manila help COMMAND" for help on a specific command',
         ]
         help_text = self.shell('help')
         for r in required:
@@ -59,7 +59,7 @@ class ShellTest(utils.TestCase):
 
     def test_help_on_subcommand(self):
         required = [
-            '.*?^usage: cinder list',
+            '.*?^usage: manila list',
             '.*?(?m)^List all the volumes.',
         ]
         help_text = self.shell('help list')
