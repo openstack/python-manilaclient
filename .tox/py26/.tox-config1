@@ -1,4 +1,0 @@
-00000000000000000000000000000000 /usr/bin/python2.6
-1.6.1 0 0 0
-00000000000000000000000000000000 -r/opt/stack/python-manilaclient/tools/pip-requires
-00000000000000000000000000000000 -r/opt/stack/python-manilaclient/tools/test-requires

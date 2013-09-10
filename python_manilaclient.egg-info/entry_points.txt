@@ -1,3 +1,0 @@
-[console_scripts]
-manila = manilaclient.shell:main
-
