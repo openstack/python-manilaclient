@@ -32,13 +32,13 @@ class ShareSnapshotsTest(utils.TestCase):
 
     def test_create_share_snapshot(self):
         cs.share_snapshots.create(1234)
-        cs.assert_called('POST', '/share-snapshots')
+        cs.assert_called('POST', '/snapshots')
 
     def test_delete_share(self):
         snapshot = cs.share_snapshots.get(1234)
         cs.share_snapshots.delete(snapshot)
-        cs.assert_called('DELETE', '/share-snapshots/1234')
+        cs.assert_called('DELETE', '/snapshots/1234')
 
     def test_list_shares(self):
         cs.share_snapshots.list()
-        cs.assert_called('GET', '/share-snapshots/detail')
+        cs.assert_called('GET', '/snapshots/detail')

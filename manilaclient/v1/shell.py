@@ -59,7 +59,6 @@ def _find_share(cs, share):
 
 def _print_share(cs, share):
     info = share._info.copy()
-    info.pop('links')
     utils.print_dict(info)
 
 
@@ -140,91 +139,84 @@ def do_quota_show(cs, args):
     _quota_show(cs.quotas.get(args.tenant))
 
 
-# @utils.arg('tenant',
-#            metavar='<tenant_id>',
-#            help='UUID of tenant to list the default quotas for.')
-# @utils.service_type('share')
-# def do_quota_defaults(cs, args):
-#     """List the default quotas for a tenant."""
-#
-#     _quota_show(cs.quotas.defaults(args.tenant))
+@utils.arg('tenant',
+           metavar='<tenant_id>',
+           help='UUID of tenant to list the default quotas for.')
+@utils.service_type('share')
+def do_quota_defaults(cs, args):
+    """List the default quotas for a tenant."""
+
+    _quota_show(cs.quotas.defaults(args.tenant))
 
 
-# @utils.arg('tenant',
-#            metavar='<tenant_id>',
-#            help='UUID of tenant to set the quotas for.')
-# @utils.arg('--volumes',
-#            metavar='<volumes>',
-#            type=int, default=None,
-#            help='New value for the "volumes" quota.')
-# @utils.arg('--snapshots',
-#            metavar='<snapshots>',
-#            type=int, default=None,
-#            help='New value for the "snapshots" quota.')
-# @utils.arg('--gigabytes',
-#            metavar='<gigabytes>',
-#            type=int, default=None,
-#            help='New value for the "gigabytes" quota.')
-# @utils.service_type('share')
-# def do_quota_update(cs, args):
-#     """Update the quotas for a tenant."""
-#
-#     _quota_update(cs.quotas, args.tenant, args)
+@utils.arg('tenant',
+           metavar='<tenant_id>',
+           help='UUID of tenant to set the quotas for.')
+@utils.arg('--shares',
+           metavar='<shares>',
+           type=int, default=None,
+           help='New value for the "shares" quota.')
+@utils.arg('--snapshots',
+           metavar='<snapshots>',
+           type=int, default=None,
+           help='New value for the "snapshots" quota.')
+@utils.arg('--gigabytes',
+           metavar='<gigabytes>',
+           type=int, default=None,
+           help='New value for the "gigabytes" quota.')
+@utils.service_type('share')
+def do_quota_update(cs, args):
+    """Update the quotas for a tenant."""
+
+    _quota_update(cs.quotas, args.tenant, args)
 
 
-# @utils.arg('class_name',
-#            metavar='<class>',
-#            help='Name of quota class to list the quotas for.')
-# @utils.service_type('share')
-# def do_quota_class_show(cs, args):
-#     """List the quotas for a quota class."""
-#
-#     _quota_show(cs.quota_classes.get(args.class_name))
+@utils.arg('class_name',
+           metavar='<class>',
+           help='Name of quota class to list the quotas for.')
+@utils.service_type('share')
+def do_quota_class_show(cs, args):
+    """List the quotas for a quota class."""
+
+    _quota_show(cs.quota_classes.get(args.class_name))
 
 
-# @utils.arg('class-name',
-#            metavar='<class-name>',
-#            help='Name of quota class to set the quotas for.')
-# @utils.arg('--volumes',
-#            metavar='<volumes>',
-#            type=int, default=None,
-#            help='New value for the "volumes" quota.')
-# @utils.arg('--snapshots',
-#            metavar='<snapshots>',
-#            type=int, default=None,
-#            help='New value for the "snapshots" quota.')
-# @utils.arg('--gigabytes',
-#            metavar='<gigabytes>',
-#            type=int, default=None,
-#            help='New value for the "gigabytes" quota.')
-# @utils.service_type('share')
-# def do_quota_class_update(cs, args):
-#     """Update the quotas for a quota class."""
-#
-#     _quota_update(cs.quota_classes, args.class_name, args)
+@utils.arg('class-name',
+           metavar='<class-name>',
+           help='Name of quota class to set the quotas for.')
+@utils.arg('--shares',
+           metavar='<shares>',
+           type=int, default=None,
+           help='New value for the "shares" quota.')
+@utils.arg('--snapshots',
+           metavar='<snapshots>',
+           type=int, default=None,
+           help='New value for the "snapshots" quota.')
+@utils.arg('--gigabytes',
+           metavar='<gigabytes>',
+           type=int, default=None,
+           help='New value for the "gigabytes" quota.')
+@utils.service_type('share')
+def do_quota_class_update(cs, args):
+    """Update the quotas for a quota class."""
+
+    _quota_update(cs.quota_classes, args.class_name, args)
 
 
-# @utils.service_type('share')
-# def do_absolute_limits(cs, args):
-#     """Print a list of absolute limits for a user"""
-#     limits = cs.limits.get().absolute
-#     columns = ['Name', 'Value']
-#     utils.print_list(limits, columns)
+@utils.service_type('share')
+def do_absolute_limits(cs, args):
+    """Print a list of absolute limits for a user"""
+    limits = cs.limits.get().absolute
+    columns = ['Name', 'Value']
+    utils.print_list(limits, columns)
 
 
-# @utils.service_type('share')
-# def do_rate_limits(cs, args):
-#     """Print a list of rate limits for a user"""
-#     limits = cs.limits.get().rate
-#     columns = ['Verb', 'URI', 'Value', 'Remain', 'Unit', 'Next_Available']
-#     utils.print_list(limits, columns)
-
-
-def _print_type_extra_specs(vol_type):
-    try:
-        return vol_type.get_keys()
-    except exceptions.NotFound:
-        return "N/A"
+@utils.service_type('share')
+def do_rate_limits(cs, args):
+    """Print a list of rate limits for a user"""
+    limits = cs.limits.get().rate
+    columns = ['Verb', 'URI', 'Value', 'Remain', 'Unit', 'Next_Available']
+    utils.print_list(limits, columns)
 
 
 @utils.arg(
@@ -441,6 +433,33 @@ def do_snapshot_create(cs, args):
                                          args.description)
     _print_share_snapshot(cs, snapshot)
 
+# @utils.arg('share',
+#            metavar='<share>',
+#            help='ID of the share to rename.')
+# @utils.arg('name',
+#            nargs='?',
+#            metavar='<name>',
+#            help='New name for the share.')
+# @utils.arg('--description', metavar='<description>',
+#            help='Optional share description. (Default=None)',
+#            default=None)
+# @utils.arg('--display-description',
+#            help=argparse.SUPPRESS)
+# @utils.arg('--display_description',
+#            help=argparse.SUPPRESS)
+# @utils.service_type('share')
+# def do_rename(cs, args):
+#     """Rename a share."""
+#     kwargs = {}
+#
+#     if args.name is not None:
+#         kwargs['name'] = args.name
+#     if args.display_description is not None:
+#         kwargs['description'] = args.display_description
+#     elif args.description is not None:
+#         kwargs['description'] = args.description
+#
+#     _find_share(cs, args.share).update(**kwargs)
 
 @utils.arg(
     'snapshot_id',

@@ -32,11 +32,9 @@ class Client(object):
         password = api_key
         self.limits = limits.LimitsManager(self)
 
-        # self.quota_classes = quota_classes.QuotaClassSetManager(self)
-        # self.quotas = quotas.QuotaSetManager(self)
+        self.quota_classes = quota_classes.QuotaClassSetManager(self)
+        self.quotas = quotas.QuotaSetManager(self)
 
-        # self.backups = volume_backups.VolumeBackupManager(self)
-        # self.restores = volume_backups_restore.VolumeBackupRestoreManager(self)
         self.shares = shares.ShareManager(self)
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 

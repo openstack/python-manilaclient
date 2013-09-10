@@ -47,11 +47,11 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param description: Description of the snapshot
         :rtype: :class:`ShareSnapshot`
         """
-        body = {'share-snapshot': {'share_id': share_id,
-                                   'force': force,
-                                   'name': name,
-                                   'description': description}}
-        return self._create('/share-snapshots', body, 'share-snapshot')
+        body = {'snapshot': {'share_id': share_id,
+                             'force': force,
+                             'name': name,
+                             'description': description}}
+        return self._create('/snapshots', body, 'snapshot')
 
     def get(self, snapshot_id):
         """Get a snapshot.
@@ -59,7 +59,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param snapshot_id: The ID of the snapshot to get.
         :rtype: :class:`ShareSnapshot`
         """
-        return self._get('/share-snapshots/%s' % snapshot_id, 'share-snapshot')
+        return self._get('/snapshots/%s' % snapshot_id, 'snapshot')
 
     def list(self, detailed=True, search_opts=None):
         """Get a list of all snapshots of shares.
@@ -77,15 +77,15 @@ class ShareSnapshotManager(base.ManagerWithFind):
             query_string = ''
 
         if detailed:
-            path = "/share-snapshots/detail%s" % (query_string,)
+            path = "/snapshots/detail%s" % (query_string,)
         else:
-            path = "/share-snapshots%s" % (query_string,)
+            path = "/snapshots%s" % (query_string,)
 
-        return self._list(path, 'share-snapshots')
+        return self._list(path, 'snapshots')
 
     def delete(self, snapshot):
         """Delete a snapshot of a share.
 
         :param share: The :class:`ShareSnapshot` to delete.
         """
-        self._delete("/share-snapshots/%s" % base.getid(snapshot))
+        self._delete("/snapshots/%s" % base.getid(snapshot))

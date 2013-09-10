@@ -33,18 +33,20 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)
 
-    def get_shares_detail(self):
+    def get_shares_detail(self, **kw):
         shares = {'shares': [{'id': 1234,
                               'name': 'sharename',
                               'attachments': [{'server_id': 111}]}]}
         return (200, {}, shares)
 
-    def get_share_snapshots_1234(self, **kw):
-        snapshot = {'share-snapshot': {'id': 1234, 'name': 'sharename'}}
+    def get_snapshots_1234(self, **kw):
+        snapshot = {'snapshot': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, snapshot)
 
-    def get_share_snapshots_detail(self):
-        snapshots = {'share-snapshots': [{
+    def get_snapshots_detail(self, **kw):
+        print kw
+        # print kw['share_id']
+        snapshots = {'snapshots': [{
             'id': 1234,
             'created_at': '2012-08-27T00:00:00.000000',
             'share_size': 1,
@@ -75,11 +77,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def post_shares(self, **kwargs):
         return (202, {}, {'share': {}})
 
-    def post_share_snapshots(self, **kwargs):
-        return (202, {}, {'share-snapshot': {}})
+    def post_snapshots(self, **kwargs):
+        return (202, {}, {'snapshot': {}})
 
     def delete_shares_1234(self, **kw):
         return (202, {}, None)
 
-    def delete_share_snapshots_1234(self, **kwargs):
+    def delete_snapshots_1234(self, **kwargs):
         return (202, {}, None)

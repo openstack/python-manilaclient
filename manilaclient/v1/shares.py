@@ -177,6 +177,3 @@ class ShareManager(base.ManagerWithFind):
         self.run_hooks('modify_body_for_action', body, **kwargs)
         url = '/shares/%s/action' % base.getid(share)
         return self.api.client.post(url, body=body)
-
-
-#########################
