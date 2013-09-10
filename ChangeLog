@@ -1,0 +1,59 @@
+commit 9a3e8e15af4de98f1c6078dfeea7bd2db18d8146
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Thu Sep 5 13:45:47 2013 +0300
+
+    renamed service_type to share
+
+commit e69f2bea627a8ef57156a34dcd09a65ceb458831
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Thu Sep 5 13:45:16 2013 +0300
+
+    deleted volume v1
+
+commit 77dffa2c99ab1dd08eef6c465bd9fcc8a8e0c6a0
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Thu Sep 5 13:32:38 2013 +0300
+
+    mass replace cinder to manila
+
+commit 2d2bedf6b0bdbcc9a28c75189f1ff2bf2af779e9
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Thu Sep 5 13:12:56 2013 +0300
+
+    fixed service type
+
+commit fa125b77147f31fafde719075150bc267ce82286
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Tue Sep 3 14:37:34 2013 +0300
+
+    setup.py fixed
+
+commit 1702374292af47a9f82f44bed1f82745878ada38
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Tue Sep 3 14:36:25 2013 +0300
+
+    setup.py fixed
+
+commit c476d1c5936b400e4524f4db5c228c207863a760
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Tue Sep 3 14:33:50 2013 +0300
+
+    setup.py fixed
+
+commit 7c1a8bcbefea5fa30ee24bc61588f3d4f6a7d5fb
+Author: Yulia Portnova <yportnova@mirantis.com>
+Date:   Tue Sep 3 14:28:38 2013 +0300
+
+    cinderclient to manilaclient
+
+commit 5e9ada9fc68c175da007a92e6d8d307df3315326
+Author: Ben Swartzlander <bswartz@netapp.com>
+Date:   Mon Sep 2 23:42:41 2013 -0400
+
+    Initial checkin
+
+commit 24be39395d5df7e1642bb3b98a42e60221c96f99
+Author: bswartz <ben@swartzlander.org>
+Date:   Mon Sep 2 20:40:07 2013 -0700
+
+    Initial commit

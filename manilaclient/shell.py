@@ -33,7 +33,7 @@ import manilaclient.extension
 from manilaclient.openstack.common import strutils
 from manilaclient import utils
 from manilaclient.v1 import shell as shell_v1
-from manilaclient.v2 import shell as shell_v2
+# from manilaclient.v2 import shell as shell_v2
 
 DEFAULT_OS_SHARE_API_VERSION = "1"
 DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
@@ -152,11 +152,11 @@ class OpenStackManilaShell(object):
         parser.add_argument('--service_name',
                             help=argparse.SUPPRESS)
 
-        parser.add_argument('--volume-service-name',
-                            metavar='<volume-service-name>',
-                            default=utils.env('MANILA_VOLUME_SERVICE_NAME'),
-                            help='Defaults to env[MANILA_VOLUME_SERVICE_NAME]')
-        parser.add_argument('--volume_service_name',
+        parser.add_argument('--share-service-name',
+                            metavar='<share-service-name>',
+                            default=utils.env('MANILA_share_service_name'),
+                            help='Defaults to env[MANILA_share_service_name]')
+        parser.add_argument('--share_service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--endpoint-type',
@@ -168,13 +168,13 @@ class OpenStackManilaShell(object):
         parser.add_argument('--endpoint_type',
                             help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-volume-api-version',
+        parser.add_argument('--os-share-api-version',
                             metavar='<compute-api-ver>',
-                            default=utils.env('OS_VOLUME_API_VERSION',
+                            default=utils.env('OS_SHARE_API_VERSION',
                             default=DEFAULT_OS_SHARE_API_VERSION),
                             help='Accepts 1 or 2,defaults '
-                                 'to env[OS_VOLUME_API_VERSION].')
-        parser.add_argument('--os_volume_api_version',
+                                 'to env[OS_SHARE_API_VERSION].')
+        parser.add_argument('--os_share_api_version',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-cacert',
@@ -233,7 +233,6 @@ class OpenStackManilaShell(object):
         try:
             actions_module = {
                 '1.1': shell_v1,
-                '2': shell_v2,
             }[version]
         except KeyError:
             actions_module = shell_v1
@@ -336,11 +335,11 @@ class OpenStackManilaShell(object):
 
         # build available subcommands based on version
         self.extensions = self._discover_extensions(
-            options.os_volume_api_version)
+            options.os_share_api_version)
         self._run_extension_hooks('__pre_parse_args__')
 
         subcommand_parser = self.get_subcommand_parser(
-            options.os_volume_api_version)
+            options.os_share_api_version)
         self.parser = subcommand_parser
 
         if options.help or not argv:
@@ -360,14 +359,14 @@ class OpenStackManilaShell(object):
 
         (os_username, os_password, os_tenant_name, os_auth_url,
          os_region_name, os_tenant_id, endpoint_type, insecure,
-         service_type, service_name, volume_service_name,
+         service_type, service_name, share_service_name,
          username, apikey, projectid, url, region_name, cacert) = (
              args.os_username, args.os_password,
              args.os_tenant_name, args.os_auth_url,
              args.os_region_name, args.os_tenant_id,
              args.endpoint_type, args.insecure,
              args.service_type, args.service_name,
-             args.volume_service_name, args.username,
+             args.share_service_name, args.username,
              args.apikey, args.projectid,
              args.url, args.region_name, args.os_cacert)
 
@@ -427,7 +426,7 @@ class OpenStackManilaShell(object):
                 "You must provide an auth url "
                 "via either --os-auth-url or env[OS_AUTH_URL]")
 
-        self.cs = client.Client(options.os_volume_api_version, os_username,
+        self.cs = client.Client(options.os_share_api_version, os_username,
                                 os_password, os_tenant_name, os_auth_url,
                                 insecure, region_name=os_region_name,
                                 tenant_id=os_tenant_id,
@@ -435,7 +434,7 @@ class OpenStackManilaShell(object):
                                 extensions=self.extensions,
                                 service_type=service_type,
                                 service_name=service_name,
-                                volume_service_name=volume_service_name,
+                                share_service_name=share_service_name,
                                 retries=options.retries,
                                 http_log_debug=args.debug,
                                 cacert=cacert)

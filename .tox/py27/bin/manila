@@ -1,0 +1,10 @@
+#!/opt/stack/python-manilaclient/.tox/py27/bin/python2.7
+# EASY-INSTALL-ENTRY-SCRIPT: 'python-manilaclient==9a3e8e1','console_scripts','manila'
+__requires__ = 'python-manilaclient==9a3e8e1'
+import sys
+from pkg_resources import load_entry_point
+
+if __name__ == '__main__':
+    sys.exit(
+        load_entry_point('python-manilaclient==9a3e8e1', 'console_scripts', 'manila')()
+    )

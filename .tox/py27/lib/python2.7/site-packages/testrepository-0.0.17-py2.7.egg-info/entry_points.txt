@@ -1,0 +1,3 @@
+[distutils.commands]
+testr = testrepository.setuptools_command:Testr
+
