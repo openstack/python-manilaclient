@@ -52,25 +52,6 @@ def _poll_for_status(poll_fn, obj_id, action, final_ok_states,
             time.sleep(poll_period)
 
 
-# def _find_volume(cs, volume):
-#     """Get a volume by ID."""
-#     return utils.find_resource(cs.volumes, volume)
-
-
-# def _find_volume_snapshot(cs, snapshot):
-#     """Get a volume snapshot by ID."""
-#     return utils.find_resource(cs.volume_snapshots, snapshot)
-
-
-# def _find_backup(cs, backup):
-#     """Get a backup by ID."""
-#     return utils.find_resource(cs.backups, backup)
-
-
-# def _print_volume_snapshot(snapshot):
-#     utils.print_dict(snapshot._info)
-
-
 def _find_share(cs, share):
     """Get a share by ID."""
     return utils.find_resource(cs.shares, share)
@@ -101,16 +82,6 @@ def _translate_keys(collection, convert):
                 setattr(item, to_key, item._info[from_key])
 
 
-# def _translate_volume_keys(collection):
-#     convert = [('volumeType', 'volume_type')]
-#     _translate_keys(collection, convert)
-
-
-# def _translate_volume_snapshot_keys(collection):
-#     convert = [('volumeId', 'volume_id')]
-#     _translate_keys(collection, convert)
-
-
 def _extract_metadata(args):
     metadata = {}
     for metadatum in args.metadata[0]:
@@ -138,35 +109,35 @@ def do_credentials(cs, args):
     utils.print_dict(catalog['access']['user'], "User Credentials")
     utils.print_dict(catalog['access']['token'], "Token")
 
-_quota_resources = ['volumes', 'snapshots', 'gigabytes']
-
-#
-# def _quota_show(quotas):
-#     quota_dict = {}
-#     for resource in _quota_resources:
-#         quota_dict[resource] = getattr(quotas, resource, None)
-#     utils.print_dict(quota_dict)
+_quota_resources = ['shares', 'snapshots', 'gigabytes']
 
 
-# def _quota_update(manager, identifier, args):
-#     updates = {}
-#     for resource in _quota_resources:
-#         val = getattr(args, resource, None)
-#         if val is not None:
-#             updates[resource] = val
-#
-#     if updates:
-#         manager.update(identifier, **updates)
+def _quota_show(quotas):
+    quota_dict = {}
+    for resource in _quota_resources:
+        quota_dict[resource] = getattr(quotas, resource, None)
+    utils.print_dict(quota_dict)
 
-#
-# @utils.arg('tenant',
-#            metavar='<tenant_id>',
-#            help='UUID of tenant to list the quotas for.')
-# @utils.service_type('share')
-# def do_quota_show(cs, args):
-#     """List the quotas for a tenant."""
-#
-#     _quota_show(cs.quotas.get(args.tenant))
+
+def _quota_update(manager, identifier, args):
+    updates = {}
+    for resource in _quota_resources:
+        val = getattr(args, resource, None)
+        if val is not None:
+            updates[resource] = val
+
+    if updates:
+        manager.update(identifier, **updates)
+
+
+@utils.arg('tenant',
+           metavar='<tenant_id>',
+           help='UUID of tenant to list the quotas for.')
+@utils.service_type('share')
+def do_quota_show(cs, args):
+    """List the quotas for a tenant."""
+
+    _quota_show(cs.quotas.get(args.tenant))
 
 
 # @utils.arg('tenant',

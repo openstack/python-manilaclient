@@ -58,9 +58,9 @@ class ServiceCatalog(object):
                     service.get('name') != service_name):
                 continue
 
-            # if (share_service_name and service_type == 'volume' and
-            #         service.get('name') != share_service_name):
-            #     continue
+            if (share_service_name and service_type == 'share' and
+                    service.get('name') != share_service_name):
+                continue
 
             endpoints = service['endpoints']
             for endpoint in endpoints:
