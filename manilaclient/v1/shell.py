@@ -461,6 +461,7 @@ def do_snapshot_create(cs, args):
 #
 #     _find_share(cs, args.share).update(**kwargs)
 
+
 @utils.arg(
     'snapshot_id',
     metavar='<snapshot-id>',

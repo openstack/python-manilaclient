@@ -322,7 +322,7 @@ def _get_version_from_git(pre_version):
         else:
             return _run_shell_command(
                 "git --git-dir=" + git_dir + " describe --always").replace(
-                    '-', '.')
+                '-', '.')
     return None
 
 

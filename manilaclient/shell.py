@@ -161,8 +161,9 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--endpoint-type',
                             metavar='<endpoint-type>',
-                            default=utils.env('MANILA_ENDPOINT_TYPE',
-                            default=DEFAULT_MANILA_ENDPOINT_TYPE),
+                            default=utils.env(
+                                'MANILA_ENDPOINT_TYPE',
+                                default=DEFAULT_MANILA_ENDPOINT_TYPE),
                             help='Defaults to env[MANILA_ENDPOINT_TYPE] or '
                             + DEFAULT_MANILA_ENDPOINT_TYPE + '.')
         parser.add_argument('--endpoint_type',
@@ -170,8 +171,9 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--os-share-api-version',
                             metavar='<compute-api-ver>',
-                            default=utils.env('OS_SHARE_API_VERSION',
-                            default=DEFAULT_OS_SHARE_API_VERSION),
+                            default=utils.env(
+                                'OS_SHARE_API_VERSION',
+                                default=DEFAULT_OS_SHARE_API_VERSION),
                             help='Accepts 1 or 2,defaults '
                                  'to env[OS_SHARE_API_VERSION].')
         parser.add_argument('--os_share_api_version',
@@ -361,14 +363,12 @@ class OpenStackManilaShell(object):
          os_region_name, os_tenant_id, endpoint_type, insecure,
          service_type, service_name, share_service_name,
          username, apikey, projectid, url, region_name, cacert) = (
-             args.os_username, args.os_password,
-             args.os_tenant_name, args.os_auth_url,
-             args.os_region_name, args.os_tenant_id,
-             args.endpoint_type, args.insecure,
-             args.service_type, args.service_name,
-             args.share_service_name, args.username,
-             args.apikey, args.projectid,
-             args.url, args.region_name, args.os_cacert)
+            args.os_username, args.os_password, args.os_tenant_name,
+            args.os_auth_url, args.os_region_name, args.os_tenant_id,
+            args.endpoint_type, args.insecure, args.service_type,
+            args.service_name, args.share_service_name, args.username,
+            args.apikey, args.projectid, args.url, args.region_name,
+            args.os_cacert)
 
         if not endpoint_type:
             endpoint_type = DEFAULT_MANILA_ENDPOINT_TYPE
