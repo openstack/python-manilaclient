@@ -342,6 +342,26 @@ def _get_version_from_pkg_info(package_name):
     return pkg_info.get('Version', None)
 
 
+def _get_defined_version():
+    MANILA_CLIENT_VERSION = ['2013', '3', 0]
+    FINAL = False   # This becomes true at Release Candidate time
+
+    def canonical_version_string():
+        return '.'.join(filter(None, MANILA_CLIENT_VERSION))
+
+    def version_string():
+        if FINAL:
+            return canonical_version_string()
+        else:
+            return '%s-dev' % (canonical_version_string(),)
+
+    return version_string()
+
+
+def version_string_with_vcs():
+    return '%s-%s' % (canonical_version_string(), vcs_version_string())
+
+
 def get_version(package_name, pre_version=None):
     """Get the version of the project. First, try getting it from PKG-INFO, if
     it exists. If it does, that means we're in a distribution tarball or that
@@ -360,6 +380,11 @@ def get_version(package_name, pre_version=None):
     version = _get_version_from_pkg_info(package_name)
     if version:
         return version
+
+    version = _get_defined_version()
+    if version:
+        return version
+
     version = _get_version_from_git(pre_version)
     if version:
         return version
