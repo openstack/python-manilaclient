@@ -1,4 +1,4 @@
-# Copyright 2011 OpenStack LLC.
+# Copyright 2013 OpenStack LLC.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -34,19 +34,19 @@ class QuotaSetsTest(utils.TestCase):
 
     def test_update_quota(self):
         q = cs.quotas.get('test')
-        q.update(volumes=2)
+        q.update(shares=2)
         q.update(snapshots=2)
         cs.assert_called('PUT', '/os-quota-sets/test')
 
     def test_refresh_quota(self):
         q = cs.quotas.get('test')
         q2 = cs.quotas.get('test')
-        self.assertEqual(q.volumes, q2.volumes)
+        self.assertEqual(q.shares, q2.shares)
         self.assertEqual(q.snapshots, q2.snapshots)
-        q2.volumes = 0
-        self.assertNotEqual(q.volumes, q2.volumes)
+        q2.shares = 0
+        self.assertNotEqual(q.shares, q2.shares)
         q2.snapshots = 0
         self.assertNotEqual(q.snapshots, q2.snapshots)
         q2.get()
-        self.assertEqual(q.volumes, q2.volumes)
+        self.assertEqual(q.shares, q2.shares)
         self.assertEqual(q.snapshots, q2.snapshots)

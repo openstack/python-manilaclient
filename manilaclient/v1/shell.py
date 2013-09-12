@@ -1,6 +1,4 @@
-# Copyright 2010 Jacob Kaplan-Moss
-
-# Copyright 2011 OpenStack LLC.
+# Copyright 2013 OpenStack LLC.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -26,9 +24,7 @@ from manilaclient import utils
 
 def _poll_for_status(poll_fn, obj_id, action, final_ok_states,
                      poll_period=5, show_progress=True):
-    """Block while an action is being performed, periodically printing
-    progress.
-    """
+    """Block while action is performed, periodically printing progress."""
     def print_progress(progress):
         if show_progress:
             msg = ('\rInstance %(action)s... %(progress)s%% complete'
@@ -56,29 +52,6 @@ def _poll_for_status(poll_fn, obj_id, action, final_ok_states,
             time.sleep(poll_period)
 
 
-def _find_volume(cs, volume):
-    """Get a volume by ID."""
-    return utils.find_resource(cs.volumes, volume)
-
-
-def _find_volume_snapshot(cs, snapshot):
-    """Get a volume snapshot by ID."""
-    return utils.find_resource(cs.volume_snapshots, snapshot)
-
-
-def _find_backup(cs, backup):
-    """Get a backup by ID."""
-    return utils.find_resource(cs.backups, backup)
-
-
-def _print_volume(volume):
-    utils.print_dict(volume._info)
-
-
-def _print_volume_snapshot(snapshot):
-    utils.print_dict(snapshot._info)
-
-
 def _find_share(cs, share):
     """Get a share by ID."""
     return utils.find_resource(cs.shares, share)
@@ -86,7 +59,6 @@ def _find_share(cs, share):
 
 def _print_share(cs, share):
     info = share._info.copy()
-    info.pop('links', None)
     utils.print_dict(info)
 
 
@@ -97,7 +69,7 @@ def _find_share_snapshot(cs, snapshot):
 
 def _print_share_snapshot(cs, snapshot):
     info = snapshot._info.copy()
-    info.pop('links', None)
+    info.pop('links')
     utils.print_dict(info)
 
 
@@ -109,19 +81,9 @@ def _translate_keys(collection, convert):
                 setattr(item, to_key, item._info[from_key])
 
 
-def _translate_volume_keys(collection):
-    convert = [('displayName', 'display_name'), ('volumeType', 'volume_type')]
-    _translate_keys(collection, convert)
-
-
-def _translate_volume_snapshot_keys(collection):
-    convert = [('displayName', 'display_name'), ('volumeId', 'volume_id')]
-    _translate_keys(collection, convert)
-
-
 def _extract_metadata(args):
     metadata = {}
-    for metadatum in args.metadata:
+    for metadatum in args.metadata[0]:
         # unset doesn't require a val, so we have the if/else
         if '=' in metadatum:
             (key, value) = metadatum.split('=', 1)
@@ -131,387 +93,6 @@ def _extract_metadata(args):
 
         metadata[key] = value
     return metadata
-
-
-@utils.arg(
-    '--all-tenants',
-    dest='all_tenants',
-    metavar='<0|1>',
-    nargs='?',
-    type=int,
-    const=1,
-    default=0,
-    help='Display information from all tenants (Admin only).')
-@utils.arg(
-    '--all_tenants',
-    nargs='?',
-    type=int,
-    const=1,
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--display-name',
-    metavar='<display-name>',
-    default=None,
-    help='Filter results by display-name')
-@utils.arg(
-    '--status',
-    metavar='<status>',
-    default=None,
-    help='Filter results by status')
-@utils.service_type('share')
-def do_list(cs, args):
-    """List all the volumes."""
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
-    search_opts = {
-        'all_tenants': all_tenants,
-        'display_name': args.display_name,
-        'status': args.status,
-    }
-    volumes = cs.volumes.list(search_opts=search_opts)
-    _translate_volume_keys(volumes)
-
-    # Create a list of servers to which the volume is attached
-    for vol in volumes:
-        servers = [s.get('server_id') for s in vol.attachments]
-        setattr(vol, 'attached_to', ','.join(map(str, servers)))
-    utils.print_list(volumes, ['ID', 'Status', 'Display Name',
-                     'Size', 'Volume Type', 'Bootable', 'Attached to'])
-
-
-@utils.arg('volume', metavar='<volume>', help='ID of the volume.')
-@utils.service_type('share')
-def do_show(cs, args):
-    """Show details about a volume."""
-    volume = _find_volume(cs, args.volume)
-    _print_volume(volume)
-
-
-@utils.arg('size',
-           metavar='<size>',
-           type=int,
-           help='Size of volume in GB')
-@utils.arg(
-    '--snapshot-id',
-    metavar='<snapshot-id>',
-    default=None,
-    help='Create volume from snapshot id (Optional, Default=None)')
-@utils.arg(
-    '--snapshot_id',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--source-volid',
-    metavar='<source-volid>',
-    default=None,
-    help='Create volume from volume id (Optional, Default=None)')
-@utils.arg(
-    '--source_volid',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--image-id',
-    metavar='<image-id>',
-    default=None,
-    help='Create volume from image id (Optional, Default=None)')
-@utils.arg(
-    '--image_id',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--display-name',
-    metavar='<display-name>',
-    default=None,
-    help='Volume name (Optional, Default=None)')
-@utils.arg(
-    '--display_name',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--display-description',
-    metavar='<display-description>',
-    default=None,
-    help='Volume description (Optional, Default=None)')
-@utils.arg(
-    '--display_description',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--volume-type',
-    metavar='<volume-type>',
-    default=None,
-    help='Volume type (Optional, Default=None)')
-@utils.arg(
-    '--volume_type',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--availability-zone',
-    metavar='<availability-zone>',
-    default=None,
-    help='Availability zone for volume (Optional, Default=None)')
-@utils.arg(
-    '--availability_zone',
-    help=argparse.SUPPRESS)
-@utils.arg('--metadata',
-           type=str,
-           nargs='*',
-           metavar='<key=value>',
-           help='Metadata key=value pairs (Optional, Default=None)',
-           default=None)
-@utils.service_type('share')
-def do_create(cs, args):
-    """Add a new volume."""
-    volume_metadata = None
-    if args.metadata is not None:
-        volume_metadata = _extract_metadata(args)
-
-    volume = cs.volumes.create(args.size,
-                               args.snapshot_id,
-                               args.source_volid,
-                               args.display_name,
-                               args.display_description,
-                               args.volume_type,
-                               availability_zone=args.availability_zone,
-                               imageRef=args.image_id,
-                               metadata=volume_metadata)
-    _print_volume(volume)
-
-
-@utils.arg('volume', metavar='<volume>', help='ID of the volume to delete.')
-@utils.service_type('share')
-def do_delete(cs, args):
-    """Remove a volume."""
-    volume = _find_volume(cs, args.volume)
-    volume.delete()
-
-
-@utils.arg('volume', metavar='<volume>', help='ID of the volume to delete.')
-@utils.service_type('share')
-def do_force_delete(cs, args):
-    """Attempt forced removal of a volume, regardless of its state."""
-    volume = _find_volume(cs, args.volume)
-    volume.force_delete()
-
-
-@utils.arg('volume', metavar='<volume>', help='ID of the volume to rename.')
-@utils.arg('display_name', nargs='?', metavar='<display-name>',
-           help='New display-name for the volume.')
-@utils.arg('--display-description', metavar='<display-description>',
-           help='Optional volume description. (Default=None)',
-           default=None)
-@utils.service_type('share')
-def do_rename(cs, args):
-    """Rename a volume."""
-    kwargs = {}
-    if args.display_name is not None:
-        kwargs['display_name'] = args.display_name
-    if args.display_description is not None:
-        kwargs['display_description'] = args.display_description
-    _find_volume(cs, args.volume).update(**kwargs)
-
-
-@utils.arg('volume',
-           metavar='<volume>',
-           help='ID of the volume to update metadata on.')
-@utils.arg('action',
-           metavar='<action>',
-           choices=['set', 'unset'],
-           help="Actions: 'set' or 'unset'")
-@utils.arg('metadata',
-           metavar='<key=value>',
-           nargs='+',
-           default=[],
-           help='Metadata to set/unset (only key is necessary on unset)')
-@utils.service_type('share')
-def do_metadata(cs, args):
-    """Set or Delete metadata on a volume."""
-    volume = _find_volume(cs, args.volume)
-    metadata = _extract_metadata(args)
-
-    if args.action == 'set':
-        cs.volumes.set_metadata(volume, metadata)
-    elif args.action == 'unset':
-        cs.volumes.delete_metadata(volume, metadata.keys())
-
-
-@utils.arg(
-    '--all-tenants',
-    dest='all_tenants',
-    metavar='<0|1>',
-    nargs='?',
-    type=int,
-    const=1,
-    default=0,
-    help='Display information from all tenants (Admin only).')
-@utils.arg(
-    '--all_tenants',
-    nargs='?',
-    type=int,
-    const=1,
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--display-name',
-    metavar='<display-name>',
-    default=None,
-    help='Filter results by display-name')
-@utils.arg(
-    '--status',
-    metavar='<status>',
-    default=None,
-    help='Filter results by status')
-@utils.arg(
-    '--volume-id',
-    metavar='<volume-id>',
-    default=None,
-    help='Filter results by volume-id')
-@utils.service_type('share')
-def do_snapshot_list(cs, args):
-    """List all the snapshots."""
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
-    search_opts = {
-        'all_tenants': all_tenants,
-        'display_name': args.display_name,
-        'status': args.status,
-        'volume_id': args.volume_id,
-    }
-
-    snapshots = cs.volume_snapshots.list(search_opts=search_opts)
-    _translate_volume_snapshot_keys(snapshots)
-    utils.print_list(snapshots,
-                     ['ID', 'Volume ID', 'Status', 'Display Name', 'Size',
-                      'Source Type'])
-
-
-@utils.arg('snapshot', metavar='<snapshot>', help='ID of the snapshot.')
-@utils.service_type('share')
-def do_snapshot_show(cs, args):
-    """Show details about a snapshot."""
-    snapshot = _find_volume_snapshot(cs, args.snapshot)
-    _print_volume_snapshot(snapshot)
-
-
-@utils.arg('volume_id',
-           metavar='<volume-id>',
-           help='ID of the volume to snapshot')
-@utils.arg('--force',
-           metavar='<True|False>',
-           help='Optional flag to indicate whether '
-           'to snapshot a volume even if it\'s '
-           'attached to an instance. (Default=False)',
-           default=False)
-@utils.arg(
-    '--display-name',
-    metavar='<display-name>',
-    default=None,
-    help='Optional snapshot name. (Default=None)')
-@utils.arg(
-    '--display_name',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--display-description',
-    metavar='<display-description>',
-    default=None,
-    help='Optional snapshot description. (Default=None)')
-@utils.arg(
-    '--display_description',
-    help=argparse.SUPPRESS)
-@utils.service_type('share')
-def do_snapshot_create(cs, args):
-    """Add a new snapshot."""
-    snapshot = cs.volume_snapshots.create(args.volume_id,
-                                          args.force,
-                                          args.display_name,
-                                          args.display_description)
-    _print_volume_snapshot(snapshot)
-
-
-@utils.arg('snapshot_id',
-           metavar='<snapshot-id>',
-           help='ID of the snapshot to delete.')
-@utils.service_type('share')
-def do_snapshot_delete(cs, args):
-    """Remove a snapshot."""
-    snapshot = _find_volume_snapshot(cs, args.snapshot_id)
-    snapshot.delete()
-
-
-@utils.arg('snapshot', metavar='<snapshot>', help='ID of the snapshot.')
-@utils.arg('display_name', nargs='?', metavar='<display-name>',
-           help='New display-name for the snapshot.')
-@utils.arg('--display-description', metavar='<display-description>',
-           help='Optional snapshot description. (Default=None)',
-           default=None)
-@utils.service_type('share')
-def do_snapshot_rename(cs, args):
-    """Rename a snapshot."""
-    kwargs = {}
-    if args.display_name is not None:
-        kwargs['display_name'] = args.display_name
-    if args.display_description is not None:
-        kwargs['display_description'] = args.display_description
-    _find_volume_snapshot(cs, args.snapshot).update(**kwargs)
-
-
-def _print_volume_type_list(vtypes):
-    utils.print_list(vtypes, ['ID', 'Name'])
-
-
-def _print_type_and_extra_specs_list(vtypes):
-    formatters = {'extra_specs': _print_type_extra_specs}
-    utils.print_list(vtypes, ['ID', 'Name', 'extra_specs'], formatters)
-
-
-@utils.service_type('share')
-def do_type_list(cs, args):
-    """Print a list of available 'volume types'."""
-    vtypes = cs.volume_types.list()
-    _print_volume_type_list(vtypes)
-
-
-@utils.service_type('share')
-def do_extra_specs_list(cs, args):
-    """Print a list of current 'volume types and extra specs' (Admin Only)."""
-    vtypes = cs.volume_types.list()
-    _print_type_and_extra_specs_list(vtypes)
-
-
-@utils.arg('name',
-           metavar='<name>',
-           help="Name of the new volume type")
-@utils.service_type('share')
-def do_type_create(cs, args):
-    """Create a new volume type."""
-    vtype = cs.volume_types.create(args.name)
-    _print_volume_type_list([vtype])
-
-
-@utils.arg('id',
-           metavar='<id>',
-           help="Unique ID of the volume type to delete")
-@utils.service_type('share')
-def do_type_delete(cs, args):
-    """Delete a specific volume type"""
-    cs.volume_types.delete(args.id)
-
-
-@utils.arg('vtype',
-           metavar='<vtype>',
-           help="Name or ID of the volume type")
-@utils.arg('action',
-           metavar='<action>',
-           choices=['set', 'unset'],
-           help="Actions: 'set' or 'unset'")
-@utils.arg('metadata',
-           metavar='<key=value>',
-           nargs='*',
-           default=None,
-           help='Extra_specs to set/unset (only key is necessary on unset)')
-@utils.service_type('share')
-def do_type_key(cs, args):
-    "Set or unset extra_spec for a volume type."""
-    vtype = _find_volume_type(cs, args.vtype)
-
-    if args.metadata is not None:
-        keypair = _extract_metadata(args)
-
-        if args.action == 'set':
-            vtype.set_keys(keypair)
-        elif args.action == 'unset':
-            vtype.unset_keys(keypair.keys())
 
 
 def do_endpoints(cs, args):
@@ -527,7 +108,7 @@ def do_credentials(cs, args):
     utils.print_dict(catalog['access']['user'], "User Credentials")
     utils.print_dict(catalog['access']['token'], "Token")
 
-_quota_resources = ['volumes', 'snapshots', 'gigabytes']
+_quota_resources = ['shares', 'snapshots', 'gigabytes']
 
 
 def _quota_show(quotas):
@@ -548,7 +129,8 @@ def _quota_update(manager, identifier, args):
         manager.update(identifier, **updates)
 
 
-@utils.arg('tenant', metavar='<tenant_id>',
+@utils.arg('tenant',
+           metavar='<tenant_id>',
            help='UUID of tenant to list the quotas for.')
 @utils.service_type('share')
 def do_quota_show(cs, args):
@@ -557,7 +139,8 @@ def do_quota_show(cs, args):
     _quota_show(cs.quotas.get(args.tenant))
 
 
-@utils.arg('tenant', metavar='<tenant_id>',
+@utils.arg('tenant',
+           metavar='<tenant_id>',
            help='UUID of tenant to list the default quotas for.')
 @utils.service_type('share')
 def do_quota_defaults(cs, args):
@@ -566,12 +149,13 @@ def do_quota_defaults(cs, args):
     _quota_show(cs.quotas.defaults(args.tenant))
 
 
-@utils.arg('tenant', metavar='<tenant_id>',
+@utils.arg('tenant',
+           metavar='<tenant_id>',
            help='UUID of tenant to set the quotas for.')
-@utils.arg('--volumes',
-           metavar='<volumes>',
+@utils.arg('--shares',
+           metavar='<shares>',
            type=int, default=None,
-           help='New value for the "volumes" quota.')
+           help='New value for the "shares" quota.')
 @utils.arg('--snapshots',
            metavar='<snapshots>',
            type=int, default=None,
@@ -587,7 +171,8 @@ def do_quota_update(cs, args):
     _quota_update(cs.quotas, args.tenant, args)
 
 
-@utils.arg('class_name', metavar='<class>',
+@utils.arg('class_name',
+           metavar='<class>',
            help='Name of quota class to list the quotas for.')
 @utils.service_type('share')
 def do_quota_class_show(cs, args):
@@ -596,12 +181,13 @@ def do_quota_class_show(cs, args):
     _quota_show(cs.quota_classes.get(args.class_name))
 
 
-@utils.arg('class_name', metavar='<class>',
+@utils.arg('class-name',
+           metavar='<class-name>',
            help='Name of quota class to set the quotas for.')
-@utils.arg('--volumes',
-           metavar='<volumes>',
+@utils.arg('--shares',
+           metavar='<shares>',
            type=int, default=None,
-           help='New value for the "volumes" quota.')
+           help='New value for the "shares" quota.')
 @utils.arg('--snapshots',
            metavar='<snapshots>',
            type=int, default=None,
@@ -633,114 +219,6 @@ def do_rate_limits(cs, args):
     utils.print_list(limits, columns)
 
 
-def _print_type_extra_specs(vol_type):
-    try:
-        return vol_type.get_keys()
-    except exceptions.NotFound:
-        return "N/A"
-
-
-def _find_volume_type(cs, vtype):
-    """Get a volume type by name or ID."""
-    return utils.find_resource(cs.volume_types, vtype)
-
-
-@utils.arg('volume_id',
-           metavar='<volume-id>',
-           help='ID of the volume to upload to an image')
-@utils.arg('--force',
-           metavar='<True|False>',
-           help='Optional flag to indicate whether '
-           'to upload a volume even if it\'s '
-           'attached to an instance. (Default=False)',
-           default=False)
-@utils.arg('--container-format',
-           metavar='<container-format>',
-           help='Optional type for container format '
-           '(Default=bare)',
-           default='bare')
-@utils.arg('--disk-format',
-           metavar='<disk-format>',
-           help='Optional type for disk format '
-           '(Default=raw)',
-           default='raw')
-@utils.arg('image_name',
-           metavar='<image-name>',
-           help='Name for created image')
-@utils.service_type('share')
-def do_upload_to_image(cs, args):
-    """Upload volume to image service as image."""
-    volume = _find_volume(cs, args.volume_id)
-    volume.upload_to_image(args.force,
-                           args.image_name,
-                           args.container_format,
-                           args.disk_format)
-
-
-@utils.arg('volume', metavar='<volume>',
-           help='ID of the volume to backup.')
-@utils.arg('--container', metavar='<container>',
-           help='Optional Backup container name. (Default=None)',
-           default=None)
-@utils.arg('--display-name', metavar='<display-name>',
-           help='Optional backup name. (Default=None)',
-           default=None)
-@utils.arg('--display-description', metavar='<display-description>',
-           help='Optional backup description. (Default=None)',
-           default=None)
-@utils.service_type('share')
-def do_backup_create(cs, args):
-    """Creates a backup."""
-    cs.backups.create(args.volume,
-                      args.container,
-                      args.display_name,
-                      args.display_description)
-
-
-@utils.arg('backup', metavar='<backup>', help='ID of the backup.')
-@utils.service_type('share')
-def do_backup_show(cs, args):
-    """Show details about a backup."""
-    backup = _find_backup(cs, args.backup)
-    info = dict()
-    info.update(backup._info)
-
-    if 'links' in info:
-        info.pop('links')
-
-    utils.print_dict(info)
-
-
-@utils.service_type('share')
-def do_backup_list(cs, args):
-    """List all the backups."""
-    backups = cs.backups.list()
-    columns = ['ID', 'Volume ID', 'Status', 'Name', 'Size', 'Object Count',
-               'Container']
-    utils.print_list(backups, columns)
-
-
-@utils.arg('backup', metavar='<backup>',
-           help='ID of the backup to delete.')
-@utils.service_type('share')
-def do_backup_delete(cs, args):
-    """Remove a backup."""
-    backup = _find_backup(cs, args.backup)
-    backup.delete()
-
-
-@utils.arg('backup', metavar='<backup>',
-           help='ID of the backup to restore.')
-@utils.arg('--volume-id', metavar='<volume-id>',
-           help='Optional ID of the volume to restore to.',
-           default=None)
-@utils.service_type('share')
-def do_backup_restore(cs, args):
-    """Restore a backup."""
-    cs.restores.restore(args.backup,
-                        args.volume_id)
-
-
 @utils.arg(
     'share_protocol',
     metavar='<share_protocol>',
@@ -757,26 +235,20 @@ def do_backup_restore(cs, args):
     help='Optional snapshot id to create the share from. (Default=None)',
     default=None)
 @utils.arg(
-    '--display-name',
-    metavar='<display-name>',
+    '--name',
+    metavar='<name>',
     help='Optional share name. (Default=None)',
     default=None)
 @utils.arg(
-    '--display_name',
-    help=argparse.SUPPRESS)
-@utils.arg(
-    '--display-description',
-    metavar='<display-description>',
+    '--description',
+    metavar='<description>',
     help='Optional share description. (Default=None)',
     default=None)
-@utils.arg(
-    '--display_description',
-    help=argparse.SUPPRESS)
 @utils.service_type('share')
-def do_share_create(cs, args):
+def do_create(cs, args):
     """Creates new NAS storage (NFS or CIFS)."""
     share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
-                             args.display_name, args.display_description)
+                             args.name, args.description)
     _print_share(cs, share)
 
 
@@ -785,7 +257,7 @@ def do_share_create(cs, args):
     metavar='<share>',
     help='ID of the NAS to delete.')
 @utils.service_type('share')
-def do_share_delete(cs, args):
+def do_delete(cs, args):
     """Deletes NAS storage."""
     cs.shares.delete(args.share)
 
@@ -795,7 +267,7 @@ def do_share_delete(cs, args):
     metavar='<share>',
     help='ID of the NAS share.')
 @utils.service_type('share')
-def do_share_show(cs, args):
+def do_show(cs, args):
     """Show details about a NAS share."""
     share = _find_share(cs, args.share)
     _print_share(cs, share)
@@ -814,7 +286,7 @@ def do_share_show(cs, args):
     metavar='<access_to>',
     help='Value that defines access')
 @utils.service_type('share')
-def do_share_allow(cs, args):
+def do_allow_access(cs, args):
     """Allow access to the share."""
     share = _find_share(cs, args.share)
     share.allow(args.access_type, args.access_to)
@@ -829,7 +301,7 @@ def do_share_allow(cs, args):
     metavar='<id>',
     help='id of the access rule to be deleted.')
 @utils.service_type('share')
-def do_share_deny(cs, args):
+def do_deny_access(cs, args):
     """Deny access to a share."""
     share = _find_share(cs, args.share)
     share.deny(args.id)
@@ -840,7 +312,7 @@ def do_share_deny(cs, args):
     metavar='<share>',
     help='ID of the share.')
 @utils.service_type('share')
-def do_share_access_list(cs, args):
+def do_access_list(cs, args):
     """Show access list for share."""
     share = _find_share(cs, args.share)
     access_list = share.access_list()
@@ -857,8 +329,8 @@ def do_share_access_list(cs, args):
     default=0,
     help='Display information from all tenants (Admin only).')
 @utils.arg(
-    '--display-name',
-    metavar='<display-name>',
+    '--name',
+    metavar='<name>',
     default=None,
     help='Filter results by name')
 @utils.arg(
@@ -867,17 +339,17 @@ def do_share_access_list(cs, args):
     default=None,
     help='Filter results by status')
 @utils.service_type('share')
-def do_share_list(cs, args):
+def do_list(cs, args):
     """List all NAS shares."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     search_opts = {
         'all_tenants': all_tenants,
-        'display_name': args.display_name,
+        'name': args.name,
         'status': args.status,
     }
     shares = cs.shares.list(search_opts=search_opts)
     utils.print_list(shares,
-                     ['ID', 'Display Name', 'Size', 'Share Proto', 'Status',
+                     ['ID', 'Name', 'Size', 'Share Proto', 'Status',
                       'Export location'])
 
 
@@ -891,8 +363,8 @@ def do_share_list(cs, args):
     default=0,
     help='Display information from all tenants (Admin only).')
 @utils.arg(
-    '--display-name',
-    metavar='<display-name>',
+    '--name',
+    metavar='<name>',
     default=None,
     help='Filter results by name')
 @utils.arg(
@@ -906,19 +378,18 @@ def do_share_list(cs, args):
     default=None,
     help='Filter results by share-id')
 @utils.service_type('share')
-def do_share_snapshot_list(cs, args):
+def do_snapshot_list(cs, args):
     """List all the snapshots."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     search_opts = {
         'all_tenants': all_tenants,
-        'display_name': args.display_name,
+        'name': args.name,
         'status': args.status,
         'share_id': args.share_id,
     }
     snapshots = cs.share_snapshots.list(search_opts=search_opts)
     utils.print_list(snapshots,
-                     ['ID', 'Share ID', 'Status', 'Display Name',
-                      'Share Size'])
+                     ['ID', 'Share ID', 'Status', 'Name', 'Share Size'])
 
 
 @utils.arg(
@@ -926,7 +397,7 @@ def do_share_snapshot_list(cs, args):
     metavar='<snapshot>',
     help='ID of the snapshot.')
 @utils.service_type('share')
-def do_share_snapshot_show(cs, args):
+def do_snapshot_show(cs, args):
     """Show details about a snapshot."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     _print_share_snapshot(cs, snapshot)
@@ -944,23 +415,51 @@ def do_share_snapshot_show(cs, args):
     ' (Default=False)',
     default=False)
 @utils.arg(
-    '--display-name',
-    metavar='<display-name>',
+    '--name',
+    metavar='<name>',
     default=None,
     help='Optional snapshot name. (Default=None)')
 @utils.arg(
-    '--display-description',
-    metavar='<display-description>',
+    '--description',
+    metavar='<description>',
     default=None,
     help='Optional snapshot description. (Default=None)')
 @utils.service_type('share')
-def do_share_snapshot_create(cs, args):
+def do_snapshot_create(cs, args):
     """Add a new snapshot."""
     snapshot = cs.share_snapshots.create(args.share_id,
                                          args.force,
-                                         args.display_name,
-                                         args.display_description)
+                                         args.name,
+                                         args.description)
     _print_share_snapshot(cs, snapshot)
+
+# @utils.arg('share',
+#            metavar='<share>',
+#            help='ID of the share to rename.')
+# @utils.arg('name',
+#            nargs='?',
+#            metavar='<name>',
+#            help='New name for the share.')
+# @utils.arg('--description', metavar='<description>',
+#            help='Optional share description. (Default=None)',
+#            default=None)
+# @utils.arg('--display-description',
+#            help=argparse.SUPPRESS)
+# @utils.arg('--display_description',
+#            help=argparse.SUPPRESS)
+# @utils.service_type('share')
+# def do_rename(cs, args):
+#     """Rename a share."""
+#     kwargs = {}
+#
+#     if args.name is not None:
+#         kwargs['name'] = args.name
+#     if args.display_description is not None:
+#         kwargs['description'] = args.display_description
+#     elif args.description is not None:
+#         kwargs['description'] = args.description
+#
+#     _find_share(cs, args.share).update(**kwargs)
 
 
 @utils.arg(
@@ -968,7 +467,7 @@ def do_share_snapshot_create(cs, args):
     metavar='<snapshot-id>',
     help='ID of the snapshot to delete.')
 @utils.service_type('share')
-def do_share_snapshot_delete(cs, args):
+def do_snapshot_delete(cs, args):
     """Remove a snapshot."""
     snapshot = _find_share_snapshot(cs, args.snapshot_id)
     snapshot.delete()

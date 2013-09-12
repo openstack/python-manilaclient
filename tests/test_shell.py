@@ -49,8 +49,8 @@ class ShellTest(utils.TestCase):
     def test_help(self):
         required = [
             '.*?^usage: ',
-            '.*?(?m)^\s+create\s+Add a new volume.',
-            '.*?(?m)^See "manila help COMMAND" for help on a specific command',
+            '.*?^\s+create\s+Creates new NAS storage \(NFS or CIFS\).',
+            '.*?(?m)^See "manila help COMMAND" for help on a specific command.',
         ]
         help_text = self.shell('help')
         for r in required:
@@ -60,7 +60,7 @@ class ShellTest(utils.TestCase):
     def test_help_on_subcommand(self):
         required = [
             '.*?^usage: manila list',
-            '.*?(?m)^List all the volumes.',
+            '.*?(?m)^List all NAS shares.',
         ]
         help_text = self.shell('help list')
         for r in required:

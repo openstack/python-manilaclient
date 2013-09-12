@@ -1,6 +1,6 @@
 from manilaclient import base
 from manilaclient import exceptions
-from manilaclient.v1 import volumes
+from manilaclient.v1 import shares
 from tests import utils
 from tests.v1 import fakes
 
@@ -29,7 +29,7 @@ class BaseTest(utils.TestCase):
 
         # Two resoruces of different types: never equal
         r1 = base.Resource(None, {'id': 1})
-        r2 = volumes.Volume(None, {'id': 1})
+        r2 = shares.Share(None, {'id': 1})
         self.assertNotEqual(r1, r2)
 
         # Two resources with no ID: equal if their info is equal
@@ -40,9 +40,9 @@ class BaseTest(utils.TestCase):
     def test_findall_invalid_attribute(self):
         # Make sure findall with an invalid attribute doesn't cause errors.
         # The following should not raise an exception.
-        cs.volumes.findall(vegetable='carrot')
+        cs.shares.findall(vegetable='carrot')
 
         # However, find() should raise an error
         self.assertRaises(exceptions.NotFound,
-                          cs.volumes.find,
+                          cs.shares.find,
                           vegetable='carrot')

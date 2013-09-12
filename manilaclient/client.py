@@ -36,12 +36,24 @@ class HTTPClient(object):
 
     USER_AGENT = 'python-manilaclient'
 
-    def __init__(self, user, password, projectid, auth_url, insecure=False,
-                 timeout=None, tenant_id=None, proxy_tenant_id=None,
-                 proxy_token=None, region_name=None,
-                 endpoint_type='publicURL', service_type=None,
-                 service_name=None, volume_service_name=None, retries=None,
-                 http_log_debug=False, cacert=None):
+    def __init__(self,
+                 user,
+                 password,
+                 projectid,
+                 auth_url,
+                 insecure=False,
+                 timeout=None,
+                 tenant_id=None,
+                 proxy_tenant_id=None,
+                 proxy_token=None,
+                 region_name=None,
+                 endpoint_type='publicURL',
+                 service_type=None,
+                 service_name=None,
+                 share_service_name=None,
+                 retries=None,
+                 http_log_debug=False,
+                 cacert=None):
         self.user = user
         self.password = password
         self.projectid = projectid
@@ -52,7 +64,7 @@ class HTTPClient(object):
         self.endpoint_type = endpoint_type
         self.service_type = service_type
         self.service_name = service_name
-        self.volume_service_name = volume_service_name
+        self.share_service_name = share_service_name
         self.retries = int(retries or 0)
         self.http_log_debug = http_log_debug
 
@@ -212,7 +224,7 @@ class HTTPClient(object):
                     endpoint_type=self.endpoint_type,
                     service_type=self.service_type,
                     service_name=self.service_name,
-                    volume_service_name=self.volume_service_name)
+                    share_service_name=self.share_service_name)
                 self.management_url = management_url.rstrip('/')
                 return None
             except exceptions.AmbiguousEndpoints:

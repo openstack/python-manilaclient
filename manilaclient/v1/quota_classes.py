@@ -1,4 +1,4 @@
-# Copyright 2012 OpenStack LLC.
+# Copyright 2013 OpenStack LLC.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,8 +20,7 @@ class QuotaClassSet(base.Resource):
 
     @property
     def id(self):
-        """QuotaClassSet does not have a 'id' attribute but base.Resource
-        needs it to self-refresh and QuotaSet is indexed by class_name"""
+        """Needed by base.Resource to self-refresh and be indexed"""
         return self.class_name
 
     def update(self, *args, **kwargs):
@@ -37,12 +36,12 @@ class QuotaClassSetManager(base.ManagerWithFind):
 
     def update(self,
                class_name,
-               volumes=None,
+               shares=None,
                gigabytes=None):
 
         body = {'quota_class_set': {
                 'class_name': class_name,
-                'volumes': volumes,
+                'shares': shares,
                 'gigabytes': gigabytes}}
 
         for key in body['quota_class_set'].keys():

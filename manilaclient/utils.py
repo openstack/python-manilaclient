@@ -103,7 +103,7 @@ def service_type(stype):
     """
     Adds 'service_type' attribute to decorated function.
     Usage:
-        @service_type('volume')
+        @service_type('share')
         def mymethod(f):
             ...
     """

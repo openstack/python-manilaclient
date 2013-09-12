@@ -16,10 +16,10 @@
 #    under the License.
 
 from manilaclient import extension
-from manilaclient.v2 import shares
+from manilaclient.v1 import shares
 
 from tests import utils
-from tests.v2.shares import fakes
+from tests.v1 import fakes
 
 
 extensions = [

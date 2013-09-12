@@ -1,4 +1,4 @@
-# Copyright 2011 OpenStack LLC.
+# Copyright 2013 OpenStack LLC.
 
 from manilaclient import base
 
@@ -71,8 +71,7 @@ class LimitsManager(base.Manager):
     resource_class = Limits
 
     def get(self):
-        """
-        Get a specific extension.
+        """Get a specific extension.
 
         :rtype: :class:`Limits`
         """

@@ -7,8 +7,7 @@ from manilaclient.v1 import share_snapshots
 
 
 class Client(object):
-    """
-    Top-level object to access the OpenStack Volume API.
+    """Top-level object to access the OpenStack Volume API.
 
     Create an instance with your creds::
 
@@ -16,17 +15,16 @@ class Client(object):
 
     Then call methods on its managers::
 
-        >>> client.shares.list()
+        >>> client.share.list()
         ...
-
     """
 
     def __init__(self, username, api_key, project_id=None, auth_url='',
                  insecure=False, timeout=None, tenant_id=None,
                  proxy_tenant_id=None, proxy_token=None, region_name=None,
                  endpoint_type='publicURL', extensions=None,
-                 service_type='volume', service_name=None,
-                 volume_service_name=None, retries=None,
+                 service_type='share', service_name=None,
+                 share_service_name=None, retries=None,
                  http_log_debug=False,
                  cacert=None):
         # FIXME(comstud): Rename the api_key argument above when we
@@ -34,9 +32,9 @@ class Client(object):
         password = api_key
         self.limits = limits.LimitsManager(self)
 
-        # extensions
         self.quota_classes = quota_classes.QuotaClassSetManager(self)
         self.quotas = quotas.QuotaSetManager(self)
+
         self.shares = shares.ShareManager(self)
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
@@ -61,14 +59,13 @@ class Client(object):
             endpoint_type=endpoint_type,
             service_type=service_type,
             service_name=service_name,
-            volume_service_name=volume_service_name,
+            share_service_name=share_service_name,
             retries=retries,
             http_log_debug=http_log_debug,
             cacert=cacert)
 
     def authenticate(self):
-        """
-        Authenticate against the server.
+        """Authenticate against the server.
 
         Normally this is called automatically when you first access the API,
         but you can call this method to force authentication right now.

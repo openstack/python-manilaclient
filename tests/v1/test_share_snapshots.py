@@ -1,5 +1,6 @@
-# Copyright (c) 2013 OpenStack, LLC.
-#
+# Copyright 2010 Jacob Kaplan-Moss
+
+# Copyright 2011 OpenStack LLC.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,22 +16,29 @@
 #    under the License.
 
 from manilaclient import extension
-from manilaclient.v2.contrib import list_extensions
+from manilaclient.v1 import share_snapshots
+
 from tests import utils
 from tests.v1 import fakes
 
 
 extensions = [
-    extension.Extension(list_extensions.__name__.split(".")[-1],
-                        list_extensions),
+    extension.Extension('share_snapshots', share_snapshots),
 ]
 cs = fakes.FakeClient(extensions=extensions)
 
 
-class ListExtensionsTests(utils.TestCase):
-    def test_list_extensions(self):
-        all_exts = cs.list_extensions.show_all()
-        cs.assert_called('GET', '/extensions')
-        self.assertTrue(len(all_exts) > 0)
-        for r in all_exts:
-            self.assertTrue(len(r.summary) > 0)
+class ShareSnapshotsTest(utils.TestCase):
+
+    def test_create_share_snapshot(self):
+        cs.share_snapshots.create(1234)
+        cs.assert_called('POST', '/snapshots')
+
+    def test_delete_share(self):
+        snapshot = cs.share_snapshots.get(1234)
+        cs.share_snapshots.delete(snapshot)
+        cs.assert_called('DELETE', '/snapshots/1234')
+
+    def test_list_shares(self):
+        cs.share_snapshots.list()
+        cs.assert_called('GET', '/snapshots/detail')
