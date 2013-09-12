@@ -289,7 +289,8 @@ def do_show(cs, args):
 def do_allow_access(cs, args):
     """Allow access to the share."""
     share = _find_share(cs, args.share)
-    share.allow(args.access_type, args.access_to)
+    access = share.allow(args.access_type, args.access_to)
+    utils.print_dict(access)
 
 
 @utils.arg(

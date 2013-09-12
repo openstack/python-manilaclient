@@ -150,9 +150,10 @@ class ShareManager(base.ManagerWithFind):
         :param access_type: string that represents access type ('ip','domain')
         :param access: string that represents access ('127.0.0.1')
         """
-        return self._action('os-allow_access', share,
-                            {'access_type': access_type,
-                             'access_to': access})
+        access = self._action('os-allow_access', share,
+                              {'access_type': access_type,
+                              'access_to': access})[1]["access"]
+        return access
 
     def deny(self, share, id):
         """Deny access from IP to a shares.
