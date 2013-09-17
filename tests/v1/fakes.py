@@ -66,6 +66,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         action = body.keys()[0]
         if action == 'os-allow_access':
             assert body[action].keys() == ['access_type', 'access_to']
+            _body = {'access': {}}
         elif action == 'os-deny_access':
             assert body[action].keys() == ['access_id']
         elif action == 'os-access_list':
