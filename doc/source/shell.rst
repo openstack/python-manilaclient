@@ -1,30 +1,30 @@
-The :program:`cinder` shell utility
+The :program:`manila` shell utility
 =========================================
 
-.. program:: cinder
+.. program:: manila
 .. highlight:: bash
 
-The :program:`cinder` shell utility interacts with the OpenStack Cinder API
-from the command line. It supports the entirety of the OpenStack Cinder API.
+The :program:`manila` shell utility interacts with the OpenStack Manila API
+from the command line. It supports the entirety of the OpenStack Manila API.
 
-You'll need to provide :program:`cinder` with your OpenStack username and
+You'll need to provide :program:`manila` with your OpenStack username and
 API key. You can do this with the :option:`--os-username`, :option:`--os-password`
 and :option:`--os-tenant-name` options, but it's easier to just set them as
 environment variables by setting two environment variables:
 
-.. envvar:: OS_USERNAME or CINDER_USERNAME
+.. envvar:: OS_USERNAME or MANILA_USERNAME
 
-    Your OpenStack Cinder username.
+    Your OpenStack Manila username.
 
-.. envvar:: OS_PASSWORD or CINDER_PASSWORD
+.. envvar:: OS_PASSWORD or MANILA_PASSWORD
 
     Your password.
 
-.. envvar:: OS_TENANT_NAME or CINDER_PROJECT_ID
+.. envvar:: OS_TENANT_NAME or MANILA_PROJECT_ID
 
     Project for work.
 
-.. envvar:: OS_AUTH_URL or CINDER_URL
+.. envvar:: OS_AUTH_URL or MANILA_URL
 
     The OpenStack API server URL.
 
@@ -42,8 +42,8 @@ For example, in Bash you'd use::
 
 From there, all shell commands take the form::
 
-    cinder <command> [arguments...]
+    manila <command> [arguments...]
 
-Run :program:`cinder help` to get a full list of all possible commands,
-and run :program:`cinder help <command>` to get detailed help for that
+Run :program:`manila help` to get a full list of all possible commands,
+and run :program:`manila help <command>` to get detailed help for that
 command.

@@ -1,1 +1,7 @@
+*.pyc
 .idea
+python_manilaclient.egg-info
+setuptools_git*.egg
+setuptools_git*.egg
+AUTHORS
+ChangeLog

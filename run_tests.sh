@@ -4,7 +4,7 @@ set -eu
 
 function usage {
   echo "Usage: $0 [OPTION]..."
-  echo "Run python-cinderclient test suite"
+  echo "Run python-manilaclient test suite"
   echo ""
   echo "  -V, --virtual-env        Always use virtualenv.  Install automatically if not present"
   echo "  -N, --no-virtual-env     Don't use virtualenv.  Run tests in local environment"
@@ -94,7 +94,7 @@ function run_tests {
     if [ "x$testrargs" = "x" ]; then
       testrargs="^(?!.*test_coverage_ext).*$"
     fi
-    export PYTHON="${wrapper} coverage run --source cinderclient --parallel-mode"
+    export PYTHON="${wrapper} coverage run --source manilaclient --parallel-mode"
   fi
   # Just run the test suites in current environment
   set +e
@@ -118,7 +118,7 @@ function copy_subunit_log {
 
 function run_pep8 {
   echo "Running pep8 ..."
-  srcfiles="cinderclient tests"
+  srcfiles="manilaclient tests"
   # Just run PEP8 in current environment
   #
   # NOTE(sirp): W602 (deprecated 3-arg raise) is being ignored for the
@@ -191,5 +191,5 @@ fi
 if [ $coverage -eq 1 ]; then
     echo "Generating coverage report in covhtml/"
     ${wrapper} coverage combine
-    ${wrapper} coverage html --include='cinderclient/*' --omit='cinderclient/openstack/common/*' -d covhtml -i
+    ${wrapper} coverage html --include='manilaclient/*' --omit='manilaclient/openstack/common/*' -d covhtml -i
 fi

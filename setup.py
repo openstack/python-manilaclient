@@ -16,12 +16,12 @@ import os
 import setuptools
 
 
-from cinderclient.openstack.common import setup
+from manilaclient.openstack.common import setup
 
 requires = setup.parse_requirements()
 depend_links = setup.parse_dependency_links()
 tests_require = setup.parse_requirements(['tools/test-requires'])
-project = 'python-cinderclient'
+project = 'python-manilaclient'
 
 
 def read_file(file_name):
@@ -33,10 +33,10 @@ setuptools.setup(
     version=setup.get_version(project),
     author="OpenStack Contributors",
     author_email="openstack-dev@lists.openstack.org",
-    description="Client library for OpenStack Cinder API.",
+    description="Client library for OpenStack Manila API.",
     long_description=read_file("README.rst"),
     license="Apache License, Version 2.0",
-    url="https://github.com/openstack/python-cinderclient",
+    url="https://github.com/openstack/python-manilaclient",
     packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     cmdclass=setup.get_cmdclass(),
     install_requires=requires,
@@ -55,6 +55,6 @@ setuptools.setup(
         "Programming Language :: Python"
     ],
     entry_points={
-        "console_scripts": ["cinder = cinderclient.shell:main"]
+        "console_scripts": ["manila = manilaclient.shell:main"]
     }
 )

@@ -1,6 +1,4 @@
-# Copyright 2010 Jacob Kaplan-Moss
-
-# Copyright 2011 OpenStack LLC.
+# Copyright 2013 OpenStack LLC.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,25 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-
 import fixtures
 
-from cinderclient import client
-from cinderclient import shell
-from cinderclient.v1 import shell as shell_v1
-from tests.v1 import fakes
+from manilaclient import client
+from manilaclient import shell
 from tests import utils
+from tests.v1 import fakes
 
 
 class ShellTest(utils.TestCase):
 
     FAKE_ENV = {
-        'CINDER_USERNAME': 'username',
-        'CINDER_PASSWORD': 'password',
-        'CINDER_PROJECT_ID': 'project_id',
-        'OS_VOLUME_API_VERSION': '1.1',
-        'CINDER_URL': 'http://no.where',
+        'MANILA_USERNAME': 'username',
+        'MANILA_PASSWORD': 'password',
+        'MANILA_PROJECT_ID': 'project_id',
+        'OS_SHARE_API_VERSION': '2',
+        'MANILA_URL': 'http://no.where',
     }
 
     # Patch os.environ to avoid required auth info.
@@ -44,7 +39,7 @@ class ShellTest(utils.TestCase):
             self.useFixture(fixtures.EnvironmentVariable(var,
                                                          self.FAKE_ENV[var]))
 
-        self.shell = shell.OpenStackCinderShell()
+        self.shell = shell.OpenStackManilaShell()
 
         #HACK(bcwaldon): replace this when we start using stubs
         self.old_get_client_class = client.get_client_class
@@ -71,113 +66,94 @@ class ShellTest(utils.TestCase):
     def assert_called_anytime(self, method, url, body=None):
         return self.shell.cs.assert_called_anytime(method, url, body)
 
-    def test_extract_metadata(self):
-        # mimic the result of argparse's parse_args() method
-        class Arguments:
-            def __init__(self, metadata=[]):
-                self.metadata = metadata
-
-        inputs = [
-            ([], {}),
-            (["key=value"], {"key": "value"}),
-            (["key"], {"key": None}),
-            (["k1=v1", "k2=v2"], {"k1": "v1", "k2": "v2"}),
-            (["k1=v1", "k2"], {"k1": "v1", "k2": None}),
-            (["k1", "k2=v2"], {"k1": None, "k2": "v2"})
-        ]
-
-        for input in inputs:
-            args = Arguments(metadata=input[0])
-            self.assertEquals(shell_v1._extract_metadata(args), input[1])
-
     def test_list(self):
         self.run_command('list')
         # NOTE(jdg): we default to detail currently
-        self.assert_called('GET', '/volumes/detail')
+        self.assert_called('GET', '/shares/detail')
 
     def test_list_filter_status(self):
         self.run_command('list --status=available')
-        self.assert_called('GET', '/volumes/detail?status=available')
+        self.assert_called('GET', '/shares/detail?status=available')
 
-    def test_list_filter_display_name(self):
-        self.run_command('list --display-name=1234')
-        self.assert_called('GET', '/volumes/detail?display_name=1234')
+    def test_list_filter_name(self):
+        self.run_command('list --name=1234')
+        self.assert_called('GET', '/shares/detail?name=1234')
 
     def test_list_all_tenants(self):
         self.run_command('list --all-tenants=1')
-        self.assert_called('GET', '/volumes/detail?all_tenants=1')
+        self.assert_called('GET', '/shares/detail?all_tenants=1')
 
     def test_show(self):
         self.run_command('show 1234')
-        self.assert_called('GET', '/volumes/1234')
+        self.assert_called('GET', '/shares/1234')
 
     def test_delete(self):
         self.run_command('delete 1234')
-        self.assert_called('DELETE', '/volumes/1234')
+        self.assert_called('DELETE', '/shares/1234')
 
-    def test_snapshot_list_filter_volume_id(self):
-        self.run_command('snapshot-list --volume-id=1234')
-        self.assert_called('GET', '/snapshots/detail?volume_id=1234')
+    def test_snapshot_list_filter_share_id(self):
+        self.run_command('snapshot-list --share-id=1234')
+        self.assert_called('GET', '/snapshots/detail?share_id=1234')
 
-    def test_snapshot_list_filter_status_and_volume_id(self):
-        self.run_command('snapshot-list --status=available --volume-id=1234')
+    def test_snapshot_list_filter_status_and_share_id(self):
+        self.run_command('snapshot-list --status=available --share-id=1234')
         self.assert_called('GET', '/snapshots/detail?'
-                           'status=available&volume_id=1234')
+                           'status=available&share_id=1234')
 
-    def test_rename(self):
-        # basic rename with positional agruments
-        self.run_command('rename 1234 new-name')
-        expected = {'volume': {'display_name': 'new-name'}}
-        self.assert_called('PUT', '/volumes/1234', body=expected)
-        # change description only
-        self.run_command('rename 1234 --display-description=new-description')
-        expected = {'volume': {'display_description': 'new-description'}}
-        self.assert_called('PUT', '/volumes/1234', body=expected)
-        # rename and change description
-        self.run_command('rename 1234 new-name '
-                         '--display-description=new-description')
-        expected = {'volume': {
-            'display_name': 'new-name',
-            'display_description': 'new-description',
-        }}
-        self.assert_called('PUT', '/volumes/1234', body=expected)
-        # noop, the only all will be the lookup
-        self.run_command('rename 1234')
-        self.assert_called('GET', '/volumes/1234')
+    # def test_rename(self):
+    #     # basic rename with positional agruments
+    #     self.run_command('rename 1234 new-name')
+    #     expected = {'share': {'name': 'new-name'}}
+    #     self.assert_called('PUT', '/shares/1234', body=expected)
+    #     # change description only
+    #     self.run_command('rename 1234 --description=new-description')
+    #     expected = {'share': {'description': 'new-description'}}
+    #     self.assert_called('PUT', '/shares/1234', body=expected)
+    #     # rename and change description
+    #     self.run_command('rename 1234 new-name '
+    #                      '--description=new-description')
+    #     expected = {'share': {
+    #         'name': 'new-name',
+    #         'description': 'new-description',
+    #     }}
+    #     self.assert_called('PUT', '/shares/1234', body=expected)
+    #     # noop, the only all will be the lookup
+    #     self.run_command('rename 1234')
+    #     self.assert_called('GET', '/shares/1234')
 
-    def test_rename_snapshot(self):
-        # basic rename with positional agruments
-        self.run_command('snapshot-rename 1234 new-name')
-        expected = {'snapshot': {'display_name': 'new-name'}}
-        self.assert_called('PUT', '/snapshots/1234', body=expected)
-        # change description only
-        self.run_command('snapshot-rename 1234 '
-                         '--display-description=new-description')
-        expected = {'snapshot': {'display_description': 'new-description'}}
-        self.assert_called('PUT', '/snapshots/1234', body=expected)
-        # snapshot-rename and change description
-        self.run_command('snapshot-rename 1234 new-name '
-                         '--display-description=new-description')
-        expected = {'snapshot': {
-            'display_name': 'new-name',
-            'display_description': 'new-description',
-        }}
-        self.assert_called('PUT', '/snapshots/1234', body=expected)
-        # noop, the only all will be the lookup
-        self.run_command('snapshot-rename 1234')
-        self.assert_called('GET', '/snapshots/1234')
+    # def test_rename_snapshot(self):
+    #     # basic rename with positional agruments
+    #     self.run_command('snapshot-rename 1234 new-name')
+    #     expected = {'snapshot': {'name': 'new-name'}}
+    #     self.assert_called('PUT', '/snapshots/1234', body=expected)
+    #     # change description only
+    #     self.run_command('snapshot-rename 1234 '
+    #                      '--description=new-description')
+    #     expected = {'snapshot': {'description': 'new-description'}}
+    #     self.assert_called('PUT', '/snapshots/1234', body=expected)
+    #     # snapshot-rename and change description
+    #     self.run_command('snapshot-rename 1234 new-name '
+    #                      '--description=new-description')
+    #     expected = {'snapshot': {
+    #         'name': 'new-name',
+    #         'description': 'new-description',
+    #     }}
+    #     self.assert_called('PUT', '/snapshots/1234', body=expected)
+    #     # noop, the only all will be the lookup
+    #     self.run_command('snapshot-rename 1234')
+    #     self.assert_called('GET', '/snapshots/1234')
 
-    def test_set_metadata_set(self):
-        self.run_command('metadata 1234 set key1=val1 key2=val2')
-        self.assert_called('POST', '/volumes/1234/metadata',
-                           {'metadata': {'key1': 'val1', 'key2': 'val2'}})
+    # def test_set_metadata_set(self):
+    #     self.run_command('metadata 1234 set key1=val1 key2=val2')
+    #     self.assert_called('POST', '/shares/1234/metadata',
+    #                        {'metadata': {'key1': 'val1', 'key2': 'val2'}})
 
-    def test_set_metadata_delete_dict(self):
-        self.run_command('metadata 1234 unset key1=val1 key2=val2')
-        self.assert_called('DELETE', '/volumes/1234/metadata/key1')
-        self.assert_called('DELETE', '/volumes/1234/metadata/key2', pos=-2)
+    # def test_set_metadata_delete_dict(self):
+    #     self.run_command('metadata 1234 unset key1=val1 key2=val2')
+    #     self.assert_called('DELETE', '/shares/1234/metadata/key1')
+    #     self.assert_called('DELETE', '/shares/1234/metadata/key2', pos=-2)
 
-    def test_set_metadata_delete_keys(self):
-        self.run_command('metadata 1234 unset key1 key2')
-        self.assert_called('DELETE', '/volumes/1234/metadata/key1')
-        self.assert_called('DELETE', '/volumes/1234/metadata/key2', pos=-2)
+    # def test_set_metadata_delete_keys(self):
+    #     self.run_command('metadata 1234 unset key1 key2')
+    #     self.assert_called('DELETE', '/shares/1234/metadata/key1')
+    #     self.assert_called('DELETE', '/shares/1234/metadata/key2', pos=-2)

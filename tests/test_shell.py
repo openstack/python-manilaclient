@@ -6,8 +6,8 @@ import sys
 import fixtures
 from testtools import matchers
 
-from cinderclient import exceptions
-import cinderclient.shell
+from manilaclient import exceptions
+import manilaclient.shell
 from tests import utils
 
 
@@ -31,7 +31,7 @@ class ShellTest(utils.TestCase):
         orig = sys.stdout
         try:
             sys.stdout = cStringIO.StringIO()
-            _shell = cinderclient.shell.OpenStackCinderShell()
+            _shell = manilaclient.shell.OpenStackManilaShell()
             _shell.main(argstr.split())
         except SystemExit:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -49,8 +49,8 @@ class ShellTest(utils.TestCase):
     def test_help(self):
         required = [
             '.*?^usage: ',
-            '.*?(?m)^\s+create\s+Add a new volume.',
-            '.*?(?m)^See "cinder help COMMAND" for help on a specific command',
+            '.*?^\s+create\s+Creates new NAS storage \(NFS or CIFS\).',
+            '.*?(?m)^See "manila help COMMAND" for help on a specific command.',
         ]
         help_text = self.shell('help')
         for r in required:
@@ -59,8 +59,8 @@ class ShellTest(utils.TestCase):
 
     def test_help_on_subcommand(self):
         required = [
-            '.*?^usage: cinder list',
-            '.*?(?m)^List all the volumes.',
+            '.*?^usage: manila list',
+            '.*?(?m)^List all NAS shares.',
         ]
         help_text = self.shell('help list')
         for r in required:

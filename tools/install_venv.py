@@ -190,9 +190,9 @@ def install_dependencies(venv=VENV):
 
     pip_install('-r', PIP_REQUIRES)
     pip_install('-r', TEST_REQUIRES)
-    # Tell the virtual env how to "import cinder"
+    # Tell the virtual env how to "import manila"
     pthfile = os.path.join(venv, "lib", PY_VERSION, "site-packages",
-                        "cinderclient.pth")
+                        "manilaclient.pth")
     f = open(pthfile, 'w')
     f.write("%s\n" % ROOT)
 
@@ -203,12 +203,12 @@ def post_process():
 
 def print_help():
     help = """
-    python-cinderclient development environment setup is complete.
+    python-manilaclient development environment setup is complete.
 
-    python-cinderclient development uses virtualenv to track and manage Python
+    python-manilaclient development uses virtualenv to track and manage Python
     dependencies while in development and testing.
 
-    To activate the python-cinderclient virtualenv for the extent of your
+    To activate the python-manilaclient virtualenv for the extent of your
     current shell session you can run:
 
     $ source .venv/bin/activate

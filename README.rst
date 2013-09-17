@@ -1,11 +1,11 @@
-Python bindings to the OpenStack Cinder API
+Python bindings to the OpenStack Manila API
 ===========================================
 
-This is a client for the OpenStack Cinder API. There's a Python API (the
-``cinderclient`` module), and a command-line script (``cinder``). Each
-implements 100% of the OpenStack Cinder API.
+This is a client for the OpenStack Manila API. There's a Python API (the
+``manilaclient`` module), and a command-line script (``manila``). Each
+implements 100% of the OpenStack Manila API.
 
-See the `OpenStack CLI guide`_ for information on how to use the ``cinder``
+See the `OpenStack CLI guide`_ for information on how to use the ``manila``
 command-line tool. You may also want to look at the
 `OpenStack API documentation`_.
 
@@ -16,13 +16,13 @@ The project is hosted on `Launchpad`_, where bugs can be filed. The code is
 hosted on `Github`_. Patches must be submitted using `Gerrit`_, *not* Github
 pull requests.
 
-.. _Github: https://github.com/openstack/python-cinderclient
-.. _Launchpad: https://launchpad.net/python-cinderclient
+.. _Github: https://github.com/openstack/python-manilaclient
+.. _Launchpad: https://launchpad.net/python-manilaclient
 .. _Gerrit: http://wiki.openstack.org/GerritWorkflow
 
 This code a fork of `Jacobian's python-cloudservers`__ If you need API support
 for the Rackspace API solely or the BSD license, you should use that repository.
-python-cinderclient is licensed under the Apache License like the rest of OpenStack.
+python-manilaclient is licensed under the Apache License like the rest of OpenStack.
 
 __ http://github.com/jacobian/python-cloudservers
 
@@ -32,7 +32,7 @@ __ http://github.com/jacobian/python-cloudservers
 Command-line API
 ----------------
 
-Installing this package gets you a shell command, ``cinder``, that you
+Installing this package gets you a shell command, ``manila``, that you
 can use to interact with any Rackspace compatible API (including OpenStack).
 
 You'll need to provide your OpenStack username and password. You can do this
@@ -50,7 +50,7 @@ variables as well::
     export OS_AUTH_URL=http://example.com:8774/v1.1/
     export OS_VOLUME_API_VERSION=1
 
-If you are using Keystone, you need to set the CINDER_URL to the keystone
+If you are using Keystone, you need to set the MANILA_URL to the keystone
 endpoint::
 
     export OS_AUTH_URL=http://example.com:5000/v2.0/
@@ -60,9 +60,9 @@ can specify the one you want with ``--os-region-name`` (or
 ``export OS_REGION_NAME``). It defaults to the first in the list returned.
 
 You'll find complete documentation on the shell by running
-``cinder help``::
+``manila help``::
 
-    usage: cinder [--debug] [--os-username <auth-user-name>]
+    usage: manila [--debug] [--os-username <auth-user-name>]
                   [--os-password <auth-password>]
                   [--os-tenant-name <auth-tenant-name>] [--os-auth-url <auth-url>]
                   [--os-region-name <region-name>] [--service-type <service-type>]
@@ -73,7 +73,7 @@ You'll find complete documentation on the shell by running
                   [--os-cacert <ca-certificate>] [--retries <retries>]
                   <subcommand> ...
 
-    Command-line interface to the OpenStack Cinder API.
+    Command-line interface to the OpenStack Manila API.
 
     Positional arguments:
       <subcommand>
@@ -124,11 +124,11 @@ You'll find complete documentation on the shell by running
       --service-type <service-type>
                             Defaults to compute for most actions
       --service-name <service-name>
-                            Defaults to env[CINDER_SERVICE_NAME]
+                            Defaults to env[MANILA_SERVICE_NAME]
       --volume-service-name <volume-service-name>
-                            Defaults to env[CINDER_VOLUME_SERVICE_NAME]
+                            Defaults to env[MANILA_VOLUME_SERVICE_NAME]
       --endpoint-type <endpoint-type>
-                            Defaults to env[CINDER_ENDPOINT_TYPE] or publicURL.
+                            Defaults to env[MANILA_ENDPOINT_TYPE] or publicURL.
       --os-volume-api-version <compute-api-ver>
                             Accepts 1,defaults to env[OS_VOLUME_API_VERSION].
       --os-cacert <ca-certificate>
@@ -144,7 +144,7 @@ There's also a complete Python API, but it has not yet been documented.
 Quick-start using keystone::
 
     # use v2.0 auth with http://example.com:5000/v2.0/")
-    >>> from cinderclient.v1 import client
+    >>> from manilaclient.v1 import client
     >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="volume")
     >>> nt.volumes.list()
     [...]
