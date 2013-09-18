@@ -152,7 +152,7 @@ class ShareManager(base.ManagerWithFind):
         """
         access = self._action('os-allow_access', share,
                               {'access_type': access_type,
-                              'access_to': access})[1]["access"]
+                               'access_to': access})[1]["access"]
         return access
 
     def deny(self, share, id):
