@@ -27,6 +27,10 @@ class ShareSnapshot(base.Resource):
     def __repr__(self):
         return "<ShareSnapshot: %s>" % self.id
 
+    def update(self, **kwargs):
+        """Update this snapshot."""
+        self.manager.update(self, **kwargs)
+
     def delete(self):
         """Delete this snapshot."""
         self.manager.delete(self)
@@ -86,6 +90,18 @@ class ShareSnapshotManager(base.ManagerWithFind):
     def delete(self, snapshot):
         """Delete a snapshot of a share.
 
-        :param share: The :class:`ShareSnapshot` to delete.
+        :param snapshot: The :class:`ShareSnapshot` to delete.
         """
         self._delete("/snapshots/%s" % base.getid(snapshot))
+
+    def update(self, snapshot, **kwargs):
+        """Update a snapshot.
+
+        :param snapshot: Snapshot to update.
+        :rtype: :class:`ShareSnapshot`
+        """
+        if not kwargs:
+            return
+
+        body = {'snapshot': kwargs, }
+        return self._update("/snapshots/%s" % snapshot.id, body)

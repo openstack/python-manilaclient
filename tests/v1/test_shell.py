@@ -100,60 +100,47 @@ class ShellTest(utils.TestCase):
         self.assert_called('GET', '/snapshots/detail?'
                            'status=available&share_id=1234')
 
-    # def test_rename(self):
-    #     # basic rename with positional agruments
-    #     self.run_command('rename 1234 new-name')
-    #     expected = {'share': {'name': 'new-name'}}
-    #     self.assert_called('PUT', '/shares/1234', body=expected)
-    #     # change description only
-    #     self.run_command('rename 1234 --description=new-description')
-    #     expected = {'share': {'description': 'new-description'}}
-    #     self.assert_called('PUT', '/shares/1234', body=expected)
-    #     # rename and change description
-    #     self.run_command('rename 1234 new-name '
-    #                      '--description=new-description')
-    #     expected = {'share': {
-    #         'name': 'new-name',
-    #         'description': 'new-description',
-    #     }}
-    #     self.assert_called('PUT', '/shares/1234', body=expected)
-    #     # noop, the only all will be the lookup
-    #     self.run_command('rename 1234')
-    #     self.assert_called('GET', '/shares/1234')
+    def test_rename(self):
+        # basic rename with positional agruments
+        self.run_command('rename 1234 new-name')
+        expected = {'share': {'display_name': 'new-name'}}
+        self.assert_called('PUT', '/shares/1234', body=expected)
+        # change description only
+        self.run_command('rename 1234 --description=new-description')
+        expected = {'share': {'display_description': 'new-description'}}
+        self.assert_called('PUT', '/shares/1234', body=expected)
+        # rename and change description
+        self.run_command('rename 1234 new-name '
+                         '--description=new-description')
+        expected = {'share': {
+            'display_name': 'new-name',
+            'display_description': 'new-description',
+        }}
+        self.assert_called('PUT', '/shares/1234', body=expected)
+        # noop, the only all will be the lookup
+        self.run_command('rename 1234')
+        self.assert_called('GET', '/shares/1234')
 
-    # def test_rename_snapshot(self):
-    #     # basic rename with positional agruments
-    #     self.run_command('snapshot-rename 1234 new-name')
-    #     expected = {'snapshot': {'name': 'new-name'}}
-    #     self.assert_called('PUT', '/snapshots/1234', body=expected)
-    #     # change description only
-    #     self.run_command('snapshot-rename 1234 '
-    #                      '--description=new-description')
-    #     expected = {'snapshot': {'description': 'new-description'}}
-    #     self.assert_called('PUT', '/snapshots/1234', body=expected)
-    #     # snapshot-rename and change description
-    #     self.run_command('snapshot-rename 1234 new-name '
-    #                      '--description=new-description')
-    #     expected = {'snapshot': {
-    #         'name': 'new-name',
-    #         'description': 'new-description',
-    #     }}
-    #     self.assert_called('PUT', '/snapshots/1234', body=expected)
-    #     # noop, the only all will be the lookup
-    #     self.run_command('snapshot-rename 1234')
-    #     self.assert_called('GET', '/snapshots/1234')
+    def test_rename_snapshot(self):
+        # basic rename with positional agruments
+        self.run_command('snapshot-rename 1234 new-name')
+        expected = {'snapshot': {'display_name': 'new-name'}}
+        self.assert_called('PUT', '/snapshots/1234', body=expected)
+        # change description only
+        self.run_command('snapshot-rename 1234 '
+                         '--description=new-description')
+        expected = {'snapshot': {'display_description': 'new-description'}}
 
-    # def test_set_metadata_set(self):
-    #     self.run_command('metadata 1234 set key1=val1 key2=val2')
-    #     self.assert_called('POST', '/shares/1234/metadata',
-    #                        {'metadata': {'key1': 'val1', 'key2': 'val2'}})
+        self.assert_called('PUT', '/snapshots/1234', body=expected)
+        # snapshot-rename and change description
+        self.run_command('snapshot-rename 1234 new-name '
+                         '--description=new-description')
+        expected = {'snapshot': {
+            'display_name': 'new-name',
+            'display_description': 'new-description',
+        }}
+        self.assert_called('PUT', '/snapshots/1234', body=expected)
+        # noop, the only all will be the lookup
+        self.run_command('snapshot-rename 1234')
+        self.assert_called('GET', '/snapshots/1234')
 
-    # def test_set_metadata_delete_dict(self):
-    #     self.run_command('metadata 1234 unset key1=val1 key2=val2')
-    #     self.assert_called('DELETE', '/shares/1234/metadata/key1')
-    #     self.assert_called('DELETE', '/shares/1234/metadata/key2', pos=-2)
-
-    # def test_set_metadata_delete_keys(self):
-    #     self.run_command('metadata 1234 unset key1 key2')
-    #     self.assert_called('DELETE', '/shares/1234/metadata/key1')
-    #     self.assert_called('DELETE', '/shares/1234/metadata/key2', pos=-2)

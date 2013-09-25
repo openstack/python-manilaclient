@@ -434,33 +434,51 @@ def do_snapshot_create(cs, args):
                                          args.description)
     _print_share_snapshot(cs, snapshot)
 
-# @utils.arg('share',
-#            metavar='<share>',
-#            help='ID of the share to rename.')
-# @utils.arg('name',
-#            nargs='?',
-#            metavar='<name>',
-#            help='New name for the share.')
-# @utils.arg('--description', metavar='<description>',
-#            help='Optional share description. (Default=None)',
-#            default=None)
-# @utils.arg('--display-description',
-#            help=argparse.SUPPRESS)
-# @utils.arg('--display_description',
-#            help=argparse.SUPPRESS)
-# @utils.service_type('share')
-# def do_rename(cs, args):
-#     """Rename a share."""
-#     kwargs = {}
-#
-#     if args.name is not None:
-#         kwargs['name'] = args.name
-#     if args.display_description is not None:
-#         kwargs['description'] = args.display_description
-#     elif args.description is not None:
-#         kwargs['description'] = args.description
-#
-#     _find_share(cs, args.share).update(**kwargs)
+
+@utils.arg('share',
+           metavar='<share>',
+           help='ID of the share to rename.')
+@utils.arg('name',
+           nargs='?',
+           metavar='<name>',
+           help='New name for the share.')
+@utils.arg('--description', metavar='<description>',
+           help='Optional share description. (Default=None)',
+           default=None)
+@utils.service_type('share')
+def do_rename(cs, args):
+    """Rename a share."""
+    kwargs = {}
+
+    if args.name is not None:
+        kwargs['display_name'] = args.name
+    if args.description is not None:
+        kwargs['display_description'] = args.description
+
+    _find_share(cs, args.share).update(**kwargs)
+
+
+@utils.arg('snapshot',
+           metavar='<snapshot>',
+           help='ID of the snapshot to rename.')
+@utils.arg('name',
+           nargs='?',
+           metavar='<name>',
+           help='New name for the snapshot.')
+@utils.arg('--description', metavar='<description>',
+           help='Optional snapshot description. (Default=None)',
+           default=None)
+@utils.service_type('share')
+def do_snapshot_rename(cs, args):
+    """Rename a snapshot."""
+    kwargs = {}
+
+    if args.name is not None:
+        kwargs['display_name'] = args.name
+    if args.description is not None:
+        kwargs['display_description'] = args.description
+
+    _find_share_snapshot(cs, args.snapshot).update(**kwargs)
 
 
 @utils.arg(
