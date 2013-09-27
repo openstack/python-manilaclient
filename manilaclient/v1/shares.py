@@ -29,6 +29,10 @@ class Share(base.Resource):
     def __repr__(self):
         return "<Share: %s>" % self.id
 
+    def update(self, **kwargs):
+        """Update this share."""
+        self.manager.update(self, **kwargs)
+
     def delete(self):
         """Delete this share."""
         self.manager.delete(self)
@@ -113,6 +117,18 @@ class ShareManager(base.ManagerWithFind):
         :rtype: :class:`Share`
         """
         return self._get("/shares/%s" % share_id, "share")
+
+    def update(self, share, **kwargs):
+        """Updates a share.
+
+        :param share: Share to update.
+        :rtype: :class:`Share`
+        """
+        if not kwargs:
+            return
+
+        body = {'share': kwargs, }
+        return self._update("/shares/%s" % share.id, body)
 
     def list(self, detailed=True, search_opts=None):
         """Get a list of all shares.
