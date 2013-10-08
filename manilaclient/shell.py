@@ -198,32 +198,6 @@ class OpenStackManilaShell(object):
                             default=0,
                             help='Number of retries.')
 
-        # FIXME(dtroyer): The args below are here for diablo compatibility,
-        #                 remove them in folsum cycle
-
-        # alias for --os-username, left in for backwards compatibility
-        parser.add_argument('--username',
-                            help=argparse.SUPPRESS)
-
-        # alias for --os-region_name, left in for backwards compatibility
-        parser.add_argument('--region_name',
-                            help=argparse.SUPPRESS)
-
-        # alias for --os-password, left in for backwards compatibility
-        parser.add_argument('--apikey', '--password', dest='apikey',
-                            default=utils.env('MANILA_API_KEY'),
-                            help=argparse.SUPPRESS)
-
-        # alias for --os-tenant-name, left in for backward compatibility
-        parser.add_argument('--projectid', '--tenant_name', dest='projectid',
-                            default=utils.env('MANILA_PROJECT_ID'),
-                            help=argparse.SUPPRESS)
-
-        # alias for --os-auth-url, left in for backward compatibility
-        parser.add_argument('--url', '--auth_url', dest='url',
-                            default=utils.env('MANILA_URL'),
-                            help=argparse.SUPPRESS)
-
         return parser
 
     def get_subcommand_parser(self, version):
@@ -362,12 +336,11 @@ class OpenStackManilaShell(object):
         (os_username, os_password, os_tenant_name, os_auth_url,
          os_region_name, os_tenant_id, endpoint_type, insecure,
          service_type, service_name, share_service_name,
-         username, apikey, projectid, url, region_name, cacert) = (
+         cacert) = (
             args.os_username, args.os_password, args.os_tenant_name,
             args.os_auth_url, args.os_region_name, args.os_tenant_id,
             args.endpoint_type, args.insecure, args.service_type,
-            args.service_name, args.share_service_name, args.username,
-            args.apikey, args.projectid, args.url, args.region_name,
+            args.service_name, args.share_service_name,
             args.os_cacert)
 
         if not endpoint_type:
@@ -382,39 +355,24 @@ class OpenStackManilaShell(object):
 
         if not utils.isunauthenticated(args.func):
             if not os_username:
-                if not username:
-                    raise exc.CommandError(
-                        "You must provide a username "
-                        "via either --os-username or env[OS_USERNAME]")
-                else:
-                    os_username = username
+                raise exc.CommandError(
+                    "You must provide a username "
+                    "via either --os-username or env[OS_USERNAME]")
 
             if not os_password:
-                if not apikey:
-                    raise exc.CommandError("You must provide a password "
-                                           "via either --os-password or via "
-                                           "env[OS_PASSWORD]")
-                else:
-                    os_password = apikey
+                raise exc.CommandError("You must provide a password "
+                                       "via either --os-password or via "
+                                       "env[OS_PASSWORD]")
 
             if not (os_tenant_name or os_tenant_id):
-                if not projectid:
-                    raise exc.CommandError("You must provide a tenant_id "
-                                           "via either --os-tenant-id or "
-                                           "env[OS_TENANT_ID]")
-                else:
-                    os_tenant_name = projectid
+                raise exc.CommandError("You must provide a tenant_id "
+                                       "via either --os-tenant-id or "
+                                       "env[OS_TENANT_ID]")
 
             if not os_auth_url:
-                if not url:
-                    raise exc.CommandError(
-                        "You must provide an auth url "
-                        "via either --os-auth-url or env[OS_AUTH_URL]")
-                else:
-                    os_auth_url = url
-
-            if not os_region_name and region_name:
-                os_region_name = region_name
+                raise exc.CommandError(
+                    "You must provide an auth url "
+                    "via either --os-auth-url or env[OS_AUTH_URL]")
 
         if not (os_tenant_name or os_tenant_id):
             raise exc.CommandError(
