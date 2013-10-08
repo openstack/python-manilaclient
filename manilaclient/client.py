@@ -217,6 +217,7 @@ class HTTPClient(object):
 
                 if extract_token:
                     self.auth_token = self.service_catalog.get_token()
+                    self.tenant_id = self.service_catalog.get_tenant_id()
 
                 management_url = self.service_catalog.url_for(
                     attr='region',

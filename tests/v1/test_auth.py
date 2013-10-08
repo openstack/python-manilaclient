@@ -33,6 +33,9 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
                 "token": {
                     "expires": "12345",
                     "id": "FAKE_ID",
+                    "tenant": {
+                        "id": "FAKE_TENANT_ID"
+                        },
                 },
                 "serviceCatalog": [
                     {
@@ -190,6 +193,9 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
                 "token": {
                     "expires": "12345",
                     "id": "FAKE_ID",
+                    "tenant": {
+                        "id": "FAKE_TENANT_ID"
+                        },
                 },
                 "serviceCatalog": [
                     {
@@ -274,6 +280,9 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
                 "token": {
                     "expires": "12345",
                     "id": "FAKE_ID",
+                    "tenant": {
+                        "id": "FAKE_TENANT_ID"
+                        },
                 },
                 "serviceCatalog": [
                     {
