@@ -127,6 +127,8 @@ class FakeHTTPClient(base_client.HTTPClient):
                           'snapshots': 2,
                           'gigabytes': 1}})
 
+    def delete_os_quota_sets_test(self, **kw):
+        return (202, {}, {})
     #
     # List all extensions
     #

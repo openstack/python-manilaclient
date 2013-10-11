@@ -30,25 +30,42 @@ class QuotaSet(base.Resource):
 class QuotaSetManager(base.ManagerWithFind):
     resource_class = QuotaSet
 
-    def get(self, tenant_id):
+    def get(self, tenant_id, user_id=None):
         if hasattr(tenant_id, 'tenant_id'):
             tenant_id = tenant_id.tenant_id
-        return self._get("/os-quota-sets/%s" % (tenant_id), "quota_set")
+        if user_id:
+            url = "/os-quota-sets/%s?user_id=%s" % (tenant_id, user_id)
+        else:
+            url = "/os-quota-sets/%s" % tenant_id
+        return self._get(url, "quota_set")
 
-    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None):
+    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,
+               force=None, user_id=None):
 
         body = {'quota_set': {
                 'tenant_id': tenant_id,
                 'shares': shares,
                 'snapshots': snapshots,
-                'gigabytes': gigabytes}}
+                'gigabytes': gigabytes,
+                'force': force}}
 
         for key in body['quota_set'].keys():
             if body['quota_set'][key] is None:
                 body['quota_set'].pop(key)
+        if user_id:
+            url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
+        else:
+            url = '/os-quota-sets/%s' % tenant_id
 
-        self._update('/os-quota-sets/%s' % (tenant_id), body)
+        return self._update(url, body, 'quota_set')
 
     def defaults(self, tenant_id):
         return self._get('/os-quota-sets/%s/defaults' % tenant_id,
                          'quota_set')
+
+    def delete(self, tenant_id, user_id=None):
+        if user_id:
+            url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
+        else:
+            url = '/os-quota-sets/%s' % tenant_id
+        self._delete(url)

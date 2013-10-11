@@ -19,6 +19,7 @@ import sys
 import time
 
 from manilaclient import exceptions
+from manilaclient.v1 import quotas
 from manilaclient import utils
 
 
@@ -126,20 +127,32 @@ def _quota_update(manager, identifier, args):
             updates[resource] = val
 
     if updates:
-        manager.update(identifier, **updates)
+        # default value of force is None to make sure this client
+        # will be compatibile with old nova server
+        force_update = getattr(args, 'force', None)
+        user_id = getattr(args, 'user', None)
+        if isinstance(manager, quotas.QuotaSetManager):
+            manager.update(identifier, force=force_update, user_id=user_id,
+                           **updates)
+        else:
+            manager.update(identifier, **updates)
 
 
 @utils.arg('--tenant',
            metavar='<tenant-id>',
            default=None,
            help='ID of tenant to list the quotas for.')
+@utils.arg('--user',
+           metavar='<user-id>',
+           default=None,
+           help='ID of user to list the quotas for.')
 def do_quota_show(cs, args):
     """List the quotas for a tenant/user."""
 
     if not args.tenant:
-        _quota_show(cs.quotas.get(cs.client.tenant_id))
+        _quota_show(cs.quotas.get(cs.client.tenant_id, user_id=args.user))
     else:
-        _quota_show(cs.quotas.get(args.tenant))
+        _quota_show(cs.quotas.get(args.tenant, user_id=args.user))
 
 
 @utils.arg('--tenant',
@@ -158,6 +171,10 @@ def do_quota_defaults(cs, args):
 @utils.arg('tenant',
            metavar='<tenant_id>',
            help='UUID of tenant to set the quotas for.')
+@utils.arg('--user',
+           metavar='<user-id>',
+           default=None,
+           help='ID of user to set the quotas for.')
 @utils.arg('--shares',
            metavar='<shares>',
            type=int, default=None,
@@ -170,11 +187,34 @@ def do_quota_defaults(cs, args):
            metavar='<gigabytes>',
            type=int, default=None,
            help='New value for the "gigabytes" quota.')
+@utils.arg('--force',
+           dest='force',
+           action="store_true",
+           default=None,
+           help='Whether force update the quota even if the already used'
+                ' and reserved exceeds the new quota')
 @utils.service_type('share')
 def do_quota_update(cs, args):
-    """Update the quotas for a tenant."""
+    """Update the quotas for a tenant/user."""
 
     _quota_update(cs.quotas, args.tenant, args)
+
+
+@utils.arg('--tenant',
+           metavar='<tenant-id>',
+           help='ID of tenant to delete quota for.')
+@utils.arg('--user',
+           metavar='<user-id>',
+           help='ID of user to delete quota for.')
+def do_quota_delete(cs, args):
+    """Delete quota for a tenant/user so their quota will Revert
+       back to default.
+    """
+
+    if not args.tenant:
+        cs.quotas.delete(cs.client.tenant_id, user_id=args.user)
+    else:
+        cs.quotas.delete(args.tenant, user_id=args.user)
 
 
 @utils.arg('class_name',

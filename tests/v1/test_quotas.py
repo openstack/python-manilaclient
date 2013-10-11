@@ -27,6 +27,13 @@ class QuotaSetsTest(utils.TestCase):
         cs.quotas.get(tenant_id)
         cs.assert_called('GET', '/os-quota-sets/%s' % tenant_id)
 
+    def test_user_quotas_get(self):
+        tenant_id = 'test'
+        user_id = 'fake_user'
+        cs.quotas.get(tenant_id, user_id=user_id)
+        url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
+        cs.assert_called('GET', url)
+
     def test_tenant_quotas_defaults(self):
         tenant_id = 'test'
         cs.quotas.defaults(tenant_id)
@@ -37,6 +44,36 @@ class QuotaSetsTest(utils.TestCase):
         q.update(shares=2)
         q.update(snapshots=2)
         cs.assert_called('PUT', '/os-quota-sets/test')
+
+    def test_update_user_quota(self):
+        tenant_id = 'test'
+        user_id = 'fake_user'
+        q = cs.quotas.get(tenant_id)
+        q.update(shares=2, user_id=user_id)
+        q.update(snapshots=2, user_id=user_id)
+        url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
+        cs.assert_called('PUT', url)
+
+    def test_force_update_quota(self):
+        q = cs.quotas.get('test')
+        q.update(shares=2, force=True)
+        cs.assert_called(
+            'PUT', '/os-quota-sets/test',
+            {'quota_set': {'force': True,
+                           'shares': 2,
+                           'tenant_id': 'test'}})
+
+    def test_quotas_delete(self):
+        tenant_id = 'test'
+        cs.quotas.delete(tenant_id)
+        cs.assert_called('DELETE', '/os-quota-sets/%s' % tenant_id)
+
+    def test_user_quotas_delete(self):
+        tenant_id = 'test'
+        user_id = 'fake_user'
+        cs.quotas.delete(tenant_id, user_id=user_id)
+        url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
+        cs.assert_called('DELETE', url)
 
     def test_refresh_quota(self):
         q = cs.quotas.get('test')
