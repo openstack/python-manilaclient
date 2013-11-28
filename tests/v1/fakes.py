@@ -94,3 +94,21 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def put_snapshots_1234(self, **kwargs):
         snapshot = {'snapshot': {'id': 1234, 'name': 'snapshot_name'}}
         return (200, {}, snapshot)
+
+    #
+    # Set/Unset metadata
+    #
+    def delete_shares_1234_metadata_test_key(self, **kw):
+        return (204, {}, None)
+
+    def delete_shares_1234_metadata_key1(self, **kw):
+        return (204, {}, None)
+
+    def delete_shares_1234_metadata_key2(self, **kw):
+        return (204, {}, None)
+
+    def post_shares_1234_metadata(self, **kw):
+        return (204, {}, {'metadata': {'test_key': 'test_value'}})
+
+    def put_shares_1234_metadata(self, **kw):
+        return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})

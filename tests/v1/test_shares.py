@@ -52,3 +52,18 @@ class SharesTest(utils.TestCase):
         ip = '192.168.0.1'
         cs.shares.allow(share, 'ip', ip)
         cs.assert_called('POST', '/shares/1234/action')
+
+    def test_set_metadata(self):
+        cs.shares.set_metadata(1234, {'k1': 'v2'})
+        cs.assert_called('POST', '/shares/1234/metadata',
+                         {'metadata': {'k1': 'v2'}})
+
+    def test_delete_metadata(self):
+        keys = ['key1']
+        cs.shares.delete_metadata(1234, keys)
+        cs.assert_called('DELETE', '/shares/1234/metadata/key1')
+
+    def test_metadata_update_all(self):
+        cs.shares.update_all_metadata(1234, {'k1': 'v1'})
+        cs.assert_called('PUT', '/shares/1234/metadata',
+                         {'metadata': {'k1': 'v1'}})

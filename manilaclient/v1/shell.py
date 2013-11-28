@@ -84,7 +84,7 @@ def _translate_keys(collection, convert):
 
 def _extract_metadata(args):
     metadata = {}
-    for metadatum in args.metadata[0]:
+    for metadatum in args.metadata:
         # unset doesn't require a val, so we have the if/else
         if '=' in metadatum:
             (key, value) = metadatum.split('=', 1)
@@ -285,6 +285,12 @@ def do_rate_limits(cs, args):
     metavar='<name>',
     help='Optional share name. (Default=None)',
     default=None)
+@utils.arg('--metadata',
+           type=str,
+           nargs='*',
+           metavar='<key=value>',
+           help='Metadata key=value pairs (Optional, Default=None)',
+           default=None)
 @utils.arg(
     '--description',
     metavar='<description>',
@@ -293,9 +299,66 @@ def do_rate_limits(cs, args):
 @utils.service_type('share')
 def do_create(cs, args):
     """Creates new NAS storage (NFS or CIFS)."""
+
+    share_metadata = None
+    if args.metadata is not None:
+        share_metadata = _extract_metadata(args)
+
     share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
-                             args.name, args.description)
+                             args.name, args.description,
+                             metadata=share_metadata)
     _print_share(cs, share)
+
+
+@utils.arg('share',
+           metavar='<share>',
+           help='Name or ID of the share to update metadata on.')
+@utils.arg('action',
+           metavar='<action>',
+           choices=['set', 'unset'],
+           help="Actions: 'set' or 'unset'")
+@utils.arg('metadata',
+           metavar='<key=value>',
+           nargs='+',
+           default=[],
+           help='Metadata to set/unset (only key is necessary on unset)')
+@utils.service_type('share')
+def do_metadata(cs, args):
+    """Set or Delete metadata on a share."""
+    share = utils.find_share(cs, args.share)
+    metadata = _extract_metadata(args)
+
+    if args.action == 'set':
+        cs.shares.set_metadata(share, metadata)
+    elif args.action == 'unset':
+        cs.shares.delete_metadata(share, sorted(metadata.keys(),
+                                  reverse=True))
+
+
+@utils.arg('share', metavar='<share>',
+           help='ID of share')
+@utils.service_type('share')
+def do_metadata_show(cs, args):
+    """Show metadata of given share."""
+    share = utils.find_share(cs, args.share)
+    utils.print_dict(share._info['metadata'], 'Metadata-property')
+
+
+@utils.arg('share',
+           metavar='<share>',
+           help='Name or ID of the share to update metadata on.')
+@utils.arg('metadata',
+           metavar='<key=value>',
+           nargs='+',
+           default=[],
+           help='Metadata entry/entries to update.')
+@utils.service_type('share')
+def do_metadata_update_all(cs, args):
+    """Update all metadata of a share."""
+    share = utils.find_share(cs, args.share)
+    metadata = _extract_metadata(args)
+    metadata = share.update_all_metadata(metadata)._info['metadata']
+    utils.print_dict(metadata, 'Metadata-property')
 
 
 @utils.arg(

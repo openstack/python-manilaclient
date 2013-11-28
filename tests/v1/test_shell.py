@@ -17,6 +17,7 @@ import fixtures
 
 from manilaclient import client
 from manilaclient import shell
+from manilaclient.v1 import shell as shell_v1
 from tests import utils
 from tests.v1 import fakes
 
@@ -144,3 +145,41 @@ class ShellTest(utils.TestCase):
         self.run_command('snapshot-rename 1234')
         self.assert_called('GET', '/snapshots/1234')
 
+    def test_set_metadata_set(self):
+        self.run_command('metadata 1234 set key1=val1 key2=val2')
+        self.assert_called('POST', '/shares/1234/metadata',
+                           {'metadata': {'key1': 'val1', 'key2': 'val2'}})
+
+    def test_set_metadata_delete_dict(self):
+        self.run_command('metadata 1234 unset key1=val1 key2=val2')
+        self.assert_called('DELETE', '/shares/1234/metadata/key1')
+        self.assert_called('DELETE', '/shares/1234/metadata/key2', pos=-2)
+
+    def test_set_metadata_delete_keys(self):
+        self.run_command('metadata 1234 unset key1 key2')
+        self.assert_called('DELETE', '/shares/1234/metadata/key1')
+        self.assert_called('DELETE', '/shares/1234/metadata/key2', pos=-2)
+
+    def test_share_metadata_update_all(self):
+        self.run_command('metadata-update-all 1234 key1=val1 key2=val2')
+        self.assert_called('PUT', '/shares/1234/metadata',
+                           {'metadata': {'key1': 'val1', 'key2': 'val2'}})
+
+    def test_extract_metadata(self):
+        # mimic the result of argparse's parse_args() method
+        class Arguments:
+            def __init__(self, metadata=[]):
+                self.metadata = metadata
+
+        inputs = [
+            ([], {}),
+            (["key=value"], {"key": "value"}),
+            (["key"], {"key": None}),
+            (["k1=v1", "k2=v2"], {"k1": "v1", "k2": "v2"}),
+            (["k1=v1", "k2"], {"k1": "v1", "k2": None}),
+            (["k1", "k2=v2"], {"k1": None, "k2": "v2"})
+        ]
+
+        for input in inputs:
+            args = Arguments(metadata=input[0])
+            self.assertEqual(shell_v1._extract_metadata(args), input[1])

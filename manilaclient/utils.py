@@ -196,6 +196,11 @@ def find_resource(manager, name_or_id):
         raise exceptions.CommandError(msg)
 
 
+def find_share(cs, share):
+    """Get a share by name or ID."""
+    return find_resource(cs.shares, share)
+
+
 def _format_servers_list_networks(server):
     output = []
     for (network, addresses) in server.networks.items():

@@ -59,6 +59,10 @@ class Share(base.Resource):
             raise exceptions.CommandError(
                 'Only ip and passwd type are supported')
 
+    def update_all_metadata(self, metadata):
+        """Update all metadata of this share."""
+        return self.manager.update_all_metadata(self, metadata)
+
     @staticmethod
     def _validate_username(access):
         valid_useraname_re = '\w{4,32}'
@@ -93,7 +97,7 @@ class ShareManager(base.ManagerWithFind):
     resource_class = Share
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
-               description=None):
+               description=None, metadata=None):
         """Create NAS.
 
         :param size: Size of NAS in GB
@@ -101,12 +105,20 @@ class ShareManager(base.ManagerWithFind):
         :param name: Name of the NAS
         :param description: Short description of a share
         :param share_proto: Type of NAS (NFS or CIFS)
+        :param metadata: Optional metadata to set on volume creation
         :rtype: :class:`Share`
         """
+
+        if metadata is None:
+            share_metadata = {}
+        else:
+            share_metadata = metadata
+
         body = {'share': {'size': size,
                           'snapshot_id': snapshot_id,
                           'name': name,
                           'description': description,
+                          'metadata': share_metadata,
                           'share_proto': share_proto}}
         return self._create('/shares', body, 'share')
 
@@ -187,6 +199,36 @@ class ShareManager(base.ManagerWithFind):
             return [t(*value.values()) for value in access_list]
         else:
             return []
+
+    def set_metadata(self, share, metadata):
+        """
+        Update/Set a shares metadata.
+
+        :param share: The :class:`Share`.
+        :param metadata: A list of keys to be set.
+        """
+        body = {'metadata': metadata}
+        return self._create("/shares/%s/metadata" % base.getid(share),
+                            body, "metadata")
+
+    def delete_metadata(self, share, keys):
+        """
+        Delete specified keys from volumes metadata.
+
+        :param share: The :class:`Share`.
+        :param keys: A list of keys to be removed.
+        """
+        for k in keys:
+            self._delete("/shares/%s/metadata/%s" % (base.getid(share), k))
+
+    def update_all_metadata(self, share, metadata):
+        """Update all metadata of a share.
+
+        :param share: The :class:`Volume`.
+        :param metadata: A list of keys to be updated.
+        """
+        body = {'metadata': metadata}
+        return self._update("/shares/%s/metadata" % base.getid(share), body)
 
     def _action(self, action, share, info=None, **kwargs):
         """Perform a share 'action'."""
