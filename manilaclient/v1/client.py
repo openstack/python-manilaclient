@@ -1,5 +1,7 @@
 from manilaclient import client
 from manilaclient.v1 import limits
+from manilaclient.v1 import share_networks
+from manilaclient.v1 import security_services
 from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
 from manilaclient.v1 import shares
@@ -31,6 +33,8 @@ class Client(object):
         # know it's not being used as keyword argument
         password = api_key
         self.limits = limits.LimitsManager(self)
+        self.security_services = security_services.SecurityServiceManager(self)
+        self.share_networks = share_networks.ShareNetworkManager(self)
 
         self.quota_classes = quota_classes.QuotaClassSetManager(self)
         self.quotas = quotas.QuotaSetManager(self)

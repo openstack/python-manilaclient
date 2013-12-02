@@ -292,6 +292,11 @@ def do_rate_limits(cs, args):
            help='Metadata key=value pairs (Optional, Default=None)',
            default=None)
 @utils.arg(
+    '--share-network-id',
+    metavar='<network-info-id>',
+    help='Optional network info id',
+    default=None)
+@utils.arg(
     '--description',
     metavar='<description>',
     help='Optional share description. (Default=None)',
@@ -306,7 +311,8 @@ def do_create(cs, args):
 
     share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
                              args.name, args.description,
-                             metadata=share_metadata)
+                             metadata=share_metadata,
+                             share_network_id=args.share_network_id)
     _print_share(cs, share)
 
 
@@ -640,3 +646,316 @@ def do_reset_state(cs, args):
     """Explicitly update the state of a share."""
     share = _find_share(cs, args.share)
     share.reset_state(args.state)
+
+
+@utils.arg(
+    '--neutron-net-id',
+    metavar='neutron-net-id',
+    default=None,
+    help="Neutron network id. If using manila network neutron plug-in, this "
+         "value should be specified. Tenant can't have more than one share's"
+         " network with the same neutron_net_id and neutron_subnet_id ")
+@utils.arg(
+    '--neutron-subnet-id',
+    metavar='neutron-subnet-id',
+    default=None,
+    help="Neutron subnet id. If using manila network neutron plug-in, this "
+         "value should be specified. Tenant can't have more than one share's"
+         " network with the same neutron_net_id and neutron_subnet_id ")
+@utils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help="Share network name")
+@utils.arg(
+    '--description',
+    metavar='<description>',
+    default=None,
+    help="Share network description")
+def do_share_network_create(cs, args):
+    """Create description for network used by the tenant"""
+    values = {'neutron_net_id': args.neutron_net_id,
+              'neutron_subnet_id': args.neutron_subnet_id,
+              'name': args.name,
+              'description': args.description}
+    share_network = cs.share_networks.create(**values)
+    info = share_network._info.copy()
+    utils.print_dict(info)
+
+
+@utils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network to update.')
+@utils.arg(
+    '--neutron-net-id',
+    metavar='neutron-net-id',
+    default=None,
+    help="Neutron network id. Tenant can't have more than one share's"
+         " network with the same neutron_net_id and neutron_subnet_id ")
+@utils.arg(
+    '--neutron-subnet-id',
+    metavar='neutron-subnet-id',
+    default=None,
+    help="Neutron subnet id. Tenant can't have more than one share's"
+         " network with the same neutron_net_id and neutron_subnet_id ")
+@utils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help="Share network name")
+@utils.arg(
+    '--description',
+    metavar='<description>',
+    default=None,
+    help="Share network description")
+def do_share_network_update(cs, args):
+    """Update share network data"""
+    values = {'neutron_net_id': args.neutron_net_id,
+              'neutron_subnet_id': args.neutron_subnet_id,
+              'name': args.name,
+              'description': args.description}
+    share_network = cs.share_networks.update(args.share_network, **values)
+    info = share_network._info.copy()
+    utils.print_dict(info)
+
+
+@utils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network to show.')
+def do_share_network_show(cs, args):
+    """Get a description for network used by the tenant"""
+    share_network = cs.share_networks.get(args.share_network)
+    info = share_network._info.copy()
+    utils.print_dict(info)
+
+
+@utils.arg(
+    '--all-tenants',
+    dest='all_tenants',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help='Display information from all tenants (Admin only).')
+@utils.arg(
+    '--status',
+    metavar='<status>',
+    default=None,
+    help='Filter results by status')
+def do_share_network_list(cs, args):
+    """Get a list of network info"""
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    search_opts = {
+        'all_tenants': all_tenants,
+        'status': args.status,
+    }
+    share_networks = cs.share_networks.list(search_opts=search_opts)
+    fields = ['id', 'name', 'status']
+    utils.print_list(share_networks, fields=fields)
+
+
+@utils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network')
+@utils.arg(
+    'security_service',
+    metavar='<security-service>',
+    help='Security service to associate with.')
+def do_share_network_security_service_add(cs, args):
+    """Associate security service with share network"""
+    cs.share_networks.add_security_service(args.share_network,
+                                           args.security_service)
+
+
+@utils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network.')
+@utils.arg(
+    'security_service',
+    metavar='<security-service>',
+    help='Security service to dissociate.')
+def do_share_network_security_service_remove(cs, args):
+    """Dissociate security service from share network"""
+    cs.share_networks.remove_security_service(args.share_network,
+                                              args.security_service)
+
+
+@utils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network.')
+def do_share_network_security_service_list(cs, args):
+    """Get a list of security services associated with a given share network"""
+    search_opts = {
+        'share_network_id': args.share_network,
+    }
+    security_services = cs.security_services.list(search_opts=search_opts)
+    fields = ['id', 'name', 'status']
+    utils.print_list(security_services, fields=fields)
+
+
+@utils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network to be deleted.')
+def do_share_network_delete(cs, args):
+    """Delete share network"""
+    cs.share_networks.delete(args.share_network)
+
+
+@utils.arg(
+    'type',
+    metavar='<type>',
+    help="Security service type: 'ldap', 'kerberos' or 'active_directory'")
+@utils.arg(
+    '--dns-ip',
+    metavar='<dns_ip>',
+    default=None,
+    help="dns ip address used inside tenant's network")
+@utils.arg(
+    '--server',
+    metavar='<server>',
+    default=None,
+    help="security service ip address or hostname")
+@utils.arg(
+    '--domain',
+    metavar='<domain>',
+    default=None,
+    help="security service domain")
+@utils.arg(
+    '--sid',
+    metavar='<security identifier>',
+    default=None,
+    help="security service user or group used by tenant")
+@utils.arg(
+    '--password',
+    metavar='<password>',
+    default=None,
+    help="password used by sid")
+@utils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help="security service name")
+@utils.arg(
+    '--description',
+    metavar='<description>',
+    default=None,
+    help="security service description")
+def do_security_service_create(cs, args):
+    """Create security service used by tenant"""
+    values = {'dns_ip': args.dns_ip,
+              'server': args.server,
+              'domain': args.domain,
+              'sid': args.sid,
+              'password': args.password,
+              'name': args.name,
+              'description': args.description}
+    security_service = cs.security_services.create(args.type, **values)
+    info = security_service._info.copy()
+    utils.print_dict(info)
+
+
+@utils.arg(
+    'security_service',
+    metavar='<security-service>',
+    help='Security service to update.')
+@utils.arg(
+    '--dns-ip',
+    metavar='<dns-ip>',
+    default=None,
+    help="dns ip address used inside tenant's network")
+@utils.arg(
+    '--server',
+    metavar='<server>',
+    default=None,
+    help="security service ip address or hostname")
+@utils.arg(
+    '--domain',
+    metavar='<domain>',
+    default=None,
+    help="security service domain")
+@utils.arg(
+    '--sid',
+    metavar='<security identifier>',
+    default=None,
+    help="security service user or group used by tenant")
+@utils.arg(
+    '--password',
+    metavar='<password>',
+    default=None,
+    help="password used by sid")
+@utils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help="security service name")
+@utils.arg(
+    '--description',
+    metavar='<description>',
+    default=None,
+    help="security service description")
+def do_security_service_update(cs, args):
+    """Update security service"""
+    values = {'dns_ip': args.dns_ip,
+              'server': args.server,
+              'domain': args.domain,
+              'sid': args.sid,
+              'password': args.password,
+              'name': args.name,
+              'description': args.description}
+    security_service = cs.security_services.update(args.security_service,
+                                                   **values)
+    info = security_service._info.copy()
+    utils.print_dict(info)
+
+
+@utils.arg(
+    'security_service',
+    metavar='<security-service>',
+    help='Security service to show.')
+def do_security_service_show(cs, args):
+    """Show security service"""
+    security_service = cs.security_services.get(args.security_service)
+    info = security_service._info.copy()
+    utils.print_dict(info)
+
+
+@utils.arg(
+    '--all-tenants',
+    dest='all_tenants',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help='Display information from all tenants (Admin only).')
+@utils.arg(
+    '--status',
+    metavar='<status>',
+    default=None,
+    help='Filter results by status')
+def do_security_service_list(cs, args):
+    """Get a list of security services"""
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    search_opts = {
+        'all_tenants': all_tenants,
+        'status': args.status,
+    }
+    security_services = cs.security_services.list(search_opts=search_opts)
+    fields = ['id', 'name', 'status']
+    utils.print_list(security_services, fields=fields)
+
+
+@utils.arg(
+    'security_service',
+    metavar='<security-service>',
+    help='Security service to delete.')
+def do_security_service_delete(cs, args):
+    """Delete security service"""
+    cs.security_services.delete(args.security_service)

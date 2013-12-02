@@ -268,3 +268,21 @@ def slugify(value):
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = unicode(_slugify_strip_re.sub('', value).strip().lower())
     return _slugify_hyphenate_re.sub('-', value)
+
+
+def make_metadata_dict(metadata):
+    """
+    Converts given metadata in form of list of 'key=value' strings into
+    {'key': 'value'} dictionary
+    """
+    metadata_dict = {}
+    for item in metadata:
+        try:
+            key, value = item.split('=')
+        except ValueError:
+            msg = "Wrong argument format: '%s'" % item
+            raise exceptions.CommandError(msg)
+        if 'password' in key:
+            value = value.strip('"').strip("'")
+        metadata_dict[key] = value
+    return metadata_dict

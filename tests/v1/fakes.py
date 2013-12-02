@@ -128,3 +128,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_shares_1234_metadata(self, **kw):
         return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
+
+
+def fake_create(url, body, response_key):
+    return {'url': url, 'body': body, 'resp_key': response_key}
+
+
+def fake_update(url, body, response_key):
+    return {'url': url, 'body': body, 'resp_key': response_key}
