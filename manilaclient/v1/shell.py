@@ -340,8 +340,8 @@ def do_metadata(cs, args):
 @utils.service_type('share')
 def do_metadata_show(cs, args):
     """Show metadata of given share."""
-    share = utils.find_share(cs, args.share)
-    utils.print_dict(share._info['metadata'], 'Metadata-property')
+    metadata = cs.shares.get_metadata(args.share)._info
+    utils.print_dict(metadata, 'Metadata-property')
 
 
 @utils.arg('share',

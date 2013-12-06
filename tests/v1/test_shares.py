@@ -53,6 +53,10 @@ class SharesTest(utils.TestCase):
         cs.shares.allow(share, 'ip', ip)
         cs.assert_called('POST', '/shares/1234/action')
 
+    def test_get_metadata(self):
+        cs.shares.get_metadata(1234)
+        cs.assert_called('GET', '/shares/1234/metadata')
+
     def test_set_metadata(self):
         cs.shares.set_metadata(1234, {'k1': 'v2'})
         cs.assert_called('POST', '/shares/1234/metadata',

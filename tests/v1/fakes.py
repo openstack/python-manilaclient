@@ -112,3 +112,6 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def put_shares_1234_metadata(self, **kw):
         return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
+
+    def get_shares_1234_metadata(self, **kw):
+        return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
