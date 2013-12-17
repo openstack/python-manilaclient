@@ -389,7 +389,8 @@ def do_show(cs, args):
 @utils.arg(
     'access_type',
     metavar='<access_type>',
-    help='access rule type (only "ip" is supported).')
+    help='access rule type (only "ip" and "sid"(user or group) '
+         'are supported).')
 @utils.arg(
     'access_to',
     metavar='<access_to>',
