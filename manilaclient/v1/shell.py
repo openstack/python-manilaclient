@@ -336,11 +336,12 @@ def do_metadata(cs, args):
 
 
 @utils.arg('share', metavar='<share>',
-           help='ID of share')
+           help='Name or ID of share')
 @utils.service_type('share')
 def do_metadata_show(cs, args):
     """Show metadata of given share."""
-    metadata = cs.shares.get_metadata(args.share)._info
+    share = utils.find_share(cs, args.share)
+    metadata = cs.shares.get_metadata(share)._info
     utils.print_dict(metadata, 'Metadata-property')
 
 
@@ -364,17 +365,18 @@ def do_metadata_update_all(cs, args):
 @utils.arg(
     'share',
     metavar='<share>',
-    help='ID of the NAS to delete.')
+    help='Name or ID of the NAS to delete.')
 @utils.service_type('share')
 def do_delete(cs, args):
     """Deletes NAS storage."""
-    cs.shares.delete(args.share)
+    share = utils.find_share(cs, args.share)
+    cs.shares.delete(share)
 
 
 @utils.arg(
     'share',
     metavar='<share>',
-    help='ID of the NAS share.')
+    help='Name or ID of the NAS share.')
 @utils.service_type('share')
 def do_show(cs, args):
     """Show details about a NAS share."""
@@ -385,7 +387,7 @@ def do_show(cs, args):
 @utils.arg(
     'share',
     metavar='<share>',
-    help='ID of the NAS share to modify.')
+    help='Name or ID of the NAS share to modify.')
 @utils.arg(
     'access_type',
     metavar='<access_type>',
@@ -405,7 +407,7 @@ def do_allow_access(cs, args):
 @utils.arg(
     'share',
     metavar='<share>',
-    help='ID of the NAS share to modify.')
+    help='Name or ID of the NAS share to modify.')
 @utils.arg(
     'id',
     metavar='<id>',
@@ -420,7 +422,7 @@ def do_deny_access(cs, args):
 @utils.arg(
     'share',
     metavar='<share>',
-    help='ID of the share.')
+    help='Name or ID of the share.')
 @utils.service_type('share')
 def do_access_list(cs, args):
     """Show access list for share."""
@@ -505,7 +507,7 @@ def do_snapshot_list(cs, args):
 @utils.arg(
     'snapshot',
     metavar='<snapshot>',
-    help='ID of the snapshot.')
+    help='Name or ID of the snapshot.')
 @utils.service_type('share')
 def do_snapshot_show(cs, args):
     """Show details about a snapshot."""
@@ -514,9 +516,9 @@ def do_snapshot_show(cs, args):
 
 
 @utils.arg(
-    'share_id',
-    metavar='<share-id>',
-    help='ID of the share to snapshot')
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to snapshot')
 @utils.arg(
     '--force',
     metavar='<True|False>',
@@ -537,7 +539,8 @@ def do_snapshot_show(cs, args):
 @utils.service_type('share')
 def do_snapshot_create(cs, args):
     """Add a new snapshot."""
-    snapshot = cs.share_snapshots.create(args.share_id,
+    share = utils.find_share(cs, args.share)
+    snapshot = cs.share_snapshots.create(share,
                                          args.force,
                                          args.name,
                                          args.description)
@@ -546,7 +549,7 @@ def do_snapshot_create(cs, args):
 
 @utils.arg('share',
            metavar='<share>',
-           help='ID of the share to rename.')
+           help='Name or ID of the share to rename.')
 @utils.arg('name',
            nargs='?',
            metavar='<name>',
@@ -569,7 +572,7 @@ def do_rename(cs, args):
 
 @utils.arg('snapshot',
            metavar='<snapshot>',
-           help='ID of the snapshot to rename.')
+           help='Name or ID of the snapshot to rename.')
 @utils.arg('name',
            nargs='?',
            metavar='<name>',
@@ -591,11 +594,11 @@ def do_snapshot_rename(cs, args):
 
 
 @utils.arg(
-    'snapshot_id',
-    metavar='<snapshot-id>',
-    help='ID of the snapshot to delete.')
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot to delete.')
 @utils.service_type('share')
 def do_snapshot_delete(cs, args):
     """Remove a snapshot."""
-    snapshot = _find_share_snapshot(cs, args.snapshot_id)
+    snapshot = _find_share_snapshot(cs, args.snapshot)
     snapshot.delete()
