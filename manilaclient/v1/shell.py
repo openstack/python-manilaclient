@@ -395,7 +395,7 @@ def do_show(cs, args):
     metavar='<access_to>',
     help='Value that defines access')
 @utils.service_type('share')
-def do_allow_access(cs, args):
+def do_access_allow(cs, args):
     """Allow access to the share."""
     share = _find_share(cs, args.share)
     access = share.allow(args.access_type, args.access_to)
@@ -411,7 +411,7 @@ def do_allow_access(cs, args):
     metavar='<id>',
     help='id of the access rule to be deleted.')
 @utils.service_type('share')
-def do_deny_access(cs, args):
+def do_access_deny(cs, args):
     """Deny access to a share."""
     share = _find_share(cs, args.share)
     share.deny(args.id)
