@@ -75,7 +75,7 @@ class Share(base.Resource):
     def _validate_ip_range(ip_range):
         ip_range = ip_range.split('/')
         exc_str = ('Supported ip format examples:\n'
-                   '\t10.0.0.2, 10.0.0.*, 10.0.0.0/24')
+                   '\t10.0.0.2, 10.0.0.0/24')
         if len(ip_range) > 2:
             raise exceptions.CommandError(exc_str)
         if len(ip_range) == 2:
@@ -86,7 +86,6 @@ class Share(base.Resource):
             except ValueError:
                 msg = 'IP prefix should be in range from 0 to 32'
                 raise exceptions.CommandError(msg)
-        allow_asterisk = (len(ip_range) == 1)
         ip_range = ip_range[0].split('.')
         if len(ip_range) != 4:
             raise exceptions.CommandError(exc_str)
@@ -96,8 +95,7 @@ class Share(base.Resource):
                     continue
                 raise ValueError()
             except ValueError:
-                if not (allow_asterisk and item == '*'):
-                    raise exceptions.CommandError(exc_str)
+                raise exceptions.CommandError(exc_str)
 
 
 class ShareManager(base.ManagerWithFind):
