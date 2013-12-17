@@ -78,6 +78,14 @@ class Share(base.Resource):
                    '\t10.0.0.2, 10.0.0.*, 10.0.0.0/24')
         if len(ip_range) > 2:
             raise exceptions.CommandError(exc_str)
+        if len(ip_range) == 2:
+            try:
+                prefix = int(ip_range[1])
+                if prefix < 0 or prefix > 32:
+                    raise ValueError()
+            except ValueError:
+                msg = 'IP prefix should be in range from 0 to 32'
+                raise exceptions.CommandError(msg)
         allow_asterisk = (len(ip_range) == 1)
         ip_range = ip_range[0].split('.')
         if len(ip_range) != 4:
