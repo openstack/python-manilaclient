@@ -41,7 +41,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
     """
     resource_class = ShareSnapshot
 
-    def create(self, share_id, force=False, name=None, description=None):
+    def create(self, share, force=False, name=None, description=None):
         """Create a snapshot of the given share.
 
         :param share_id: The ID of the share to snapshot.
@@ -51,7 +51,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param description: Description of the snapshot
         :rtype: :class:`ShareSnapshot`
         """
-        body = {'snapshot': {'share_id': share_id,
+        body = {'snapshot': {'share_id': base.getid(share),
                              'force': force,
                              'name': name,
                              'description': description}}
