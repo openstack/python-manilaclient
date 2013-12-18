@@ -65,10 +65,11 @@ class Share(base.Resource):
 
     @staticmethod
     def _validate_username(access):
-        valid_useraname_re = '\w{4,32}'
+        valid_useraname_re = '[\w\.\-_\`;\'\{\}\[\]]{4,32}$'
         username = access
         if not re.match(valid_useraname_re, username):
-            exc_str = _('Invalid user name. Must be alphanum 4-32 chars long')
+            exc_str = ('Invalid user or group name. Must be 4-32 chars long '
+                       'and consist of alfanum and ]{.-_\'`;}[')
             raise exceptions.CommandError(exc_str)
 
     @staticmethod
