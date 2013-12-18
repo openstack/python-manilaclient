@@ -607,3 +607,21 @@ def do_snapshot_delete(cs, args):
     """Remove a snapshot."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     snapshot.delete()
+
+
+@utils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to modify.')
+@utils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the share. Options include '
+          'available, error, creating, deleting, error_deleting. If no '
+          'state is provided, available will be used.'))
+@utils.service_type('share')
+def do_reset_state(cs, args):
+    """Explicitly update the state of a share."""
+    share = _find_share(cs, args.share)
+    share.reset_state(args.state)

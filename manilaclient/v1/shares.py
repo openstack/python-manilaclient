@@ -97,6 +97,10 @@ class Share(base.Resource):
             except ValueError:
                 raise exceptions.CommandError(exc_str)
 
+    def reset_state(self, state):
+        """Update the share with the provided state."""
+        self.manager.reset_state(self, state)
+
 
 class ShareManager(base.ManagerWithFind):
     """Manage :class:`Share` resources."""
@@ -250,3 +254,7 @@ class ShareManager(base.ManagerWithFind):
         self.run_hooks('modify_body_for_action', body, **kwargs)
         url = '/shares/%s/action' % base.getid(share)
         return self.api.client.post(url, body=body)
+
+    def reset_state(self, share, state):
+        """Update the provided share with the provided state."""
+        return self._action('os-reset_status', share, {'status': state})

@@ -71,6 +71,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action].keys() == ['access_id']
         elif action == 'os-access_list':
             assert body[action] is None
+        elif action == 'os-reset_status':
+            assert 'status' in body['os-reset_status']
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
