@@ -567,7 +567,9 @@ def do_rename(cs, args):
         kwargs['display_name'] = args.name
     if args.description is not None:
         kwargs['display_description'] = args.description
-
+    if not kwargs:
+        msg = "Must supply either name or description."
+        raise exceptions.CommandError(msg)
     _find_share(cs, args.share).update(**kwargs)
 
 
@@ -590,7 +592,9 @@ def do_snapshot_rename(cs, args):
         kwargs['display_name'] = args.name
     if args.description is not None:
         kwargs['display_description'] = args.description
-
+    if not kwargs:
+        msg = "Must supply either name or description."
+        raise exceptions.CommandError(msg)
     _find_share_snapshot(cs, args.snapshot).update(**kwargs)
 
 
