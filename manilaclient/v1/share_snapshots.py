@@ -31,6 +31,10 @@ class ShareSnapshot(base.Resource):
         """Update this snapshot."""
         self.manager.update(self, **kwargs)
 
+    def reset_state(self, state):
+        """Update the snapshot with the privided state."""
+        self.manager.reset_state(self, state)
+
     def delete(self):
         """Delete this snapshot."""
         self.manager.delete(self)
@@ -105,3 +109,14 @@ class ShareSnapshotManager(base.ManagerWithFind):
 
         body = {'snapshot': kwargs, }
         return self._update("/snapshots/%s" % snapshot.id, body)
+
+    def reset_state(self, snapshot, state):
+        """Update the specified share snapshot with the provided state."""
+        return self._action('os-reset_status', snapshot, {'status': state})
+
+    def _action(self, action, snapshot, info=None, **kwargs):
+        """Perform a  snapshot 'action'."""
+        body = {action: info}
+        self.run_hooks('modify_body_for_action', body, **kwargs)
+        url = '/snapshots/%s/action' % base.getid(snapshot)
+        return self.api.client.post(url, body=body)

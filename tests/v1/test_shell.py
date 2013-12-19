@@ -194,3 +194,12 @@ class ShellTest(utils.TestCase):
         expected = {'os-reset_status': {'status': 'error'}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
+    def test_snapshot_reset_state(self):
+        self.run_command('snapshot-reset-state 1234')
+        expected = {'os-reset_status': {'status': 'available'}}
+        self.assert_called('POST', '/snapshots/1234/action', body=expected)
+
+    def test_snapshot_reset_state_with_flag(self):
+        self.run_command('snapshot-reset-state --state error 1234')
+        expected = {'os-reset_status': {'status': 'error'}}
+        self.assert_called('POST', '/snapshots/1234/action', body=expected)

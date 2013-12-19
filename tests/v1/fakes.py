@@ -43,6 +43,17 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         snapshot = {'snapshot': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, snapshot)
 
+    def post_snapshots_1234_action(self, body, **kw):
+        _body = None
+        resp = 202
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action == 'os-reset_status':
+            assert 'status' in body['os-reset_status']
+        else:
+            raise AssertionError("Unexpected action: %s" % action)
+        return (resp, {}, _body)
+
     def get_snapshots_detail(self, **kw):
         print kw
         # print kw['share_id']
