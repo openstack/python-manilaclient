@@ -368,15 +368,26 @@ def do_metadata_update_all(cs, args):
     utils.print_dict(metadata, 'Metadata-property')
 
 
-@utils.arg(
-    'share',
-    metavar='<share>',
-    help='Name or ID of the NAS to delete.')
-@utils.service_type('share')
+@utils.arg('share', metavar='<share>', nargs='+',
+           help='Name or ID of share(s).')
 def do_delete(cs, args):
-    """Deletes NAS storage."""
-    share = utils.find_share(cs, args.share)
-    cs.shares.delete(share)
+    """Immediately shut down and delete specified server(s)."""
+    failure_count = 0
+
+    for share in args.share:
+        try:
+            share_ref = _find_share(cs, share)
+            share_ref.delete()
+        except Exception as e:
+            failure_count += 1
+            if 'Access was denied' in e.message:
+                print('Error occured while deleting share %s' % share_ref.id)
+            else:
+                print(e.message)
+
+    if failure_count == len(args.share):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "shares.")
 
 
 @utils.arg(
