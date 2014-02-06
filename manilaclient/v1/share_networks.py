@@ -84,6 +84,30 @@ class ShareNetworkManager(base.Manager):
                             body,
                             RESOURCE_NAME)
 
+    def activate(self, share_network):
+        """Activate share network
+
+        :param share_network: share network to be activated
+        :rtype: :class:`ShareNetwork`
+        """
+        body = {'activate': {}}
+
+        self._create(RESOURCE_PATH % share_network + '/action',
+                     body,
+                     RESOURCE_NAME)
+
+    def deactivate(self, share_network):
+        """Deactivate share network
+
+        :param share_network: share network to be deactivated
+        :rtype: :class:`ShareNetwork`
+        """
+        body = {'deactivate': {}}
+
+        self._create(RESOURCE_PATH % share_network + '/action',
+                     body,
+                     RESOURCE_NAME)
+
     def get(self, share_network):
         """Get a share network.
 

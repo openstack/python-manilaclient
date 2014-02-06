@@ -132,3 +132,29 @@ class ShareNetworkTest(unittest.TestCase):
                 expected_path,
                 expected_body,
                 share_networks.RESOURCE_NAME)
+
+    def test_activate(self):
+        share_nw = 'fake share nw'
+        expected_path = (share_networks.RESOURCE_PATH + '/action') % share_nw
+        expected_body = {'activate': {}}
+
+        with mock.patch.object(self.manager, '_create', mock.Mock()):
+            self.manager.activate(share_nw)
+
+            self.manager._create.assert_called_once_with(
+                expected_path,
+                expected_body,
+                share_networks.RESOURCE_NAME)
+
+    def test_deactivate(self):
+        share_nw = 'fake share nw'
+        expected_path = (share_networks.RESOURCE_PATH + '/action') % share_nw
+        expected_body = {'deactivate': {}}
+
+        with mock.patch.object(self.manager, '_create', mock.Mock()):
+            self.manager.deactivate(share_nw)
+
+            self.manager._create.assert_called_once_with(
+                expected_path,
+                expected_body,
+                share_networks.RESOURCE_NAME)
