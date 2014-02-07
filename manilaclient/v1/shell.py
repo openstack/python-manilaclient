@@ -381,7 +381,7 @@ def do_delete(cs, args):
         except Exception as e:
             failure_count += 1
             if 'Access was denied' in e.message:
-                print('Error occured while deleting share %s' % share_ref.id)
+                print('Error occurred while deleting share %s' % share_ref.id)
             else:
                 print(e.message)
 
