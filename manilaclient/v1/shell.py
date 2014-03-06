@@ -109,7 +109,7 @@ def do_credentials(cs, args):
     utils.print_dict(catalog['access']['user'], "User Credentials")
     utils.print_dict(catalog['access']['token'], "Token")
 
-_quota_resources = ['shares', 'snapshots', 'gigabytes']
+_quota_resources = ['shares', 'snapshots', 'gigabytes', 'share_networks']
 
 
 def _quota_show(quotas):
@@ -187,6 +187,10 @@ def do_quota_defaults(cs, args):
            metavar='<gigabytes>',
            type=int, default=None,
            help='New value for the "gigabytes" quota.')
+@utils.arg('--share-networks',
+           metavar='<share-networks>',
+           type=int, default=None,
+           help='New value for the "share_networks" quota.')
 @utils.arg('--force',
            dest='force',
            action="store_true",
@@ -242,6 +246,10 @@ def do_quota_class_show(cs, args):
            metavar='<gigabytes>',
            type=int, default=None,
            help='New value for the "gigabytes" quota.')
+@utils.arg('--share-networks',
+           metavar='<share-networks>',
+           type=int, default=None,
+           help='New value for the "share_networks" quota.')
 @utils.service_type('share')
 def do_quota_class_update(cs, args):
     """Update the quotas for a quota class."""

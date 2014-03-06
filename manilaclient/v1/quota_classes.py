@@ -31,21 +31,28 @@ class QuotaClassSetManager(base.ManagerWithFind):
     resource_class = QuotaClassSet
 
     def get(self, class_name):
-        return self._get("/os-quota-class-sets/%s" % (class_name),
+        return self._get("/os-quota-class-sets/%s" % class_name,
                          "quota_class_set")
 
     def update(self,
                class_name,
                shares=None,
-               gigabytes=None):
+               gigabytes=None,
+               snapshots=None,
+               share_networks=None):
 
-        body = {'quota_class_set': {
+        body = {
+            'quota_class_set': {
                 'class_name': class_name,
                 'shares': shares,
-                'gigabytes': gigabytes}}
+                'snapshots': snapshots,
+                'gigabytes': gigabytes,
+                'share_networks': share_networks,
+            }
+        }
 
         for key in body['quota_class_set'].keys():
             if body['quota_class_set'][key] is None:
                 body['quota_class_set'].pop(key)
 
-        self._update('/os-quota-class-sets/%s' % (class_name), body)
+        self._update('/os-quota-class-sets/%s' % class_name, body)

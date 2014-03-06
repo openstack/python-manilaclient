@@ -40,14 +40,18 @@ class QuotaSetManager(base.ManagerWithFind):
         return self._get(url, "quota_set")
 
     def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,
-               force=None, user_id=None):
+               share_networks=None, force=None, user_id=None):
 
-        body = {'quota_set': {
+        body = {
+            'quota_set': {
                 'tenant_id': tenant_id,
                 'shares': shares,
                 'snapshots': snapshots,
                 'gigabytes': gigabytes,
-                'force': force}}
+                'share_networks': share_networks,
+                'force': force,
+            },
+        }
 
         for key in body['quota_set'].keys():
             if body['quota_set'][key] is None:
