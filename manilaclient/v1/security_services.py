@@ -125,7 +125,7 @@ class SecurityServiceManager(base.Manager):
         """
         self._delete(RESOURCE_PATH % security_service)
 
-    def list(self, search_opts=None):
+    def list(self, detailed=False, search_opts=None):
         """Get a list of all security services.
 
         :rtype: list of :class:`SecurityService`
@@ -140,6 +140,9 @@ class SecurityServiceManager(base.Manager):
         else:
             query_string = ''
 
-        path = RESOURCES_PATH + "%s" % query_string
+        if detailed:
+            path = RESOURCES_PATH + "/detail" + query_string
+        else:
+            path = RESOURCES_PATH + query_string
 
         return self._list(path, RESOURCES_NAME)

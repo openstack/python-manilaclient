@@ -91,6 +91,14 @@ class SecurityServiceTest(unittest.TestCase):
                 security_services.RESOURCES_PATH,
                 security_services.RESOURCES_NAME)
 
+    def test_list_detailed(self):
+        with mock.patch.object(self.manager, '_list',
+                               mock.Mock(return_value=None)):
+            self.manager.list(detailed=True)
+            self.manager._list.assert_called_once_with(
+                security_services.RESOURCES_PATH + '/detail',
+                security_services.RESOURCES_NAME)
+
     def test_list_with_filters(self):
         filters = OrderedDict([('all_tenants', 1),
                                ('status', 'ERROR'),

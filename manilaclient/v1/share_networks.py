@@ -151,7 +151,7 @@ class ShareNetworkManager(base.Manager):
         """
         self._delete(RESOURCE_PATH % share_network)
 
-    def list(self, search_opts=None):
+    def list(self, detailed=False, search_opts=None):
         """Get a list of all share network.
 
         :rtype: list of :class:`NetworkInfo`
@@ -166,6 +166,9 @@ class ShareNetworkManager(base.Manager):
         else:
             query_string = ''
 
-        path = RESOURCES_PATH + "%s" % query_string
+        if detailed:
+            path = RESOURCES_PATH + "/detail" + query_string
+        else:
+            path = RESOURCES_PATH + query_string
 
         return self._list(path, RESOURCES_NAME)
