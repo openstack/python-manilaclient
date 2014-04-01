@@ -54,7 +54,7 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
         exits.
         """
         self.print_usage(sys.stderr)
-        #FIXME(lzyeval): if changes occur in argparse.ArgParser._check_value
+        # FIXME(lzyeval): if changes occur in argparse.ArgParser._check_value
         choose_from = ' (choose from'
         progparts = self.prog.partition(' ')
         self.exit(2, "error: %(errmsg)s\nTry '%(mainp)s help %(subp)s'"
@@ -350,7 +350,7 @@ class OpenStackManilaShell(object):
             service_type = DEFAULT_MANILA_SERVICE_TYPE
             service_type = utils.get_service_type(args.func) or service_type
 
-        #FIXME(usrleon): Here should be restrict for project id same as
+        # FIXME(usrleon): Here should be restrict for project id same as
         # for os_username or os_password but for compatibility it is not.
 
         if not utils.isunauthenticated(args.func):

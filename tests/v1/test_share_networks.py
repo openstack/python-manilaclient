@@ -70,6 +70,14 @@ class ShareNetworkTest(unittest.TestCase):
                 share_networks.RESOURCES_PATH,
                 share_networks.RESOURCES_NAME)
 
+    def test_list_detailed(self):
+        with mock.patch.object(self.manager, '_list',
+                               mock.Mock(return_value=None)):
+            self.manager.list(detailed=True)
+            self.manager._list.assert_called_once_with(
+                share_networks.RESOURCES_PATH + '/detail',
+                share_networks.RESOURCES_NAME)
+
     def test_list_with_filters(self):
         filters = OrderedDict([('all_tenants', 1), ('status', 'ERROR')])
         expected_path = \
