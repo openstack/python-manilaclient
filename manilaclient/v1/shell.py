@@ -834,7 +834,7 @@ def do_share_network_security_service_list(cs, args):
         'share_network_id': args.share_network,
     }
     security_services = cs.security_services.list(search_opts=search_opts)
-    fields = ['id', 'name', 'status']
+    fields = ['id', 'name', 'status', 'type', ]
     utils.print_list(security_services, fields=fields)
 
 
@@ -987,7 +987,7 @@ def do_security_service_list(cs, args):
         'status': args.status,
     }
     security_services = cs.security_services.list(search_opts=search_opts)
-    fields = ['id', 'name', 'status']
+    fields = ['id', 'name', 'status', 'type', ]
     utils.print_list(security_services, fields=fields)
 
 
