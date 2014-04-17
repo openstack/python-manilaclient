@@ -4,6 +4,7 @@ from manilaclient.v1 import share_networks
 from manilaclient.v1 import security_services
 from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
+from manilaclient.v1 import services
 from manilaclient.v1 import shares
 from manilaclient.v1 import share_snapshots
 
@@ -33,6 +34,7 @@ class Client(object):
         # know it's not being used as keyword argument
         password = api_key
         self.limits = limits.LimitsManager(self)
+        self.services = services.ServiceManager(self)
         self.security_services = security_services.SecurityServiceManager(self)
         self.share_networks = share_networks.ShareNetworkManager(self)
 

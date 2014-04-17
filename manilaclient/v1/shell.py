@@ -998,3 +998,42 @@ def do_security_service_list(cs, args):
 def do_security_service_delete(cs, args):
     """Delete security service"""
     cs.security_services.delete(args.security_service)
+
+
+@utils.arg(
+    '--host',
+    metavar='<hostname>',
+    default=None,
+    help='Name of host.')
+@utils.arg(
+    '--binary',
+    metavar='<binary>',
+    default=None,
+    help='Service binary.')
+@utils.arg(
+    '--status',
+    metavar='<status>',
+    default=None,
+    help='Filter results by status')
+@utils.arg(
+    '--state',
+    metavar='<state>',
+    default=None,
+    help='Filter results by state')
+@utils.arg(
+    '--zone',
+    metavar='<zone>',
+    default=None,
+    help='Availability zone.')
+def do_service_list(cs, args):
+    """List all the services."""
+    search_opts = {
+        'status': args.status,
+        'host': args.host,
+        'binary': args.binary,
+        'zone': args.zone,
+        'state': args.state,
+    }
+    fields = ["Binary", "Host", "Zone", "Status", "State", "Updated_at"]
+    services = cs.services.list(search_opts=search_opts)
+    utils.print_list(services, fields=fields)
