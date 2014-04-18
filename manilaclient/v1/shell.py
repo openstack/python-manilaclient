@@ -309,6 +309,11 @@ def do_rate_limits(cs, args):
     metavar='<description>',
     help='Optional share description. (Default=None)',
     default=None)
+@utils.arg(
+    '--volume-type',
+    metavar='<volume-type>',
+    help='Optional volume type. (Default=None)',
+    default=None)
 @utils.service_type('share')
 def do_create(cs, args):
     """Creates new NAS storage (NFS or CIFS)."""
@@ -320,7 +325,8 @@ def do_create(cs, args):
     share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
                              args.name, args.description,
                              metadata=share_metadata,
-                             share_network_id=args.share_network_id)
+                             share_network_id=args.share_network_id,
+                             volume_type=args.volume_type)
     _print_share(cs, share)
 
 
@@ -1037,3 +1043,84 @@ def do_service_list(cs, args):
     fields = ["Binary", "Host", "Zone", "Status", "State", "Updated_at"]
     services = cs.services.list(search_opts=search_opts)
     utils.print_list(services, fields=fields)
+
+
+def _print_type_extra_specs(vol_type):
+    try:
+        return vol_type.get_keys()
+    except exceptions.NotFound:
+        return "N/A"
+
+
+def _print_volume_type_list(vtypes):
+    utils.print_list(vtypes, ['ID', 'Name'])
+
+
+def _print_type_and_extra_specs_list(vtypes):
+    formatters = {'extra_specs': _print_type_extra_specs}
+    utils.print_list(vtypes, ['ID', 'Name', 'extra_specs'], formatters)
+
+
+def _find_volume_type(cs, vtype):
+    """Get a volume type by name or ID."""
+    return utils.find_resource(cs.volume_types, vtype)
+
+
+@utils.service_type('share')
+def do_type_list(cs, args):
+    """Print a list of available 'volume types'."""
+    vtypes = cs.volume_types.list()
+    _print_volume_type_list(vtypes)
+
+
+@utils.service_type('share')
+def do_extra_specs_list(cs, args):
+    """Print a list of current 'volume types and extra specs' (Admin Only)."""
+    vtypes = cs.volume_types.list()
+    _print_type_and_extra_specs_list(vtypes)
+
+
+@utils.arg('name',
+           metavar='<name>',
+           help="Name of the new volume type")
+@utils.service_type('share')
+def do_type_create(cs, args):
+    """Create a new volume type."""
+    vtype = cs.volume_types.create(args.name)
+    _print_volume_type_list([vtype])
+
+
+@utils.arg('id',
+           metavar='<id>',
+           help="Name or ID of the volume type to delete")
+@utils.service_type('share')
+def do_type_delete(cs, args):
+    """Delete a specific volume type."""
+    volume_type = _find_volume_type(cs, args.id)
+    cs.volume_types.delete(volume_type)
+
+
+@utils.arg('vtype',
+           metavar='<vtype>',
+           help="Name or ID of the volume type")
+@utils.arg('action',
+           metavar='<action>',
+           choices=['set', 'unset'],
+           help="Actions: 'set' or 'unset'")
+@utils.arg('metadata',
+           metavar='<key=value>',
+           nargs='*',
+           default=None,
+           help='Extra_specs to set/unset (only key is necessary on unset)')
+@utils.service_type('share')
+def do_type_key(cs, args):
+    """Set or unset extra_spec for a volume type."""
+    vtype = _find_volume_type(cs, args.vtype)
+
+    if args.metadata is not None:
+        keypair = _extract_metadata(args)
+
+        if args.action == 'set':
+            vtype.set_keys(keypair)
+        elif args.action == 'unset':
+            vtype.unset_keys(list(keypair))

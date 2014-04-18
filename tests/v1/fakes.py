@@ -129,6 +129,40 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_shares_1234_metadata(self, **kw):
         return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
 
+    def get_types(self, **kw):
+        return (200, {}, {
+            'volume_types': [{'id': 1,
+                              'name': 'test-type-1',
+                              'extra_specs': {}},
+                             {'id': 2,
+                              'name': 'test-type-2',
+                              'extra_specs': {}}]})
+
+    def get_types_1(self, **kw):
+        return (200, {}, {'volume_type': {'id': 1,
+                          'name': 'test-type-1',
+                          'extra_specs': {}}})
+
+    def get_types_2(self, **kw):
+        return (200, {}, {'volume_type': {'id': 2,
+                          'name': 'test-type-2',
+                          'extra_specs': {}}})
+
+    def post_types(self, body, **kw):
+        return (202, {}, {'volume_type': {'id': 3,
+                          'name': 'test-type-3',
+                          'extra_specs': {}}})
+
+    def post_types_1_extra_specs(self, body, **kw):
+        assert list(body) == ['extra_specs']
+        return (200, {}, {'extra_specs': {'k': 'v'}})
+
+    def delete_types_1_extra_specs_k(self, **kw):
+        return(204, {}, None)
+
+    def delete_types_1(self, **kw):
+        return (202, {}, None)
+
 
 def fake_create(url, body, response_key):
     return {'url': url, 'body': body, 'resp_key': response_key}
