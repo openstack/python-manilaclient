@@ -6,6 +6,7 @@ from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
 from manilaclient.v1 import services
 from manilaclient.v1 import shares
+from manilaclient.v1 import share_servers
 from manilaclient.v1 import share_snapshots
 from manilaclient.v1 import volume_types
 
@@ -46,6 +47,7 @@ class Client(object):
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
         self.volume_types = volume_types.VolumeTypeManager(self)
+        self.share_servers = share_servers.ShareServerManager(self)
 
         # Add in any extensions...
         if extensions:

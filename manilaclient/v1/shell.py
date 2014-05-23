@@ -990,6 +990,72 @@ def do_security_service_delete(cs, args):
     '--host',
     metavar='<hostname>',
     default=None,
+    help='Filter results by name of host.')
+@utils.arg(
+    '--status',
+    metavar='<status>',
+    default=None,
+    help='Filter results by status.')
+@utils.arg(
+    '--share-network',
+    metavar='<share_network>',
+    default=None,
+    help='Filter results by share network.')
+@utils.arg(
+    '--project-id',
+    metavar='<project_id>',
+    default=None,
+    help='Filter results by project id.')
+def do_share_server_list(cs, args):
+    """List all the share servers."""
+    search_opts = {
+        "host": args.host,
+        "share_network": args.share_network,
+        "status": args.status,
+        "project_id": args.project_id,
+    }
+    fields = [
+        "Id",
+        "Host",
+        "Status",
+        "Share Network",
+        "Project Id",
+        "Updated_at",
+    ]
+    share_servers = cs.share_servers.list(search_opts=search_opts)
+    utils.print_list(share_servers, fields=fields)
+
+
+@utils.arg(
+    'id',
+    metavar='<id>',
+    type=str,
+    help='Id of share server.')
+def do_share_server_show(cs, args):
+    """Show share server info."""
+    share_server = cs.share_servers.get(args.id)
+    # All 'backend_details' data already present as separated strings,
+    # so remove big dict from view.
+    if "backend_details" in share_server._info:
+        del share_server._info["backend_details"]
+    utils.print_dict(share_server._info)
+
+
+@utils.arg(
+    'id',
+    metavar='<id>',
+    type=str,
+    help='Id of share server.')
+def do_share_server_details(cs, args):
+    """Show share server details."""
+    details = cs.share_servers.details(args.id)
+    utils.print_dict(details._info)
+
+
+@utils.arg(
+    '--host',
+    metavar='<hostname>',
+    default=None,
     help='Name of host.')
 @utils.arg(
     '--binary',
