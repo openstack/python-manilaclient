@@ -1,3 +1,4 @@
+pbr>=0.6,!=0.7,<1.0
 argparse
 PrettyTable>=0.7,<0.8
 requests>=1.1
