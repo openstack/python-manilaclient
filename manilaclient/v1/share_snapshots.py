@@ -14,11 +14,9 @@
 #    under the License.
 """Interface for shares extension."""
 
-import os
 import urllib
 
 from manilaclient import base
-from manilaclient import utils
 
 
 class ShareSnapshot(base.Resource):

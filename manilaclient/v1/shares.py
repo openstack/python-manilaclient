@@ -15,13 +15,11 @@
 """Interface for shares extension."""
 
 import collections
-import os
 import re
 import urllib
 
 from manilaclient import base
 from manilaclient import exceptions
-from manilaclient import utils
 
 
 class Share(base.Resource):

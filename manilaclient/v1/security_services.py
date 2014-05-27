@@ -16,7 +16,6 @@ import urllib
 
 from manilaclient import base
 from manilaclient import exceptions
-from manilaclient import utils
 
 RESOURCES_PATH = '/security-services'
 RESOURCE_PATH = "/security-services/%s"
