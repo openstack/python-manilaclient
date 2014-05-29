@@ -50,7 +50,8 @@ class ShellTest(utils.TestCase):
         required = [
             '.*?^usage: ',
             '.*?^\s+create\s+Creates new NAS storage \(NFS or CIFS\).',
-            '.*?(?m)^See "manila help COMMAND" for help on a specific command.',
+            '.*?(?m)^See "manila help COMMAND" for help '
+                'on a specific command.',
         ]
         help_text = self.shell('help')
         for r in required:

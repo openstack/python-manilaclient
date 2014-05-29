@@ -118,7 +118,8 @@ class SecurityServiceTest(unittest.TestCase):
                   'server': 'new.ldap.server',
                   'domain': 'new.ldap.domain',
                   'sid': 'new sid',
-                  'password': 'fake password',}
+                  'password': 'fake password',
+                 }
 
         with mock.patch.object(self.manager, '_update', fakes.fake_update):
             result = self.manager.update(security_service, **values)
