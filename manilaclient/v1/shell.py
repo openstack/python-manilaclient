@@ -813,26 +813,6 @@ def do_share_network_security_service_remove(cs, args):
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network to be activated. Should be associated with all'
-         ' necessary security services. Should be in other than "ACTIVE"'
-         ' state.')
-def do_share_network_activate(cs, args):
-    """Activate share network"""
-    cs.share_networks.activate(args.share_network)
-
-
-@utils.arg(
-    'share_network',
-    metavar='<share-network>',
-    help='Share network to be deactivated. Should be in "ACTIVE" state.')
-def do_share_network_deactivate(cs, args):
-    """Deactivate share network"""
-    cs.share_networks.deactivate(args.share_network)
-
-
-@utils.arg(
-    'share_network',
-    metavar='<share-network>',
     help='Share network.')
 def do_share_network_security_service_list(cs, args):
     """Get a list of security services associated with a given share network"""
