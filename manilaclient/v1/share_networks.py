@@ -28,8 +28,16 @@ class ShareNetwork(base.Resource):
     def __repr__(self):
         return "<ShareNetwork: %s>" % self.id
 
+    def update(self, **kwargs):
+        """Update this share network."""
+        return self.manager.update(self, **kwargs)
 
-class ShareNetworkManager(base.Manager):
+    def delete(self):
+        """Delete this share network."""
+        self.manager.delete(self)
+
+
+class ShareNetworkManager(base.ManagerWithFind):
     """Manage :class:`ShareNetwork` resources."""
     resource_class = ShareNetwork
 
@@ -115,8 +123,7 @@ class ShareNetworkManager(base.Manager):
             raise exceptions.CommandError(msg)
 
         body = {RESOURCE_NAME: values}
-
-        return self._update(RESOURCE_PATH % share_network,
+        return self._update(RESOURCE_PATH % base.getid(share_network),
                             body,
                             RESOURCE_NAME)
 
@@ -125,9 +132,9 @@ class ShareNetworkManager(base.Manager):
 
         :param share_network: share network to be deleted.
         """
-        self._delete(RESOURCE_PATH % share_network)
+        self._delete(RESOURCE_PATH % base.getid(share_network))
 
-    def list(self, detailed=False, search_opts=None):
+    def list(self, detailed=True, search_opts=None):
         """Get a list of all share network.
 
         :rtype: list of :class:`NetworkInfo`

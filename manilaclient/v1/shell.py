@@ -74,6 +74,11 @@ def _print_share_snapshot(cs, snapshot):
     utils.print_dict(info)
 
 
+def _find_share_network(cs, share_network):
+    "Get a share network by ID or name."
+    return utils.find_resource(cs.share_networks, share_network)
+
+
 def _translate_keys(collection, convert):
     for item in collection:
         keys = item.__dict__.keys()
@@ -711,7 +716,7 @@ def do_share_network_create(cs, args):
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network to update.')
+    help='Name or ID of share network to update.')
 @utils.arg(
     '--neutron-net-id',
     metavar='neutron-net-id',
@@ -740,7 +745,8 @@ def do_share_network_update(cs, args):
               'neutron_subnet_id': args.neutron_subnet_id,
               'name': args.name,
               'description': args.description}
-    share_network = cs.share_networks.update(args.share_network, **values)
+    share_network = _find_share_network(cs, args.share_network)\
+        .update(**values)
     info = share_network._info.copy()
     utils.print_dict(info)
 
@@ -748,10 +754,10 @@ def do_share_network_update(cs, args):
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network to show.')
+    help='Name or ID of the share network to show.')
 def do_share_network_show(cs, args):
     """Get a description for network used by the tenant"""
-    share_network = cs.share_networks.get(args.share_network)
+    share_network = _find_share_network(cs, args.share_network)
     info = share_network._info.copy()
     utils.print_dict(info)
 
@@ -827,10 +833,10 @@ def do_share_network_security_service_list(cs, args):
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network to be deleted.')
+    help='Name or ID of share network to be deleted.')
 def do_share_network_delete(cs, args):
     """Delete share network"""
-    cs.share_networks.delete(args.share_network)
+    _find_share_network(cs, args.share_network).delete()
 
 
 @utils.arg(

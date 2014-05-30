@@ -27,19 +27,22 @@ from tests.v1 import fakes
 
 class ShareNetworkTest(unittest.TestCase):
 
+    class _FakeShareNetwork:
+        id = 'fake id'
+
     def setUp(self):
         super(ShareNetworkTest, self).setUp()
         self.manager = share_networks.ShareNetworkManager(api=None)
+        self.values = {'neutron_net_id': 'fake net id',
+                       'neutron_subnet_id': 'fake subnet id',
+                       'name': 'fake name',
+                       'description': 'new whatever'}
 
     def test_create(self):
-        values = {'neutron_net_id': 'fake net id',
-                  'neutron_subnet_id': 'fake subnet id',
-                  'name': 'fake name',
-                  'description': 'whatever'}
-        body_expected = {share_networks.RESOURCE_NAME: values}
+        body_expected = {share_networks.RESOURCE_NAME: self.values}
 
         with mock.patch.object(self.manager, '_create', fakes.fake_create):
-            result = self.manager.create(**values)
+            result = self.manager.create(**self.values)
 
             self.assertEqual(result['url'], share_networks.RESOURCES_PATH)
             self.assertEqual(result['resp_key'], share_networks.RESOURCE_NAME)
@@ -47,12 +50,19 @@ class ShareNetworkTest(unittest.TestCase):
                 result['body'],
                 body_expected)
 
-    def test_delete(self):
+    def test_delete_str(self):
         share_nw = 'fake share nw'
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(share_nw)
             self.manager._delete.assert_called_once_with(
                 share_networks.RESOURCE_PATH % share_nw)
+
+    def test_delete_obj(self):
+        share_nw = self._FakeShareNetwork()
+        with mock.patch.object(self.manager, '_delete', mock.Mock()):
+            self.manager.delete(share_nw)
+            self.manager._delete.assert_called_once_with(
+                share_networks.RESOURCE_PATH % share_nw.id)
 
     def test_get(self):
         share_nw = 'fake share nw'
@@ -62,26 +72,26 @@ class ShareNetworkTest(unittest.TestCase):
                 share_networks.RESOURCE_PATH % share_nw,
                 share_networks.RESOURCE_NAME)
 
-    def test_list_no_filters(self):
+    def test_list_not_detailed(self):
         with mock.patch.object(self.manager, '_list',
                                mock.Mock(return_value=None)):
-            self.manager.list()
+            self.manager.list(detailed=False)
             self.manager._list.assert_called_once_with(
                 share_networks.RESOURCES_PATH,
                 share_networks.RESOURCES_NAME)
 
-    def test_list_detailed(self):
+    def test_list(self):
         with mock.patch.object(self.manager, '_list',
                                mock.Mock(return_value=None)):
-            self.manager.list(detailed=True)
+            self.manager.list()
             self.manager._list.assert_called_once_with(
                 share_networks.RESOURCES_PATH + '/detail',
                 share_networks.RESOURCES_NAME)
 
     def test_list_with_filters(self):
         filters = OrderedDict([('all_tenants', 1), ('status', 'ERROR')])
-        expected_path = \
-            share_networks.RESOURCES_PATH + '?all_tenants=1&status=ERROR'
+        expected_path = share_networks.RESOURCES_PATH + '/detail' + \
+                '?all_tenants=1&status=ERROR'
 
         with mock.patch.object(self.manager, '_list',
                                mock.Mock(return_value=None)):
@@ -90,18 +100,25 @@ class ShareNetworkTest(unittest.TestCase):
                 expected_path,
                 share_networks.RESOURCES_NAME)
 
-    def test_update(self):
+    def test_update_str(self):
         share_nw = 'fake share nw'
-        values = {'neutron_net_id': 'new net id',
-                  'neutron_subnet_id': 'new subnet id',
-                  'name': 'new name',
-                  'description': 'new whatever'}
-        body_expected = {share_networks.RESOURCE_NAME: values}
+        body_expected = {share_networks.RESOURCE_NAME: self.values}
 
         with mock.patch.object(self.manager, '_update', fakes.fake_update):
-            result = self.manager.update(share_nw, **values)
+            result = self.manager.update(share_nw, **self.values)
             self.assertEqual(result['url'],
                              share_networks.RESOURCE_PATH % share_nw)
+            self.assertEqual(result['resp_key'], share_networks.RESOURCE_NAME)
+            self.assertEqual(result['body'], body_expected)
+
+    def test_update_obj(self):
+        share_nw = self._FakeShareNetwork()
+        body_expected = {share_networks.RESOURCE_NAME: self.values}
+
+        with mock.patch.object(self.manager, '_update', fakes.fake_update):
+            result = self.manager.update(share_nw, **self.values)
+            self.assertEqual(result['url'],
+                             share_networks.RESOURCE_PATH % share_nw.id)
             self.assertEqual(result['resp_key'], share_networks.RESOURCE_NAME)
             self.assertEqual(result['body'], body_expected)
 
