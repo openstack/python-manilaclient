@@ -50,6 +50,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         action = list(body)[0]
         if action == 'os-reset_status':
             assert 'status' in body['os-reset_status']
+        elif action == 'os-force_delete':
+            assert body[action] is None
         else:
             raise AssertionError("Unexpected action: %s" % action)
         return (resp, {}, _body)
@@ -84,6 +86,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action] is None
         elif action == 'os-reset_status':
             assert 'status' in body['os-reset_status']
+        elif action == 'os-force_delete':
+            assert body[action] is None
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)

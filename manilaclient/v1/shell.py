@@ -409,6 +409,24 @@ def do_delete(cs, args):
                                       "shares.")
 
 
+@utils.arg('share',
+           metavar='<share>',
+           nargs='+',
+           help='Name or ID of share(s) to force delete.')
+def do_force_delete(cs, args):
+    """Attempts force-delete of share, regardless of state."""
+    failure_count = 0
+    for share in args.share:
+        try:
+            _find_share(cs, share).force_delete()
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share %s failed: %s" % (share, e))
+    if failure_count == len(args.share):
+        raise exceptions.CommandError("Unable to force delete any of "
+                                      "specified shares.")
+
+
 @utils.arg(
     'share',
     metavar='<share>',
@@ -643,6 +661,17 @@ def do_snapshot_delete(cs, args):
     """Remove a snapshot."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     snapshot.delete()
+
+
+@utils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot to force delete.')
+@utils.service_type('share')
+def do_snapshot_force_delete(cs, args):
+    """Attempts force-delete of snapshot, regardless of state."""
+    snapshot = _find_share_snapshot(cs, args.snapshot)
+    snapshot.force_delete()
 
 
 @utils.arg('snapshot', metavar='<snapshot>',
