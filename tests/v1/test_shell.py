@@ -203,3 +203,19 @@ class ShellTest(utils.TestCase):
         self.run_command('snapshot-reset-state --state error 1234')
         expected = {'os-reset_status': {'status': 'error'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
+
+    def test_share_network_security_service_list_by_name(self):
+        self.run_command('share-network-security-service-list fake_share_nw')
+        self.assert_called('GET', '/security-services?share_network_id=1234')
+
+    def test_share_network_security_service_list_by_name_not_found(self):
+        self.assertRaises(exceptions.CommandError, self.run_command,
+            'share-network-security-service-list inexistent_share_nw')
+
+    def test_share_network_security_service_list_by_name_multiple(self):
+        self.assertRaises(exceptions.CommandError, self.run_command,
+            'share-network-security-service-list duplicated_name')
+
+    def test_share_network_security_service_list_by_id(self):
+        self.run_command('share-network-security-service-list 1111')
+        self.assert_called('GET', '/security-services?share_network_id=1111')
