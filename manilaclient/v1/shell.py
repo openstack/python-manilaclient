@@ -682,26 +682,23 @@ def do_reset_state(cs, args):
     '--neutron-net-id',
     metavar='neutron-net-id',
     default=None,
-    help="Neutron network id. If using manila network neutron plug-in, this "
-         "value should be specified. Tenant can't have more than one share's"
-         " network with the same neutron_net_id and neutron_subnet_id ")
+    help="Neutron network id. Used to set up network for share servers.")
 @utils.arg(
     '--neutron-subnet-id',
     metavar='neutron-subnet-id',
     default=None,
-    help="Neutron subnet id. If using manila network neutron plug-in, this "
-         "value should be specified. Tenant can't have more than one share's"
-         " network with the same neutron_net_id and neutron_subnet_id ")
+    help="Neutron subnet id. Used to set up network for share servers. "
+         "This subnet should belong to specified neutron network.")
 @utils.arg(
     '--name',
     metavar='<name>',
     default=None,
-    help="Share network name")
+    help="Share network name.")
 @utils.arg(
     '--description',
     metavar='<description>',
     default=None,
-    help="Share network description")
+    help="Share network description.")
 def do_share_network_create(cs, args):
     """Create description for network used by the tenant"""
     values = {'neutron_net_id': args.neutron_net_id,
@@ -721,24 +718,23 @@ def do_share_network_create(cs, args):
     '--neutron-net-id',
     metavar='neutron-net-id',
     default=None,
-    help="Neutron network id. Tenant can't have more than one share's"
-         " network with the same neutron_net_id and neutron_subnet_id ")
+    help="Neutron network id. Used to set up network for share servers.")
 @utils.arg(
     '--neutron-subnet-id',
     metavar='neutron-subnet-id',
     default=None,
-    help="Neutron subnet id. Tenant can't have more than one share's"
-         " network with the same neutron_net_id and neutron_subnet_id ")
+    help="Neutron subnet id. Used to set up network for share servers. "
+         "This subnet should belong to specified neutron network.")
 @utils.arg(
     '--name',
     metavar='<name>',
     default=None,
-    help="Share network name")
+    help="Share network name.")
 @utils.arg(
     '--description',
     metavar='<description>',
     default=None,
-    help="Share network description")
+    help="Share network description.")
 def do_share_network_update(cs, args):
     """Update share network data"""
     values = {'neutron_net_id': args.neutron_net_id,
