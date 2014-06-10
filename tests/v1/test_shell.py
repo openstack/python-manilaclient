@@ -15,10 +15,13 @@
 
 import fixtures
 import mock
+import requests
 
 from manilaclient import client
 from manilaclient import exceptions
+from manilaclient.openstack.common import jsonutils
 from manilaclient import shell
+from manilaclient.v1 import client as client_v1
 from manilaclient.v1 import shell as shell_v1
 from tests import utils
 from tests.v1 import fakes
@@ -53,7 +56,8 @@ class ShellTest(utils.TestCase):
         # testing a SystemExit to be thrown and object self.shell has
         # no time to get instantatiated which is OK in this case, so
         # we make sure the method is there before launching it.
-        if hasattr(self.shell, 'cs'):
+        if hasattr(self.shell, 'cs') and hasattr(self.shell.cs,
+                                                 'clear_callstack'):
             self.shell.cs.clear_callstack()
 
         #HACK(bcwaldon): replace this when we start using stubs
@@ -279,3 +283,267 @@ class ShellTest(utils.TestCase):
             }
         }
         self.assert_called("POST", "/shares", body=expected)
+
+    @mock.patch.object(fakes.FakeClient, 'authenticate', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, '_make_key', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, 'password', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, 'check_cached_password',
+                       mock.Mock())
+    def test_os_cache_enabled_keys_saved_password_not_changed(self):
+        shell.SecretsHelper.tenant_id = \
+            shell.SecretsHelper.auth_token = \
+            shell.SecretsHelper.management_url = 'fake'
+        self.run_command('--os-cache list')
+        self.assertFalse(shell.SecretsHelper.password.called)
+        self.assertFalse(fakes.FakeClient.authenticate.called)
+
+    @mock.patch.object(shell.SecretsHelper, '_validate_string', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, '_prompt_password', mock.Mock())
+    @mock.patch.object(shell.ManilaKeyring, 'get_password', mock.Mock())
+    def test_os_cache_enabled_keys_not_saved_with_password(self):
+        shell.SecretsHelper._validate_string.return_value = True
+        shell.ManilaKeyring.get_password.return_value = None
+        shell.SecretsHelper.tenant_id = \
+            shell.SecretsHelper.auth_token = \
+            shell.SecretsHelper.management_url = None
+        self.run_command('--os-cache list')
+        self.assertFalse(shell.SecretsHelper._prompt_password.called)
+        shell.SecretsHelper._validate_string.\
+            assert_called_once_with('password')
+
+    @mock.patch.object(shell.SecretsHelper, '_prompt_password', mock.Mock())
+    @mock.patch.object(shell.ManilaKeyring, 'get_password', mock.Mock())
+    def test_os_cache_enabled_keys_not_saved_no_password(self):
+        shell.ManilaKeyring.get_password.return_value = None
+        shell.SecretsHelper._prompt_password.return_value = 'password'
+        self.useFixture(fixtures.EnvironmentVariable('MANILA_PASSWORD', ''))
+        shell.SecretsHelper.tenant_id = \
+            shell.SecretsHelper.auth_token = \
+            shell.SecretsHelper.management_url = None
+        self.run_command('--os-cache list')
+        self.assertTrue(shell.SecretsHelper._prompt_password.called)
+
+    @mock.patch.object(shell.SecretsHelper, '_validate_string', mock.Mock())
+    @mock.patch.object(shell.ManilaKeyring, 'get_password', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, 'reset', mock.Mock())
+    def test_os_cache_enabled_keys_reset_cached_password(self):
+        shell.ManilaKeyring.get_password.return_value = 'old_password'
+        shell.SecretsHelper._validate_string.return_value = True
+        shell.SecretsHelper.tenant_id = \
+            shell.SecretsHelper.auth_token = \
+            shell.SecretsHelper.management_url = None
+        self.run_command('--os-cache --os-reset-cache list')
+        shell.SecretsHelper._validate_string.\
+            assert_called_once_with('password')
+        shell.SecretsHelper.reset.assert_called_once_with()
+
+    @mock.patch.object(shell.SecretsHelper, '_validate_string', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, 'reset', mock.Mock())
+    def test_os_cache_disabled_keys_reset_cached_password(self):
+        shell.SecretsHelper._validate_string.return_value = True
+        self.run_command('--os-reset-cache list')
+        shell.SecretsHelper._validate_string.\
+            assert_called_once_with('password')
+        shell.SecretsHelper.reset.assert_called_once_with()
+
+    @mock.patch.object(fakes.FakeClient, 'authenticate', mock.Mock())
+    @mock.patch.object(shell.ManilaKeyring, 'get_password', mock.Mock())
+    @mock.patch.object(shell.SecretsHelper, '_make_key', mock.Mock())
+    def test_os_cache_enabled_os_password_differs_from_the_cached_one(self):
+        def _fake_get_password(service, username):
+            if service == 'openstack':
+                return 'old_cached_password'
+            else:
+                return 'old_cached_token'
+        shell.SecretsHelper.tenant_id = \
+            shell.SecretsHelper.auth_token = \
+            shell.SecretsHelper.management_url = 'fake'
+        self.run_command('--os-cache list')
+        fakes.FakeClient.authenticate.assert_called_once_with()
+
+    @mock.patch.object(requests, 'request', mock.Mock())
+    @mock.patch.object(client.HTTPClient, '_save_keys', mock.Mock())
+    def test_os_cache_token_expired(self):
+        def _fake_request(method, url, **kwargs):
+            headers = None
+            if url == 'new_url/shares/detail':
+                resp_text = {"shares": []}
+                return utils.TestResponse({
+                    "status_code": 200,
+                    "text": jsonutils.dumps(resp_text),
+                    })
+            elif url == 'fake/shares/detail':
+                resp_text = {"unauthorized": {"message": "Unauthorized",
+                                              "code": "401"}}
+                return utils.TestResponse({
+                    "status_code": 401,
+                    "text": jsonutils.dumps(resp_text),
+                    })
+            else:
+                headers = {
+                   'x-server-management-url': 'new_url',
+                    'x-auth-token': 'new_token',
+                }
+                resp_text = 'some_text'
+                return utils.TestResponse({
+                    "status_code": 200,
+                    "text": jsonutils.dumps(resp_text),
+                    "headers": headers
+                    })
+
+        client.get_client_class = lambda *_: client_v1.Client
+        shell.SecretsHelper.tenant_id = \
+            shell.SecretsHelper.auth_token = \
+            shell.SecretsHelper.management_url = 'fake'
+        requests.request.side_effect = _fake_request
+
+        self.run_command('--os-cache list')
+
+        client.HTTPClient._save_keys.assert_called_once_with()
+        expected_headers = {
+            'X-Auth-Project-Id': 'project_id',
+            'User-Agent': 'python-manilaclient',
+            'Accept': 'application/json',
+            'X-Auth-Token': 'new_token'}
+        requests.request.assert_called_with('GET', 'new_url/shares/detail',
+            headers=expected_headers, verify=True)
+
+
+class SecretsHelperTestCase(utils.TestCase):
+    def setUp(self):
+        super(SecretsHelperTestCase, self).setUp()
+        self.cs = client.Client(1, 'user', 'password',
+                                project_id='project',
+                                auth_url='http://111.11.11.11:5000',
+                                region_name='region',
+                                endpoint_type='publicURL',
+                                service_type='share',
+                                service_name='fake',
+                                share_service_name='fake')
+        self.args = mock.Mock()
+        self.args.os_cache = True
+        self.args.reset_cached_password = False
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        mock.patch.object(shell.ManilaKeyring, 'set_password',
+                          mock.Mock()).start()
+        mock.patch.object(shell.ManilaKeyring, 'get_password', mock.Mock(
+            return_value='fake_token|fake_url|fake_tenant_id')).start()
+        self.addCleanup(mock.patch.stopall)
+
+    def test_validate_string_void_string(self):
+        self.assertFalse(self.helper._validate_string(''))
+
+    def test_validate_string_void_string(self):
+        self.assertFalse(self.helper._validate_string(None))
+
+    def test_validate_string_good_string(self):
+        self.assertTrue(self.helper._validate_string('this is a string'))
+
+    def test_make_key(self):
+        expected_key = 'http://111.11.11.11:5000/user/project/region/' \
+                       'publicURL/share/fake/fake'
+        self.assertEqual(self.helper._make_key(), expected_key)
+
+    def test_make_key_missing_attrs(self):
+        self.cs.client.service_name = self.cs.client.region_name = None
+        expected_key = 'http://111.11.11.11:5000/user/project/?/' \
+                       'publicURL/share/?/fake'
+        self.assertEqual(self.helper._make_key(), expected_key)
+
+    def test_save(self):
+        shell.ManilaKeyring.get_password.return_value = ''
+        expected_key = 'http://111.11.11.11:5000/user/project/region/' \
+                       'publicURL/share/fake/fake'
+        self.helper.save('fake_token', 'fake_url', 'fake_tenant_id')
+        shell.ManilaKeyring.set_password. \
+            assert_called_once_with('manilaclient_auth',
+            expected_key, 'fake_token|fake_url|fake_tenant_id')
+
+    def test_save_params_already_cached(self):
+        self.helper.save('fake_token', 'fake_url', 'fake_tenant_id')
+        self.assertFalse(shell.ManilaKeyring.set_password.called)
+
+    def test_save_missing_params(self):
+        self.assertRaises(ValueError, self.helper.save, None, 'fake_url',
+                          'fake_tenant_id')
+
+    def test_password_os_password(self):
+        self.args.os_password = 'fake_password'
+        self.args.os_username = 'fake_username'
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        self.assertEqual(self.helper.password, 'fake_password')
+
+    @mock.patch.object(shell.SecretsHelper, '_prompt_password', mock.Mock())
+    def test_password_from_keyboard(self):
+        self.args.os_password = ''
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        shell.SecretsHelper._prompt_password.return_value = None
+        self.assertRaises(exceptions.CommandError, getattr, self.helper,
+                          'password')
+
+    def test_management_url_os_cache_false(self):
+        self.args.os_cache = False
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        self.assertIsNone(self.helper.management_url)
+
+    def test_management_url_os_cache_true(self):
+        self.assertEqual(self.helper.management_url, 'fake_url')
+        expected_key = 'http://111.11.11.11:5000/user/project/region/' \
+                       'publicURL/share/fake/fake'
+        shell.ManilaKeyring.get_password. \
+        assert_called_once_with('manilaclient_auth', expected_key)
+
+    def test_auth_token_os_cache_false(self):
+        self.args.os_cache = False
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        self.assertIsNone(self.helper.auth_token)
+
+    def test_management_url_os_cache_true(self):
+        self.assertEqual(self.helper.auth_token, 'fake_token')
+        expected_key = 'http://111.11.11.11:5000/user/project/region/' \
+                       'publicURL/share/fake/fake'
+        shell.ManilaKeyring.get_password. \
+            assert_called_once_with('manilaclient_auth', expected_key)
+
+    def test_tenant_id_os_cache_false(self):
+        self.args.os_cache = False
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        self.assertIsNone(self.helper.tenant_id)
+
+    def test_tenant_id_os_cache_true(self):
+        self.assertEqual(self.helper.tenant_id, 'fake_tenant_id')
+        expected_key = 'http://111.11.11.11:5000/user/project/region/' \
+                       'publicURL/share/fake/fake'
+        shell.ManilaKeyring.get_password. \
+            assert_called_once_with('manilaclient_auth', expected_key)
+
+    def test_check_cached_password_os_cache_false(self):
+        self.args.os_cache = False
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        self.assertTrue(self.helper.check_cached_password())
+
+    def test_check_cached_password_same_passwords(self):
+        self.args.os_password = 'user_password'
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        shell.ManilaKeyring.get_password.return_value = 'user_password'
+        self.assertTrue(self.helper.check_cached_password())
+
+    def test_check_cached_password_no_cache(self):
+        shell.ManilaKeyring.get_password.return_value = None
+        self.assertTrue(self.helper.check_cached_password())
+
+    def test_check_cached_password_different_passwords(self):
+        self.args.os_password = 'new_user_password'
+        self.helper = shell.SecretsHelper(self.args, self.cs.client)
+        shell.ManilaKeyring.get_password.return_value = 'cached_password'
+        self.assertFalse(self.helper.check_cached_password())
+
+    def test_check_cached_password_cached_password_deleted(self):
+        def _fake_get_password(service, username):
+            if service == 'openstack':
+                return None
+            else:
+                return 'fake_token'
+
+        shell.ManilaKeyring.get_password.side_effect = _fake_get_password
+        self.assertFalse(self.helper.check_cached_password())

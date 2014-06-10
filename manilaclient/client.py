@@ -55,7 +55,8 @@ class HTTPClient(object):
                  share_service_name=None,
                  retries=None,
                  http_log_debug=False,
-                 cacert=None):
+                 cacert=None,
+                 os_cache=False):
         self.user = user
         self.password = password
         self.projectid = projectid
@@ -74,6 +75,8 @@ class HTTPClient(object):
         self.auth_token = None
         self.proxy_token = proxy_token
         self.proxy_tenant_id = proxy_tenant_id
+
+        self.os_cache = os_cache
 
         if insecure:
             self.verify_cert = False
@@ -160,6 +163,7 @@ class HTTPClient(object):
                 self.authenticate()
             kwargs.setdefault('headers', {})['X-Auth-Token'] = self.auth_token
             if self.projectid:
+
                 kwargs['headers']['X-Auth-Project-Id'] = self.projectid
             try:
                 resp, body = self.request(self.management_url + url, method,
@@ -268,6 +272,14 @@ class HTTPClient(object):
         return self._extract_service_catalog(url, resp, body,
                                              extract_token=False)
 
+    def _save_keys(self):
+        # Store the token/mgmt url in the keyring for later requests.
+        if (self.os_cache):
+            self.keyring_saver.save(self.auth_token,
+                                    self.management_url,
+                                    self.tenant_id)
+            self.keyring_saver.save_password()
+
     def authenticate(self):
         magic_tuple = urlparse.urlsplit(self.auth_url)
         scheme, netloc, path, query, frag = magic_tuple
@@ -314,6 +326,8 @@ class HTTPClient(object):
                 if auth_url.find('v2.0') < 0:
                     auth_url = auth_url + '/v2.0'
                 self._v2_auth(auth_url)
+
+        self._save_keys()
 
     def _v1_auth(self, url):
         if self.proxy_token:

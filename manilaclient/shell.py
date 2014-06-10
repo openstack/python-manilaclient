@@ -21,6 +21,7 @@ Command-line interface to the OpenStack Manila API.
 from __future__ import print_function
 
 import argparse
+import getpass
 import glob
 import imp
 import itertools
@@ -29,6 +30,7 @@ import os
 import pkgutil
 import sys
 
+import keyring
 import six
 
 from manilaclient import client
@@ -68,6 +70,188 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
                       'subp': progparts[2]})
 
 
+class ManilaKeyring(keyring.backends.file.EncryptedKeyring):
+    def delete_password(self, keyring_keys):
+        """Delete passwords from keyring.
+
+           Delete the passwords for given usernames of the services.
+
+           :param keyring_key:  dictionary containing pairs {service:username}
+        """
+        if self._check_file():
+            self._unlock()
+        for key, value in six.iteritems(keyring_keys):
+            super(ManilaKeyring, self).delete_password(key, value)
+
+
+class SecretsHelper(object):
+    """Helper for working with keyring."""
+
+    def __init__(self, args, client):
+        self.args = args
+        self.client = client
+        self.key = None
+        self.keyring = ManilaKeyring()
+
+    def _validate_string(self, text):
+        if text is None or len(text) == 0:
+            return False
+        return True
+
+    def _make_key(self):
+        if self.key is not None:
+            return self.key
+        keys = [
+            self.client.auth_url,
+            self.client.user,
+            self.client.projectid,
+            self.client.region_name,
+            self.client.endpoint_type,
+            self.client.service_type,
+            self.client.service_name,
+            self.client.share_service_name,
+        ]
+        for (index, key) in enumerate(keys):
+            if key is None:
+                keys[index] = '?'
+            else:
+                keys[index] = str(keys[index])
+        self.key = "/".join(keys)
+        return self.key
+
+    def _prompt_password(self, verify=True):
+        """Suggest user to enter password from keyboard."""
+        pw = None
+        if hasattr(sys.stdin, 'isatty') and sys.stdin.isatty():
+            # Check for Ctl-D
+            try:
+                while True:
+                    pw1 = getpass.getpass('OS Password: ')
+                    if verify:
+                        pw2 = getpass.getpass('Please verify: ')
+                    else:
+                        pw2 = pw1
+                    if pw1 == pw2 and self._validate_string(pw1):
+                        pw = pw1
+                        break
+            except EOFError:
+                pass
+        return pw
+
+    def save(self, auth_token, management_url, tenant_id):
+        """Save auth token, management url and tenant id in keyring.
+
+        If params are different from already cached ones, save new auth token,
+        management url and tenant id in keyring.
+
+        Raise ValueError in case of empty auth_token, management_url or
+        tenant_id.
+        """
+        if (auth_token == self.auth_token and
+            management_url == self.management_url):
+            # Nothing changed....
+            return
+        if not all([management_url, auth_token, tenant_id]):
+            raise ValueError("Unable to save empty management url/auth "
+                             "token")
+        value = "|".join([str(auth_token),
+                          str(management_url),
+                          str(tenant_id)])
+        self.keyring.set_password('manilaclient_auth', self._make_key(), value)
+
+    def reset(self):
+        """Delete cached password and auth token."""
+        args = {'openstack': self.args.os_username,
+                'manilaclient_auth': self._make_key()}
+        self.keyring.delete_password(args)
+
+    def save_password(self):
+        self.keyring.set_password('openstack',
+            self.args.os_username, self.password)
+
+    def check_cached_password(self):
+        """Check if os_password is equal to cached password."""
+        if self.args.os_cache:
+            cached_password = self.keyring.get_password('openstack',
+                                                        self.args.os_username)
+            cached_token = self.keyring.get_password('manilaclient_auth',
+                                                     self._make_key())
+            if cached_password and self.password != cached_password:
+                return False
+            if cached_token and not cached_password:
+                return False
+        return True
+
+    @property
+    def password(self):
+        """Return user password.
+
+        Return os_password value or suggest user to enter new password from
+        keyboard.
+        """
+        password = None
+        if self._validate_string(self.args.os_password):
+            password = self.args.os_password
+        else:
+            verify_pass = strutils.bool_from_string(
+                utils.env("OS_VERIFY_PASSWORD", default=False))
+            password = self._prompt_password(verify_pass)
+        if not password:
+            raise exc.CommandError(
+                'Expecting a password provided via either '
+                '--os-password, env[OS_PASSWORD], or '
+                'prompted response')
+        return password
+
+    @property
+    def management_url(self):
+        """Return cached management url.
+
+        If os_cache enabled and management url already cached, return
+        management url. Otherwise return None.
+        """
+        if not self.args.os_cache:
+            return None
+        management_url = None
+        block = self.keyring.get_password('manilaclient_auth',
+                                     self._make_key())
+        if block:
+            _token, management_url, _tenant_id = block.split('|', 2)
+        return management_url
+
+    @property
+    def auth_token(self):
+        """Return cached auth token.
+
+        If os_cache enabled and auth token already cached, return auth token.
+        Otherwise return None.
+        """
+        if not self.args.os_cache:
+            return None
+        token = None
+        block = self.keyring.get_password('manilaclient_auth',
+                                     self._make_key())
+        if block:
+            token, _management_url, _tenant_id = block.split('|', 2)
+        return token
+
+    @property
+    def tenant_id(self):
+        """Return cached tenant id.
+
+        If os_cache enabled and tenant id already cached, return tenant id.
+        Otherwise return None.
+        """
+        if not self.args.os_cache:
+            return None
+        tenant_id = None
+        block = self.keyring.get_password('manilaclient_auth',
+                                     self._make_key())
+        if block:
+            _token, _management_url, tenant_id = block.split('|', 2)
+        return tenant_id
+
+
 class OpenStackManilaShell(object):
 
     def get_base_parser(self):
@@ -94,6 +278,17 @@ class OpenStackManilaShell(object):
                             default=utils.env('manilaclient_DEBUG',
                                               default=False),
                             help="Print debugging output")
+
+        parser.add_argument('--os-cache',
+                            default=utils.env('OS_CACHE', default=False),
+                            action='store_true',
+                            help='Use the auth token cache. '
+                                 'Defaults to env[OS_CACHE].')
+
+        parser.add_argument('--os-reset-cache',
+                            default=False,
+                            action='store_true',
+                            help='Delete cached password and auth token.')
 
         parser.add_argument('--os-username',
                             metavar='<auth-user-name>',
@@ -340,12 +535,12 @@ class OpenStackManilaShell(object):
         (os_username, os_password, os_tenant_name, os_auth_url,
          os_region_name, os_tenant_id, endpoint_type, insecure,
          service_type, service_name, share_service_name,
-         cacert) = (
+         cacert, os_cache, os_reset_cache) = (
             args.os_username, args.os_password, args.os_tenant_name,
             args.os_auth_url, args.os_region_name, args.os_tenant_id,
             args.endpoint_type, args.insecure, args.service_type,
             args.service_name, args.share_service_name,
-            args.os_cacert)
+            args.os_cacert, args.os_cache, args.os_reset_cache)
 
         if not endpoint_type:
             endpoint_type = DEFAULT_MANILA_ENDPOINT_TYPE
@@ -362,11 +557,6 @@ class OpenStackManilaShell(object):
                 raise exc.CommandError(
                     "You must provide a username "
                     "via either --os-username or env[OS_USERNAME]")
-
-            if not os_password:
-                raise exc.CommandError("You must provide a password "
-                                       "via either --os-password or via "
-                                       "env[OS_PASSWORD]")
 
             if not (os_tenant_name or os_tenant_id):
                 raise exc.CommandError("You must provide a tenant_id "
@@ -399,15 +589,28 @@ class OpenStackManilaShell(object):
                                 share_service_name=share_service_name,
                                 retries=options.retries,
                                 http_log_debug=args.debug,
-                                cacert=cacert)
-
-        try:
-            if not utils.isunauthenticated(args.func):
-                self.cs.authenticate()
-        except exc.Unauthorized:
-            raise exc.CommandError("Invalid OpenStack Manila credentials.")
-        except exc.AuthorizationFailure:
-            raise exc.CommandError("Unable to authorize user")
+                                cacert=cacert,
+                                os_cache=os_cache)
+        if not utils.isunauthenticated(args.func):
+            helper = SecretsHelper(args, self.cs.client)
+            if os_reset_cache:
+                helper.reset()
+            self.cs.client.keyring_saver = helper
+            if (helper.tenant_id and helper.auth_token and
+                    helper.management_url and
+                    helper.check_cached_password()):
+                self.cs.client.tenant_id = helper.tenant_id
+                self.cs.client.auth_token = helper.auth_token
+                self.cs.client.management_url = helper.management_url
+            else:
+                self.cs.client.password = helper.password
+                try:
+                    self.cs.authenticate()
+                except exc.Unauthorized:
+                    raise exc.CommandError("Invalid OpenStack Manila "
+                                           "credentials.")
+                except exc.AuthorizationFailure:
+                    raise exc.CommandError("Unable to authorize user")
 
         args.func(self.cs, args)
 

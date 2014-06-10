@@ -31,7 +31,7 @@ class Client(object):
                  service_type='share', service_name=None,
                  share_service_name=None, retries=None,
                  http_log_debug=False,
-                 cacert=None):
+                 cacert=None, os_cache=False):
         # FIXME(comstud): Rename the api_key argument above when we
         # know it's not being used as keyword argument
         password = api_key
@@ -73,7 +73,8 @@ class Client(object):
             share_service_name=share_service_name,
             retries=retries,
             http_log_debug=http_log_debug,
-            cacert=cacert)
+            cacert=cacert,
+            os_cache=os_cache)
 
     def authenticate(self):
         """Authenticate against the server.
