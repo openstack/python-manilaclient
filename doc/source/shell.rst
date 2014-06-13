@@ -28,17 +28,17 @@ environment variables by setting two environment variables:
 
     The OpenStack API server URL.
 
-.. envvar:: OS_VOLUME_API_VERSION
+.. envvar:: OS_SHARE_API_VERSION
 
-    The OpenStack Block Storage API version.
+    The OpenStack Shared Filesystems API version.
 
 For example, in Bash you'd use::
 
-    export OS_USERNAME=yourname
-    export OS_PASSWORD=yadayadayada
-    export OS_TENANT_NAME=myproject
+    export OS_USERNAME=foo
+    export OS_PASSWORD=bar
+    export OS_TENANT_NAME=foobarproject
     export OS_AUTH_URL=http://...
-    export OS_VOLUME_API_VERSION=1
+    export OS_SHARE_API_VERSION=1
 
 From there, all shell commands take the form::
 
