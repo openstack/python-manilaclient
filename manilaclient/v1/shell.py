@@ -390,7 +390,7 @@ def do_metadata_update_all(cs, args):
 @utils.arg('share', metavar='<share>', nargs='+',
            help='Name or ID of share(s).')
 def do_delete(cs, args):
-    """Immediately shut down and delete specified server(s)."""
+    """Removes one or more shares."""
     failure_count = 0
 
     for share in args.share:
