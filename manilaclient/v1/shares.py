@@ -35,6 +35,10 @@ class Share(base.Resource):
         """Delete this share."""
         self.manager.delete(self)
 
+    def force_delete(self):
+        """Delete the specified share ignoring its current state."""
+        self.manager.force_delete(self)
+
     def allow(self, access_type, access):
         """Allow access to a share."""
         self._validate_access(access_type, access)
@@ -182,6 +186,9 @@ class ShareManager(base.ManagerWithFind):
         :param share: The :class:`Share` to delete.
         """
         self._delete("/shares/%s" % base.getid(share))
+
+    def force_delete(self, share):
+        return self._action('os-force_delete', base.getid(share))
 
     def allow(self, share, access_type, access):
         """Allow access from IP to a shares.

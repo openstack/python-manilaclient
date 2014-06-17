@@ -37,6 +37,10 @@ class ShareSnapshot(base.Resource):
         """Delete this snapshot."""
         self.manager.delete(self)
 
+    def force_delete(self):
+        """Delete the specified snapshot ignoring its current state."""
+        self.manager.force_delete(self)
+
 
 class ShareSnapshotManager(base.ManagerWithFind):
     """Manage :class:`ShareSnapshot` resources.
@@ -95,6 +99,9 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param snapshot: The :class:`ShareSnapshot` to delete.
         """
         self._delete("/snapshots/%s" % base.getid(snapshot))
+
+    def force_delete(self, snapshot):
+        return self._action('os-force_delete', base.getid(snapshot))
 
     def update(self, snapshot, **kwargs):
         """Update a snapshot.

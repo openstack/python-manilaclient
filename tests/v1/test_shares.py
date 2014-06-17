@@ -43,6 +43,12 @@ class SharesTest(utils.TestCase):
         cs.shares.delete(share)
         cs.assert_called('DELETE', '/shares/1234')
 
+    def test_force_delete_share(self):
+        share = cs.shares.get('1234')
+        cs.shares.force_delete(share)
+        cs.assert_called('POST', '/shares/1234/action',
+                         {'os-force_delete': None})
+
     def test_list_shares(self):
         cs.shares.list()
         cs.assert_called('GET', '/shares/detail')
