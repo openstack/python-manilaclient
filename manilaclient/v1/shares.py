@@ -106,7 +106,7 @@ class ShareManager(base.ManagerWithFind):
     resource_class = Share
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
-               description=None, metadata=None, share_network_id=None,
+               description=None, metadata=None, share_network=None,
                volume_type=None):
         """Create NAS.
 
@@ -130,7 +130,7 @@ class ShareManager(base.ManagerWithFind):
                           'description': description,
                           'metadata': share_metadata,
                           'share_proto': share_proto,
-                          'share_network_id': share_network_id,
+                          'share_network_id': base.getid(share_network),
                           'volume_type': volume_type}}
         return self._create('/shares', body, 'share')
 

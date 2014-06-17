@@ -107,6 +107,26 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         snapshot = {'snapshot': {'id': 1234, 'name': 'snapshot_name'}}
         return (200, {}, snapshot)
 
+    def get_share_networks_1111(self, **kw):
+        share_nw = {'share_network': {'id': 1111, 'name': 'fake_share_nw'}}
+        return (200, {}, share_nw)
+
+    def get_share_networks_detail(self, **kw):
+        share_nw = {'share_networks': [{'id': 1234,
+                                        'name': 'fake_share_nw'},
+                                        {'id': 4321,
+                                        'name': 'duplicated_name'},
+                                        {'id': 4322,
+                                        'name': 'duplicated_name'}]}
+        return (200, {}, share_nw)
+
+    def get_security_services(self, **kw):
+        security_services = {
+            'security_services': [{'id': 1111,
+                                   'name': 'fake_security_service',
+                                   'share_network_id': 1234}]}
+        return (200, {}, security_services)
+
     #
     # Set/Unset metadata
     #

@@ -304,9 +304,9 @@ def do_rate_limits(cs, args):
            help='Metadata key=value pairs (Optional, Default=None)',
            default=None)
 @utils.arg(
-    '--share-network-id',
-    metavar='<network-info-id>',
-    help='Optional network info id',
+    '--share-network',
+    metavar='<network-info>',
+    help='Optional network info id or name',
     default=None)
 @utils.arg(
     '--description',
@@ -326,10 +326,11 @@ def do_create(cs, args):
     if args.metadata is not None:
         share_metadata = _extract_metadata(args)
 
+    share_network = _find_share_network(cs, args.share_network)
     share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
                              args.name, args.description,
                              metadata=share_metadata,
-                             share_network_id=args.share_network_id,
+                             share_network=share_network,
                              volume_type=args.volume_type)
     _print_share(cs, share)
 
@@ -790,39 +791,42 @@ def do_share_network_list(cs, args):
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network')
+    help='Share network name or ID.')
 @utils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to associate with.')
 def do_share_network_security_service_add(cs, args):
     """Associate security service with share network"""
-    cs.share_networks.add_security_service(args.share_network,
+    share_network = _find_share_network(cs, args.share_network)
+    cs.share_networks.add_security_service(share_network,
                                            args.security_service)
 
 
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network.')
+    help='Share network name or ID.')
 @utils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to dissociate.')
 def do_share_network_security_service_remove(cs, args):
     """Dissociate security service from share network"""
-    cs.share_networks.remove_security_service(args.share_network,
+    share_network = _find_share_network(cs, args.share_network)
+    cs.share_networks.remove_security_service(share_network,
                                               args.security_service)
 
 
 @utils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Share network.')
+    help='Share network name or ID.')
 def do_share_network_security_service_list(cs, args):
     """Get a list of security services associated with a given share network"""
+    share_network = _find_share_network(cs, args.share_network)
     search_opts = {
-        'share_network_id': args.share_network,
+        'share_network_id': share_network.id,
     }
     security_services = cs.security_services.list(search_opts=search_opts)
     fields = ['id', 'name', 'status', 'type', ]

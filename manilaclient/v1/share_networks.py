@@ -67,28 +67,30 @@ class ShareNetworkManager(base.ManagerWithFind):
     def add_security_service(self, share_network, security_service):
         """Associate given security service with a share network
 
-        :param share_network: share network name or id
+        :param share_network: share network name, id or ShareNetwork instance
         :param security_service: security service name or id
         :rtype: :class:`ShareNetwork`
         """
         body = {'add_security_service': {'security_service_id':
                                          security_service}}
 
-        return self._create(RESOURCE_PATH % share_network + '/action',
+        return self._create(RESOURCE_PATH % base.getid(share_network) +
+                            '/action',
                             body,
                             RESOURCE_NAME)
 
     def remove_security_service(self, share_network, security_service):
         """Dissociate security service from a share network
 
-        :param share_network: share network name or id
+        :param share_network: share network name, id or ShareNetwork instance
         :param security_service: security service name or id
         :rtype: :class:`ShareNetwork`
         """
         body = {'remove_security_service': {'security_service_id':
                                             security_service}}
 
-        return self._create(RESOURCE_PATH % share_network + '/action',
+        return self._create(RESOURCE_PATH % base.getid(share_network) +
+                            '/action',
                             body,
                             RESOURCE_NAME)
 
