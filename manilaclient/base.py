@@ -22,7 +22,9 @@ Base utilities to build API operation managers and objects on top of.
 import contextlib
 import hashlib
 import os
+
 from manilaclient import exceptions
+from manilaclient.openstack.common import strutils
 from manilaclient import utils
 
 
@@ -245,7 +247,7 @@ class Resource(object):
         for bash completion.
         """
         if 'name' in self.__dict__ and self.HUMAN_ID:
-            return utils.slugify(self.name)
+            return strutils.to_slug(self.name)
         return None
 
     def _add_details(self, info):
