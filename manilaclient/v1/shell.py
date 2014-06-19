@@ -326,7 +326,9 @@ def do_create(cs, args):
     if args.metadata is not None:
         share_metadata = _extract_metadata(args)
 
-    share_network = _find_share_network(cs, args.share_network)
+    share_network = None
+    if args.share_network:
+        share_network = _find_share_network(cs, args.share_network)
     share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
                              args.name, args.description,
                              metadata=share_metadata,

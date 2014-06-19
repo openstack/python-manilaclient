@@ -15,6 +15,8 @@
 
 import fixtures
 
+import mock
+
 from manilaclient import client
 from manilaclient import shell
 from manilaclient import exceptions
@@ -219,3 +221,58 @@ class ShellTest(utils.TestCase):
     def test_share_network_security_service_list_by_id(self):
         self.run_command('share-network-security-service-list 1111')
         self.assert_called('GET', '/security-services?share_network_id=1111')
+
+    def test_create_share(self):
+        # Use only required fields
+        self.run_command("create nfs 1")
+        expected = {
+            "share": {
+                "volume_type": None,
+                "name": None,
+                "snapshot_id": None,
+                "description": None,
+                "metadata": {},
+                "share_proto": "nfs",
+                "share_network_id": None,
+                "size": 1,
+            }
+        }
+        self.assert_called("POST", "/shares", body=expected)
+
+    def test_create_with_share_network(self):
+        # Except required fields added share network
+        sn = "fake-share-network"
+        with mock.patch.object(shell_v1, "_find_share_network",
+                               mock.Mock(return_value=sn)):
+            self.run_command("create nfs 1 --share-network %s" % sn)
+            expected = {
+                "share": {
+                    "volume_type": None,
+                    "name": None,
+                    "snapshot_id": None,
+                    "description": None,
+                    "metadata": {},
+                    "share_proto": "nfs",
+                    "share_network_id": sn,
+                    "size": 1,
+                }
+            }
+            self.assert_called("POST", "/shares", body=expected)
+            shell_v1._find_share_network.assert_called_once_with(mock.ANY, sn)
+
+    def test_create_with_metadata(self):
+        # Except required fields added metadata
+        self.run_command("create nfs 1 --metadata key1=value1 key2=value2")
+        expected = {
+            "share": {
+                "volume_type": None,
+                "name": None,
+                "snapshot_id": None,
+                "description": None,
+                "metadata": {"key1": "value1", "key2": "value2"},
+                "share_proto": "nfs",
+                "share_network_id": None,
+                "size": 1,
+            }
+        }
+        self.assert_called("POST", "/shares", body=expected)
