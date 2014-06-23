@@ -15,11 +15,6 @@ try:
 except ImportError:
     from time import sleep
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 # Python 2.5 compat fix
 if not hasattr(urlparse, 'parse_qsl'):
     import cgi
@@ -28,6 +23,7 @@ if not hasattr(urlparse, 'parse_qsl'):
 import requests
 
 from manilaclient import exceptions
+from manilaclient.openstack.common import jsonutils
 from manilaclient import service_catalog
 from manilaclient import utils
 
@@ -123,7 +119,7 @@ class HTTPClient(object):
         kwargs['headers']['Accept'] = 'application/json'
         if 'body' in kwargs:
             kwargs['headers']['Content-Type'] = 'application/json'
-            kwargs['data'] = json.dumps(kwargs['body'])
+            kwargs['data'] = jsonutils.dumps(kwargs['body'])
             del kwargs['body']
 
         self.http_log_req((url, method,), kwargs)
@@ -136,7 +132,7 @@ class HTTPClient(object):
 
         if resp.text:
             try:
-                body = json.loads(resp.text)
+                body = jsonutils.loads(resp.text)
             except ValueError:
                 pass
                 body = None
