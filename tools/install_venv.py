@@ -46,7 +46,8 @@ def check_python_version():
 
 
 def run_command_with_code(cmd, redirect_output=True, check_exit_code=True):
-    """
+    """Runs a command in an out-of-process shell.
+
     Runs a command in an out-of-process shell, returning the
     output of that command.  Working directory is ROOT.
     """
@@ -91,7 +92,8 @@ class Distro(object):
         """Any distribution-specific post-processing gets done here.
 
         In particular, this is useful for applying patches to code inside
-        the venv."""
+        the venv.
+        """
         pass
 
 
@@ -121,7 +123,8 @@ class Debian(Distro):
 class Fedora(Distro):
     """This covers all Fedora-based distributions.
 
-    Includes: Fedora, RHEL, CentOS, Scientific Linux"""
+    Includes: Fedora, RHEL, CentOS, Scientific Linux.
+    """
 
     def check_pkg(self, pkg):
         return run_command_with_code(['rpm', '-q', pkg],
@@ -223,7 +226,7 @@ def print_help():
 
 
 def parse_args():
-    """Parse command-line arguments"""
+    """Parse command-line arguments."""
     parser = optparse.OptionParser()
     parser.add_option("-n", "--no-site-packages", dest="no_site_packages",
         default=False, action="store_true",

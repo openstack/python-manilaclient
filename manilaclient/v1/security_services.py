@@ -24,13 +24,14 @@ RESOURCES_NAME = 'security_services'
 
 
 class SecurityService(base.Resource):
-    """Security service for Manila shares """
+    """Security service for Manila shares."""
     def __repr__(self):
         return "<SecurityService: %s>" % self.id
 
 
 class SecurityServiceManager(base.Manager):
     """Manage :class:`SecurityService` resources."""
+
     resource_class = SecurityService
 
     def create(self, type, dns_ip=None, server=None, domain=None, sid=None,

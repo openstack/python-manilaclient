@@ -22,15 +22,13 @@ from manilaclient import base
 
 
 class VolumeType(base.Resource):
-    """
-    A Volume Type is the type of volume to be created
-    """
+    """A Volume Type is the type of volume to be created."""
+
     def __repr__(self):
         return "<VolumeType: %s>" % self.name
 
     def get_keys(self):
-        """
-        Get extra specs from a volume type.
+        """Get extra specs from a volume type.
 
         :param vol_type: The :class:`VolumeType` to get extra specs from
         """
@@ -40,8 +38,7 @@ class VolumeType(base.Resource):
         return body["extra_specs"]
 
     def set_keys(self, metadata):
-        """
-        Set extra specs on a volume type.
+        """Set extra specs on a volume type.
 
         :param type : The :class:`VolumeType` to set extra spec on
         :param metadata: A dict of key/value pairs to be set
@@ -54,8 +51,7 @@ class VolumeType(base.Resource):
             return_raw=True)
 
     def unset_keys(self, keys):
-        """
-        Unset extra specs on a volume type.
+        """Unset extra specs on a volume type.
 
         :param type_id: The :class:`VolumeType` to unset extra spec on
         :param keys: A list of keys to be unset
@@ -74,22 +70,19 @@ class VolumeType(base.Resource):
 
 
 class VolumeTypeManager(base.ManagerWithFind):
-    """
-    Manage :class:`VolumeType` resources.
-    """
+    """Manage :class:`VolumeType` resources."""
+
     resource_class = VolumeType
 
     def list(self, search_opts=None):
-        """
-        Get a list of all volume types.
+        """Get a list of all volume types.
 
         :rtype: list of :class:`VolumeType`.
         """
         return self._list("/types", "volume_types")
 
     def get(self, volume_type):
-        """
-        Get a specific volume type.
+        """Get a specific volume type.
 
         :param volume_type: The ID of the :class:`VolumeType` to get.
         :rtype: :class:`VolumeType`
@@ -97,16 +90,14 @@ class VolumeTypeManager(base.ManagerWithFind):
         return self._get("/types/%s" % base.getid(volume_type), "volume_type")
 
     def delete(self, volume_type):
-        """
-        Delete a specific volume_type.
+        """Delete a specific volume_type.
 
         :param volume_type: The name or ID of the :class:`VolumeType` to get.
         """
         self._delete("/types/%s" % base.getid(volume_type))
 
     def create(self, name):
-        """
-        Create a volume type.
+        """Create a volume type.
 
         :param name: Descriptive name of the volume type
         :rtype: :class:`VolumeType`

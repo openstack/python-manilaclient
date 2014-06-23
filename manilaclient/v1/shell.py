@@ -101,14 +101,14 @@ def _extract_metadata(args):
 
 
 def do_endpoints(cs, args):
-    """Discover endpoints that get returned from the authenticate services"""
+    """Discover endpoints that get returned from the authenticate services."""
     catalog = cs.client.service_catalog.catalog
     for e in catalog['access']['serviceCatalog']:
         utils.print_dict(e['endpoints'][0], e['name'])
 
 
 def do_credentials(cs, args):
-    """Show user credentials returned from auth"""
+    """Show user credentials returned from auth."""
     catalog = cs.client.service_catalog.catalog
     utils.print_dict(catalog['access']['user'], "User Credentials")
     utils.print_dict(catalog['access']['token'], "Token")
@@ -731,7 +731,7 @@ def do_reset_state(cs, args):
     default=None,
     help="Share network description.")
 def do_share_network_create(cs, args):
-    """Create description for network used by the tenant"""
+    """Create description for network used by the tenant."""
     values = {'neutron_net_id': args.neutron_net_id,
               'neutron_subnet_id': args.neutron_subnet_id,
               'name': args.name,
@@ -767,7 +767,7 @@ def do_share_network_create(cs, args):
     default=None,
     help="Share network description.")
 def do_share_network_update(cs, args):
-    """Update share network data"""
+    """Update share network data."""
     values = {'neutron_net_id': args.neutron_net_id,
               'neutron_subnet_id': args.neutron_subnet_id,
               'name': args.name,
@@ -783,7 +783,7 @@ def do_share_network_update(cs, args):
     metavar='<share-network>',
     help='Name or ID of the share network to show.')
 def do_share_network_show(cs, args):
-    """Get a description for network used by the tenant"""
+    """Get a description for network used by the tenant."""
     share_network = _find_share_network(cs, args.share_network)
     info = share_network._info.copy()
     utils.print_dict(info)
@@ -804,7 +804,7 @@ def do_share_network_show(cs, args):
     default=None,
     help='Filter results by status')
 def do_share_network_list(cs, args):
-    """Get a list of network info"""
+    """Get a list of network info."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     search_opts = {
         'all_tenants': all_tenants,
@@ -824,7 +824,7 @@ def do_share_network_list(cs, args):
     metavar='<security-service>',
     help='Security service to associate with.')
 def do_share_network_security_service_add(cs, args):
-    """Associate security service with share network"""
+    """Associate security service with share network."""
     share_network = _find_share_network(cs, args.share_network)
     cs.share_networks.add_security_service(share_network,
                                            args.security_service)
@@ -839,7 +839,7 @@ def do_share_network_security_service_add(cs, args):
     metavar='<security-service>',
     help='Security service to dissociate.')
 def do_share_network_security_service_remove(cs, args):
-    """Dissociate security service from share network"""
+    """Dissociate security service from share network."""
     share_network = _find_share_network(cs, args.share_network)
     cs.share_networks.remove_security_service(share_network,
                                               args.security_service)
@@ -850,7 +850,7 @@ def do_share_network_security_service_remove(cs, args):
     metavar='<share-network>',
     help='Share network name or ID.')
 def do_share_network_security_service_list(cs, args):
-    """Get a list of security services associated with a given share network"""
+    """Get list of security services associated with a given share network."""
     share_network = _find_share_network(cs, args.share_network)
     search_opts = {
         'share_network_id': share_network.id,
@@ -865,7 +865,7 @@ def do_share_network_security_service_list(cs, args):
     metavar='<share-network>',
     help='Name or ID of share network to be deleted.')
 def do_share_network_delete(cs, args):
-    """Delete share network"""
+    """Delete share network."""
     _find_share_network(cs, args.share_network).delete()
 
 
@@ -909,7 +909,7 @@ def do_share_network_delete(cs, args):
     default=None,
     help="security service description")
 def do_security_service_create(cs, args):
-    """Create security service used by tenant"""
+    """Create security service used by tenant."""
     values = {'dns_ip': args.dns_ip,
               'server': args.server,
               'domain': args.domain,
@@ -962,7 +962,7 @@ def do_security_service_create(cs, args):
     default=None,
     help="security service description")
 def do_security_service_update(cs, args):
-    """Update security service"""
+    """Update security service."""
     values = {'dns_ip': args.dns_ip,
               'server': args.server,
               'domain': args.domain,
@@ -981,7 +981,7 @@ def do_security_service_update(cs, args):
     metavar='<security-service>',
     help='Security service to show.')
 def do_security_service_show(cs, args):
-    """Show security service"""
+    """Show security service."""
     security_service = cs.security_services.get(args.security_service)
     info = security_service._info.copy()
     utils.print_dict(info)
@@ -1002,7 +1002,7 @@ def do_security_service_show(cs, args):
     default=None,
     help='Filter results by status')
 def do_security_service_list(cs, args):
-    """Get a list of security services"""
+    """Get a list of security services."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     search_opts = {
         'all_tenants': all_tenants,
@@ -1018,7 +1018,7 @@ def do_security_service_list(cs, args):
     metavar='<security-service>',
     help='Security service to delete.')
 def do_security_service_delete(cs, args):
-    """Delete security service"""
+    """Delete security service."""
     cs.security_services.delete(args.security_service)
 
 

@@ -17,9 +17,10 @@ def arg(*args, **kwargs):
 
 
 def env(*vars, **kwargs):
-    """
-    returns the first environment variable set
-    if none are non-empty, defaults to '' or keyword arg default
+    """Returns value of env var if exist.
+
+    Returns the first environment variable set if none are non-empty,
+    defaults to '' or keyword arg default.
     """
     for v in vars:
         value = os.environ.get(v, None)
@@ -78,8 +79,8 @@ def get_resource_manager_extra_kwargs(f, args, allow_conflicts=False):
 
 
 def unauthenticated(f):
-    """
-    Adds 'unauthenticated' attribute to decorated function.
+    """Adds 'unauthenticated' attribute to decorated function.
+
     Usage:
         @unauthenticated
         def mymethod(f):
@@ -90,17 +91,18 @@ def unauthenticated(f):
 
 
 def isunauthenticated(f):
-    """
+    """Verifies whether function requires authentication or not.
+
     Checks to see if the function is marked as not requiring authentication
-    with the @unauthenticated decorator. Returns True if decorator is
-    set to True, False otherwise.
+    with the @unauthenticated decorator.
+    Returns True if decorator is set to True, False otherwise.
     """
     return getattr(f, 'unauthenticated', False)
 
 
 def service_type(stype):
-    """
-    Adds 'service_type' attribute to decorated function.
+    """Adds 'service_type' attribute to decorated function.
+
     Usage:
         @service_type('share')
         def mymethod(f):
@@ -113,9 +115,7 @@ def service_type(stype):
 
 
 def get_service_type(f):
-    """
-    Retrieves service type from function
-    """
+    """Retrieves service type from function."""
     return getattr(f, 'service_type', None)
 
 
@@ -250,10 +250,7 @@ def import_class(import_str):
 
 
 def make_metadata_dict(metadata):
-    """
-    Converts given metadata in form of list of 'key=value' strings into
-    {'key': 'value'} dictionary
-    """
+    """Converts cli key=value data to python dict as {'key': 'value'}."""
     metadata_dict = {}
     for item in metadata:
         try:

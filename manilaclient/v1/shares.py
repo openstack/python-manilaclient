@@ -220,16 +220,14 @@ class ShareManager(base.ManagerWithFind):
             return []
 
     def get_metadata(self, share):
-        """
-        Get a shares metadata.
+        """Get a shares metadata.
 
         :param share: The :class:`Share`.
         """
         return self._get("/shares/%s/metadata" % base.getid(share), "metadata")
 
     def set_metadata(self, share, metadata):
-        """
-        Update/Set a shares metadata.
+        """Update/Set a shares metadata.
 
         :param share: The :class:`Share`.
         :param metadata: A list of keys to be set.
@@ -239,8 +237,7 @@ class ShareManager(base.ManagerWithFind):
                             body, "metadata")
 
     def delete_metadata(self, share, keys):
-        """
-        Delete specified keys from volumes metadata.
+        """Delete specified keys from volumes metadata.
 
         :param share: The :class:`Share`.
         :param keys: A list of keys to be removed.

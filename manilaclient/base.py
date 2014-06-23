@@ -37,9 +37,10 @@ except NameError:
 
 
 def getid(obj):
-    """
-    Abstracts the common pattern of allowing both an object or an object's ID
-    as a parameter when dealing with relationships.
+    """Searches for id in provided object.
+
+    Abstracts the common pattern of allowing both an object or an
+    object's ID as a parameter when dealing with relationships.
     """
     try:
         return obj.id
@@ -48,8 +49,9 @@ def getid(obj):
 
 
 class Manager(utils.HookableMixin):
-    """
-    Managers interact with a particular type of API (servers, flavors, images,
+    """Manager for CRUD operations.
+
+    Managers interact with a particular type of API (shares, snapshots,
     etc.) and provide CRUD operations for them.
     """
     resource_class = None
@@ -83,7 +85,8 @@ class Manager(utils.HookableMixin):
 
     @contextlib.contextmanager
     def completion_cache(self, cache_type, obj_class, mode):
-        """
+        """Bash autocompletion items storage.
+
         The completion cache store items that can be used for bash
         autocompletion, like UUIDs or human-friendly IDs.
 
@@ -170,12 +173,9 @@ class Manager(utils.HookableMixin):
 
 
 class ManagerWithFind(Manager):
-    """
-    Like a `Manager`, but with additional `find()`/`findall()` methods.
-    """
+    """Like a `Manager`, but with additional `find()`/`findall()` methods."""
     def find(self, **kwargs):
-        """
-        Find a single item with attributes matching ``**kwargs``.
+        """Find a single item with attributes matching ``**kwargs``.
 
         This isn't very efficient: it loads the entire list then filters on
         the Python side.
@@ -191,8 +191,7 @@ class ManagerWithFind(Manager):
             return matches[0]
 
     def findall(self, **kwargs):
-        """
-        Find all items with attributes matching ``**kwargs``.
+        """Find all items with attributes matching ``**kwargs``.
 
         This isn't very efficient: it loads the entire list then filters on
         the Python side.
@@ -215,9 +214,10 @@ class ManagerWithFind(Manager):
 
 
 class Resource(object):
-    """
-    A resource represents a particular instance of an object (server, flavor,
-    etc). This is pretty much just a bag for attributes.
+    """Resource as instance of an object.
+
+    A resource represents a particular instance of an object (share,
+    snapshot, etc). This is pretty much just a bag for attributes.
 
     :param manager: Manager object
     :param info: dictionary representing resource attributes
