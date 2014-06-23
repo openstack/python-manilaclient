@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
+
 from manilaclient.v1 import client
 from tests.v1 import fake_clients as fakes
 
@@ -56,8 +58,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (resp, {}, _body)
 
     def get_snapshots_detail(self, **kw):
-        print kw
-        # print kw['share_id']
+        print(kw)
         snapshots = {'snapshots': [{
             'id': 1234,
             'created_at': '2012-08-27T00:00:00.000000',

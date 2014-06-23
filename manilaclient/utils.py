@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import uuid
@@ -142,14 +144,14 @@ def print_list(objs, fields, formatters={}):
                 row.append(data)
         pt.add_row(row)
 
-    print strutils.safe_encode(pt.get_string(sortby=fields[0]))
+    print(strutils.safe_encode(pt.get_string(sortby=fields[0])))
 
 
 def print_dict(d, property="Property"):
     pt = prettytable.PrettyTable([property, 'Value'], caching=False)
     pt.aligns = ['l', 'l']
     [pt.add_row(list(r)) for r in d.iteritems()]
-    print strutils.safe_encode(pt.get_string(sortby=property))
+    print(strutils.safe_encode(pt.get_string(sortby=property)))
 
 
 def find_resource(manager, name_or_id):
