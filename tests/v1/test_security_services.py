@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 try:
-    from collections import OrderedDict
+    from collections import OrderedDict  # noqa
 except ImportError:
-    from ordereddict import OrderedDict
+    from ordereddict import OrderedDict  # noqa
 
 import mock
 

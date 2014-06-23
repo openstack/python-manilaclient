@@ -22,10 +22,10 @@ import argparse
 import glob
 import imp
 import itertools
+import logging
 import os
 import pkgutil
 import sys
-import logging
 
 from manilaclient import client
 from manilaclient import exceptions as exc

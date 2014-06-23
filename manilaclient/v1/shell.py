@@ -18,8 +18,8 @@ import sys
 import time
 
 from manilaclient import exceptions
-from manilaclient.v1 import quotas
 from manilaclient import utils
+from manilaclient.v1 import quotas
 
 
 def _poll_for_status(poll_fn, obj_id, action, final_ok_states,

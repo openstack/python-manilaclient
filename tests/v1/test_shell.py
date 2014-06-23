@@ -14,12 +14,11 @@
 #    under the License.
 
 import fixtures
-
 import mock
 
 from manilaclient import client
-from manilaclient import shell
 from manilaclient import exceptions
+from manilaclient import shell
 from manilaclient.v1 import shell as shell_v1
 from tests import utils
 from tests.v1 import fakes

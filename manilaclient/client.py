@@ -13,7 +13,7 @@ import urlparse
 try:
     from eventlet import sleep
 except ImportError:
-    from time import sleep
+    from time import sleep  # noqa
 
 # Python 2.5 compat fix
 if not hasattr(urlparse, 'parse_qsl'):

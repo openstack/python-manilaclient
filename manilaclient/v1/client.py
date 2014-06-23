@@ -1,13 +1,13 @@
 from manilaclient import client
 from manilaclient.v1 import limits
-from manilaclient.v1 import share_networks
-from manilaclient.v1 import security_services
 from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
+from manilaclient.v1 import security_services
 from manilaclient.v1 import services
-from manilaclient.v1 import shares
+from manilaclient.v1 import share_networks
 from manilaclient.v1 import share_servers
 from manilaclient.v1 import share_snapshots
+from manilaclient.v1 import shares
 from manilaclient.v1 import volume_types
 
 
