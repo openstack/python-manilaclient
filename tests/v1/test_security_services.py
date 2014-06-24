@@ -18,14 +18,14 @@ except ImportError:
     from ordereddict import OrderedDict
 
 import mock
-import unittest
 
 from manilaclient import exceptions
 from manilaclient.v1 import security_services
+from tests import utils
 from tests.v1 import fakes
 
 
-class SecurityServiceTest(unittest.TestCase):
+class SecurityServiceTest(utils.TestCase):
 
     def setUp(self):
         super(SecurityServiceTest, self).setUp()

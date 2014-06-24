@@ -14,12 +14,12 @@
 #    under the License.
 
 import mock
-import unittest
 
 from manilaclient.v1 import services
+from tests import utils
 
 
-class ServicesTest(unittest.TestCase):
+class ServicesTest(utils.TestCase):
 
     def setUp(self):
         super(ServicesTest, self).setUp()

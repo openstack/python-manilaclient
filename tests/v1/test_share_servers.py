@@ -14,9 +14,9 @@
 #    under the License.
 
 import mock
-import unittest
 
 from manilaclient.v1 import share_servers
+from tests import utils
 
 
 class FakeShareServer(object):
@@ -28,7 +28,7 @@ class FakeShareServer(object):
     }
 
 
-class ShareServersTest(unittest.TestCase):
+class ShareServersTest(utils.TestCase):
 
     def setUp(self):
         super(ShareServersTest, self).setUp()

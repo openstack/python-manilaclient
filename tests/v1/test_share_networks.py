@@ -18,14 +18,14 @@ except ImportError:
     from ordereddict import OrderedDict
 
 import mock
-import unittest
 
 from manilaclient import exceptions
 from manilaclient.v1 import share_networks
+from tests import utils
 from tests.v1 import fakes
 
 
-class ShareNetworkTest(unittest.TestCase):
+class ShareNetworkTest(utils.TestCase):
 
     class _FakeShareNetwork:
         id = 'fake id'
