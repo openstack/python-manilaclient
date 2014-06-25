@@ -12,7 +12,11 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import urllib
+
+try:
+    from urllib import urlencode  # noqa
+except ImportError:
+    from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
 from manilaclient import exceptions
@@ -131,10 +135,8 @@ class SecurityServiceManager(base.Manager):
         :rtype: list of :class:`SecurityService`
         """
         if search_opts:
-            query_string = urllib.urlencode([(key, value)
-                                             for (key, value)
-                                             in search_opts.items()
-                                             if value])
+            query_string = urlencode(
+                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
             if query_string:
                 query_string = "?%s" % query_string
         else:

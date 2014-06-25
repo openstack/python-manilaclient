@@ -103,7 +103,7 @@ class SecurityServiceTest(utils.TestCase):
         filters = OrderedDict([('all_tenants', 1),
                                ('status', 'ERROR'),
                                ('network', 'fake_network')])
-        expected_postfix = '?all_tenants=1&status=ERROR&network=fake_network'
+        expected_postfix = '?all_tenants=1&network=fake_network&status=ERROR'
 
         with mock.patch.object(self.manager, '_list',
                                mock.Mock(return_value=None)):

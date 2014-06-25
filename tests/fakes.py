@@ -9,13 +9,12 @@ places where actual behavior differs from the spec.
 from __future__ import print_function
 
 
-def assert_has_keys(dict, required=[], optional=[]):
-    keys = dict.keys()
+def assert_has_keys(dictonary, required=[], optional=[]):
     for k in required:
         try:
-            assert k in keys
+            assert k in dictonary
         except AssertionError:
-            extra_keys = set(keys).difference(set(required + optional))
+            extra_keys = set(dictonary).difference(set(required + optional))
             raise AssertionError("found unexpected keys: %s" %
                                  list(extra_keys))
 

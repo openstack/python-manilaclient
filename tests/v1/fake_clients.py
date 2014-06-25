@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 from manilaclient import client as base_client
 from manilaclient.v1 import client
@@ -104,7 +107,7 @@ class FakeHTTPClient(base_client.HTTPClient):
         return (200, {}, quota_set)
 
     def put_os_quota_sets_test(self, body, **kw):
-        assert body.keys() == ['quota_set']
+        assert list(body) == ['quota_set']
         fakes.assert_has_keys(body['quota_set'],
                               required=['tenant_id'])
         quota_set = {
@@ -137,7 +140,7 @@ class FakeHTTPClient(base_client.HTTPClient):
         return (200, {}, quota_class_set)
 
     def put_os_quota_class_sets_test(self, body, **kw):
-        assert body.keys() == ['quota_class_set']
+        assert list(body) == ['quota_class_set']
         fakes.assert_has_keys(body['quota_class_set'],
                               required=['class_name'])
         quota_class_set = {

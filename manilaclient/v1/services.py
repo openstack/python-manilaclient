@@ -13,7 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import urllib
+import six
+try:
+    from urllib import urlencode  # noqa
+except ImportError:
+    from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
 
@@ -38,10 +42,8 @@ class ServiceManager(base.Manager):
         """
         query_string = ''
         if search_opts:
-            query_string = urllib.urlencode([(key, value)
-                                             for (key, value)
-                                             in search_opts.items()
-                                             if value])
+            query_string = urlencode(
+                sorted([(k, v) for (k, v) in six.iteritems(search_opts) if v]))
             if query_string:
                 query_string = "?%s" % query_string
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)

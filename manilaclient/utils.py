@@ -5,6 +5,7 @@ import sys
 import uuid
 
 import prettytable
+import six
 
 from manilaclient import exceptions
 from manilaclient.openstack.common import strutils
@@ -70,7 +71,7 @@ def get_resource_manager_extra_kwargs(f, args, allow_conflicts=False):
         hook_name = hook.__name__
         hook_kwargs = hook(args)
 
-        conflicting_keys = set(hook_kwargs.keys()) & set(extra_kwargs.keys())
+        conflicting_keys = set(list(hook_kwargs)) & set(list(extra_kwargs))
         if conflicting_keys and not allow_conflicts:
             msg = ("Hook '%(hook_name)s' is attempting to redefine attributes "
                    "'%(conflicting_keys)s'" % {
@@ -129,7 +130,14 @@ def pretty_choice_list(l):
     return ', '.join("'%s'" % i for i in l)
 
 
-def print_list(objs, fields, formatters={}):
+def _print(pt, order):
+    if sys.version_info >= (3, 0):
+        print(pt.get_string(sortby=order))
+    else:
+        print(strutils.safe_encode(pt.get_string(sortby=order)))
+
+
+def print_list(objs, fields, formatters={}, order_by=None):
     mixed_case_fields = ['serverId']
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
     pt.aligns = ['l' for f in fields]
@@ -148,14 +156,17 @@ def print_list(objs, fields, formatters={}):
                 row.append(data)
         pt.add_row(row)
 
-    print(strutils.safe_encode(pt.get_string(sortby=fields[0])))
+    if order_by is None:
+        order_by = fields[0]
+
+    _print(pt, order_by)
 
 
 def print_dict(d, property="Property"):
     pt = prettytable.PrettyTable([property, 'Value'], caching=False)
     pt.aligns = ['l', 'l']
-    [pt.add_row(list(r)) for r in d.iteritems()]
-    print(strutils.safe_encode(pt.get_string(sortby=property)))
+    [pt.add_row(list(r)) for r in six.iteritems(d)]
+    _print(pt, property)
 
 
 def find_resource(manager, name_or_id):
@@ -167,9 +178,12 @@ def find_resource(manager, name_or_id):
     except exceptions.NotFound:
         pass
 
+    if sys.version_info <= (3, 0):
+        name_or_id = strutils.safe_decode(name_or_id)
+
     # now try to get entity as uuid
     try:
-        uuid.UUID(strutils.safe_decode(name_or_id))
+        uuid.UUID(name_or_id)
         return manager.get(name_or_id)
     except (ValueError, exceptions.NotFound):
         pass
@@ -208,7 +222,7 @@ def find_share(cs, share):
 
 def _format_servers_list_networks(server):
     output = []
-    for (network, addresses) in server.networks.items():
+    for (network, addresses) in list(server.networks.items()):
         if len(addresses) == 0:
             continue
         addresses_csv = ', '.join(addresses)

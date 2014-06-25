@@ -31,4 +31,28 @@ class ServicesTest(utils.TestCase):
             self.manager.list()
             self.manager._list.assert_called_once_with(
                 services.RESOURCES_PATH,
-                services.RESOURCES_NAME)
+                services.RESOURCES_NAME,
+            )
+
+    def test_list_services_with_one_search_opt(self):
+        host = 'fake_host'
+        query_string = "?host=%s" % host
+        with mock.patch.object(self.manager, '_list',
+                               mock.Mock(return_value=None)):
+            self.manager.list({'host': host})
+            self.manager._list.assert_called_once_with(
+                services.RESOURCES_PATH + query_string,
+                services.RESOURCES_NAME,
+            )
+
+    def test_list_services_with_two_search_opts(self):
+        host = 'fake_host'
+        binary = 'fake_binary'
+        query_string = "?binary=%s&host=%s" % (binary, host)
+        with mock.patch.object(self.manager, '_list',
+                               mock.Mock(return_value=None)):
+            self.manager.list({'binary': binary, 'host': host})
+            self.manager._list.assert_called_once_with(
+                services.RESOURCES_PATH + query_string,
+                services.RESOURCES_NAME,
+            )

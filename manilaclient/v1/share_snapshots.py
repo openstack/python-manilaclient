@@ -14,7 +14,10 @@
 #    under the License.
 """Interface for shares extension."""
 
-import urllib
+try:
+    from urllib import urlencode  # noqa
+except ImportError:
+    from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
 
@@ -77,10 +80,8 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :rtype: list of :class:`ShareSnapshot`
         """
         if search_opts:
-            query_string = urllib.urlencode([(key, value)
-                                             for (key, value)
-                                             in search_opts.items()
-                                             if value])
+            query_string = urlencode(
+                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
             if query_string:
                 query_string = "?%s" % (query_string,)
         else:

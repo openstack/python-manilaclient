@@ -29,6 +29,8 @@ import os
 import pkgutil
 import sys
 
+import six
+
 from manilaclient import client
 from manilaclient import exceptions as exc
 import manilaclient.extension
@@ -422,9 +424,9 @@ class OpenStackManilaShell(object):
         """
         commands = set()
         options = set()
-        for sc_str, sc in self.subcommands.items():
+        for sc_str, sc in list(self.subcommands.items()):
             commands.add(sc_str)
-            for option in sc._optionals._option_string_actions.keys():
+            for option in sc._optionals._option_string_actions:
                 options.add(option)
 
         commands.remove('bash-completion')
@@ -455,14 +457,18 @@ class OpenStackHelpFormatter(argparse.HelpFormatter):
 
 def main():
     try:
-        OpenStackManilaShell().main(map(strutils.safe_decode, sys.argv[1:]))
+        if sys.version_info >= (3, 0):
+            OpenStackManilaShell().main(sys.argv[1:])
+        else:
+            OpenStackManilaShell().main(
+                map(strutils.safe_decode, sys.argv[1:]))
     except KeyboardInterrupt:
         print("... terminating manila client", file=sys.stderr)
         sys.exit(130)
     except Exception as e:
         logger.debug(e, exc_info=1)
         message = e.message
-        if not isinstance(message, basestring):
+        if not isinstance(message, six.string_types):
             message = str(message)
         print("ERROR: %s" % strutils.safe_encode(message), file=sys.stderr)
         sys.exit(1)

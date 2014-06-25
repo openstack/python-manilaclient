@@ -101,7 +101,7 @@ class ShellTest(utils.TestCase):
     def test_snapshot_list_filter_status_and_share_id(self):
         self.run_command('snapshot-list --status=available --share-id=1234')
         self.assert_called('GET', '/snapshots/detail?'
-                           'status=available&share_id=1234')
+                           'share_id=1234&status=available')
 
     def test_rename(self):
         # basic rename with positional agruments

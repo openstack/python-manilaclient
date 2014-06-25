@@ -82,7 +82,7 @@ def _find_share_network(cs, share_network):
 
 def _translate_keys(collection, convert):
     for item in collection:
-        keys = item.__dict__.keys()
+        keys = item.__dict__
         for from_key, to_key in convert:
             if from_key in keys and to_key not in keys:
                 setattr(item, to_key, item._info[from_key])
@@ -360,8 +360,7 @@ def do_metadata(cs, args):
     if args.action == 'set':
         cs.shares.set_metadata(share, metadata)
     elif args.action == 'unset':
-        cs.shares.delete_metadata(share, sorted(metadata.keys(),
-                                  reverse=True))
+        cs.shares.delete_metadata(share, sorted(list(metadata), reverse=True))
 
 
 @utils.arg('share', metavar='<share>',
@@ -403,10 +402,7 @@ def do_delete(cs, args):
             share_ref.delete()
         except Exception as e:
             failure_count += 1
-            if 'Access was denied' in e.message:
-                print('Error occurred while deleting share %s' % share_ref.id)
-            else:
-                print(e.message)
+            print("Delete for share %s failed: %s" % (share_ref.id, e))
 
     if failure_count == len(args.share):
         raise exceptions.CommandError("Unable to delete any of the specified "

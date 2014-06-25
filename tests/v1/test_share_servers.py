@@ -42,6 +42,29 @@ class ShareServersTest(utils.TestCase):
                 share_servers.RESOURCES_PATH,
                 share_servers.RESOURCES_NAME)
 
+    def test_list_with_one_search_opt(self):
+        host = 'fake_host'
+        query_string = "?host=%s" % host
+        with mock.patch.object(self.manager, '_list',
+                               mock.Mock(return_value=None)):
+            self.manager.list({'host': host})
+            self.manager._list.assert_called_once_with(
+                share_servers.RESOURCES_PATH + query_string,
+                share_servers.RESOURCES_NAME,
+            )
+
+    def test_list_with_two_search_opts(self):
+        host = 'fake_host'
+        status = 'fake_status'
+        query_string = "?host=%s&status=%s" % (host, status)
+        with mock.patch.object(self.manager, '_list',
+                               mock.Mock(return_value=None)):
+            self.manager.list({'host': host, 'status': status})
+            self.manager._list.assert_called_once_with(
+                share_servers.RESOURCES_PATH + query_string,
+                share_servers.RESOURCES_NAME,
+            )
+
     def test_get(self):
         server = FakeShareServer()
         with mock.patch.object(self.manager, '_get',
@@ -51,8 +74,8 @@ class ShareServersTest(utils.TestCase):
             self.manager._get.assert_called_once_with(
                 "%s/%s" % (share_servers.RESOURCES_PATH, share_server_id),
                 share_servers.RESOURCE_NAME)
-            self.assertTrue("details:fake_key1" in server._info.keys())
-            self.assertTrue("details:fake_key2" in server._info.keys())
+            for key in ["details:fake_key1", "details:fake_key2"]:
+                self.assertTrue(key in list(server._info))
 
     def test_details(self):
         with mock.patch.object(self.manager, '_get',

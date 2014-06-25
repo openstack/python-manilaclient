@@ -23,6 +23,8 @@ import contextlib
 import hashlib
 import os
 
+import six
+
 from manilaclient import exceptions
 from manilaclient.openstack.common import strutils
 from manilaclient import utils
@@ -104,7 +106,8 @@ class Manager(utils.HookableMixin):
         # pair
         username = utils.env('OS_USERNAME', 'MANILA_USERNAME')
         url = utils.env('OS_URL', 'MANILA_URL')
-        uniqifier = hashlib.md5(username + url).hexdigest()
+        uniqifier = hashlib.md5(username.encode('utf-8') +
+                                url.encode('utf-8')).hexdigest()
 
         cache_dir = os.path.expanduser(os.path.join(base_dir, uniqifier))
 
@@ -197,7 +200,7 @@ class ManagerWithFind(Manager):
         the Python side.
         """
         found = []
-        searches = kwargs.items()
+        searches = list(kwargs.items())
 
         for obj in self.list():
             try:
@@ -251,7 +254,7 @@ class Resource(object):
         return None
 
     def _add_details(self, info):
-        for (k, v) in info.iteritems():
+        for (k, v) in six.iteritems(info):
             try:
                 setattr(self, k, v)
             except AttributeError:
@@ -270,7 +273,7 @@ class Resource(object):
             return self.__dict__[k]
 
     def __repr__(self):
-        reprkeys = sorted(k for k in self.__dict__.keys() if k[0] != '_' and
+        reprkeys = sorted(k for k in self.__dict__ if k[0] != '_' and
                           k != 'manager')
         info = ", ".join("%s=%s" % (k, getattr(self, k)) for k in reprkeys)
         return "<%s %s>" % (self.__class__.__name__, info)

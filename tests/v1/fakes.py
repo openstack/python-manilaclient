@@ -75,13 +75,16 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def post_shares_1234_action(self, body, **kw):
         _body = None
         resp = 202
-        assert len(body.keys()) == 1
-        action = body.keys()[0]
+        assert len(list(body)) == 1
+        action = list(body)[0]
         if action == 'os-allow_access':
-            assert body[action].keys() == ['access_type', 'access_to']
+            expected = ['access_to', 'access_type']
+            actual = sorted(list(body[action]))
+            err_msg = "expected '%s', actual is '%s'" % (expected, actual)
+            assert expected == actual, err_msg
             _body = {'access': {}}
         elif action == 'os-deny_access':
-            assert body[action].keys() == ['access_id']
+            assert list(body[action]) == ['access_id']
         elif action == 'os-access_list':
             assert body[action] is None
         elif action == 'os-reset_status':

@@ -16,7 +16,10 @@
 
 import collections
 import re
-import urllib
+try:
+    from urllib import urlencode  # noqa
+except ImportError:
+    from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
 from manilaclient import exceptions
@@ -164,10 +167,8 @@ class ShareManager(base.ManagerWithFind):
         :rtype: list of :class:`Share`
         """
         if search_opts:
-            query_string = urllib.urlencode([(key, value)
-                                             for (key, value)
-                                             in search_opts.items()
-                                             if value])
+            query_string = urlencode(
+                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
             if query_string:
                 query_string = "?%s" % (query_string,)
         else:
@@ -214,7 +215,7 @@ class ShareManager(base.ManagerWithFind):
         """Get access list to the share."""
         access_list = self._action("os-access_list", share)[1]["access_list"]
         if access_list:
-            t = collections.namedtuple('Access', access_list[0].keys())
+            t = collections.namedtuple('Access', list(access_list[0]))
             return [t(*value.values()) for value in access_list]
         else:
             return []
