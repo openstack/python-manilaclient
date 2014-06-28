@@ -1,5 +1,6 @@
 *.pyc
 .idea
+.testrepository
 .tox/*
 python_manilaclient.egg-info
 setuptools_git*.egg
