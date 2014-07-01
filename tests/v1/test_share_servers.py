@@ -65,6 +65,13 @@ class ShareServersTest(utils.TestCase):
                 share_servers.RESOURCES_NAME,
             )
 
+    def test_delete(self):
+        share_server_id = 'fake_share_server_id'
+        with mock.patch.object(self.manager, '_delete', mock.Mock()):
+            self.manager.delete(share_server_id)
+            self.manager._delete.assert_called_once_with(
+                share_servers.RESOURCE_PATH % share_server_id)
+
     def test_get(self):
         server = FakeShareServer()
         with mock.patch.object(self.manager, '_get',

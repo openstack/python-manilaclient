@@ -221,6 +221,10 @@ class ShellTest(utils.TestCase):
         self.run_command('share-network-security-service-list 1111')
         self.assert_called('GET', '/security-services?share_network_id=1111')
 
+    def test_share_server_delete(self):
+        self.run_command('share-server-delete 1234')
+        self.assert_called('DELETE', '/share-servers/1234')
+
     def test_create_share(self):
         # Use only required fields
         self.run_command("create nfs 1")

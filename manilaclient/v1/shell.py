@@ -1087,6 +1087,16 @@ def do_share_server_details(cs, args):
 
 
 @utils.arg(
+    'id',
+    metavar='<id>',
+    type=str,
+    help='Id of share server.')
+def do_share_server_delete(cs, args):
+    """Delete share server."""
+    cs.share_servers.delete(args.id)
+
+
+@utils.arg(
     '--host',
     metavar='<hostname>',
     default=None,

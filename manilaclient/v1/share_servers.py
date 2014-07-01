@@ -22,6 +22,7 @@ except ImportError:
 from manilaclient import base
 
 RESOURCES_PATH = '/share-servers'
+RESOURCE_PATH = '/share-servers/%s'
 RESOURCES_NAME = 'share_servers'
 RESOURCE_NAME = 'share_server'
 
@@ -62,11 +63,19 @@ class ShareServerManager(base.Manager):
 
     def details(self, server_id):
         """Get a share server details.
+
         :param server_id: The ID of the share server to get details from.
         :rtype: list of :class:`ShareServerBackendDetails
         """
         return self._get("%s/%s/details" % (RESOURCES_PATH, server_id),
                          "details")
+
+    def delete(self, server_id):
+        """Delete share server.
+
+        :param server_id: id of share server to be deleted.
+        """
+        self._delete(RESOURCE_PATH % server_id)
 
     def list(self, search_opts=None):
         """Get a list of share servers.

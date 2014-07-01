@@ -107,6 +107,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def delete_snapshots_1234(self, **kwargs):
         return (202, {}, None)
 
+    def delete_share_servers_1234(self, **kwargs):
+        return (202, {}, None)
+
     def put_shares_1234(self, **kwargs):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)
