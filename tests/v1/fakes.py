@@ -123,12 +123,13 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, share_nw)
 
     def get_share_networks_detail(self, **kw):
-        share_nw = {'share_networks': [{'id': 1234,
-                                        'name': 'fake_share_nw'},
-                                        {'id': 4321,
-                                        'name': 'duplicated_name'},
-                                        {'id': 4322,
-                                        'name': 'duplicated_name'}]}
+        share_nw = {
+            'share_networks': [
+                {'id': 1234, 'name': 'fake_share_nw'},
+                {'id': 4321, 'name': 'duplicated_name'},
+                {'id': 4322, 'name': 'duplicated_name'},
+            ]
+        }
         return (200, {}, share_nw)
 
     def get_security_services(self, **kw):

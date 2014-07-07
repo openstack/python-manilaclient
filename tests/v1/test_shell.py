@@ -214,12 +214,18 @@ class ShellTest(utils.TestCase):
         self.assert_called('GET', '/security-services?share_network_id=1234')
 
     def test_share_network_security_service_list_by_name_not_found(self):
-        self.assertRaises(exceptions.CommandError, self.run_command,
-            'share-network-security-service-list inexistent_share_nw')
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'share-network-security-service-list inexistent_share_nw',
+        )
 
     def test_share_network_security_service_list_by_name_multiple(self):
-        self.assertRaises(exceptions.CommandError, self.run_command,
-            'share-network-security-service-list duplicated_name')
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'share-network-security-service-list duplicated_name',
+        )
 
     def test_share_network_security_service_list_by_id(self):
         self.run_command('share-network-security-service-list 1111')
@@ -371,17 +377,17 @@ class ShellTest(utils.TestCase):
                 return utils.TestResponse({
                     "status_code": 200,
                     "text": jsonutils.dumps(resp_text),
-                    })
+                })
             elif url == 'fake/shares/detail':
                 resp_text = {"unauthorized": {"message": "Unauthorized",
                                               "code": "401"}}
                 return utils.TestResponse({
                     "status_code": 401,
                     "text": jsonutils.dumps(resp_text),
-                    })
+                })
             else:
                 headers = {
-                   'x-server-management-url': 'new_url',
+                    'x-server-management-url': 'new_url',
                     'x-auth-token': 'new_token',
                 }
                 resp_text = 'some_text'
@@ -389,7 +395,7 @@ class ShellTest(utils.TestCase):
                     "status_code": 200,
                     "text": jsonutils.dumps(resp_text),
                     "headers": headers
-                    })
+                })
 
         client.get_client_class = lambda *_: client_v1.Client
         shell.SecretsHelper.tenant_id = \
@@ -405,8 +411,12 @@ class ShellTest(utils.TestCase):
             'User-Agent': 'python-manilaclient',
             'Accept': 'application/json',
             'X-Auth-Token': 'new_token'}
-        requests.request.assert_called_with('GET', 'new_url/shares/detail',
-            headers=expected_headers, verify=True)
+        requests.request.assert_called_with(
+            'GET',
+            'new_url/shares/detail',
+            headers=expected_headers,
+            verify=True,
+        )
 
 
 class SecretsHelperTestCase(utils.TestCase):
@@ -455,9 +465,11 @@ class SecretsHelperTestCase(utils.TestCase):
         expected_key = 'http://111.11.11.11:5000/user/project/region/' \
                        'publicURL/share/fake/fake'
         self.helper.save('fake_token', 'fake_url', 'fake_tenant_id')
-        shell.ManilaKeyring.set_password. \
-            assert_called_once_with('manilaclient_auth',
-            expected_key, 'fake_token|fake_url|fake_tenant_id')
+        shell.ManilaKeyring.set_password.assert_called_once_with(
+            'manilaclient_auth',
+            expected_key,
+            'fake_token|fake_url|fake_tenant_id',
+        )
 
     def test_save_params_already_cached(self):
         self.helper.save('fake_token', 'fake_url', 'fake_tenant_id')
@@ -490,8 +502,8 @@ class SecretsHelperTestCase(utils.TestCase):
         self.assertEqual(self.helper.management_url, 'fake_url')
         expected_key = 'http://111.11.11.11:5000/user/project/region/' \
                        'publicURL/share/fake/fake'
-        shell.ManilaKeyring.get_password. \
-        assert_called_once_with('manilaclient_auth', expected_key)
+        shell.ManilaKeyring.get_password.assert_called_once_with(
+            'manilaclient_auth', expected_key)
 
     def test_auth_token_os_cache_false(self):
         self.args.os_cache = False

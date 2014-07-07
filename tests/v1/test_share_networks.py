@@ -91,7 +91,7 @@ class ShareNetworkTest(utils.TestCase):
     def test_list_with_filters(self):
         filters = OrderedDict([('all_tenants', 1), ('status', 'ERROR')])
         expected_path = share_networks.RESOURCES_PATH + '/detail' + \
-                '?all_tenants=1&status=ERROR'
+            '?all_tenants=1&status=ERROR'
 
         with mock.patch.object(self.manager, '_list',
                                mock.Mock(return_value=None)):

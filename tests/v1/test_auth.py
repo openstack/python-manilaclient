@@ -35,7 +35,7 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
                     "id": "FAKE_ID",
                     "tenant": {
                         "id": "FAKE_TENANT_ID"
-                        },
+                    },
                 },
                 "serviceCatalog": [
                     {
@@ -195,7 +195,7 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
                     "id": "FAKE_ID",
                     "tenant": {
                         "id": "FAKE_TENANT_ID"
-                        },
+                    },
                 },
                 "serviceCatalog": [
                     {
@@ -282,7 +282,7 @@ class AuthenticateAgainstKeystoneTests(utils.TestCase):
                     "id": "FAKE_ID",
                     "tenant": {
                         "id": "FAKE_TENANT_ID"
-                        },
+                    },
                 },
                 "serviceCatalog": [
                     {

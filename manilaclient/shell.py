@@ -148,7 +148,7 @@ class SecretsHelper(object):
         tenant_id.
         """
         if (auth_token == self.auth_token and
-            management_url == self.management_url):
+                management_url == self.management_url):
             # Nothing changed....
             return
         if not all([management_url, auth_token, tenant_id]):
@@ -166,8 +166,8 @@ class SecretsHelper(object):
         self.keyring.delete_password(args)
 
     def save_password(self):
-        self.keyring.set_password('openstack',
-            self.args.os_username, self.password)
+        self.keyring.set_password('openstack', self.args.os_username,
+                                  self.password)
 
     def check_cached_password(self):
         """Check if os_password is equal to cached password."""
@@ -214,7 +214,7 @@ class SecretsHelper(object):
             return None
         management_url = None
         block = self.keyring.get_password('manilaclient_auth',
-                                     self._make_key())
+                                          self._make_key())
         if block:
             _token, management_url, _tenant_id = block.split('|', 2)
         return management_url
@@ -230,7 +230,7 @@ class SecretsHelper(object):
             return None
         token = None
         block = self.keyring.get_password('manilaclient_auth',
-                                     self._make_key())
+                                          self._make_key())
         if block:
             token, _management_url, _tenant_id = block.split('|', 2)
         return token
@@ -246,7 +246,7 @@ class SecretsHelper(object):
             return None
         tenant_id = None
         block = self.keyring.get_password('manilaclient_auth',
-                                     self._make_key())
+                                          self._make_key())
         if block:
             _token, _management_url, tenant_id = block.split('|', 2)
         return tenant_id
@@ -536,11 +536,11 @@ class OpenStackManilaShell(object):
          os_region_name, os_tenant_id, endpoint_type, insecure,
          service_type, service_name, share_service_name,
          cacert, os_cache, os_reset_cache) = (
-            args.os_username, args.os_password, args.os_tenant_name,
-            args.os_auth_url, args.os_region_name, args.os_tenant_id,
-            args.endpoint_type, args.insecure, args.service_type,
-            args.service_name, args.share_service_name,
-            args.os_cacert, args.os_cache, args.os_reset_cache)
+             args.os_username, args.os_password, args.os_tenant_name,
+             args.os_auth_url, args.os_region_name, args.os_tenant_id,
+             args.endpoint_type, args.insecure, args.service_type,
+             args.service_name, args.share_service_name,
+             args.os_cacert, args.os_cache, args.os_reset_cache)
 
         if not endpoint_type:
             endpoint_type = DEFAULT_MANILA_ENDPOINT_TYPE
