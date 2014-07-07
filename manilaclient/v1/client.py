@@ -12,7 +12,7 @@ from manilaclient.v1 import volume_types
 
 
 class Client(object):
-    """Top-level object to access the OpenStack Volume API.
+    """Top-level object to access the OpenStack Manila API.
 
     Create an instance with your creds::
 
