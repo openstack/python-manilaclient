@@ -440,7 +440,7 @@ class SecretsHelperTestCase(utils.TestCase):
             return_value='fake_token|fake_url|fake_tenant_id')).start()
         self.addCleanup(mock.patch.stopall)
 
-    def test_validate_string_void_string(self):
+    def test_validate_string_empty_string(self):
         self.assertFalse(self.helper._validate_string(''))
 
     def test_validate_string_void_string(self):
@@ -510,7 +510,7 @@ class SecretsHelperTestCase(utils.TestCase):
         self.helper = shell.SecretsHelper(self.args, self.cs.client)
         self.assertIsNone(self.helper.auth_token)
 
-    def test_management_url_os_cache_true(self):
+    def test_auth_token_os_cache_true(self):
         self.assertEqual(self.helper.auth_token, 'fake_token')
         expected_key = 'http://111.11.11.11:5000/user/project/region/' \
                        'publicURL/share/fake/fake'
