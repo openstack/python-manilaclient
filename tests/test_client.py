@@ -12,7 +12,6 @@
 
 import manilaclient.client
 import manilaclient.v1.client
-
 from tests import utils
 
 

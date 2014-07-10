@@ -46,8 +46,7 @@ class ShareSnapshot(base.Resource):
 
 
 class ShareSnapshotManager(base.ManagerWithFind):
-    """Manage :class:`ShareSnapshot` resources.
-    """
+    """Manage :class:`ShareSnapshot` resources."""
     resource_class = ShareSnapshot
 
     def create(self, share, force=False, name=None, description=None):

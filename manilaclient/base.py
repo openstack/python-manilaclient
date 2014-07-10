@@ -246,8 +246,10 @@ class Resource(object):
 
     @property
     def human_id(self):
-        """Subclasses may override this provide a pretty ID which can be used
-        for bash completion.
+        """Returns human-friendly ID if possible.
+
+        Subclasses may override this provide a pretty ID which can
+        be used for bash completion.
         """
         if 'name' in self.__dict__ and self.HUMAN_ID:
             return strutils.to_slug(self.name)

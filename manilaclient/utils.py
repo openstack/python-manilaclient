@@ -214,8 +214,9 @@ def find_resource(manager, name_or_id):
                     # Volumes does not have name, but display_name
                     return manager.find(display_name=name_or_id)
                 except exceptions.NotFound:
-                    msg = "No %s with a name or ID of '%s' exists." % \
-                        (manager.resource_class.__name__.lower(), name_or_id)
+                    msg = ("No %s with a name or ID of '%s' exists." %
+                           (manager.resource_class.__name__.lower(),
+                            name_or_id))
                     raise exceptions.CommandError(msg)
     except exceptions.NoUniqueMatch:
         msg = ("Multiple %s matches found for '%s', use an ID to be more"

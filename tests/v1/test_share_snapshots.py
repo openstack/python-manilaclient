@@ -17,7 +17,6 @@
 
 from manilaclient import extension
 from manilaclient.v1 import share_snapshots
-
 from tests import utils
 from tests.v1 import fakes
 
