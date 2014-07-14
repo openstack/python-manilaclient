@@ -90,8 +90,8 @@ class ShareNetworkTest(utils.TestCase):
 
     def test_list_with_filters(self):
         filters = OrderedDict([('all_tenants', 1), ('status', 'ERROR')])
-        expected_path = share_networks.RESOURCES_PATH + '/detail' + \
-            '?all_tenants=1&status=ERROR'
+        expected_path = ("%s/detail?all_tenants=1&status="
+                         "ERROR" % share_networks.RESOURCES_PATH)
 
         with mock.patch.object(self.manager, '_list',
                                mock.Mock(return_value=None)):
@@ -146,8 +146,8 @@ class ShareNetworkTest(utils.TestCase):
     def test_add_security_service_to_share_nw_object(self):
         security_service = 'fake security service'
         share_nw = self._FakeShareNetwork()
-        expected_path = (share_networks.RESOURCE_PATH + '/action') % \
-            share_nw.id
+        expected_path = ((share_networks.RESOURCE_PATH +
+                          '/action') % share_nw.id)
         expected_body = {'add_security_service': {'security_service_id':
                                                   security_service}}
 
@@ -177,8 +177,8 @@ class ShareNetworkTest(utils.TestCase):
     def test_remove_security_service_from_share_nw_object(self):
         security_service = 'fake security service'
         share_nw = self._FakeShareNetwork()
-        expected_path = (share_networks.RESOURCE_PATH + '/action') % \
-            share_nw.id
+        expected_path = ((share_networks.RESOURCE_PATH +
+                          '/action') % share_nw.id)
         expected_body = {'remove_security_service': {'security_service_id':
                                                      security_service}}
 

@@ -217,8 +217,9 @@ def do_quota_update(cs, args):
            metavar='<user-id>',
            help='ID of user to delete quota for.')
 def do_quota_delete(cs, args):
-    """Delete quota for a tenant/user so their quota will Revert
-       back to default.
+    """Delete quota for a tenant/user.
+
+    quota will Revert back to default.
     """
 
     if not args.tenant:
@@ -265,7 +266,7 @@ def do_quota_class_update(cs, args):
 
 @utils.service_type('share')
 def do_absolute_limits(cs, args):
-    """Print a list of absolute limits for a user"""
+    """Print a list of absolute limits for a user."""
     limits = cs.limits.get().absolute
     columns = ['Name', 'Value']
     utils.print_list(limits, columns)
@@ -273,7 +274,7 @@ def do_absolute_limits(cs, args):
 
 @utils.service_type('share')
 def do_rate_limits(cs, args):
-    """Print a list of rate limits for a user"""
+    """Print a list of rate limits for a user."""
     limits = cs.limits.get().rate
     columns = ['Verb', 'URI', 'Value', 'Remain', 'Unit', 'Next_Available']
     utils.print_list(limits, columns)
@@ -770,8 +771,8 @@ def do_share_network_update(cs, args):
               'neutron_subnet_id': args.neutron_subnet_id,
               'name': args.name,
               'description': args.description}
-    share_network = _find_share_network(cs, args.share_network)\
-        .update(**values)
+    share_network = _find_share_network(
+        cs, args.share_network).update(**values)
     info = share_network._info.copy()
     utils.print_dict(info)
 

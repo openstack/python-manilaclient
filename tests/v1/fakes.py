@@ -170,19 +170,16 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                               'extra_specs': {}}]})
 
     def get_types_1(self, **kw):
-        return (200, {}, {'volume_type': {'id': 1,
-                          'name': 'test-type-1',
-                          'extra_specs': {}}})
+        return (200, {}, {'volume_type': {
+            'id': 1, 'name': 'test-type-1', 'extra_specs': {}}})
 
     def get_types_2(self, **kw):
-        return (200, {}, {'volume_type': {'id': 2,
-                          'name': 'test-type-2',
-                          'extra_specs': {}}})
+        return (200, {}, {'volume_type': {
+            'id': 2, 'name': 'test-type-2', 'extra_specs': {}}})
 
     def post_types(self, body, **kw):
-        return (202, {}, {'volume_type': {'id': 3,
-                          'name': 'test-type-3',
-                          'extra_specs': {}}})
+        return (202, {}, {'volume_type': {
+            'id': 3, 'name': 'test-type-3', 'extra_specs': {}}})
 
     def post_types_1_extra_specs(self, body, **kw):
         assert list(body) == ['extra_specs']

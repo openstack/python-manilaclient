@@ -232,8 +232,7 @@ class HTTPClient(object):
         if resp.status_code == 200:  # content must always present
             try:
                 self.auth_url = url
-                self.service_catalog = \
-                    service_catalog.ServiceCatalog(body)
+                self.service_catalog = service_catalog.ServiceCatalog(body)
 
                 if extract_token:
                     self.auth_token = self.service_catalog.get_token()
@@ -264,7 +263,9 @@ class HTTPClient(object):
             raise exceptions.from_response(resp, body)
 
     def _fetch_endpoints_from_auth(self, url):
-        """We have a token, but don't know the final endpoint for
+        """Fetch endpoints from auth.
+
+        We have a token, but don't know the final endpoint for
         the region. We have to go back to the auth service and
         ask again. This request requires an admin-level token
         to work. The proxy token supplied could be from a low-level enduser.

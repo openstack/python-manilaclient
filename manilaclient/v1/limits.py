@@ -52,13 +52,13 @@ class RateLimit(object):
         self.next_available = next_available
 
     def __eq__(self, other):
-        return self.uri == other.uri \
-            and self.regex == other.regex \
-            and self.value == other.value \
-            and self.verb == other.verb \
-            and self.remain == other.remain \
-            and self.unit == other.unit \
-            and self.next_available == other.next_available
+        return (self.uri == other.uri and
+                self.regex == other.regex and
+                self.value == other.value and
+                self.verb == other.verb and
+                self.remain == other.remain and
+                self.unit == other.unit and
+                self.next_available == other.next_available)
 
     def __repr__(self):
         return "<RateLimit: method=%s uri=%s>" % (self.method, self.uri)

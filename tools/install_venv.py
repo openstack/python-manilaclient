@@ -149,8 +149,8 @@ class Fedora(Distro):
 
 
 def get_distro():
-    if os.path.exists('/etc/fedora-release') or \
-       os.path.exists('/etc/redhat-release'):
+    if (os.path.exists('/etc/fedora-release') or
+            os.path.exists('/etc/redhat-release')):
         return Fedora()
     elif os.path.exists('/etc/debian_version'):
         return Debian()
@@ -163,8 +163,10 @@ def check_dependencies():
 
 
 def create_virtualenv(venv=VENV, no_site_packages=True):
-    """Creates the virtual environment and installs PIP only into the
-    virtual environment
+    """Creates the virtual environment.
+
+    Creates the virtual environment installs PIP only
+    into the virtual environment.
     """
     print('Creating venv...', end=' ')
     if no_site_packages:
