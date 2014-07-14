@@ -46,11 +46,14 @@ class TestResponse(requests.Response):
         super(TestResponse, self)
         if isinstance(data, dict):
             self.status_code = data.get('status_code', None)
-            self.headers = data.get('headers', None)
+            self.headers = data.get('headers', {})
+            self.headers['x-openstack-request-id'] = data.get(
+                'x-openstack-request-id', 'fake-request-id')
             # Fake the text attribute to streamline Response creation
             self._text = data.get('text', None)
         else:
             self.status_code = data
+            self.headers = {'x-openstack-request-id': 'fake-request-id'}
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
