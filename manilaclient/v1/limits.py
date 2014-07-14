@@ -14,9 +14,10 @@
 # under the License.
 
 from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
 
 
-class Limits(base.Resource):
+class Limits(common_base.Resource):
     """A collection of RateLimit and AbsoluteLimit objects."""
 
     def __repr__(self):

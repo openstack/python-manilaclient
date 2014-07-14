@@ -22,7 +22,7 @@ from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
 
-class VolumeType(base.Resource):
+class VolumeType(common_base.Resource):
     """A Volume Type is the type of volume to be created."""
 
     def __repr__(self):

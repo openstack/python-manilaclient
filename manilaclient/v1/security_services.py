@@ -20,6 +20,7 @@ except ImportError:
 
 from manilaclient import base
 from manilaclient import exceptions
+from manilaclient.openstack.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/security-services'
 RESOURCE_PATH = "/security-services/%s"
@@ -27,7 +28,7 @@ RESOURCE_NAME = 'security_service'
 RESOURCES_NAME = 'security_services'
 
 
-class SecurityService(base.Resource):
+class SecurityService(common_base.Resource):
     """Security service for Manila shares."""
     def __repr__(self):
         return "<SecurityService: %s>" % self.id

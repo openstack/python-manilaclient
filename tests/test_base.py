@@ -10,8 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from manilaclient import base
 from manilaclient import exceptions
+from manilaclient.openstack.common.apiclient import base as common_base
 from manilaclient.v1 import shares
 from tests import utils
 from tests.v1 import fakes
@@ -23,23 +23,23 @@ cs = fakes.FakeClient()
 class BaseTest(utils.TestCase):
 
     def test_resource_repr(self):
-        r = base.Resource(None, dict(foo="bar", baz="spam"))
+        r = common_base.Resource(None, dict(foo="bar", baz="spam"))
         self.assertEqual(repr(r), "<Resource baz=spam, foo=bar>")
 
     def test_eq(self):
         # Two resources of the same type with the same id: equal
-        r1 = base.Resource(None, {'id': 1, 'name': 'hi'})
-        r2 = base.Resource(None, {'id': 1, 'name': 'hello'})
+        r1 = common_base.Resource(None, {'id': 1, 'name': 'hi'})
+        r2 = common_base.Resource(None, {'id': 1, 'name': 'hello'})
         self.assertEqual(r1, r2)
 
         # Two resoruces of different types: never equal
-        r1 = base.Resource(None, {'id': 1})
+        r1 = common_base.Resource(None, {'id': 1})
         r2 = shares.Share(None, {'id': 1})
         self.assertNotEqual(r1, r2)
 
         # Two resources with no ID: equal if their info is equal
-        r1 = base.Resource(None, {'name': 'joe', 'age': 12})
-        r2 = base.Resource(None, {'name': 'joe', 'age': 12})
+        r1 = common_base.Resource(None, {'name': 'joe', 'age': 12})
+        r2 = common_base.Resource(None, {'name': 'joe', 'age': 12})
         self.assertEqual(r1, r2)
 
     def test_findall_invalid_attribute(self):

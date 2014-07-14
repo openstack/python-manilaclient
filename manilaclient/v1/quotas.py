@@ -14,13 +14,14 @@
 #    under the License.
 
 from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
 
 
-class QuotaSet(base.Resource):
+class QuotaSet(common_base.Resource):
 
     @property
     def id(self):
-        """Needed by base.Resource to self-refresh and be indexed."""
+        """Needed by Resource to self-refresh and be indexed."""
         return self.tenant_id
 
     def update(self, *args, **kwargs):

@@ -28,7 +28,7 @@ RESOURCE_NAME = 'share_network'
 RESOURCES_NAME = 'share_networks'
 
 
-class ShareNetwork(base.Resource):
+class ShareNetwork(common_base.Resource):
     """Network info for Manila shares."""
     def __repr__(self):
         return "<ShareNetwork: %s>" % self.id

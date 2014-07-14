@@ -26,7 +26,7 @@ from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import base as common_base
 
 
-class Share(base.Resource):
+class Share(common_base.Resource):
     """A share is an extra block level storage to the OpenStack instances."""
     def __repr__(self):
         return "<Share: %s>" % self.id

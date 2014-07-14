@@ -23,7 +23,7 @@ from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
 
-class ShareSnapshot(base.Resource):
+class ShareSnapshot(common_base.Resource):
     """Represent a snapshot of a share."""
 
     def __repr__(self):

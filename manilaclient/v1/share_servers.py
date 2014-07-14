@@ -20,6 +20,7 @@ except ImportError:
     from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/share-servers'
 RESOURCE_PATH = '/share-servers/%s'
@@ -27,7 +28,7 @@ RESOURCES_NAME = 'share_servers'
 RESOURCE_NAME = 'share_server'
 
 
-class ShareServer(base.Resource):
+class ShareServer(common_base.Resource):
 
     def __repr__(self):
         return "<ShareServer: %s>" % self.id

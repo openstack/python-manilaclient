@@ -20,12 +20,13 @@ except ImportError:
     from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/os-services'
 RESOURCES_NAME = 'services'
 
 
-class Service(base.Resource):
+class Service(common_base.Resource):
 
     def __repr__(self):
         return "<Service: %s>" % self.id
