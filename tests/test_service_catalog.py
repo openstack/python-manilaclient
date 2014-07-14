@@ -106,9 +106,9 @@ class ServiceCatalogTest(utils.TestCase):
         self.assertRaises(exceptions.AmbiguousEndpoints, sc.url_for,
                           service_type='compute')
         self.assertEqual(sc.url_for('tenantId', '1', service_type='compute'),
-                          "https://compute1.host/v1/1234")
+                         "https://compute1.host/v1/1234")
         self.assertEqual(sc.url_for('tenantId', '2', service_type='compute'),
-                          "https://compute1.host/v1/3456")
+                         "https://compute1.host/v1/3456")
 
         self.assertRaises(exceptions.EndpointNotFound, sc.url_for,
                           "region", "South", service_type='compute')

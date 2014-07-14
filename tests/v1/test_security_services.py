@@ -114,12 +114,13 @@ class SecurityServiceTest(utils.TestCase):
 
     def test_update(self):
         security_service = 'fake service'
-        values = {'dns_ip': 'new dns ip',
-                  'server': 'new.ldap.server',
-                  'domain': 'new.ldap.domain',
-                  'sid': 'new sid',
-                  'password': 'fake password',
-                 }
+        values = {
+            'dns_ip': 'new dns ip',
+            'server': 'new.ldap.server',
+            'domain': 'new.ldap.domain',
+            'sid': 'new sid',
+            'password': 'fake password',
+        }
 
         with mock.patch.object(self.manager, '_update', fakes.fake_update):
             result = self.manager.update(security_service, **values)
