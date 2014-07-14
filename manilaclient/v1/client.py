@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from manilaclient import client
+from manilaclient import client as httpclient
 from manilaclient.v1 import limits
 from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
@@ -68,7 +68,7 @@ class Client(object):
                     setattr(self, extension.name,
                             extension.manager_class(self))
 
-        self.client = client.HTTPClient(
+        self.client = httpclient.HTTPClient(
             username,
             password,
             project_id,
