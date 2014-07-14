@@ -20,6 +20,7 @@ except ImportError:
     from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
 
 
 class ShareSnapshot(base.Resource):
@@ -59,7 +60,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param description: Description of the snapshot
         :rtype: :class:`ShareSnapshot`
         """
-        body = {'snapshot': {'share_id': base.getid(share),
+        body = {'snapshot': {'share_id': common_base.getid(share),
                              'force': force,
                              'name': name,
                              'description': description}}
@@ -98,10 +99,10 @@ class ShareSnapshotManager(base.ManagerWithFind):
 
         :param snapshot: The :class:`ShareSnapshot` to delete.
         """
-        self._delete("/snapshots/%s" % base.getid(snapshot))
+        self._delete("/snapshots/%s" % common_base.getid(snapshot))
 
     def force_delete(self, snapshot):
-        return self._action('os-force_delete', base.getid(snapshot))
+        return self._action('os-force_delete', common_base.getid(snapshot))
 
     def update(self, snapshot, **kwargs):
         """Update a snapshot.
@@ -123,5 +124,5 @@ class ShareSnapshotManager(base.ManagerWithFind):
         """Perform a  snapshot 'action'."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/snapshots/%s/action' % base.getid(snapshot)
+        url = '/snapshots/%s/action' % common_base.getid(snapshot)
         return self.api.client.post(url, body=body)

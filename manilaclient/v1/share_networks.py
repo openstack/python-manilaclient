@@ -20,6 +20,7 @@ except ImportError:
 
 from manilaclient import base
 from manilaclient import exceptions
+from manilaclient.openstack.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/share-networks'
 RESOURCE_PATH = "/share-networks/%s"
@@ -78,7 +79,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         body = {'add_security_service': {'security_service_id':
                                          security_service}}
 
-        return self._create(RESOURCE_PATH % base.getid(share_network) +
+        return self._create(RESOURCE_PATH % common_base.getid(share_network) +
                             '/action',
                             body,
                             RESOURCE_NAME)
@@ -93,7 +94,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         body = {'remove_security_service': {'security_service_id':
                                             security_service}}
 
-        return self._create(RESOURCE_PATH % base.getid(share_network) +
+        return self._create(RESOURCE_PATH % common_base.getid(share_network) +
                             '/action',
                             body,
                             RESOURCE_NAME)
@@ -104,7 +105,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         :param policy: share network to get.
         :rtype: :class:`NetworkInfo`
         """
-        return self._get(RESOURCE_PATH % base.getid(share_network),
+        return self._get(RESOURCE_PATH % common_base.getid(share_network),
                          RESOURCE_NAME)
 
     def update(self, share_network, neutron_net_id=None,
@@ -129,7 +130,7 @@ class ShareNetworkManager(base.ManagerWithFind):
             raise exceptions.CommandError(msg)
 
         body = {RESOURCE_NAME: values}
-        return self._update(RESOURCE_PATH % base.getid(share_network),
+        return self._update(RESOURCE_PATH % common_base.getid(share_network),
                             body,
                             RESOURCE_NAME)
 
@@ -138,7 +139,7 @@ class ShareNetworkManager(base.ManagerWithFind):
 
         :param share_network: share network to be deleted.
         """
-        self._delete(RESOURCE_PATH % base.getid(share_network))
+        self._delete(RESOURCE_PATH % common_base.getid(share_network))
 
     def list(self, detailed=True, search_opts=None):
         """Get a list of all share network.

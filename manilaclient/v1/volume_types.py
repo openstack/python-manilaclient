@@ -19,6 +19,7 @@ Volume Type interface.
 """
 
 from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
 
 
 class VolumeType(base.Resource):
@@ -33,8 +34,7 @@ class VolumeType(base.Resource):
         :param vol_type: The :class:`VolumeType` to get extra specs from
         """
         _resp, body = self.manager.api.client.get(
-            "/types/%s/extra_specs" %
-            base.getid(self))
+            "/types/%s/extra_specs" % common_base.getid(self))
         return body["extra_specs"]
 
     def set_keys(self, metadata):
@@ -45,10 +45,11 @@ class VolumeType(base.Resource):
         """
         body = {'extra_specs': metadata}
         return self.manager._create(
-            "/types/%s/extra_specs" % base.getid(self),
+            "/types/%s/extra_specs" % common_base.getid(self),
             body,
             "extra_specs",
-            return_raw=True)
+            return_raw=True,
+        )
 
     def unset_keys(self, keys):
         """Unset extra specs on a volume type.
@@ -64,7 +65,7 @@ class VolumeType(base.Resource):
         resp = None
         for k in keys:
             resp = self.manager._delete(
-                "/types/%s/extra_specs/%s" % (base.getid(self), k))
+                "/types/%s/extra_specs/%s" % (common_base.getid(self), k))
             if resp is not None:
                 return resp
 
@@ -87,14 +88,15 @@ class VolumeTypeManager(base.ManagerWithFind):
         :param volume_type: The ID of the :class:`VolumeType` to get.
         :rtype: :class:`VolumeType`
         """
-        return self._get("/types/%s" % base.getid(volume_type), "volume_type")
+        return self._get("/types/%s" % common_base.getid(volume_type),
+                         "volume_type")
 
     def delete(self, volume_type):
         """Delete a specific volume_type.
 
         :param volume_type: The name or ID of the :class:`VolumeType` to get.
         """
-        self._delete("/types/%s" % base.getid(volume_type))
+        self._delete("/types/%s" % common_base.getid(volume_type))
 
     def create(self, name):
         """Create a volume type.

@@ -38,18 +38,6 @@ except NameError:
         return True not in (not x for x in iterable)
 
 
-def getid(obj):
-    """Searches for id in provided object.
-
-    Abstracts the common pattern of allowing both an object or an
-    object's ID as a parameter when dealing with relationships.
-    """
-    try:
-        return obj.id
-    except AttributeError:
-        return obj
-
-
 class Manager(utils.HookableMixin):
     """Manager for CRUD operations.
 

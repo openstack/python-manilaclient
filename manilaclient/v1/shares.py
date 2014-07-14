@@ -23,6 +23,7 @@ except ImportError:
 
 from manilaclient import base
 from manilaclient import exceptions
+from manilaclient.openstack.common.apiclient import base as common_base
 
 
 class Share(base.Resource):
@@ -137,7 +138,7 @@ class ShareManager(base.ManagerWithFind):
                           'description': description,
                           'metadata': share_metadata,
                           'share_proto': share_proto,
-                          'share_network_id': base.getid(share_network),
+                          'share_network_id': common_base.getid(share_network),
                           'volume_type': volume_type}}
         return self._create('/shares', body, 'share')
 
@@ -186,10 +187,10 @@ class ShareManager(base.ManagerWithFind):
 
         :param share: The :class:`Share` to delete.
         """
-        self._delete("/shares/%s" % base.getid(share))
+        self._delete("/shares/%s" % common_base.getid(share))
 
     def force_delete(self, share):
-        return self._action('os-force_delete', base.getid(share))
+        return self._action('os-force_delete', common_base.getid(share))
 
     def allow(self, share, access_type, access):
         """Allow access from IP to a shares.
@@ -225,7 +226,8 @@ class ShareManager(base.ManagerWithFind):
 
         :param share: The :class:`Share`.
         """
-        return self._get("/shares/%s/metadata" % base.getid(share), "metadata")
+        return self._get("/shares/%s/metadata" % common_base.getid(share),
+                         "metadata")
 
     def set_metadata(self, share, metadata):
         """Update/Set a shares metadata.
@@ -234,7 +236,7 @@ class ShareManager(base.ManagerWithFind):
         :param metadata: A list of keys to be set.
         """
         body = {'metadata': metadata}
-        return self._create("/shares/%s/metadata" % base.getid(share),
+        return self._create("/shares/%s/metadata" % common_base.getid(share),
                             body, "metadata")
 
     def delete_metadata(self, share, keys):
@@ -244,7 +246,8 @@ class ShareManager(base.ManagerWithFind):
         :param keys: A list of keys to be removed.
         """
         for k in keys:
-            self._delete("/shares/%s/metadata/%s" % (base.getid(share), k))
+            self._delete("/shares/%s/metadata/%s" % (common_base.getid(share),
+                         k))
 
     def update_all_metadata(self, share, metadata):
         """Update all metadata of a share.
@@ -253,13 +256,14 @@ class ShareManager(base.ManagerWithFind):
         :param metadata: A list of keys to be updated.
         """
         body = {'metadata': metadata}
-        return self._update("/shares/%s/metadata" % base.getid(share), body)
+        return self._update("/shares/%s/metadata" % common_base.getid(share),
+                            body)
 
     def _action(self, action, share, info=None, **kwargs):
         """Perform a share 'action'."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/shares/%s/action' % base.getid(share)
+        url = '/shares/%s/action' % common_base.getid(share)
         return self.api.client.post(url, body=body)
 
     def reset_state(self, share, state):

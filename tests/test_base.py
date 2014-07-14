@@ -26,13 +26,6 @@ class BaseTest(utils.TestCase):
         r = base.Resource(None, dict(foo="bar", baz="spam"))
         self.assertEqual(repr(r), "<Resource baz=spam, foo=bar>")
 
-    def test_getid(self):
-        self.assertEqual(base.getid(4), 4)
-
-        class TmpObject(object):
-            id = 4
-        self.assertEqual(base.getid(TmpObject), 4)
-
     def test_eq(self):
         # Two resources of the same type with the same id: equal
         r1 = base.Resource(None, {'id': 1, 'name': 'hi'})
