@@ -36,6 +36,7 @@ import six
 from manilaclient import client
 from manilaclient import exceptions as exc
 import manilaclient.extension
+from manilaclient.openstack.common import cliutils
 from manilaclient.openstack.common import strutils
 from manilaclient import utils
 from manilaclient.v1 import shell as shell_v1
@@ -547,12 +548,12 @@ class OpenStackManilaShell(object):
 
         if not service_type:
             service_type = DEFAULT_MANILA_SERVICE_TYPE
-            service_type = utils.get_service_type(args.func) or service_type
+            service_type = cliutils.get_service_type(args.func) or service_type
 
         # FIXME(usrleon): Here should be restrict for project id same as
         # for os_username or os_password but for compatibility it is not.
 
-        if not utils.isunauthenticated(args.func):
+        if not cliutils.isunauthenticated(args.func):
             if not os_username:
                 raise exc.CommandError(
                     "You must provide a username "
@@ -591,7 +592,7 @@ class OpenStackManilaShell(object):
                                 http_log_debug=args.debug,
                                 cacert=cacert,
                                 os_cache=os_cache)
-        if not utils.isunauthenticated(args.func):
+        if not cliutils.isunauthenticated(args.func):
             helper = SecretsHelper(args, self.cs.client)
             if os_reset_cache:
                 helper.reset()

@@ -14,12 +14,10 @@ from __future__ import print_function
 
 import os
 import sys
-import uuid
 
 import prettytable
 import six
 
-from manilaclient import exceptions
 from manilaclient.openstack.common import strutils
 
 
@@ -58,87 +56,6 @@ def add_arg(f, *args, **kwargs):
         f.arguments.insert(0, (args, kwargs))
 
 
-def add_resource_manager_extra_kwargs_hook(f, hook):
-    """Adds hook to bind CLI arguments to ResourceManager calls.
-
-    The `do_foo` calls in shell.py will receive CLI args and then in turn pass
-    them through to the ResourceManager. Before passing through the args, the
-    hooks registered here will be called, giving us a chance to add extra
-    kwargs (taken from the command-line) to what's passed to the
-    ResourceManager.
-    """
-    if not hasattr(f, 'resource_manager_kwargs_hooks'):
-        f.resource_manager_kwargs_hooks = []
-
-    names = [h.__name__ for h in f.resource_manager_kwargs_hooks]
-    if hook.__name__ not in names:
-        f.resource_manager_kwargs_hooks.append(hook)
-
-
-def get_resource_manager_extra_kwargs(f, args, allow_conflicts=False):
-    """Return extra_kwargs by calling resource manager kwargs hooks."""
-    hooks = getattr(f, "resource_manager_kwargs_hooks", [])
-    extra_kwargs = {}
-    for hook in hooks:
-        hook_name = hook.__name__
-        hook_kwargs = hook(args)
-
-        conflicting_keys = set(list(hook_kwargs)) & set(list(extra_kwargs))
-        if conflicting_keys and not allow_conflicts:
-            msg = ("Hook '%s' is attempting to redefine "
-                   "attributes '%s'" % (hook_name, conflicting_keys))
-            raise Exception(msg)
-
-        extra_kwargs.update(hook_kwargs)
-
-    return extra_kwargs
-
-
-def unauthenticated(f):
-    """Adds 'unauthenticated' attribute to decorated function.
-
-    Usage:
-        @unauthenticated
-        def mymethod(f):
-            ...
-    """
-    f.unauthenticated = True
-    return f
-
-
-def isunauthenticated(f):
-    """Verifies whether function requires authentication or not.
-
-    Checks to see if the function is marked as not requiring authentication
-    with the @unauthenticated decorator.
-    Returns True if decorator is set to True, False otherwise.
-    """
-    return getattr(f, 'unauthenticated', False)
-
-
-def service_type(stype):
-    """Adds 'service_type' attribute to decorated function.
-
-    Usage:
-        @service_type('share')
-        def mymethod(f):
-            ...
-    """
-    def inner(f):
-        f.service_type = stype
-        return f
-    return inner
-
-
-def get_service_type(f):
-    """Retrieves service type from function."""
-    return getattr(f, 'service_type', None)
-
-
-def pretty_choice_list(l):
-    return ', '.join("'%s'" % i for i in l)
-
-
 def _print(pt, order):
     if sys.version_info >= (3, 0):
         print(pt.get_string(sortby=order))
@@ -146,6 +63,8 @@ def _print(pt, order):
         print(strutils.safe_encode(pt.get_string(sortby=order)))
 
 
+# NOTE(vponomaryov): replace function 'print_list' and 'print_dict'
+#                    with functions from cliutils, when bug #1342050 is fixed
 def print_list(objs, fields, formatters={}, order_by=None):
     mixed_case_fields = ['serverId']
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
@@ -178,70 +97,6 @@ def print_dict(d, property="Property"):
     _print(pt, property)
 
 
-def find_resource(manager, name_or_id):
-    """Helper for the _find_* methods."""
-    # first try to get entity as integer id
-    try:
-        if isinstance(name_or_id, int) or name_or_id.isdigit():
-            return manager.get(int(name_or_id))
-    except exceptions.NotFound:
-        pass
-
-    if sys.version_info <= (3, 0):
-        name_or_id = strutils.safe_decode(name_or_id)
-
-    # now try to get entity as uuid
-    try:
-        uuid.UUID(name_or_id)
-        return manager.get(name_or_id)
-    except (ValueError, exceptions.NotFound):
-        pass
-
-    try:
-        try:
-            return manager.find(human_id=name_or_id)
-        except exceptions.NotFound:
-            pass
-
-        # finally try to find entity by name
-        try:
-            return manager.find(name=name_or_id)
-        except exceptions.NotFound:
-            try:
-                return manager.find(display_name=name_or_id)
-            except (UnicodeDecodeError, exceptions.NotFound):
-                try:
-                    # Volumes does not have name, but display_name
-                    return manager.find(display_name=name_or_id)
-                except exceptions.NotFound:
-                    msg = ("No %s with a name or ID of '%s' exists." %
-                           (manager.resource_class.__name__.lower(),
-                            name_or_id))
-                    raise exceptions.CommandError(msg)
-    except exceptions.NoUniqueMatch:
-        msg = ("Multiple %s matches found for '%s', use an ID to be more"
-               " specific." % (manager.resource_class.__name__.lower(),
-                               name_or_id))
-        raise exceptions.CommandError(msg)
-
-
-def find_share(cs, share):
-    """Get a share by name or ID."""
-    return find_resource(cs.shares, share)
-
-
-def _format_servers_list_networks(server):
-    output = []
-    for (network, addresses) in list(server.networks.items()):
-        if len(addresses) == 0:
-            continue
-        addresses_csv = ', '.join(addresses)
-        group = "%s=%s" % (network, addresses_csv)
-        output.append(group)
-
-    return '; '.join(output)
-
-
 class HookableMixin(object):
     """Mixin so classes can register and run hooks."""
     _hooks_map = {}
@@ -270,25 +125,3 @@ def safe_issubclass(*args):
         pass
 
     return False
-
-
-def import_class(import_str):
-    """Returns a class from a string including module and class."""
-    mod_str, _sep, class_str = import_str.rpartition('.')
-    __import__(mod_str)
-    return getattr(sys.modules[mod_str], class_str)
-
-
-def make_metadata_dict(metadata):
-    """Converts cli key=value data to python dict as {'key': 'value'}."""
-    metadata_dict = {}
-    for item in metadata:
-        try:
-            key, value = item.split('=')
-        except ValueError:
-            msg = "Wrong argument format: '%s'" % item
-            raise exceptions.CommandError(msg)
-        if 'password' in key:
-            value = value.strip('"').strip("'")
-        metadata_dict[key] = value
-    return metadata_dict

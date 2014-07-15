@@ -15,6 +15,7 @@
 
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.openstack.common import cliutils
 from manilaclient import utils
 
 
@@ -38,7 +39,7 @@ class ListExtManager(base.Manager):
         return self._list("/extensions", 'extensions')
 
 
-@utils.service_type('share')
+@cliutils.service_type('share')
 def do_list_extensions(client, _args):
     """List all the os-api extensions that are available."""
     extensions = client.list_extensions.show_all()

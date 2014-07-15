@@ -41,9 +41,9 @@ if not hasattr(urlparse, 'parse_qsl'):
 import requests
 
 from manilaclient import exceptions
+from manilaclient.openstack.common import importutils
 from manilaclient.openstack.common import jsonutils
 from manilaclient import service_catalog
-from manilaclient import utils
 
 
 class HTTPClient(object):
@@ -417,7 +417,7 @@ def get_client_class(version):
             (version, ', '.join(version_map)))
         raise exceptions.UnsupportedVersion(msg)
 
-    return utils.import_class(client_path)
+    return importutils.import_class(client_path)
 
 
 def Client(version, *args, **kwargs):
