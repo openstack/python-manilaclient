@@ -12,48 +12,12 @@
 
 from __future__ import print_function
 
-import os
 import sys
 
 import prettytable
 import six
 
 from manilaclient.openstack.common import strutils
-
-
-def arg(*args, **kwargs):
-    """Decorator for CLI args."""
-    def _decorator(func):
-        add_arg(func, *args, **kwargs)
-        return func
-    return _decorator
-
-
-def env(*vars, **kwargs):
-    """Returns value of env var if exist.
-
-    Returns the first environment variable set if none are non-empty,
-    defaults to '' or keyword arg default.
-    """
-    for v in vars:
-        value = os.environ.get(v, None)
-        if value:
-            return value
-    return kwargs.get('default', '')
-
-
-def add_arg(f, *args, **kwargs):
-    """Bind CLI arguments to a shell.py `do_foo` function."""
-
-    if not hasattr(f, 'arguments'):
-        f.arguments = []
-
-    # NOTE(sirp): avoid dups that can occur when the module is shared across
-    # tests.
-    if (args, kwargs) not in f.arguments:
-        # Because of the sematics of decorator composition if we just append
-        # to the options list positional options will appear to be backwards.
-        f.arguments.insert(0, (args, kwargs))
 
 
 def _print(pt, order):

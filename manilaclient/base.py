@@ -24,6 +24,7 @@ import hashlib
 import os
 
 from manilaclient import exceptions
+from manilaclient.openstack.common import cliutils
 from manilaclient import utils
 
 
@@ -84,13 +85,13 @@ class Manager(utils.HookableMixin):
         Delete is not handled because listings are assumed to be performed
         often enough to keep the cache reasonably up-to-date.
         """
-        base_dir = utils.env('manilaclient_UUID_CACHE_DIR',
-                             default="~/.manilaclient")
+        base_dir = cliutils.env('manilaclient_UUID_CACHE_DIR',
+                                default="~/.manilaclient")
 
         # NOTE(sirp): Keep separate UUID caches for each username + endpoint
         # pair
-        username = utils.env('OS_USERNAME', 'MANILA_USERNAME')
-        url = utils.env('OS_URL', 'MANILA_URL')
+        username = cliutils.env('OS_USERNAME', 'MANILA_USERNAME')
+        url = cliutils.env('OS_URL', 'MANILA_URL')
         uniqifier = hashlib.md5(username.encode('utf-8') +
                                 url.encode('utf-8')).hexdigest()
 

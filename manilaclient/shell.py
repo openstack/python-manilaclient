@@ -38,7 +38,6 @@ from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.openstack.common import cliutils
 from manilaclient.openstack.common import strutils
-from manilaclient import utils
 from manilaclient.v1 import shell as shell_v1
 # from manilaclient.v2 import shell as shell_v2
 
@@ -195,7 +194,7 @@ class SecretsHelper(object):
             password = self.args.os_password
         else:
             verify_pass = strutils.bool_from_string(
-                utils.env("OS_VERIFY_PASSWORD", default=False))
+                cliutils.env("OS_VERIFY_PASSWORD", default=False))
             password = self._prompt_password(verify_pass)
         if not password:
             raise exc.CommandError(
@@ -276,12 +275,12 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--debug',
                             action='store_true',
-                            default=utils.env('manilaclient_DEBUG',
-                                              default=False),
+                            default=cliutils.env('manilaclient_DEBUG',
+                                                 default=False),
                             help="Print debugging output")
 
         parser.add_argument('--os-cache',
-                            default=utils.env('OS_CACHE', default=False),
+                            default=cliutils.env('OS_CACHE', default=False),
                             action='store_true',
                             help='Use the auth token cache. '
                                  'Defaults to env[OS_CACHE].')
@@ -293,48 +292,48 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--os-username',
                             metavar='<auth-user-name>',
-                            default=utils.env('OS_USERNAME',
-                                              'MANILA_USERNAME'),
+                            default=cliutils.env('OS_USERNAME',
+                                                 'MANILA_USERNAME'),
                             help='Defaults to env[OS_USERNAME].')
         parser.add_argument('--os_username',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-password',
                             metavar='<auth-password>',
-                            default=utils.env('OS_PASSWORD',
-                                              'MANILA_PASSWORD'),
+                            default=cliutils.env('OS_PASSWORD',
+                                                 'MANILA_PASSWORD'),
                             help='Defaults to env[OS_PASSWORD].')
         parser.add_argument('--os_password',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-tenant-name',
                             metavar='<auth-tenant-name>',
-                            default=utils.env('OS_TENANT_NAME',
-                                              'MANILA_PROJECT_ID'),
+                            default=cliutils.env('OS_TENANT_NAME',
+                                                 'MANILA_PROJECT_ID'),
                             help='Defaults to env[OS_TENANT_NAME].')
         parser.add_argument('--os_tenant_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-tenant-id',
                             metavar='<auth-tenant-id>',
-                            default=utils.env('OS_TENANT_ID',
-                                              'MANILA_TENANT_ID'),
+                            default=cliutils.env('OS_TENANT_ID',
+                                                 'MANILA_TENANT_ID'),
                             help='Defaults to env[OS_TENANT_ID].')
         parser.add_argument('--os_tenant_id',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-auth-url',
                             metavar='<auth-url>',
-                            default=utils.env('OS_AUTH_URL',
-                                              'MANILA_URL'),
+                            default=cliutils.env('OS_AUTH_URL',
+                                                 'MANILA_URL'),
                             help='Defaults to env[OS_AUTH_URL].')
         parser.add_argument('--os_auth_url',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-region-name',
                             metavar='<region-name>',
-                            default=utils.env('OS_REGION_NAME',
-                                              'MANILA_REGION_NAME'),
+                            default=cliutils.env('OS_REGION_NAME',
+                                                 'MANILA_REGION_NAME'),
                             help='Defaults to env[OS_REGION_NAME].')
         parser.add_argument('--os_region_name',
                             help=argparse.SUPPRESS)
@@ -347,21 +346,21 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--service-name',
                             metavar='<service-name>',
-                            default=utils.env('MANILA_SERVICE_NAME'),
+                            default=cliutils.env('MANILA_SERVICE_NAME'),
                             help='Defaults to env[MANILA_SERVICE_NAME]')
         parser.add_argument('--service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--share-service-name',
                             metavar='<share-service-name>',
-                            default=utils.env('MANILA_share_service_name'),
+                            default=cliutils.env('MANILA_share_service_name'),
                             help='Defaults to env[MANILA_share_service_name]')
         parser.add_argument('--share_service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--endpoint-type',
                             metavar='<endpoint-type>',
-                            default=utils.env(
+                            default=cliutils.env(
                                 'MANILA_ENDPOINT_TYPE',
                                 default=DEFAULT_MANILA_ENDPOINT_TYPE),
                             help='Defaults to env[MANILA_ENDPOINT_TYPE] or '
@@ -371,7 +370,7 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--os-share-api-version',
                             metavar='<compute-api-ver>',
-                            default=utils.env(
+                            default=cliutils.env(
                                 'OS_SHARE_API_VERSION',
                                 default=DEFAULT_OS_SHARE_API_VERSION),
                             help='Accepts 1 or 2,defaults '
@@ -381,14 +380,14 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--os-cacert',
                             metavar='<ca-certificate>',
-                            default=utils.env('OS_CACERT', default=None),
+                            default=cliutils.env('OS_CACERT', default=None),
                             help='Specify a CA bundle file to use in '
                             'verifying a TLS (https) server certificate. '
                             'Defaults to env[OS_CACERT]')
 
         parser.add_argument('--insecure',
-                            default=utils.env('manilaclient_INSECURE',
-                                              default=False),
+                            default=cliutils.env('manilaclient_INSECURE',
+                                                 default=False),
                             action='store_true',
                             help=argparse.SUPPRESS)
 
@@ -637,8 +636,8 @@ class OpenStackManilaShell(object):
         commands.remove('bash_completion')
         print(' '.join(commands | options))
 
-    @utils.arg('command', metavar='<subcommand>', nargs='?',
-               help='Display help for <subcommand>')
+    @cliutils.arg('command', metavar='<subcommand>', nargs='?',
+                  help='Display help for <subcommand>')
     def do_help(self, args):
         """Display help about this program or one of its subcommands."""
         if args.command:
