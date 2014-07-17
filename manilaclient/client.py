@@ -161,7 +161,7 @@ class HTTPClient(object):
             body = None
 
         if resp.status_code >= 400:
-            raise exceptions.from_response(resp, body)
+            raise exceptions.from_response(resp, method, url)
 
         return resp, body
 
@@ -196,7 +196,7 @@ class HTTPClient(object):
             except exceptions.ClientException as e:
                 if attempts > self.retries:
                     raise
-                if 500 <= e.code <= 599:
+                if 500 <= e.http_status <= 599:
                     pass
                 else:
                     raise
@@ -228,7 +228,9 @@ class HTTPClient(object):
         We may get redirected to another site, fail or actually get
         back a service catalog with a token and our endpoints.
         """
-
+        method = None
+        if hasattr(resp, 'request') and hasattr(resp.request, 'method'):
+            method = resp.request.method
         if resp.status_code == 200:  # content must always present
             try:
                 self.auth_url = url
@@ -260,7 +262,7 @@ class HTTPClient(object):
         elif resp.status_code == 305:
             return resp['location']
         else:
-            raise exceptions.from_response(resp, body)
+            raise exceptions.from_response(resp, method, url)
 
     def _fetch_endpoints_from_auth(self, url):
         """Fetch endpoints from auth.
@@ -351,7 +353,8 @@ class HTTPClient(object):
         if self.projectid:
             headers['X-Auth-Project-Id'] = self.projectid
 
-        resp, body = self.request(url, 'GET', headers=headers)
+        method = 'GET'
+        resp, body = self.request(url, method, headers=headers)
         if resp.status_code in (200, 204):  # in some cases we get No Content
             try:
                 mgmt_header = 'x-server-management-url'
@@ -363,7 +366,7 @@ class HTTPClient(object):
         elif resp.status_code == 305:
             return resp.headers['location']
         else:
-            raise exceptions.from_response(resp, body)
+            raise exceptions.from_response(resp, method, url)
 
     def _v2_auth(self, url):
         """Authenticate against a v2.0 auth service."""
