@@ -90,6 +90,10 @@ class ShellTest(utils.TestCase):
         self.run_command('list --all-tenants=1')
         self.assert_called('GET', '/shares/detail?all_tenants=1')
 
+    def test_list_filter_share_server_id(self):
+        self.run_command('list --share-server-id=1234')
+        self.assert_called('GET', '/shares/detail?share_server_id=1234')
+
     def test_show(self):
         self.run_command('show 1234')
         self.assert_called('GET', '/shares/1234')

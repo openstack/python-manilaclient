@@ -506,6 +506,11 @@ def do_access_list(cs, args):
     metavar='<status>',
     default=None,
     help='Filter results by status')
+@utils.arg(
+    '--share-server-id',
+    metavar='<share_server_id>',
+    default=None,
+    help='Filter results by share-server id.')
 @utils.service_type('share')
 def do_list(cs, args):
     """List all NAS shares."""
@@ -514,6 +519,7 @@ def do_list(cs, args):
         'all_tenants': all_tenants,
         'name': args.name,
         'status': args.status,
+        'share_server_id': args.share_server_id,
     }
     shares = cs.shares.list(search_opts=search_opts)
     utils.print_list(shares,
