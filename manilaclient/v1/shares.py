@@ -59,11 +59,11 @@ class Share(common_base.Resource):
     def _validate_access(self, access_type, access):
         if access_type == 'ip':
             self._validate_ip_range(access)
-        elif access_type == 'sid':
+        elif access_type == 'user':
             self._validate_username(access)
         else:
             raise exceptions.CommandError(
-                'Only ip and sid type are supported')
+                'Only ip and user type are supported')
 
     def update_all_metadata(self, metadata):
         """Update all metadata of this share."""

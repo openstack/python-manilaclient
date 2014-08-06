@@ -485,7 +485,7 @@ def do_show(cs, args):
 @cliutils.arg(
     'access_type',
     metavar='<access_type>',
-    help='access rule type (only "ip" and "sid"(user or group) '
+    help='access rule type (only "ip" and "user"(user or group) '
          'are supported).')
 @cliutils.arg(
     'access_to',
@@ -945,15 +945,15 @@ def do_share_network_delete(cs, args):
     default=None,
     help="security service domain")
 @cliutils.arg(
-    '--sid',
-    metavar='<security identifier>',
+    '--user',
+    metavar='<user>',
     default=None,
     help="security service user or group used by tenant")
 @cliutils.arg(
     '--password',
     metavar='<password>',
     default=None,
-    help="password used by sid")
+    help="password used by user")
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -966,13 +966,15 @@ def do_share_network_delete(cs, args):
     help="security service description")
 def do_security_service_create(cs, args):
     """Create security service used by tenant."""
-    values = {'dns_ip': args.dns_ip,
-              'server': args.server,
-              'domain': args.domain,
-              'sid': args.sid,
-              'password': args.password,
-              'name': args.name,
-              'description': args.description}
+    values = {
+        'dns_ip': args.dns_ip,
+        'server': args.server,
+        'domain': args.domain,
+        'user': args.user,
+        'password': args.password,
+        'name': args.name,
+        'description': args.description,
+    }
     security_service = cs.security_services.create(args.type, **values)
     info = security_service._info.copy()
     utils.print_dict(info)
@@ -998,15 +1000,15 @@ def do_security_service_create(cs, args):
     default=None,
     help="security service domain")
 @cliutils.arg(
-    '--sid',
-    metavar='<security identifier>',
+    '--user',
+    metavar='<user>',
     default=None,
     help="security service user or group used by tenant")
 @cliutils.arg(
     '--password',
     metavar='<password>',
     default=None,
-    help="password used by sid")
+    help="password used by user")
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -1019,13 +1021,15 @@ def do_security_service_create(cs, args):
     help="security service description")
 def do_security_service_update(cs, args):
     """Update security service."""
-    values = {'dns_ip': args.dns_ip,
-              'server': args.server,
-              'domain': args.domain,
-              'sid': args.sid,
-              'password': args.password,
-              'name': args.name,
-              'description': args.description}
+    values = {
+        'dns_ip': args.dns_ip,
+        'server': args.server,
+        'domain': args.domain,
+        'user': args.user,
+        'password': args.password,
+        'name': args.name,
+        'description': args.description,
+    }
     security_service = cs.security_services.update(args.security_service,
                                                    **values)
     info = security_service._info.copy()

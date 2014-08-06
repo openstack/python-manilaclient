@@ -39,7 +39,7 @@ class SecurityServiceManager(base.Manager):
 
     resource_class = SecurityService
 
-    def create(self, type, dns_ip=None, server=None, domain=None, sid=None,
+    def create(self, type, dns_ip=None, server=None, domain=None, user=None,
                password=None, name=None, description=None):
         """Create security service for NAS.
 
@@ -48,8 +48,8 @@ class SecurityServiceManager(base.Manager):
         :param dns_ip: dns ip address used inside tenant's network
         :param server: security service server ip address or hostname
         :param domain: security service domain
-        :param sid: security identifier used by tenant
-        :param password: password used by sid
+        :param user: security identifier used by tenant
+        :param password: password used by user
         :param name: security service name
         :param description: security service description
         :rtype: :class:`SecurityService`
@@ -61,8 +61,8 @@ class SecurityServiceManager(base.Manager):
             values['server'] = server
         if domain:
             values['domain'] = domain
-        if sid:
-            values['sid'] = sid
+        if user:
+            values['user'] = user
         if password:
             values['password'] = password
         if name:
@@ -83,15 +83,15 @@ class SecurityServiceManager(base.Manager):
         return self._get(RESOURCE_PATH % security_service, RESOURCE_NAME)
 
     def update(self, security_service, dns_ip=None, server=None, domain=None,
-               password=None, sid=None, name=None, description=None):
+               password=None, user=None, name=None, description=None):
         """Updates a security service.
 
         :param security_service: security service to update.
         :param dns_ip: dns ip address used inside tenant's network
         :param server: security service server ip address or hostname
         :param domain: security service domain
-        :param sid: security identifier used by tenant
-        :param password: password used by sid
+        :param user: security identifier used by tenant
+        :param password: password used by user
         :param name: security service name
         :param description: security service description
         :rtype: :class:`SecurityService`
@@ -104,8 +104,8 @@ class SecurityServiceManager(base.Manager):
             values['server'] = server
         if domain:
             values['domain'] = domain
-        if sid:
-            values['sid'] = sid
+        if user:
+            values['user'] = user
         if password:
             values['password'] = password
         if name:

@@ -32,14 +32,16 @@ class SecurityServiceTest(utils.TestCase):
         self.manager = security_services.SecurityServiceManager(api=None)
 
     def test_create_all_fields(self):
-        values = {'type': 'ldap',
-                  'dns_ip': 'fake dns ip',
-                  'server': 'fake.ldap.server',
-                  'domain': 'fake.ldap.domain',
-                  'sid': 'fake sid',
-                  'password': 'fake password',
-                  'name': 'fake name',
-                  'description': 'fake description'}
+        values = {
+            'type': 'ldap',
+            'dns_ip': 'fake dns ip',
+            'server': 'fake.ldap.server',
+            'domain': 'fake.ldap.domain',
+            'user': 'fake user',
+            'password': 'fake password',
+            'name': 'fake name',
+            'description': 'fake description',
+        }
 
         with mock.patch.object(self.manager, '_create', fakes.fake_create):
             result = self.manager.create(**values)
@@ -52,11 +54,13 @@ class SecurityServiceTest(utils.TestCase):
                              values)
 
     def test_create_some_fields(self):
-        values = {'type': 'ldap',
-                  'dns_ip': 'fake dns ip',
-                  'server': 'fake.ldap.server',
-                  'domain': 'fake.ldap.domain',
-                  'sid': 'fake sid'}
+        values = {
+            'type': 'ldap',
+            'dns_ip': 'fake dns ip',
+            'server': 'fake.ldap.server',
+            'domain': 'fake.ldap.domain',
+            'user': 'fake user',
+        }
 
         with mock.patch.object(self.manager, '_create', fakes.fake_create):
             result = self.manager.create(**values)
@@ -118,7 +122,7 @@ class SecurityServiceTest(utils.TestCase):
             'dns_ip': 'new dns ip',
             'server': 'new.ldap.server',
             'domain': 'new.ldap.domain',
-            'sid': 'new sid',
+            'user': 'new user',
             'password': 'fake password',
         }
 
