@@ -403,7 +403,7 @@ def do_delete(cs, args):
             share_ref.delete()
         except Exception as e:
             failure_count += 1
-            print("Delete for share %s failed: %s" % (share_ref.id, e))
+            print("Delete for share %s failed: %s" % (share, e))
 
     if failure_count == len(args.share):
         raise exceptions.CommandError("Unable to delete any of the specified "

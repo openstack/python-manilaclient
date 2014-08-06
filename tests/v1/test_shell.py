@@ -102,6 +102,13 @@ class ShellTest(utils.TestCase):
         self.run_command('delete 1234')
         self.assert_called('DELETE', '/shares/1234')
 
+    def test_delete_not_found(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'delete fake-not-found'
+        )
+
     def test_snapshot_list_filter_share_id(self):
         self.run_command('snapshot-list --share-id=1234')
         self.assert_called('GET', '/snapshots/detail?share_id=1234')
