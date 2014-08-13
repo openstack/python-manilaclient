@@ -145,14 +145,16 @@ def _quota_update(manager, identifier, args):
             manager.update(identifier, **updates)
 
 
-@utils.arg('--tenant',
-           metavar='<tenant-id>',
-           default=None,
-           help='ID of tenant to list the quotas for.')
-@utils.arg('--user',
-           metavar='<user-id>',
-           default=None,
-           help='ID of user to list the quotas for.')
+@cliutils.arg(
+    '--tenant',
+    metavar='<tenant-id>',
+    default=None,
+    help='ID of tenant to list the quotas for.')
+@cliutils.arg(
+    '--user',
+    metavar='<user-id>',
+    default=None,
+    help='ID of user to list the quotas for.')
 def do_quota_show(cs, args):
     """List the quotas for a tenant/user."""
 
@@ -162,10 +164,11 @@ def do_quota_show(cs, args):
         _quota_show(cs.quotas.get(args.tenant, user_id=args.user))
 
 
-@utils.arg('--tenant',
-           metavar='<tenant-id>',
-           default=None,
-           help='ID of tenant to list the default quotas for.')
+@cliutils.arg(
+    '--tenant',
+    metavar='<tenant-id>',
+    default=None,
+    help='ID of tenant to list the default quotas for.')
 def do_quota_defaults(cs, args):
     """List the default quotas for a tenant."""
 
@@ -175,35 +178,46 @@ def do_quota_defaults(cs, args):
         _quota_show(cs.quotas.defaults(args.tenant))
 
 
-@utils.arg('tenant',
-           metavar='<tenant_id>',
-           help='UUID of tenant to set the quotas for.')
-@utils.arg('--user',
-           metavar='<user-id>',
-           default=None,
-           help='ID of user to set the quotas for.')
-@utils.arg('--shares',
-           metavar='<shares>',
-           type=int, default=None,
-           help='New value for the "shares" quota.')
-@utils.arg('--snapshots',
-           metavar='<snapshots>',
-           type=int, default=None,
-           help='New value for the "snapshots" quota.')
-@utils.arg('--gigabytes',
-           metavar='<gigabytes>',
-           type=int, default=None,
-           help='New value for the "gigabytes" quota.')
-@utils.arg('--share-networks',
-           metavar='<share-networks>',
-           type=int, default=None,
-           help='New value for the "share_networks" quota.')
-@utils.arg('--force',
-           dest='force',
-           action="store_true",
-           default=None,
-           help='Whether force update the quota even if the already used'
-                ' and reserved exceeds the new quota')
+@cliutils.arg(
+    'tenant',
+    metavar='<tenant_id>',
+    help='UUID of tenant to set the quotas for.')
+@cliutils.arg(
+    '--user',
+    metavar='<user-id>',
+    default=None,
+    help='ID of user to set the quotas for.')
+@cliutils.arg(
+    '--shares',
+    metavar='<shares>',
+    type=int,
+    default=None,
+    help='New value for the "shares" quota.')
+@cliutils.arg(
+    '--snapshots',
+    metavar='<snapshots>',
+    type=int,
+    default=None,
+    help='New value for the "snapshots" quota.')
+@cliutils.arg(
+    '--gigabytes',
+    metavar='<gigabytes>',
+    type=int,
+    default=None,
+    help='New value for the "gigabytes" quota.')
+@cliutils.arg(
+    '--share-networks',
+    metavar='<share-networks>',
+    type=int,
+    default=None,
+    help='New value for the "share_networks" quota.')
+@cliutils.arg(
+    '--force',
+    dest='force',
+    action="store_true",
+    default=None,
+    help='Whether force update the quota even if the already used'
+         ' and reserved exceeds the new quota')
 @cliutils.service_type('share')
 def do_quota_update(cs, args):
     """Update the quotas for a tenant/user."""
@@ -211,12 +225,14 @@ def do_quota_update(cs, args):
     _quota_update(cs.quotas, args.tenant, args)
 
 
-@utils.arg('--tenant',
-           metavar='<tenant-id>',
-           help='ID of tenant to delete quota for.')
-@utils.arg('--user',
-           metavar='<user-id>',
-           help='ID of user to delete quota for.')
+@cliutils.arg(
+    '--tenant',
+    metavar='<tenant-id>',
+    help='ID of tenant to delete quota for.')
+@cliutils.arg(
+    '--user',
+    metavar='<user-id>',
+    help='ID of user to delete quota for.')
 def do_quota_delete(cs, args):
     """Delete quota for a tenant/user.
 
@@ -229,9 +245,10 @@ def do_quota_delete(cs, args):
         cs.quotas.delete(args.tenant, user_id=args.user)
 
 
-@utils.arg('class_name',
-           metavar='<class>',
-           help='Name of quota class to list the quotas for.')
+@cliutils.arg(
+    'class_name',
+    metavar='<class>',
+    help='Name of quota class to list the quotas for.')
 @cliutils.service_type('share')
 def do_quota_class_show(cs, args):
     """List the quotas for a quota class."""
@@ -239,25 +256,34 @@ def do_quota_class_show(cs, args):
     _quota_show(cs.quota_classes.get(args.class_name))
 
 
-@utils.arg('class-name',
-           metavar='<class-name>',
-           help='Name of quota class to set the quotas for.')
-@utils.arg('--shares',
-           metavar='<shares>',
-           type=int, default=None,
-           help='New value for the "shares" quota.')
-@utils.arg('--snapshots',
-           metavar='<snapshots>',
-           type=int, default=None,
-           help='New value for the "snapshots" quota.')
-@utils.arg('--gigabytes',
-           metavar='<gigabytes>',
-           type=int, default=None,
-           help='New value for the "gigabytes" quota.')
-@utils.arg('--share-networks',
-           metavar='<share-networks>',
-           type=int, default=None,
-           help='New value for the "share_networks" quota.')
+@cliutils.arg(
+    'class-name',
+    metavar='<class-name>',
+    help='Name of quota class to set the quotas for.')
+@cliutils.arg(
+    '--shares',
+    metavar='<shares>',
+    type=int,
+    default=None,
+    help='New value for the "shares" quota.')
+@cliutils.arg(
+    '--snapshots',
+    metavar='<snapshots>',
+    type=int,
+    default=None,
+    help='New value for the "snapshots" quota.')
+@cliutils.arg(
+    '--gigabytes',
+    metavar='<gigabytes>',
+    type=int,
+    default=None,
+    help='New value for the "gigabytes" quota.')
+@cliutils.arg(
+    '--share-networks',
+    metavar='<share-networks>',
+    type=int,
+    default=None,
+    help='New value for the "share_networks" quota.')
 @cliutils.service_type('share')
 def do_quota_class_update(cs, args):
     """Update the quotas for a quota class."""
@@ -281,43 +307,44 @@ def do_rate_limits(cs, args):
     utils.print_list(limits, columns)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_protocol',
     metavar='<share_protocol>',
     type=str,
     help='Share type (NFS or CIFS)')
-@utils.arg(
+@cliutils.arg(
     'size',
     metavar='<size>',
     type=int,
     help='Share size in GB')
-@utils.arg(
+@cliutils.arg(
     '--snapshot-id',
     metavar='<snapshot-id>',
     help='Optional snapshot id to create the share from. (Default=None)',
     default=None)
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     help='Optional share name. (Default=None)',
     default=None)
-@utils.arg('--metadata',
-           type=str,
-           nargs='*',
-           metavar='<key=value>',
-           help='Metadata key=value pairs (Optional, Default=None)',
-           default=None)
-@utils.arg(
+@cliutils.arg(
+    '--metadata',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    help='Metadata key=value pairs (Optional, Default=None)',
+    default=None)
+@cliutils.arg(
     '--share-network',
     metavar='<network-info>',
     help='Optional network info id or name',
     default=None)
-@utils.arg(
+@cliutils.arg(
     '--description',
     metavar='<description>',
     help='Optional share description. (Default=None)',
     default=None)
-@utils.arg(
+@cliutils.arg(
     '--volume-type',
     metavar='<volume-type>',
     help='Optional volume type. (Default=None)',
@@ -341,18 +368,21 @@ def do_create(cs, args):
     _print_share(cs, share)
 
 
-@utils.arg('share',
-           metavar='<share>',
-           help='Name or ID of the share to update metadata on.')
-@utils.arg('action',
-           metavar='<action>',
-           choices=['set', 'unset'],
-           help="Actions: 'set' or 'unset'")
-@utils.arg('metadata',
-           metavar='<key=value>',
-           nargs='+',
-           default=[],
-           help='Metadata to set/unset (only key is necessary on unset)')
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to update metadata on.')
+@cliutils.arg(
+    'action',
+    metavar='<action>',
+    choices=['set', 'unset'],
+    help="Actions: 'set' or 'unset'")
+@cliutils.arg(
+    'metadata',
+    metavar='<key=value>',
+    nargs='+',
+    default=[],
+    help='Metadata to set/unset (only key is necessary on unset)')
 @cliutils.service_type('share')
 def do_metadata(cs, args):
     """Set or Delete metadata on a share."""
@@ -365,8 +395,10 @@ def do_metadata(cs, args):
         cs.shares.delete_metadata(share, sorted(list(metadata), reverse=True))
 
 
-@utils.arg('share', metavar='<share>',
-           help='Name or ID of share')
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of share')
 @cliutils.service_type('share')
 def do_metadata_show(cs, args):
     """Show metadata of given share."""
@@ -375,14 +407,16 @@ def do_metadata_show(cs, args):
     utils.print_dict(metadata, 'Metadata-property')
 
 
-@utils.arg('share',
-           metavar='<share>',
-           help='Name or ID of the share to update metadata on.')
-@utils.arg('metadata',
-           metavar='<key=value>',
-           nargs='+',
-           default=[],
-           help='Metadata entry/entries to update.')
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to update metadata on.')
+@cliutils.arg(
+    'metadata',
+    metavar='<key=value>',
+    nargs='+',
+    default=[],
+    help='Metadata entry/entries to update.')
 @cliutils.service_type('share')
 def do_metadata_update_all(cs, args):
     """Update all metadata of a share."""
@@ -392,8 +426,11 @@ def do_metadata_update_all(cs, args):
     utils.print_dict(metadata, 'Metadata-property')
 
 
-@utils.arg('share', metavar='<share>', nargs='+',
-           help='Name or ID of share(s).')
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    nargs='+',
+    help='Name or ID of share(s).')
 def do_delete(cs, args):
     """Removes one or more shares."""
     failure_count = 0
@@ -411,10 +448,11 @@ def do_delete(cs, args):
                                       "shares.")
 
 
-@utils.arg('share',
-           metavar='<share>',
-           nargs='+',
-           help='Name or ID of share(s) to force delete.')
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    nargs='+',
+    help='Name or ID of share(s) to force delete.')
 def do_force_delete(cs, args):
     """Attempts force-delete of share, regardless of state."""
     failure_count = 0
@@ -429,7 +467,7 @@ def do_force_delete(cs, args):
                                       "specified shares.")
 
 
-@utils.arg(
+@cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of the NAS share.')
@@ -440,16 +478,16 @@ def do_show(cs, args):
     _print_share(cs, share)
 
 
-@utils.arg(
+@cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of the NAS share to modify.')
-@utils.arg(
+@cliutils.arg(
     'access_type',
     metavar='<access_type>',
     help='access rule type (only "ip" and "sid"(user or group) '
          'are supported).')
-@utils.arg(
+@cliutils.arg(
     'access_to',
     metavar='<access_to>',
     help='Value that defines access')
@@ -461,11 +499,11 @@ def do_access_allow(cs, args):
     utils.print_dict(access)
 
 
-@utils.arg(
+@cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of the NAS share to modify.')
-@utils.arg(
+@cliutils.arg(
     'id',
     metavar='<id>',
     help='id of the access rule to be deleted.')
@@ -476,7 +514,7 @@ def do_access_deny(cs, args):
     share.deny(args.id)
 
 
-@utils.arg(
+@cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of the share.')
@@ -488,7 +526,7 @@ def do_access_list(cs, args):
     utils.print_list(access_list, ['id', 'access type', 'access to', 'state'])
 
 
-@utils.arg(
+@cliutils.arg(
     '--all-tenants',
     dest='all_tenants',
     metavar='<0|1>',
@@ -497,17 +535,17 @@ def do_access_list(cs, args):
     const=1,
     default=0,
     help='Display information from all tenants (Admin only).')
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help='Filter results by name')
-@utils.arg(
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
     help='Filter results by status')
-@utils.arg(
+@cliutils.arg(
     '--share-server-id',
     metavar='<share_server_id>',
     default=None,
@@ -528,7 +566,7 @@ def do_list(cs, args):
                       'Export location'])
 
 
-@utils.arg(
+@cliutils.arg(
     '--all-tenants',
     dest='all_tenants',
     metavar='<0|1>',
@@ -537,17 +575,17 @@ def do_list(cs, args):
     const=1,
     default=0,
     help='Display information from all tenants (Admin only).')
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help='Filter results by name')
-@utils.arg(
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
     help='Filter results by status')
-@utils.arg(
+@cliutils.arg(
     '--share-id',
     metavar='<share-id>',
     default=None,
@@ -567,7 +605,7 @@ def do_snapshot_list(cs, args):
                      ['ID', 'Share ID', 'Status', 'Name', 'Share Size'])
 
 
-@utils.arg(
+@cliutils.arg(
     'snapshot',
     metavar='<snapshot>',
     help='Name or ID of the snapshot.')
@@ -578,23 +616,23 @@ def do_snapshot_show(cs, args):
     _print_share_snapshot(cs, snapshot)
 
 
-@utils.arg(
+@cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of the share to snapshot')
-@utils.arg(
+@cliutils.arg(
     '--force',
     metavar='<True|False>',
     help='Optional flag to indicate whether '
     'to snapshot a share even if it\'s busy.'
     ' (Default=False)',
     default=False)
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help='Optional snapshot name. (Default=None)')
-@utils.arg(
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -610,16 +648,20 @@ def do_snapshot_create(cs, args):
     _print_share_snapshot(cs, snapshot)
 
 
-@utils.arg('share',
-           metavar='<share>',
-           help='Name or ID of the share to rename.')
-@utils.arg('name',
-           nargs='?',
-           metavar='<name>',
-           help='New name for the share.')
-@utils.arg('--description', metavar='<description>',
-           help='Optional share description. (Default=None)',
-           default=None)
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to rename.')
+@cliutils.arg(
+    'name',
+    nargs='?',
+    metavar='<name>',
+    help='New name for the share.')
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional share description. (Default=None)',
+    default=None)
 @cliutils.service_type('share')
 def do_rename(cs, args):
     """Rename a share."""
@@ -635,16 +677,20 @@ def do_rename(cs, args):
     _find_share(cs, args.share).update(**kwargs)
 
 
-@utils.arg('snapshot',
-           metavar='<snapshot>',
-           help='Name or ID of the snapshot to rename.')
-@utils.arg('name',
-           nargs='?',
-           metavar='<name>',
-           help='New name for the snapshot.')
-@utils.arg('--description', metavar='<description>',
-           help='Optional snapshot description. (Default=None)',
-           default=None)
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot to rename.')
+@cliutils.arg(
+    'name',
+    nargs='?',
+    metavar='<name>',
+    help='New name for the snapshot.')
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional snapshot description. (Default=None)',
+    default=None)
 @cliutils.service_type('share')
 def do_snapshot_rename(cs, args):
     """Rename a snapshot."""
@@ -660,7 +706,7 @@ def do_snapshot_rename(cs, args):
     _find_share_snapshot(cs, args.snapshot).update(**kwargs)
 
 
-@utils.arg(
+@cliutils.arg(
     'snapshot',
     metavar='<snapshot>',
     help='Name or ID of the snapshot to delete.')
@@ -671,7 +717,7 @@ def do_snapshot_delete(cs, args):
     snapshot.delete()
 
 
-@utils.arg(
+@cliutils.arg(
     'snapshot',
     metavar='<snapshot>',
     help='Name or ID of the snapshot to force delete.')
@@ -682,14 +728,18 @@ def do_snapshot_force_delete(cs, args):
     snapshot.force_delete()
 
 
-@utils.arg('snapshot', metavar='<snapshot>',
-           help='Name or ID of the snapshot to modify.')
-@utils.arg('--state', metavar='<state>',
-           default='available',
-           help=('Indicate which state to assign the snapshot. '
-                 'Options include available, error, creating, deleting, '
-                 'error_deleting. If no state is provided, '
-                 'available will be used.'))
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot to modify.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the snapshot. '
+          'Options include available, error, creating, deleting, '
+          'error_deleting. If no state is provided, '
+          'available will be used.'))
 @cliutils.service_type('share')
 def do_snapshot_reset_state(cs, args):
     """Explicitly update the state of a snapshot."""
@@ -697,11 +747,11 @@ def do_snapshot_reset_state(cs, args):
     snapshot.reset_state(args.state)
 
 
-@utils.arg(
+@cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of the share to modify.')
-@utils.arg(
+@cliutils.arg(
     '--state',
     metavar='<state>',
     default='available',
@@ -715,23 +765,23 @@ def do_reset_state(cs, args):
     share.reset_state(args.state)
 
 
-@utils.arg(
+@cliutils.arg(
     '--neutron-net-id',
     metavar='neutron-net-id',
     default=None,
     help="Neutron network id. Used to set up network for share servers.")
-@utils.arg(
+@cliutils.arg(
     '--neutron-subnet-id',
     metavar='neutron-subnet-id',
     default=None,
     help="Neutron subnet id. Used to set up network for share servers. "
          "This subnet should belong to specified neutron network.")
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help="Share network name.")
-@utils.arg(
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -747,27 +797,27 @@ def do_share_network_create(cs, args):
     utils.print_dict(info)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_network',
     metavar='<share-network>',
     help='Name or ID of share network to update.')
-@utils.arg(
+@cliutils.arg(
     '--neutron-net-id',
     metavar='neutron-net-id',
     default=None,
     help="Neutron network id. Used to set up network for share servers.")
-@utils.arg(
+@cliutils.arg(
     '--neutron-subnet-id',
     metavar='neutron-subnet-id',
     default=None,
     help="Neutron subnet id. Used to set up network for share servers. "
          "This subnet should belong to specified neutron network.")
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help="Share network name.")
-@utils.arg(
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -784,7 +834,7 @@ def do_share_network_update(cs, args):
     utils.print_dict(info)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_network',
     metavar='<share-network>',
     help='Name or ID of the share network to show.')
@@ -795,7 +845,7 @@ def do_share_network_show(cs, args):
     utils.print_dict(info)
 
 
-@utils.arg(
+@cliutils.arg(
     '--all-tenants',
     dest='all_tenants',
     metavar='<0|1>',
@@ -804,7 +854,7 @@ def do_share_network_show(cs, args):
     const=1,
     default=0,
     help='Display information from all tenants (Admin only).')
-@utils.arg(
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
@@ -821,11 +871,11 @@ def do_share_network_list(cs, args):
     utils.print_list(share_networks, fields=fields)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_network',
     metavar='<share-network>',
     help='Share network name or ID.')
-@utils.arg(
+@cliutils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to associate with.')
@@ -836,11 +886,11 @@ def do_share_network_security_service_add(cs, args):
                                            args.security_service)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_network',
     metavar='<share-network>',
     help='Share network name or ID.')
-@utils.arg(
+@cliutils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to dissociate.')
@@ -851,7 +901,7 @@ def do_share_network_security_service_remove(cs, args):
                                               args.security_service)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_network',
     metavar='<share-network>',
     help='Share network name or ID.')
@@ -866,7 +916,7 @@ def do_share_network_security_service_list(cs, args):
     utils.print_list(security_services, fields=fields)
 
 
-@utils.arg(
+@cliutils.arg(
     'share_network',
     metavar='<share-network>',
     help='Name or ID of share network to be deleted.')
@@ -875,41 +925,41 @@ def do_share_network_delete(cs, args):
     _find_share_network(cs, args.share_network).delete()
 
 
-@utils.arg(
+@cliutils.arg(
     'type',
     metavar='<type>',
     help="Security service type: 'ldap', 'kerberos' or 'active_directory'")
-@utils.arg(
+@cliutils.arg(
     '--dns-ip',
     metavar='<dns_ip>',
     default=None,
     help="dns ip address used inside tenant's network")
-@utils.arg(
+@cliutils.arg(
     '--server',
     metavar='<server>',
     default=None,
     help="security service ip address or hostname")
-@utils.arg(
+@cliutils.arg(
     '--domain',
     metavar='<domain>',
     default=None,
     help="security service domain")
-@utils.arg(
+@cliutils.arg(
     '--sid',
     metavar='<security identifier>',
     default=None,
     help="security service user or group used by tenant")
-@utils.arg(
+@cliutils.arg(
     '--password',
     metavar='<password>',
     default=None,
     help="password used by sid")
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help="security service name")
-@utils.arg(
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -928,41 +978,41 @@ def do_security_service_create(cs, args):
     utils.print_dict(info)
 
 
-@utils.arg(
+@cliutils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to update.')
-@utils.arg(
+@cliutils.arg(
     '--dns-ip',
     metavar='<dns-ip>',
     default=None,
     help="dns ip address used inside tenant's network")
-@utils.arg(
+@cliutils.arg(
     '--server',
     metavar='<server>',
     default=None,
     help="security service ip address or hostname")
-@utils.arg(
+@cliutils.arg(
     '--domain',
     metavar='<domain>',
     default=None,
     help="security service domain")
-@utils.arg(
+@cliutils.arg(
     '--sid',
     metavar='<security identifier>',
     default=None,
     help="security service user or group used by tenant")
-@utils.arg(
+@cliutils.arg(
     '--password',
     metavar='<password>',
     default=None,
     help="password used by sid")
-@utils.arg(
+@cliutils.arg(
     '--name',
     metavar='<name>',
     default=None,
     help="security service name")
-@utils.arg(
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -982,7 +1032,7 @@ def do_security_service_update(cs, args):
     utils.print_dict(info)
 
 
-@utils.arg(
+@cliutils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to show.')
@@ -993,7 +1043,7 @@ def do_security_service_show(cs, args):
     utils.print_dict(info)
 
 
-@utils.arg(
+@cliutils.arg(
     '--all-tenants',
     dest='all_tenants',
     metavar='<0|1>',
@@ -1002,7 +1052,7 @@ def do_security_service_show(cs, args):
     const=1,
     default=0,
     help='Display information from all tenants (Admin only).')
-@utils.arg(
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
@@ -1019,7 +1069,7 @@ def do_security_service_list(cs, args):
     utils.print_list(security_services, fields=fields)
 
 
-@utils.arg(
+@cliutils.arg(
     'security_service',
     metavar='<security-service>',
     help='Security service to delete.')
@@ -1028,22 +1078,22 @@ def do_security_service_delete(cs, args):
     cs.security_services.delete(args.security_service)
 
 
-@utils.arg(
+@cliutils.arg(
     '--host',
     metavar='<hostname>',
     default=None,
     help='Filter results by name of host.')
-@utils.arg(
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
     help='Filter results by status.')
-@utils.arg(
+@cliutils.arg(
     '--share-network',
     metavar='<share_network>',
     default=None,
     help='Filter results by share network.')
-@utils.arg(
+@cliutils.arg(
     '--project-id',
     metavar='<project_id>',
     default=None,
@@ -1068,7 +1118,7 @@ def do_share_server_list(cs, args):
     utils.print_list(share_servers, fields=fields)
 
 
-@utils.arg(
+@cliutils.arg(
     'id',
     metavar='<id>',
     type=str,
@@ -1083,7 +1133,7 @@ def do_share_server_show(cs, args):
     utils.print_dict(share_server._info)
 
 
-@utils.arg(
+@cliutils.arg(
     'id',
     metavar='<id>',
     type=str,
@@ -1094,7 +1144,7 @@ def do_share_server_details(cs, args):
     utils.print_dict(details._info)
 
 
-@utils.arg(
+@cliutils.arg(
     'id',
     metavar='<id>',
     type=str,
@@ -1104,27 +1154,27 @@ def do_share_server_delete(cs, args):
     cs.share_servers.delete(args.id)
 
 
-@utils.arg(
+@cliutils.arg(
     '--host',
     metavar='<hostname>',
     default=None,
     help='Name of host.')
-@utils.arg(
+@cliutils.arg(
     '--binary',
     metavar='<binary>',
     default=None,
     help='Service binary.')
-@utils.arg(
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
     help='Filter results by status')
-@utils.arg(
+@cliutils.arg(
     '--state',
     metavar='<state>',
     default=None,
     help='Filter results by state')
-@utils.arg(
+@cliutils.arg(
     '--zone',
     metavar='<zone>',
     default=None,
@@ -1178,9 +1228,10 @@ def do_extra_specs_list(cs, args):
     _print_type_and_extra_specs_list(vtypes)
 
 
-@utils.arg('name',
-           metavar='<name>',
-           help="Name of the new volume type")
+@cliutils.arg(
+    'name',
+    metavar='<name>',
+    help="Name of the new volume type")
 @cliutils.service_type('share')
 def do_type_create(cs, args):
     """Create a new volume type."""
@@ -1188,9 +1239,10 @@ def do_type_create(cs, args):
     _print_volume_type_list([vtype])
 
 
-@utils.arg('id',
-           metavar='<id>',
-           help="Name or ID of the volume type to delete")
+@cliutils.arg(
+    'id',
+    metavar='<id>',
+    help="Name or ID of the volume type to delete")
 @cliutils.service_type('share')
 def do_type_delete(cs, args):
     """Delete a specific volume type."""
@@ -1198,18 +1250,21 @@ def do_type_delete(cs, args):
     cs.volume_types.delete(volume_type)
 
 
-@utils.arg('vtype',
-           metavar='<vtype>',
-           help="Name or ID of the volume type")
-@utils.arg('action',
-           metavar='<action>',
-           choices=['set', 'unset'],
-           help="Actions: 'set' or 'unset'")
-@utils.arg('metadata',
-           metavar='<key=value>',
-           nargs='*',
-           default=None,
-           help='Extra_specs to set/unset (only key is necessary on unset)')
+@cliutils.arg(
+    'vtype',
+    metavar='<vtype>',
+    help="Name or ID of the volume type")
+@cliutils.arg(
+    'action',
+    metavar='<action>',
+    choices=['set', 'unset'],
+    help="Actions: 'set' or 'unset'")
+@cliutils.arg(
+    'metadata',
+    metavar='<key=value>',
+    nargs='*',
+    default=None,
+    help='Extra_specs to set/unset (only key is necessary on unset)')
 @cliutils.service_type('share')
 def do_type_key(cs, args):
     """Set or unset extra_spec for a volume type."""
