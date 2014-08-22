@@ -441,7 +441,8 @@ def do_delete(cs, args):
             share_ref.delete()
         except Exception as e:
             failure_count += 1
-            print("Delete for share %s failed: %s" % (share, e))
+            print("Delete for share %s failed: %s" % (share, e),
+                  file=sys.stderr)
 
     if failure_count == len(args.share):
         raise exceptions.CommandError("Unable to delete any of the specified "
@@ -461,7 +462,8 @@ def do_force_delete(cs, args):
             _find_share(cs, share).force_delete()
         except Exception as e:
             failure_count += 1
-            print("Delete for share %s failed: %s" % (share, e))
+            print("Delete for share %s failed: %s" % (share, e),
+                  file=sys.stderr)
     if failure_count == len(args.share):
         raise exceptions.CommandError("Unable to force delete any of "
                                       "specified shares.")
