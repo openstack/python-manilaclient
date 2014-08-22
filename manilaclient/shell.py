@@ -277,7 +277,7 @@ class OpenStackManilaShell(object):
                             action='store_true',
                             default=cliutils.env('manilaclient_DEBUG',
                                                  default=False),
-                            help="Print debugging output")
+                            help="Print debugging output.")
 
         parser.add_argument('--os-cache',
                             default=cliutils.env('OS_CACHE', default=False),
@@ -340,21 +340,21 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--service-type',
                             metavar='<service-type>',
-                            help='Defaults to compute for most actions')
+                            help='Defaults to compute for most actions.')
         parser.add_argument('--service_type',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--service-name',
                             metavar='<service-name>',
                             default=cliutils.env('MANILA_SERVICE_NAME'),
-                            help='Defaults to env[MANILA_SERVICE_NAME]')
+                            help='Defaults to env[MANILA_SERVICE_NAME].')
         parser.add_argument('--service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--share-service-name',
                             metavar='<share-service-name>',
                             default=cliutils.env('MANILA_share_service_name'),
-                            help='Defaults to env[MANILA_share_service_name]')
+                            help='Defaults to env[MANILA_share_service_name].')
         parser.add_argument('--share_service_name',
                             help=argparse.SUPPRESS)
 
@@ -373,7 +373,7 @@ class OpenStackManilaShell(object):
                             default=cliutils.env(
                                 'OS_SHARE_API_VERSION',
                                 default=DEFAULT_OS_SHARE_API_VERSION),
-                            help='Accepts 1 or 2,defaults '
+                            help='Accepts 1 or 2, defaults '
                                  'to env[OS_SHARE_API_VERSION].')
         parser.add_argument('--os_share_api_version',
                             help=argparse.SUPPRESS)
@@ -383,7 +383,7 @@ class OpenStackManilaShell(object):
                             default=cliutils.env('OS_CACERT', default=None),
                             help='Specify a CA bundle file to use in '
                             'verifying a TLS (https) server certificate. '
-                            'Defaults to env[OS_CACERT]')
+                            'Defaults to env[OS_CACERT].')
 
         parser.add_argument('--insecure',
                             default=cliutils.env('manilaclient_INSECURE',
