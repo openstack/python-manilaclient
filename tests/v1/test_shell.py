@@ -301,6 +301,40 @@ class ShellTest(utils.TestCase):
         }
         self.assert_called("POST", "/shares", body=expected)
 
+    def test_allow_access_cert(self):
+        self.run_command("access-allow 1234 cert client.example.com")
+
+        expected = {
+            "os-allow_access": {
+                "access_type": "cert",
+                "access_to": "client.example.com",
+            }
+        }
+        self.assert_called("POST", "/shares/1234/action", body=expected)
+
+    def test_allow_access_cert_error_gt64(self):
+        common_name = 'x' * 65
+        self.assertRaises(exceptions.CommandError, self.run_command,
+                          ("access-allow 1234 cert %s" % common_name))
+
+    def test_allow_access_cert_error_zero(self):
+        cmd = mock.Mock()
+        cmd.split = mock.Mock(side_effect=lambda: ['access-allow', '1234',
+                                                   'cert', ''])
+
+        self.assertRaises(exceptions.CommandError, self.run_command, cmd)
+
+        cmd.split.assert_called_once_with()
+
+    def test_allow_access_cert_error_whitespace(self):
+        cmd = mock.Mock()
+        cmd.split = mock.Mock(side_effect=lambda: ['access-allow', '1234',
+                                                   'cert', ' '])
+
+        self.assertRaises(exceptions.CommandError, self.run_command, cmd)
+
+        cmd.split.assert_called_once_with()
+
     @mock.patch.object(fakes.FakeClient, 'authenticate', mock.Mock())
     @mock.patch.object(shell.SecretsHelper, '_make_key', mock.Mock())
     @mock.patch.object(shell.SecretsHelper, 'password', mock.Mock())

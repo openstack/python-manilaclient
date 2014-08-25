@@ -15,6 +15,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
+
+from manilaclient import exceptions
 from manilaclient import extension
 from manilaclient.v1 import shares
 from tests import utils
@@ -29,6 +32,45 @@ cs = fakes.FakeClient(extensions=extensions)
 
 class SharesTest(utils.TestCase):
 
+    # Testcases for class Share
+    def setUp(self):
+        super(SharesTest, self).setUp()
+        self.share = shares.Share(None, {'id': 1})
+        self.share.manager = mock.Mock()
+
+    def test_share_allow_access_cert(self):
+        access_type = 'cert'
+        access_to = 'client.example.com'
+
+        self.share.allow(access_type, access_to)
+
+        self.assertTrue(self.share.manager.allow.called)
+
+    def test_share_allow_access_cert_error_gt64(self):
+        access_type = 'cert'
+        access_to = 'x' * 65
+
+        self.assertRaises(exceptions.CommandError,
+                          self.share.allow, access_type, access_to)
+        self.assertFalse(self.share.manager.allow.called)
+
+    def test_share_allow_access_cert_error_whitespace(self):
+        access_type = 'cert'
+        access_to = ' '
+
+        self.assertRaises(exceptions.CommandError,
+                          self.share.allow, access_type, access_to)
+        self.assertFalse(self.share.manager.allow.called)
+
+    def test_share_allow_access_cert_error_zero(self):
+        access_type = 'cert'
+        access_to = ''
+
+        self.assertRaises(exceptions.CommandError,
+                          self.share.allow, access_type, access_to)
+        self.assertFalse(self.share.manager.allow.called)
+
+    # Testcases for class ShareManager
     def test_create_nfs_share(self):
         cs.shares.create('nfs', 1)
         cs.assert_called('POST', '/shares')
@@ -56,6 +98,12 @@ class SharesTest(utils.TestCase):
         share = cs.shares.get(1234)
         ip = '192.168.0.1'
         cs.shares.allow(share, 'ip', ip)
+        cs.assert_called('POST', '/shares/1234/action')
+
+    def test_allow_access_to_share_with_cert(self):
+        share = cs.shares.get(1234)
+        common_name = 'test.example.com'
+        cs.shares.allow(share, 'cert', common_name)
         cs.assert_called('POST', '/shares/1234/action')
 
     def test_get_metadata(self):

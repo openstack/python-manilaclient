@@ -487,7 +487,7 @@ def do_show(cs, args):
 @cliutils.arg(
     'access_type',
     metavar='<access_type>',
-    help='Access rule type (only "ip" and "user"(user or group) '
+    help='Access rule type (only "ip", "user"(user or group), and "cert" '
          'are supported).')
 @cliutils.arg(
     'access_to',

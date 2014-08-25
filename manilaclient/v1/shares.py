@@ -61,13 +61,26 @@ class Share(common_base.Resource):
             self._validate_ip_range(access)
         elif access_type == 'user':
             self._validate_username(access)
+        elif access_type == 'cert':
+            # 'access' is used as the certificate's CN (common name)
+            # to which access is allowed or denied by the backend.
+            # The standard allows for just about any string in the
+            # common name. The meaning of a string depends on its
+            # interpretation and is limited to 64 characters.
+            self._validate_common_name(access.strip())
         else:
             raise exceptions.CommandError(
-                'Only ip and user type are supported')
+                'Only ip, user, and cert types are supported')
 
     def update_all_metadata(self, metadata):
         """Update all metadata of this share."""
         return self.manager.update_all_metadata(self, metadata)
+
+    @staticmethod
+    def _validate_common_name(access):
+        if len(access) == 0 or len(access) > 64:
+            exc_str = ('Invalid CN (common name). Must be 1-64 chars long.')
+            raise exceptions.CommandError(exc_str)
 
     @staticmethod
     def _validate_username(access):
