@@ -81,6 +81,11 @@ def _find_share_network(cs, share_network):
     return cliutils.find_resource(cs.share_networks, share_network)
 
 
+def _find_security_service(cs, security_service):
+    "Get a security service by ID or name."
+    return cliutils.find_resource(cs.security_services, security_service)
+
+
 def _translate_keys(collection, convert):
     for item in collection:
         keys = item.__dict__
@@ -880,12 +885,12 @@ def do_share_network_list(cs, args):
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
-    help='Security service to associate with.')
+    help='Security service name or ID to associate with.')
 def do_share_network_security_service_add(cs, args):
     """Associate security service with share network."""
     share_network = _find_share_network(cs, args.share_network)
-    cs.share_networks.add_security_service(share_network,
-                                           args.security_service)
+    security_service = _find_security_service(cs, args.security_service)
+    cs.share_networks.add_security_service(share_network, security_service)
 
 
 @cliutils.arg(
@@ -895,12 +900,12 @@ def do_share_network_security_service_add(cs, args):
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
-    help='Security service to dissociate.')
+    help='Security service name or ID to dissociate.')
 def do_share_network_security_service_remove(cs, args):
     """Dissociate security service from share network."""
     share_network = _find_share_network(cs, args.share_network)
-    cs.share_networks.remove_security_service(share_network,
-                                              args.security_service)
+    security_service = _find_security_service(cs, args.security_service)
+    cs.share_networks.remove_security_service(share_network, security_service)
 
 
 @cliutils.arg(
@@ -985,7 +990,7 @@ def do_security_service_create(cs, args):
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
-    help='Security service to update.')
+    help='Security service name or ID to update.')
 @cliutils.arg(
     '--dns-ip',
     metavar='<dns-ip>',
@@ -1032,19 +1037,18 @@ def do_security_service_update(cs, args):
         'name': args.name,
         'description': args.description,
     }
-    security_service = cs.security_services.update(args.security_service,
-                                                   **values)
-    info = security_service._info.copy()
-    utils.print_dict(info)
+    security_service = _find_security_service(
+        cs, args.security_service).update(**values)
+    utils.print_dict(security_service._info)
 
 
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
-    help='Security service to show.')
+    help='Security service name or ID to show.')
 def do_security_service_show(cs, args):
     """Show security service."""
-    security_service = cs.security_services.get(args.security_service)
+    security_service = _find_security_service(cs, args.security_service)
     info = security_service._info.copy()
     utils.print_dict(info)
 
@@ -1078,10 +1082,11 @@ def do_security_service_list(cs, args):
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
-    help='Security service to delete.')
+    help='Security service name or ID to delete.')
 def do_security_service_delete(cs, args):
     """Delete security service."""
-    cs.security_services.delete(args.security_service)
+    security_service = _find_security_service(cs, args.security_service)
+    security_service.delete()
 
 
 @cliutils.arg(

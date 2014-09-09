@@ -122,6 +122,10 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         share_nw = {'share_network': {'id': 1111, 'name': 'fake_share_nw'}}
         return (200, {}, share_nw)
 
+    def post_share_networks_1234_action(self, **kw):
+        share_nw = {'share_network': {'id': 1111, 'name': 'fake_share_nw'}}
+        return (200, {}, share_nw)
+
     def get_share_networks_detail(self, **kw):
         share_nw = {
             'share_networks': [
@@ -134,9 +138,37 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_security_services(self, **kw):
         security_services = {
-            'security_services': [{'id': 1111,
-                                   'name': 'fake_security_service',
-                                   'share_network_id': 1234}]}
+            'security_services': [
+                {
+                    'id': 1111,
+                    'name': 'fake_security_service',
+                    'type': 'fake_type',
+                    'status': 'fake_status',
+                },
+            ],
+        }
+        return (200, {}, security_services)
+
+    def get_security_services_detail(self, **kw):
+        security_services = {
+            'security_services': [
+                {
+                    'id': 1111,
+                    'name': 'fake_security_service',
+                    'description': 'fake_description',
+                    'share_network_id': 'fake_share-network_id',
+                    'user': 'fake_user',
+                    'password': 'fake_password',
+                    'domain': 'fake_domain',
+                    'server': 'fake_server',
+                    'dns_ip': 'fake_dns_ip',
+                    'type': 'fake_type',
+                    'status': 'fake_status',
+                    'project_id': 'fake_project_id',
+                    'updated_at': 'fake_updated_at',
+                },
+            ],
+        }
         return (200, {}, security_services)
 
     #
