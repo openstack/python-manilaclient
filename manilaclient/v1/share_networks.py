@@ -70,34 +70,40 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
 
     def add_security_service(self, share_network, security_service):
-        """Associate given security service with a share network
+        """Associate given security service with a share network.
 
         :param share_network: share network name, id or ShareNetwork instance
-        :param security_service: security service name or id
+        :param security_service: name, id or SecurityService instance
         :rtype: :class:`ShareNetwork`
         """
-        body = {'add_security_service': {'security_service_id':
-                                         security_service}}
-
-        return self._create(RESOURCE_PATH % common_base.getid(share_network) +
-                            '/action',
-                            body,
-                            RESOURCE_NAME)
+        body = {
+            'add_security_service': {
+                'security_service_id': common_base.getid(security_service),
+            },
+        }
+        return self._create(
+            RESOURCE_PATH % common_base.getid(share_network) + '/action',
+            body,
+            RESOURCE_NAME,
+        )
 
     def remove_security_service(self, share_network, security_service):
-        """Dissociate security service from a share network
+        """Dissociate security service from a share network.
 
         :param share_network: share network name, id or ShareNetwork instance
-        :param security_service: security service name or id
+        :param security_service: name, id or SecurityService instance
         :rtype: :class:`ShareNetwork`
         """
-        body = {'remove_security_service': {'security_service_id':
-                                            security_service}}
-
-        return self._create(RESOURCE_PATH % common_base.getid(share_network) +
-                            '/action',
-                            body,
-                            RESOURCE_NAME)
+        body = {
+            'remove_security_service': {
+                'security_service_id': common_base.getid(security_service),
+            },
+        }
+        return self._create(
+            RESOURCE_PATH % common_base.getid(share_network) + '/action',
+            body,
+            RESOURCE_NAME,
+        )
 
     def get(self, share_network):
         """Get a share network.

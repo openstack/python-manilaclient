@@ -220,9 +220,28 @@ class ShellTest(utils.TestCase):
         expected = {'os-reset_status': {'status': 'error'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
 
+    def test_share_network_security_service_add(self):
+        self.run_command('share-network-security-service-add fake_share_nw '
+                         'fake_security_service')
+        self.assert_called(
+            'POST',
+            '/share-networks/1234/action',
+        )
+
+    def test_share_network_security_service_remove(self):
+        self.run_command('share-network-security-service-remove fake_share_nw '
+                         'fake_security_service')
+        self.assert_called(
+            'POST',
+            '/share-networks/1234/action',
+        )
+
     def test_share_network_security_service_list_by_name(self):
         self.run_command('share-network-security-service-list fake_share_nw')
-        self.assert_called('GET', '/security-services?share_network_id=1234')
+        self.assert_called(
+            'GET',
+            '/security-services/detail?share_network_id=1234',
+        )
 
     def test_share_network_security_service_list_by_name_not_found(self):
         self.assertRaises(
@@ -240,7 +259,10 @@ class ShellTest(utils.TestCase):
 
     def test_share_network_security_service_list_by_id(self):
         self.run_command('share-network-security-service-list 1111')
-        self.assert_called('GET', '/security-services?share_network_id=1111')
+        self.assert_called(
+            'GET',
+            '/security-services/detail?share_network_id=1111',
+        )
 
     def test_share_server_delete(self):
         self.run_command('share-server-delete 1234')

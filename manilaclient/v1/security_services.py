@@ -33,8 +33,16 @@ class SecurityService(common_base.Resource):
     def __repr__(self):
         return "<SecurityService: %s>" % self.id
 
+    def update(self, **kwargs):
+        """Update this security service."""
+        return self.manager.update(self, **kwargs)
 
-class SecurityServiceManager(base.Manager):
+    def delete(self):
+        """"Delete this security service."""
+        self.manager.delete(self)
+
+
+class SecurityServiceManager(base.ManagerWithFind):
     """Manage :class:`SecurityService` resources."""
 
     resource_class = SecurityService
@@ -80,7 +88,10 @@ class SecurityServiceManager(base.Manager):
         :param security_service: security service to get.
         :rtype: :class:`SecurityService`
         """
-        return self._get(RESOURCE_PATH % security_service, RESOURCE_NAME)
+        return self._get(
+            RESOURCE_PATH % common_base.getid(security_service),
+            RESOURCE_NAME,
+        )
 
     def update(self, security_service, dns_ip=None, server=None, domain=None,
                password=None, user=None, name=None, description=None):
@@ -119,18 +130,20 @@ class SecurityServiceManager(base.Manager):
 
         body = {RESOURCE_NAME: values}
 
-        return self._update(RESOURCE_PATH % security_service,
-                            body,
-                            RESOURCE_NAME)
+        return self._update(
+            RESOURCE_PATH % common_base.getid(security_service),
+            body,
+            RESOURCE_NAME,
+        )
 
     def delete(self, security_service):
         """Delete a security service.
 
         :param security_service: security service to be deleted.
         """
-        self._delete(RESOURCE_PATH % security_service)
+        self._delete(RESOURCE_PATH % common_base.getid(security_service))
 
-    def list(self, detailed=False, search_opts=None):
+    def list(self, detailed=True, search_opts=None):
         """Get a list of all security services.
 
         :rtype: list of :class:`SecurityService`

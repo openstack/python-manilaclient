@@ -1,4 +1,4 @@
-# Copyright 2013 OpenStack LLC.
+# Copyright 2013 OpenStack Foundation.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -12,11 +12,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-try:
-    from collections import OrderedDict  # noqa
-except ImportError:
-    from ordereddict import OrderedDict  # noqa
-
 import mock
 
 from manilaclient import exceptions
@@ -27,8 +22,11 @@ from tests.v1 import fakes
 
 class ShareNetworkTest(utils.TestCase):
 
-    class _FakeShareNetwork:
-        id = 'fake id'
+    class _FakeShareNetwork(object):
+        id = 'fake_share_network_id'
+
+    class _FakeSecurityService(object):
+        id = 'fake_security_service_id'
 
     def setUp(self):
         super(ShareNetworkTest, self).setUp()
@@ -89,7 +87,7 @@ class ShareNetworkTest(utils.TestCase):
                 share_networks.RESOURCES_NAME)
 
     def test_list_with_filters(self):
-        filters = OrderedDict([('all_tenants', 1), ('status', 'ERROR')])
+        filters = {'all_tenants': 1, 'status': 'ERROR'}
         expected_path = ("%s/detail?all_tenants=1&status="
                          "ERROR" % share_networks.RESOURCES_PATH)
 
@@ -132,28 +130,30 @@ class ShareNetworkTest(utils.TestCase):
         security_service = 'fake security service'
         share_nw = 'fake share nw'
         expected_path = (share_networks.RESOURCE_PATH + '/action') % share_nw
-        expected_body = {'add_security_service': {'security_service_id':
-                                                  security_service}}
-
+        expected_body = {
+            'add_security_service': {
+                'security_service_id': security_service,
+            },
+        }
         with mock.patch.object(self.manager, '_create', mock.Mock()):
             self.manager.add_security_service(share_nw, security_service)
-
             self.manager._create.assert_called_once_with(
                 expected_path,
                 expected_body,
                 share_networks.RESOURCE_NAME)
 
     def test_add_security_service_to_share_nw_object(self):
-        security_service = 'fake security service'
+        security_service = self._FakeSecurityService()
         share_nw = self._FakeShareNetwork()
         expected_path = ((share_networks.RESOURCE_PATH +
                           '/action') % share_nw.id)
-        expected_body = {'add_security_service': {'security_service_id':
-                                                  security_service}}
-
+        expected_body = {
+            'add_security_service': {
+                'security_service_id': security_service.id,
+            },
+        }
         with mock.patch.object(self.manager, '_create', mock.Mock()):
             self.manager.add_security_service(share_nw, security_service)
-
             self.manager._create.assert_called_once_with(
                 expected_path,
                 expected_body,
@@ -163,28 +163,30 @@ class ShareNetworkTest(utils.TestCase):
         security_service = 'fake security service'
         share_nw = 'fake share nw'
         expected_path = (share_networks.RESOURCE_PATH + '/action') % share_nw
-        expected_body = {'remove_security_service': {'security_service_id':
-                                                     security_service}}
-
+        expected_body = {
+            'remove_security_service': {
+                'security_service_id': security_service,
+            },
+        }
         with mock.patch.object(self.manager, '_create', mock.Mock()):
             self.manager.remove_security_service(share_nw, security_service)
-
             self.manager._create.assert_called_once_with(
                 expected_path,
                 expected_body,
                 share_networks.RESOURCE_NAME)
 
     def test_remove_security_service_from_share_nw_object(self):
-        security_service = 'fake security service'
+        security_service = self._FakeSecurityService()
         share_nw = self._FakeShareNetwork()
         expected_path = ((share_networks.RESOURCE_PATH +
                           '/action') % share_nw.id)
-        expected_body = {'remove_security_service': {'security_service_id':
-                                                     security_service}}
-
+        expected_body = {
+            'remove_security_service': {
+                'security_service_id': security_service.id,
+            },
+        }
         with mock.patch.object(self.manager, '_create', mock.Mock()):
             self.manager.remove_security_service(share_nw, security_service)
-
             self.manager._create.assert_called_once_with(
                 expected_path,
                 expected_body,
