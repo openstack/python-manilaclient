@@ -2,6 +2,8 @@
 .idea
 .testrepository
 .tox/*
+.venv
+subunit.log
 python_manilaclient.egg-info
 setuptools_git*.egg
 setuptools_git*.egg
