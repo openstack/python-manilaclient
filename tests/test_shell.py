@@ -73,7 +73,7 @@ class ShellTest(utils.TestCase):
     def test_help_on_subcommand(self):
         required = [
             '.*?^usage: manila list',
-            '.*?(?m)^List all NAS shares.',
+            '.*?(?m)^List NAS shares with filters.',
         ]
         help_text = self.shell('help list')
         for r in required:

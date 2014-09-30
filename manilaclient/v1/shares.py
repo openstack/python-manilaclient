@@ -22,6 +22,7 @@ except ImportError:
     from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
+from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import base as common_base
 
@@ -175,11 +176,40 @@ class ShareManager(base.ManagerWithFind):
         body = {'share': kwargs, }
         return self._update("/shares/%s" % share.id, body)
 
-    def list(self, detailed=True, search_opts=None):
+    def list(self, detailed=True, search_opts=None,
+             sort_key=None, sort_dir=None):
         """Get a list of all shares.
 
+        :param detailed: Whether to return detailed share info.
+        :param search_opts: Search options to filter out shares.
+        :param sort_key: Key to be sorted.
+        :param sort_dir: Sort direction, should be 'desc' or 'asc'.
         :rtype: list of :class:`Share`
         """
+        if search_opts is None:
+            search_opts = {}
+
+        if sort_key is not None:
+            if sort_key in constants.SHARE_SORT_KEY_VALUES:
+                search_opts['sort_key'] = sort_key
+                # NOTE(vponomaryov): Replace aliases with appropriate keys
+                if sort_key == 'volume_type':
+                    search_opts['sort_key'] = 'volume_type_id'
+                elif sort_key == 'snapshot':
+                    search_opts['sort_key'] = 'snapshot_id'
+                elif sort_key == 'share_network':
+                    search_opts['sort_key'] = 'share_network_id'
+            else:
+                raise ValueError('sort_key must be one of the following: %s.'
+                                 % ', '.join(constants.SHARE_SORT_KEY_VALUES))
+
+        if sort_dir is not None:
+            if sort_dir in constants.SORT_DIR_VALUES:
+                search_opts['sort_dir'] = sort_dir
+            else:
+                raise ValueError('sort_dir must be one of the following: %s.'
+                                 % ', '.join(constants.SORT_DIR_VALUES))
+
         if search_opts:
             query_string = urlencode(
                 sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))

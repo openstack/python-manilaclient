@@ -90,9 +90,56 @@ class SharesTest(utils.TestCase):
         cs.assert_called('POST', '/shares/1234/action',
                          {'os-force_delete': None})
 
-    def test_list_shares(self):
-        cs.shares.list()
+    def test_list_shares_index(self):
+        cs.shares.list(detailed=False)
+        cs.assert_called('GET', '/shares')
+
+    def test_list_shares_index_with_search_opts(self):
+        search_opts = {
+            'fake_str': 'fake_str_value',
+            'fake_int': 1,
+        }
+        cs.shares.list(detailed=False, search_opts=search_opts)
+        cs.assert_called('GET', '/shares?fake_int=1&fake_str=fake_str_value')
+
+    def test_list_shares_detailed(self):
+        cs.shares.list(detailed=True)
         cs.assert_called('GET', '/shares/detail')
+
+    def test_list_shares_detailed_with_search_opts(self):
+        search_opts = {
+            'fake_str': 'fake_str_value',
+            'fake_int': 1,
+        }
+        cs.shares.list(detailed=True, search_opts=search_opts)
+        cs.assert_called(
+            'GET', '/shares/detail?fake_int=1&fake_str=fake_str_value')
+
+    def test_list_shares_sort_by_asc_and_host_key(self):
+        cs.shares.list(detailed=False, sort_key='host', sort_dir='asc')
+        cs.assert_called('GET', '/shares?sort_dir=asc&sort_key=host')
+
+    def test_list_shares_sort_by_desc_and_size_key(self):
+        cs.shares.list(detailed=False, sort_key='size', sort_dir='desc')
+        cs.assert_called('GET', '/shares?sort_dir=desc&sort_key=size')
+
+    def test_list_shares_filter_by_share_network_alias(self):
+        cs.shares.list(detailed=False, sort_key='share_network')
+        cs.assert_called('GET', '/shares?sort_key=share_network_id')
+
+    def test_list_shares_filter_by_snapshot_alias(self):
+        cs.shares.list(detailed=False, sort_key='snapshot')
+        cs.assert_called('GET', '/shares?sort_key=snapshot_id')
+
+    def test_list_shares_filter_by_volume_type_alias(self):
+        cs.shares.list(detailed=False, sort_key='volume_type')
+        cs.assert_called('GET', '/shares?sort_key=volume_type_id')
+
+    def test_list_shares_by_improper_direction(self):
+        self.assertRaises(ValueError, cs.shares.list, sort_dir='fake')
+
+    def test_list_shares_by_improper_key(self):
+        self.assertRaises(ValueError, cs.shares.list, sort_key='fake')
 
     def test_allow_access_to_share(self):
         share = cs.shares.get(1234)

@@ -19,6 +19,7 @@ import os
 import sys
 import time
 
+from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common import cliutils
 from manilaclient import utils
@@ -96,16 +97,32 @@ def _translate_keys(collection, convert):
 
 def _extract_metadata(args):
     metadata = {}
-    for metadatum in args.metadata:
-        # unset doesn't require a val, so we have the if/else
-        if '=' in metadatum:
-            (key, value) = metadatum.split('=', 1)
-        else:
-            key = metadatum
-            value = None
+    if args.metadata:
+        for metadatum in args.metadata:
+            # unset doesn't require a val, so we have the if/else
+            if '=' in metadatum:
+                (key, value) = metadatum.split('=', 1)
+            else:
+                key = metadatum
+                value = None
 
-        metadata[key] = value
+            metadata[key] = value
     return metadata
+
+
+def _extract_extra_specs(args):
+    extra_specs = {}
+    if args.extra_specs:
+        for extra_spec in args.extra_specs:
+            # unset doesn't require a val, so we have the if/else
+            if '=' in extra_spec:
+                (key, value) = extra_spec.split('=', 1)
+            else:
+                key = extra_spec
+                value = None
+
+            extra_specs[key] = value
+    return extra_specs
 
 
 def do_endpoints(cs, args):
@@ -545,32 +562,147 @@ def do_access_list(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
+    type=str,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--status',
     metavar='<status>',
+    type=str,
     default=None,
     help='Filter results by status.')
 @cliutils.arg(
     '--share-server-id',
+    '--share-server_id', '--share_server-id', '--share_server_id',  # aliases
     metavar='<share_server_id>',
+    type=str,
     default=None,
+    action='single_alias',
     help='Filter results by share server ID.')
+@cliutils.arg(
+    '--metadata',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    help='Filters results by a metadata key and value. OPTIONAL: Default=None',
+    default=None)
+@cliutils.arg(
+    '--extra-specs',
+    '--extra_specs',  # alias
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    action='single_alias',
+    help='Filters results by a extra specs key and value of volume type that '
+         'was used for share creation. OPTIONAL: Default=None',
+    default=None)
+@cliutils.arg(
+    '--volume-type',
+    '--volume_type', '--volume-type-id',  # aliases
+    '--volume-type_id', '--volume_type-id', '--volume_type_id',  # aliases
+    metavar='<volume_type>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Filter results by a volume type id or name that was used for share '
+         'creation.')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of shares to return. OPTIONAL: Default=None.')
+@cliutils.arg(
+    '--offset',
+    metavar='<offset>',
+    type=int,
+    default=None,
+    help='Set offset to define start point of share listing. '
+         'OPTIONAL: Default=None.')
+@cliutils.arg(
+    '--sort-key',
+    '--sort_key',  # alias
+    metavar='<sort_key>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Key to be sorted, available keys are %(keys)s. '
+         'OPTIONAL: Default=None.' % {'keys': constants.SHARE_SORT_KEY_VALUES})
+@cliutils.arg(
+    '--sort-dir',
+    '--sort_dir',  # alias
+    metavar='<sort_dir>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Sort direction, available values are %(values)s. '
+         'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES})
+@cliutils.arg(
+    '--snapshot',
+    metavar='<snapshot>',
+    type=str,
+    default=None,
+    help='Filer results by snapshot name or id, that was used for share.')
+@cliutils.arg(
+    '--host',
+    metavar='<host>',
+    default=None,
+    help='Filter results by host.')
+@cliutils.arg(
+    '--share-network',
+    '--share_network',  # alias
+    metavar='<share_network>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Filter results by share-network name or id.')
+@cliutils.arg(
+    '--project-id',
+    '--project_id',  # alias
+    metavar='<project_id>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help="Filter results by project id. Useful with set key '--all-tenants'.")
 @cliutils.service_type('share')
 def do_list(cs, args):
-    """List all NAS shares."""
+    """List NAS shares with filters."""
+    list_of_keys = [
+        'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Volume Type',
+        'Export location', 'Host',
+    ]
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+
+    empty_obj = type('Empty', (object,), {'id': None})
+    volume_type = (_find_volume_type(cs, args.volume_type)
+                   if args.volume_type else empty_obj)
+
+    snapshot = (_find_share_snapshot(cs, args.snapshot)
+                if args.snapshot else empty_obj)
+
+    share_network = (_find_share_network(cs, args.share_network)
+                     if args.share_network else empty_obj)
     search_opts = {
+        'offset': args.offset,
+        'limit': args.limit,
         'all_tenants': all_tenants,
         'name': args.name,
         'status': args.status,
+        'host': args.host,
+        'share_network_id': share_network.id,
+        'snapshot_id': snapshot.id,
+        'volume_type_id': volume_type.id,
+        'metadata': _extract_metadata(args),
+        'extra_specs': _extract_extra_specs(args),
         'share_server_id': args.share_server_id,
+        'project_id': args.project_id,
     }
-    shares = cs.shares.list(search_opts=search_opts)
-    utils.print_list(shares,
-                     ['ID', 'Name', 'Size', 'Share Proto', 'Status',
-                      'Export location'])
+    shares = cs.shares.list(
+        search_opts=search_opts,
+        sort_key=args.sort_key,
+        sort_dir=args.sort_dir,
+    )
+    utils.print_list(shares, list_of_keys)
 
 
 @cliutils.arg(

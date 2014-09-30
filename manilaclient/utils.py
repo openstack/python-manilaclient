@@ -20,15 +20,14 @@ import six
 from manilaclient.openstack.common import strutils
 
 
-def _print(pt, order):
+def _print(pt, order=None):
+    output = pt.get_string(sortby=order) if order else pt.get_string()
     if sys.version_info >= (3, 0):
-        print(pt.get_string(sortby=order))
+        print(output)
     else:
-        print(strutils.safe_encode(pt.get_string(sortby=order)))
+        print(strutils.safe_encode(output))
 
 
-# NOTE(vponomaryov): replace function 'print_list' and 'print_dict'
-#                    with functions from cliutils, when bug #1342050 is fixed
 def print_list(objs, fields, formatters={}, order_by=None):
     mixed_case_fields = ['serverId']
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
@@ -47,10 +46,6 @@ def print_list(objs, fields, formatters={}, order_by=None):
                 data = getattr(o, field_name, '')
                 row.append(data)
         pt.add_row(row)
-
-    if order_by is None:
-        order_by = fields[0]
-
     _print(pt, order_by)
 
 

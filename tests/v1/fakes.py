@@ -34,10 +34,43 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)
 
+    def get_shares(self, **kw):
+        endpoint = "http://127.0.0.1:8786/v1"
+        share_id = '1234'
+        shares = {
+            'shares': [
+                {
+                    'id': share_id,
+                    'name': 'sharename',
+                    'links': [
+                        {"href": endpoint + "/fake_project/shares/" + share_id,
+                         "rel": "self"},
+                    ],
+                },
+            ]
+        }
+        return (200, {}, shares)
+
     def get_shares_detail(self, **kw):
-        shares = {'shares': [{'id': 1234,
-                              'name': 'sharename',
-                              'attachments': [{'server_id': 111}]}]}
+        endpoint = "http://127.0.0.1:8786/v1"
+        share_id = '1234'
+        shares = {
+            'shares': [
+                {
+                    'id': share_id,
+                    'name': 'sharename',
+                    'status': 'fake_status',
+                    'size': 1,
+                    'host': 'fake_host',
+                    'export_location': 'fake_export_location',
+                    'snapshot_id': 'fake_snapshot_id',
+                    'links': [
+                        {"href": endpoint + "/fake_project/shares/" + share_id,
+                         "rel": "self"},
+                    ],
+                },
+            ]
+        }
         return (200, {}, shares)
 
     def get_snapshots_1234(self, **kw):

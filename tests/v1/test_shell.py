@@ -1,4 +1,5 @@
 # Copyright 2013 OpenStack LLC.
+# Copyright 2014 Mirantis, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,7 +19,9 @@ import mock
 import requests
 
 from manilaclient import client
+from manilaclient.common import constants
 from manilaclient import exceptions
+from manilaclient.openstack.common import cliutils
 from manilaclient.openstack.common import jsonutils
 from manilaclient import shell
 from manilaclient.v1 import client as client_v1
@@ -51,6 +54,10 @@ class ShellTest(utils.TestCase):
         self.old_get_client_class = client.get_client_class
         client.get_client_class = lambda *_: fakes.FakeClient
 
+        # Following shows available separators for optional params
+        # and its values
+        self.separators = [' ', '=']
+
     def tearDown(self):
         # For some method like test_image_meta_bad_action we are
         # testing a SystemExit to be thrown and object self.shell has
@@ -79,20 +86,169 @@ class ShellTest(utils.TestCase):
         self.assert_called('GET', '/shares/detail')
 
     def test_list_filter_status(self):
-        self.run_command('list --status=available')
-        self.assert_called('GET', '/shares/detail?status=available')
+        for separator in self.separators:
+            self.run_command('list --status' + separator + 'available')
+            self.assert_called('GET', '/shares/detail?status=available')
 
     def test_list_filter_name(self):
-        self.run_command('list --name=1234')
-        self.assert_called('GET', '/shares/detail?name=1234')
+        for separator in self.separators:
+            self.run_command('list --name' + separator + '1234')
+            self.assert_called('GET', '/shares/detail?name=1234')
 
-    def test_list_all_tenants(self):
-        self.run_command('list --all-tenants=1')
+    def test_list_all_tenants_only_key(self):
+        self.run_command('list --all-tenants')
         self.assert_called('GET', '/shares/detail?all_tenants=1')
 
-    def test_list_filter_share_server_id(self):
-        self.run_command('list --share-server-id=1234')
-        self.assert_called('GET', '/shares/detail?share_server_id=1234')
+    def test_list_all_tenants_key_and_value_1(self):
+        for separator in self.separators:
+            self.run_command('list --all-tenants' + separator + '1')
+            self.assert_called('GET', '/shares/detail?all_tenants=1')
+
+    def test_list_all_tenants_key_and_value_0(self):
+        for separator in self.separators:
+            self.run_command('list --all-tenants' + separator + '0')
+            self.assert_called('GET', '/shares/detail')
+
+    def test_list_filter_by_share_server_and_its_aliases(self):
+        aliases = [
+            '--share-server-id', '--share-server_id',
+            '--share_server-id', '--share_server_id',
+        ]
+        for alias in aliases:
+            for separator in self.separators:
+                self.run_command('list ' + alias + separator + '1234')
+                self.assert_called(
+                    'GET', '/shares/detail?share_server_id=1234')
+
+    def test_list_filter_by_metadata(self):
+        self.run_command('list --metadata key=value')
+        self.assert_called(
+            'GET', '/shares/detail?metadata=%7B%27key%27%3A+%27value%27%7D')
+
+    def test_list_filter_by_extra_specs_and_its_aliases(self):
+        aliases = ['--extra-specs', '--extra_specs', ]
+        for alias in aliases:
+            self.run_command('list ' + alias + ' key=value')
+            self.assert_called(
+                'GET',
+                '/shares/detail?extra_specs=%7B%27key%27%3A+%27value%27%7D',
+            )
+
+    def test_list_filter_by_volume_type_and_its_aliases(self):
+        fake_vt = type('Empty', (object,), {'id': 'fake_vt'})
+        aliases = [
+            '--volume-type', '--volume_type', '--volume-type-id',
+            '--volume-type_id', '--volume_type-id', '--volume_type_id',
+        ]
+        for alias in aliases:
+            for separator in self.separators:
+                with mock.patch.object(cliutils, 'find_resource',
+                                       mock.Mock(return_value=fake_vt)):
+                    self.run_command('list ' + alias + separator + fake_vt.id)
+                    self.assert_called(
+                        'GET', '/shares/detail?volume_type_id=' + fake_vt.id)
+
+    def test_list_filter_by_volume_type_not_found(self):
+        for separator in self.separators:
+            self.assertRaises(
+                exceptions.CommandError,
+                self.run_command,
+                'list --volume-type' + separator + 'not_found_expected',
+            )
+            self.assert_called('GET', '/types')
+
+    def test_list_with_limit(self):
+        for separator in self.separators:
+            self.run_command('list --limit' + separator + '50')
+            self.assert_called('GET', '/shares/detail?limit=50')
+
+    def test_list_with_offset(self):
+        for separator in self.separators:
+            self.run_command('list --offset' + separator + '50')
+            self.assert_called('GET', '/shares/detail?offset=50')
+
+    def test_list_with_sort_dir_verify_keys(self):
+        # Verify allowed aliases and keys
+        aliases = ['--sort_dir', '--sort-dir']
+        for alias in aliases:
+            for key in constants.SORT_DIR_VALUES:
+                for separator in self.separators:
+                    self.run_command('list ' + alias + separator + key)
+                    self.assert_called('GET', '/shares/detail?sort_dir=' + key)
+
+    def test_list_with_fake_sort_dir(self):
+        self.assertRaises(
+            ValueError,
+            self.run_command,
+            'list --sort-dir fake_sort_dir',
+        )
+
+    def test_list_with_sort_key_verify_keys(self):
+        # Verify allowed aliases and keys
+        aliases = ['--sort_key', '--sort-key']
+        for alias in aliases:
+            for key in constants.SHARE_SORT_KEY_VALUES:
+                for separator in self.separators:
+                    self.run_command('list ' + alias + separator + key)
+                    key = 'share_network_id' if key == 'share_network' else key
+                    key = 'snapshot_id' if key == 'snapshot' else key
+                    key = 'volume_type_id' if key == 'volume_type' else key
+                    self.assert_called('GET', '/shares/detail?sort_key=' + key)
+
+    def test_list_with_fake_sort_key(self):
+        self.assertRaises(
+            ValueError,
+            self.run_command,
+            'list --sort-key fake_sort_key',
+        )
+
+    def test_list_filter_by_snapshot(self):
+        fake_s = type('Empty', (object,), {'id': 'fake_snapshot_id'})
+        for separator in self.separators:
+            with mock.patch.object(cliutils, 'find_resource',
+                                   mock.Mock(return_value=fake_s)):
+                self.run_command('list --snapshot' + separator + fake_s.id)
+                self.assert_called(
+                    'GET', '/shares/detail?snapshot_id=' + fake_s.id)
+
+    def test_list_filter_by_snapshot_not_found(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'list --snapshot not_found_expected',
+        )
+        self.assert_called('GET', '/snapshots/detail')
+
+    def test_list_filter_by_host(self):
+        for separator in self.separators:
+            self.run_command('list --host' + separator + 'fake_host')
+            self.assert_called('GET', '/shares/detail?host=fake_host')
+
+    def test_list_filter_by_share_network(self):
+        aliases = ['--share-network', '--share_network', ]
+        fake_sn = type('Empty', (object,), {'id': 'fake_share_network_id'})
+        for alias in aliases:
+            for separator in self.separators:
+                with mock.patch.object(cliutils, 'find_resource',
+                                       mock.Mock(return_value=fake_sn)):
+                    self.run_command('list ' + alias + separator + fake_sn.id)
+                    self.assert_called(
+                        'GET', '/shares/detail?share_network_id=' + fake_sn.id)
+
+    def test_list_filter_by_share_network_not_found(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'list --share-network not_found_expected',
+        )
+        self.assert_called('GET', '/share-networks/detail')
+
+    def test_list_filter_by_project_id(self):
+        aliases = ['--project-id', '--project_id']
+        for alias in aliases:
+            for separator in self.separators:
+                self.run_command('list ' + alias + separator + 'fake_id')
+                self.assert_called('GET', '/shares/detail?project_id=fake_id')
 
     def test_show(self):
         self.run_command('show 1234')
