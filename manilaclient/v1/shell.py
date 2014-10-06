@@ -1195,19 +1195,91 @@ def do_security_service_show(cs, args):
     default=0,
     help='Display information from all tenants (Admin only).')
 @cliutils.arg(
+    '--share-network',
+    '--share_network',  # alias
+    metavar='<share_network>',
+    action='single_alias',
+    default=None,
+    help='Filter results by share network id or name.')
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
     help='Filter results by status.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help='Filter results by name.')
+@cliutils.arg(
+    '--type',
+    metavar='<type>',
+    default=None,
+    help='Filter results by type.')
+@cliutils.arg(
+    '--user',
+    metavar='<user>',
+    default=None,
+    help='Filter results by user or group used by tenant.')
+@cliutils.arg(
+    '--dns-ip',
+    '--dns_ip',  # alias
+    metavar='<dns_ip>',
+    action='single_alias',
+    default=None,
+    help="Filter results by DNS IP address used inside tenant's network.")
+@cliutils.arg(
+    '--server',
+    metavar='<server>',
+    default=None,
+    help="Filter results by security service IP address or hostname.")
+@cliutils.arg(
+    '--domain',
+    metavar='<domain>',
+    default=None,
+    help="Filter results by domain.")
+@cliutils.arg(
+    '--detailed',
+    dest='detailed',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help="Show detailed information about filtered security services.")
+@cliutils.arg(
+    '--offset',
+    metavar="<offset>",
+    default=None,
+    help='Start position of security services listing.')
+@cliutils.arg(
+    '--limit',
+    metavar="<limit>",
+    default=None,
+    help='Number of security services to return per request.')
 def do_security_service_list(cs, args):
     """Get a list of security services."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     search_opts = {
         'all_tenants': all_tenants,
         'status': args.status,
+        'name': args.name,
+        'type': args.type,
+        'user': args.user,
+        'dns_ip': args.dns_ip,
+        'server': args.server,
+        'domain': args.domain,
+        'offset': args.offset,
+        'limit': args.limit,
     }
-    security_services = cs.security_services.list(search_opts=search_opts)
+    if args.share_network:
+        search_opts['share_network_id'] = _find_share_network(
+            cs, args.share_network).id
+    security_services = cs.security_services.list(search_opts=search_opts,
+                                                  detailed=args.detailed)
     fields = ['id', 'name', 'status', 'type', ]
+    if args.detailed:
+        fields.append('share_networks')
     utils.print_list(security_services, fields=fields)
 
 

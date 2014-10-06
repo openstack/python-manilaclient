@@ -17,6 +17,7 @@
 import fixtures
 import mock
 import requests
+import six
 
 from manilaclient import client
 from manilaclient.common import constants
@@ -24,13 +25,14 @@ from manilaclient import exceptions
 from manilaclient.openstack.common import cliutils
 from manilaclient.openstack.common import jsonutils
 from manilaclient import shell
+from manilaclient import utils
 from manilaclient.v1 import client as client_v1
 from manilaclient.v1 import shell as shell_v1
-from tests import utils
+from tests import utils as test_utils
 from tests.v1 import fakes
 
 
-class ShellTest(utils.TestCase):
+class ShellTest(test_utils.TestCase):
 
     FAKE_ENV = {
         'MANILA_USERNAME': 'username',
@@ -513,6 +515,98 @@ class ShellTest(utils.TestCase):
 
         cmd.split.assert_called_once_with()
 
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_security_service_list(self):
+        self.run_command('security-service-list')
+        self.assert_called(
+            'GET',
+            '/security-services',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name', 'status', 'type'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(shell_v1, '_find_share_network', mock.Mock())
+    def test_security_service_list_filter_share_network(self):
+        class FakeShareNetwork:
+            id = 'fake-sn-id'
+        sn = FakeShareNetwork()
+        shell_v1._find_share_network.return_value = sn
+        for command in ['--share-network', '--share_network']:
+            self.run_command('security-service-list %(command)s %(sn_id)s' %
+                             {'command': command,
+                              'sn_id': sn.id})
+            self.assert_called(
+                'GET',
+                '/security-services?share_network_id=%s' % sn.id,
+            )
+            shell_v1._find_share_network.assert_called_with(mock.ANY, sn.id)
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name', 'status', 'type'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_security_service_list_detailed(self):
+        self.run_command('security-service-list --detailed')
+        self.assert_called(
+            'GET',
+            '/security-services/detail',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name', 'status', 'type', 'share_networks'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_security_service_list_all_tenants(self):
+        self.run_command('security-service-list --all-tenants')
+        self.assert_called(
+            'GET',
+            '/security-services?all_tenants=1',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name', 'status', 'type'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_security_service_list_all_filters(self):
+        filters = {
+            'status': 'new',
+            'name': 'fake-name',
+            'type': 'ldap',
+            'user': 'fake-user',
+            'dns-ip': '1.1.1.1',
+            'server': 'fake-server',
+            'domain': 'fake-domain',
+            'offset': 10,
+            'limit': 20,
+        }
+        command_str = 'security-service-list'
+        for key, value in six.iteritems(filters):
+            command_str += ' --%(key)s=%(value)s' % {'key': key,
+                                                     'value': value}
+        self.run_command(command_str)
+        self.assert_called(
+            'GET',
+            '/security-services?dns_ip=1.1.1.1&domain=fake-domain&limit=20'
+            '&name=fake-name&offset=10&server=fake-server&status=new'
+            '&type=ldap&user=fake-user',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name', 'status', 'type'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_security_service_list_filter_by_dns_ip_alias(self):
+        self.run_command('security-service-list --dns_ip 1.1.1.1')
+        self.assert_called(
+            'GET',
+            '/security-services?dns_ip=1.1.1.1',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name', 'status', 'type'])
+
     @mock.patch.object(fakes.FakeClient, 'authenticate', mock.Mock())
     @mock.patch.object(shell.SecretsHelper, '_make_key', mock.Mock())
     @mock.patch.object(shell.SecretsHelper, 'password', mock.Mock())
@@ -597,14 +691,14 @@ class ShellTest(utils.TestCase):
             headers = None
             if url == 'new_url/shares/detail':
                 resp_text = {"shares": []}
-                return utils.TestResponse({
+                return test_utils.TestResponse({
                     "status_code": 200,
                     "text": jsonutils.dumps(resp_text),
                 })
             elif url == 'fake/shares/detail':
                 resp_text = {"unauthorized": {"message": "Unauthorized",
                                               "code": "401"}}
-                return utils.TestResponse({
+                return test_utils.TestResponse({
                     "status_code": 401,
                     "text": jsonutils.dumps(resp_text),
                 })
@@ -614,7 +708,7 @@ class ShellTest(utils.TestCase):
                     'x-auth-token': 'new_token',
                 }
                 resp_text = 'some_text'
-                return utils.TestResponse({
+                return test_utils.TestResponse({
                     "status_code": 200,
                     "text": jsonutils.dumps(resp_text),
                     "headers": headers
@@ -642,7 +736,7 @@ class ShellTest(utils.TestCase):
         )
 
 
-class SecretsHelperTestCase(utils.TestCase):
+class SecretsHelperTestCase(test_utils.TestCase):
     def setUp(self):
         super(SecretsHelperTestCase, self).setUp()
         self.cs = client.Client(1, 'user', 'password',
