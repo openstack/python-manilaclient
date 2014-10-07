@@ -35,8 +35,8 @@ class ShareServer(common_base.Resource):
 
     def __getattr__(self, attr):
         if attr == 'share_network':
-            return getattr(self, 'share_network_name')
-        return getattr(self, attr)
+            attr = 'share_network_name'
+        return super(ShareServer, self).__getattr__(attr)
 
 
 class ShareServerManager(base.Manager):

@@ -28,10 +28,46 @@ class FakeShareServer(object):
     }
 
 
-class ShareServersTest(utils.TestCase):
+class ShareServerTest(utils.TestCase):
 
     def setUp(self):
-        super(ShareServersTest, self).setUp()
+        super(ShareServerTest, self).setUp()
+        self.share_server_id = 'foo'
+        self.share_network = 'bar'
+        info = {
+            'id': self.share_server_id,
+            'share_network_name': self.share_network,
+        }
+        self.resource_class = share_servers.ShareServer(
+            manager=self, info=info)
+
+    def test_get_repr_of_share_server(self):
+        self.assertIn(
+            'ShareServer: %s' % self.share_server_id,
+            repr(self.resource_class),
+        )
+
+    def test_get_share_network_attr(self):
+        # We did not set 'share_network' attr within instance, it is expected
+        # that attr 'share_network_name' will be reused.
+        self.assertEqual(self.resource_class.share_network, self.share_network)
+
+    def test_get_nonexistent_share_network_name(self):
+        resource_class = share_servers.ShareServer(manager=self, info={})
+        try:
+            # We expect AttributeError instead of endless loop of getattr
+            resource_class.share_network_name
+        except AttributeError:
+            pass
+        else:
+            raise Exception("Expected exception 'AttributeError' "
+                            "has not been raised.")
+
+
+class ShareServerManagerTest(utils.TestCase):
+
+    def setUp(self):
+        super(ShareServerManagerTest, self).setUp()
         self.manager = share_servers.ShareServerManager(api=None)
 
     def test_list(self):
