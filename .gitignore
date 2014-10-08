@@ -1,8 +1,11 @@
 *.pyc
+*.swp
+.coverage
 .idea
 .testrepository
 .tox/*
 .venv
+cover/*
 subunit.log
 python_manilaclient.egg-info
 setuptools_git*.egg
