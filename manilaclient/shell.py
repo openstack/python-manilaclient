@@ -1,5 +1,5 @@
-
 # Copyright 2011 OpenStack LLC.
+# Copyright 2014 Mirantis, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -48,10 +48,25 @@ DEFAULT_MANILA_SERVICE_TYPE = 'share'
 logger = logging.getLogger(__name__)
 
 
+class AllowOnlyOneAliasAtATimeAction(argparse.Action):
+    """Allows only one alias of argument to be used at a time."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # NOTE(vponomaryov): this method is redefinition of
+        # argparse.Action.__call__ interface
+        if getattr(namespace, self.dest) is not None:
+            msg = "Only one alias is allowed at a time."
+            raise argparse.ArgumentError(self, msg)
+        setattr(namespace, self.dest, values)
+
+
 class ManilaClientArgumentParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
         super(ManilaClientArgumentParser, self).__init__(*args, **kwargs)
+        # NOTE(vponomaryov): Register additional action to be used by arguments
+        # with multiple aliases.
+        self.register('action', 'single_alias', AllowOnlyOneAliasAtATimeAction)
 
     def error(self, message):
         """error(message: string)
@@ -68,6 +83,24 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
                      {'errmsg': message.split(choose_from)[0],
                       'mainp': progparts[0],
                       'subp': progparts[2]})
+
+    def _get_option_tuples(self, option_string):
+        """Avoid ambiguity in argument abbreviation.
+
+        Manilaclient uses aliases for command parameters and this method
+        is used for avoiding parameter ambiguity alert.
+        """
+        option_tuples = super(
+            ManilaClientArgumentParser, self)._get_option_tuples(option_string)
+        if len(option_tuples) > 1:
+            opt_strings_list = []
+            opts = []
+            for opt in option_tuples:
+                if opt[0].option_strings not in opt_strings_list:
+                    opt_strings_list.append(opt[0].option_strings)
+                    opts.append(opt)
+            return opts
+        return option_tuples
 
 
 class ManilaKeyring(keyring.backends.file.EncryptedKeyring):
