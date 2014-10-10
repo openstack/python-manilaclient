@@ -267,14 +267,102 @@ class ShellTest(test_utils.TestCase):
             'delete fake-not-found'
         )
 
-    def test_snapshot_list_filter_share_id(self):
-        self.run_command('snapshot-list --share-id=1234')
-        self.assert_called('GET', '/snapshots/detail?share_id=1234')
+    def test_list_snapshots(self):
+        self.run_command('snapshot-list')
+        self.assert_called('GET', '/snapshots/detail?usage=any')
 
-    def test_snapshot_list_filter_status_and_share_id(self):
-        self.run_command('snapshot-list --status=available --share-id=1234')
-        self.assert_called('GET', '/snapshots/detail?'
-                           'share_id=1234&status=available')
+    def test_list_snapshots_all_tenants_only_key(self):
+        self.run_command('snapshot-list --all-tenants')
+        self.assert_called('GET', '/snapshots/detail?all_tenants=1&usage=any')
+
+    def test_list_snapshots_all_tenants_key_and_value_1(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --all-tenants' + separator + '1')
+            self.assert_called(
+                'GET', '/snapshots/detail?all_tenants=1&usage=any')
+
+    def test_list_snapshots_all_tenants_key_and_value_0(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --all-tenants' + separator + '0')
+            self.assert_called('GET', '/snapshots/detail?usage=any')
+
+    def test_list_snapshots_filter_by_name(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --name' + separator + '1234')
+            self.assert_called(
+                'GET', '/snapshots/detail?name=1234&usage=any')
+
+    def test_list_snapshots_filter_by_status(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --status' + separator + '1234')
+            self.assert_called(
+                'GET', '/snapshots/detail?status=1234&usage=any')
+
+    def test_list_snapshots_filter_by_share_id(self):
+        aliases = ['--share_id', '--share-id']
+        for alias in aliases:
+            for separator in self.separators:
+                self.run_command('snapshot-list ' + alias + separator + '1234')
+                self.assert_called(
+                    'GET', '/snapshots/detail?share_id=1234&usage=any')
+
+    def test_list_snapshots_only_used(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --usage' + separator + 'used')
+            self.assert_called('GET', '/snapshots/detail?usage=used')
+
+    def test_list_snapshots_only_unused(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --usage' + separator + 'unused')
+            self.assert_called('GET', '/snapshots/detail?usage=unused')
+
+    def test_list_snapshots_with_limit(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --limit' + separator + '50')
+            self.assert_called(
+                'GET', '/snapshots/detail?limit=50&usage=any')
+
+    def test_list_snapshots_with_offset(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --offset' + separator + '50')
+            self.assert_called(
+                'GET', '/snapshots/detail?offset=50&usage=any')
+
+    def test_list_snapshots_with_sort_dir_verify_keys(self):
+        aliases = ['--sort_dir', '--sort-dir']
+        for alias in aliases:
+            for key in constants.SORT_DIR_VALUES:
+                for separator in self.separators:
+                    self.run_command(
+                        'snapshot-list ' + alias + separator + key)
+                    self.assert_called(
+                        'GET',
+                        '/snapshots/detail?sort_dir=' + key + '&usage=any')
+
+    def test_list_snapshots_with_fake_sort_dir(self):
+        self.assertRaises(
+            ValueError,
+            self.run_command,
+            'snapshot-list --sort-dir fake_sort_dir',
+        )
+
+    def test_list_snapshots_with_sort_key_verify_keys(self):
+        aliases = ['--sort_key', '--sort-key']
+        for alias in aliases:
+            for key in constants.SNAPSHOT_SORT_KEY_VALUES:
+                for separator in self.separators:
+                    self.run_command(
+                        'snapshot-list ' + alias + separator + key)
+                    self.assert_called(
+                        'GET',
+                        '/snapshots/detail?sort_key=' + key + '&usage=any')
+
+    def test_list_snapshots_with_fake_sort_key(self):
+        self.assertRaises(
+            ValueError,
+            self.run_command,
+            'snapshot-list --sort-key fake_sort_key',
+        )
 
     def test_rename(self):
         # basic rename with positional agruments

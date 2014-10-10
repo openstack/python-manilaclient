@@ -90,8 +90,19 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             raise AssertionError("Unexpected action: %s" % action)
         return (resp, {}, _body)
 
+    def get_snapshots(self, **kw):
+        snapshots = {
+            'snapshots': [
+                {
+                    'id': 1234,
+                    'status': 'available',
+                    'name': 'sharename',
+                }
+            ]
+        }
+        return (200, {}, snapshots)
+
     def get_snapshots_detail(self, **kw):
-        print(kw)
         snapshots = {'snapshots': [{
             'id': 1234,
             'created_at': '2012-08-27T00:00:00.000000',
