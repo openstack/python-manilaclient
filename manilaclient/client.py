@@ -38,11 +38,11 @@ if not hasattr(urlparse, 'parse_qsl'):
     import cgi
     urlparse.parse_qsl = cgi.parse_qsl
 
+from oslo.serialization import jsonutils
 import requests
 
 from manilaclient import exceptions
 from manilaclient.openstack.common import importutils
-from manilaclient.openstack.common import jsonutils
 from manilaclient import service_catalog
 
 

@@ -16,6 +16,7 @@
 
 import fixtures
 import mock
+from oslo.serialization import jsonutils
 import requests
 import six
 
@@ -23,7 +24,6 @@ from manilaclient import client
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common import cliutils
-from manilaclient.openstack.common import jsonutils
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v1 import fakes
