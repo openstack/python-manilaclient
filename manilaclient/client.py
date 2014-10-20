@@ -39,10 +39,10 @@ if not hasattr(urlparse, 'parse_qsl'):
     urlparse.parse_qsl = cgi.parse_qsl
 
 from oslo.serialization import jsonutils
+from oslo.utils import importutils
 import requests
 
 from manilaclient import exceptions
-from manilaclient.openstack.common import importutils
 from manilaclient import service_catalog
 
 

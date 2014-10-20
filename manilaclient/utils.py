@@ -14,10 +14,9 @@ from __future__ import print_function
 
 import sys
 
+from oslo.utils import encodeutils
 import prettytable
 import six
-
-from manilaclient.openstack.common import strutils
 
 
 def _print(pt, order=None):
@@ -25,7 +24,7 @@ def _print(pt, order=None):
     if sys.version_info >= (3, 0):
         print(output)
     else:
-        print(strutils.safe_encode(output))
+        print(encodeutils.safe_encode(output))
 
 
 def print_list(objs, fields, formatters={}, order_by=None):

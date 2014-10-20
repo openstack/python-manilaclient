@@ -31,13 +31,14 @@ import pkgutil
 import sys
 
 import keyring
+from oslo.utils import encodeutils
+from oslo.utils import strutils
 import six
 
 from manilaclient import client
 from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.openstack.common import cliutils
-from manilaclient.openstack.common import strutils
 from manilaclient.v1 import shell as shell_v1
 # from manilaclient.v2 import shell as shell_v2
 
@@ -697,7 +698,7 @@ def main():
             OpenStackManilaShell().main(sys.argv[1:])
         else:
             OpenStackManilaShell().main(
-                map(strutils.safe_decode, sys.argv[1:]))
+                map(encodeutils.safe_decode, sys.argv[1:]))
     except KeyboardInterrupt:
         print("... terminating manila client", file=sys.stderr)
         sys.exit(130)
@@ -706,7 +707,7 @@ def main():
         message = e.message
         if not isinstance(message, six.string_types):
             message = str(message)
-        print("ERROR: %s" % strutils.safe_encode(message), file=sys.stderr)
+        print("ERROR: %s" % encodeutils.safe_encode(message), file=sys.stderr)
         sys.exit(1)
 
 
