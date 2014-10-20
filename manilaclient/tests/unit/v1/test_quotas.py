@@ -13,8 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tests import utils
-from tests.v1 import fakes
+from manilaclient.tests.unit import utils
+from manilaclient.tests.unit.v1 import fakes
 
 
 cs = fakes.FakeClient()

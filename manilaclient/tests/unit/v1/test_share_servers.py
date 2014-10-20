@@ -15,8 +15,8 @@
 
 import mock
 
+from manilaclient.tests.unit import utils
 from manilaclient.v1 import share_servers
-from tests import utils
 
 
 class FakeShareServer(object):

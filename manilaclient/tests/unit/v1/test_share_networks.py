@@ -15,9 +15,9 @@
 import mock
 
 from manilaclient import exceptions
+from manilaclient.tests.unit import utils
+from manilaclient.tests.unit.v1 import fakes
 from manilaclient.v1 import share_networks
-from tests import utils
-from tests.v1 import fakes
 
 
 class ShareNetworkTest(utils.TestCase):

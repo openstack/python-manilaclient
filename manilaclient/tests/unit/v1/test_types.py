@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from manilaclient.tests.unit import utils
+from manilaclient.tests.unit.v1 import fakes
 from manilaclient.v1 import volume_types
-from tests import utils
-from tests.v1 import fakes
 
 cs = fakes.FakeClient()
 

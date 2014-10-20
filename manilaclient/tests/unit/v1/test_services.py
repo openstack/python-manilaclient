@@ -15,8 +15,8 @@
 
 import mock
 
+from manilaclient.tests.unit import utils
 from manilaclient.v1 import services
-from tests import utils
 
 
 class ServicesTest(utils.TestCase):

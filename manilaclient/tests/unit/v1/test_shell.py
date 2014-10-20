@@ -25,11 +25,11 @@ from manilaclient import exceptions
 from manilaclient.openstack.common import cliutils
 from manilaclient.openstack.common import jsonutils
 from manilaclient import shell
+from manilaclient.tests.unit import utils as test_utils
+from manilaclient.tests.unit.v1 import fakes
 from manilaclient import utils
 from manilaclient.v1 import client as client_v1
 from manilaclient.v1 import shell as shell_v1
-from tests import utils as test_utils
-from tests.v1 import fakes
 
 
 class ShellTest(test_utils.TestCase):

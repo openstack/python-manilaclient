@@ -15,8 +15,8 @@
 
 from __future__ import print_function
 
+from manilaclient.tests.unit.v1 import fake_clients as fakes
 from manilaclient.v1 import client
-from tests.v1 import fake_clients as fakes
 
 
 class FakeClient(fakes.FakeClient):

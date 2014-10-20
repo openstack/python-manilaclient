@@ -20,8 +20,8 @@ import mock
 import requests
 
 from manilaclient import exceptions
+from manilaclient.tests.unit import utils
 from manilaclient.v1 import client
-from tests import utils
 
 
 class AuthenticateAgainstKeystoneTests(utils.TestCase):

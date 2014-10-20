@@ -18,9 +18,9 @@ except ImportError:
     import urllib.parse as urlparse
 
 from manilaclient import client as base_client
+from manilaclient.tests.unit import fakes
+from manilaclient.tests.unit import utils
 from manilaclient.v1 import client
-from tests import fakes
-import tests.utils as utils
 
 
 class FakeClient(fakes.FakeClient, client.Client):
