@@ -11,8 +11,8 @@
 # under the License.
 
 import manilaclient.client
+from manilaclient.tests.unit import utils
 import manilaclient.v1.client
-from tests import utils
 
 
 class ClientTest(utils.TestCase):

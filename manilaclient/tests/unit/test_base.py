@@ -12,9 +12,9 @@
 
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.tests.unit import utils
+from manilaclient.tests.unit.v1 import fakes
 from manilaclient.v1 import shares
-from tests import utils
-from tests.v1 import fakes
 
 
 cs = fakes.FakeClient()

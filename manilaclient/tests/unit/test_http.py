@@ -15,7 +15,7 @@ import requests
 
 from manilaclient import client
 from manilaclient import exceptions
-from tests import utils
+from manilaclient.tests.unit import utils
 
 
 fake_response = utils.TestResponse({

@@ -12,7 +12,7 @@
 
 from manilaclient import exceptions
 from manilaclient import service_catalog
-from tests import utils
+from manilaclient.tests.unit import utils
 
 
 # Taken directly from keystone/content/common/samples/auth.json

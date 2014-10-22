@@ -18,8 +18,8 @@ from six import moves
 from testtools import matchers
 
 from manilaclient import exceptions
-import manilaclient.shell
-from tests import utils
+from manilaclient import shell
+from manilaclient.tests.unit import utils
 
 
 class ShellTest(utils.TestCase):
@@ -42,7 +42,7 @@ class ShellTest(utils.TestCase):
         orig = sys.stdout
         try:
             sys.stdout = moves.StringIO()
-            _shell = manilaclient.shell.OpenStackManilaShell()
+            _shell = shell.OpenStackManilaShell()
             _shell.main(argstr.split())
         except SystemExit:
             exc_type, exc_value, exc_traceback = sys.exc_info()
