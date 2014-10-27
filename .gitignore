@@ -6,6 +6,8 @@
 .tox/*
 .venv
 cover/*
+build/*
+etc/manilaclient/manilaclient.conf*
 subunit.log
 python_manilaclient.egg-info
 setuptools_git*.egg
