@@ -726,22 +726,78 @@ def do_list(cs, args):
     help='Filter results by status.')
 @cliutils.arg(
     '--share-id',
-    metavar='<share-id>',
+    '--share_id',  # alias
+    metavar='<share_id>',
     default=None,
-    help='Filter results by share ID.')
+    action='single_alias',
+    help='Filter results by source share ID.')
+@cliutils.arg(
+    '--usage',
+    dest='usage',
+    metavar='any|used|unused',
+    nargs='?',
+    type=str,
+    const='any',
+    default='any',
+    choices=['any', 'used', 'unused', ],
+    help='Either filter or not snapshots by its usage. OPTIONAL: Default=any.')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of share snapshots to return. '
+         'OPTIONAL: Default=None.')
+@cliutils.arg(
+    '--offset',
+    metavar='<offset>',
+    type=int,
+    default=None,
+    help='Set offset to define start point of share snapshots listing. '
+         'OPTIONAL: Default=None.')
+@cliutils.arg(
+    '--sort-key',
+    '--sort_key',  # alias
+    metavar='<sort_key>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Key to be sorted, available keys are %(keys)s. '
+         'OPTIONAL: Default=None.' % {
+             'keys': constants.SNAPSHOT_SORT_KEY_VALUES})
+@cliutils.arg(
+    '--sort-dir',
+    '--sort_dir',  # alias
+    metavar='<sort_dir>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Sort direction, available values are %(values)s. '
+         'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES})
 @cliutils.service_type('share')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
+    list_of_keys = [
+        'ID', 'Share ID', 'Status', 'Name', 'Share Size',
+    ]
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    empty_obj = type('Empty', (object,), {'id': None})
+    share = _find_share(cs, args.share_id) if args.share_id else empty_obj
     search_opts = {
+        'offset': args.offset,
+        'limit': args.limit,
         'all_tenants': all_tenants,
         'name': args.name,
         'status': args.status,
-        'share_id': args.share_id,
+        'share_id': share.id,
+        'usage': args.usage,
     }
-    snapshots = cs.share_snapshots.list(search_opts=search_opts)
-    utils.print_list(snapshots,
-                     ['ID', 'Share ID', 'Status', 'Name', 'Share Size'])
+    snapshots = cs.share_snapshots.list(
+        search_opts=search_opts,
+        sort_key=args.sort_key,
+        sort_dir=args.sort_dir,
+    )
+    utils.print_list(snapshots, list_of_keys)
 
 
 @cliutils.arg(

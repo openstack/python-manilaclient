@@ -1,6 +1,6 @@
 # Copyright 2010 Jacob Kaplan-Moss
-
 # Copyright 2011 OpenStack LLC.
+# Copyright 2014 Mirantis, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -44,6 +44,32 @@ class ShareSnapshotsTest(utils.TestCase):
         cs.assert_called('POST', '/snapshots/1234/action',
                          {'os-force_delete': None})
 
-    def test_list_share_snapshots(self):
-        cs.share_snapshots.list()
+    def test_list_share_snapshots_index(self):
+        cs.share_snapshots.list(detailed=False)
+        cs.assert_called('GET', '/snapshots')
+
+    def test_list_share_snapshots_index_with_search_opts(self):
+        search_opts = {'fake_str': 'fake_str_value', 'fake_int': 1}
+        cs.share_snapshots.list(detailed=False, search_opts=search_opts)
+        cs.assert_called(
+            'GET', '/snapshots?fake_int=1&fake_str=fake_str_value')
+
+    def test_list_share_snapshots_sort_by_asc_and_share_id(self):
+        cs.share_snapshots.list(
+            detailed=False, sort_key='share_id', sort_dir='asc')
+        cs.assert_called('GET', '/snapshots?sort_dir=asc&sort_key=share_id')
+
+    def test_list_share_snapshots_sort_by_desc_and_status(self):
+        cs.share_snapshots.list(
+            detailed=False, sort_key='status', sort_dir='desc')
+        cs.assert_called('GET', '/snapshots?sort_dir=desc&sort_key=status')
+
+    def test_list_share_snapshots_by_improper_direction(self):
+        self.assertRaises(ValueError, cs.share_snapshots.list, sort_dir='fake')
+
+    def test_list_share_snapshots_by_improper_key(self):
+        self.assertRaises(ValueError, cs.share_snapshots.list, sort_key='fake')
+
+    def test_list_share_snapshots_detail(self):
+        cs.share_snapshots.list(detailed=True)
         cs.assert_called('GET', '/snapshots/detail')

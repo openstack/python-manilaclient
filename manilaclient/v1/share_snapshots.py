@@ -20,6 +20,7 @@ except ImportError:
     from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
+from manilaclient.common import constants
 from manilaclient.openstack.common.apiclient import base as common_base
 
 
@@ -74,11 +75,34 @@ class ShareSnapshotManager(base.ManagerWithFind):
         """
         return self._get('/snapshots/%s' % snapshot_id, 'snapshot')
 
-    def list(self, detailed=True, search_opts=None):
-        """Get a list of all snapshots of shares.
+    def list(self, detailed=True, search_opts=None, sort_key=None,
+             sort_dir=None):
+        """Get a list of snapshots of shares.
 
+        :param search_opts: Search options to filter out shares.
+        :param sort_key: Key to be sorted.
+        :param sort_dir: Sort direction, should be 'desc' or 'asc'.
         :rtype: list of :class:`ShareSnapshot`
         """
+        if search_opts is None:
+            search_opts = {}
+
+        if sort_key is not None:
+            if sort_key in constants.SNAPSHOT_SORT_KEY_VALUES:
+                search_opts['sort_key'] = sort_key
+            else:
+                raise ValueError(
+                    'sort_key must be one of the following: %s.'
+                    % ', '.join(constants.SNAPSHOT_SORT_KEY_VALUES))
+
+        if sort_dir is not None:
+            if sort_dir in constants.SORT_DIR_VALUES:
+                search_opts['sort_dir'] = sort_dir
+            else:
+                raise ValueError(
+                    'sort_dir must be one of the following: %s.'
+                    % ', '.join(constants.SORT_DIR_VALUES))
+
         if search_opts:
             query_string = urlencode(
                 sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))

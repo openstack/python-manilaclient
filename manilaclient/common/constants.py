@@ -27,3 +27,14 @@ SHARE_SORT_KEY_VALUES = (
     'share_network_id', 'share_network',
     'snapshot_id', 'snapshot',
 )
+
+SNAPSHOT_SORT_KEY_VALUES = (
+    'id',
+    'status',
+    'size',
+    'share_id',
+    'user_id',
+    'project_id',
+    'progress',
+    'name', 'display_name',
+)
