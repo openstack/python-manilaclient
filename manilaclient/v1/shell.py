@@ -21,6 +21,7 @@ import time
 
 from manilaclient.common import constants
 from manilaclient import exceptions
+from manilaclient.openstack.common.apiclient import utils as apiclient_utils
 from manilaclient.openstack.common import cliutils
 from manilaclient import utils
 from manilaclient.v1 import quotas
@@ -58,7 +59,7 @@ def _poll_for_status(poll_fn, obj_id, action, final_ok_states,
 
 def _find_share(cs, share):
     """Get a share by ID."""
-    return cliutils.find_resource(cs.shares, share)
+    return apiclient_utils.find_resource(cs.shares, share)
 
 
 def _print_share(cs, share):
@@ -68,7 +69,7 @@ def _print_share(cs, share):
 
 def _find_share_snapshot(cs, snapshot):
     """Get a snapshot by ID."""
-    return cliutils.find_resource(cs.share_snapshots, snapshot)
+    return apiclient_utils.find_resource(cs.share_snapshots, snapshot)
 
 
 def _print_share_snapshot(cs, snapshot):
@@ -79,12 +80,13 @@ def _print_share_snapshot(cs, snapshot):
 
 def _find_share_network(cs, share_network):
     "Get a share network by ID or name."
-    return cliutils.find_resource(cs.share_networks, share_network)
+    return apiclient_utils.find_resource(cs.share_networks, share_network)
 
 
 def _find_security_service(cs, security_service):
     "Get a security service by ID or name."
-    return cliutils.find_resource(cs.security_services, security_service)
+    return apiclient_utils.find_resource(cs.security_services,
+                                         security_service)
 
 
 def _translate_keys(collection, convert):
@@ -1482,7 +1484,7 @@ def _print_type_and_extra_specs_list(vtypes):
 
 def _find_volume_type(cs, vtype):
     """Get a volume type by name or ID."""
-    return cliutils.find_resource(cs.volume_types, vtype)
+    return apiclient_utils.find_resource(cs.volume_types, vtype)
 
 
 @cliutils.service_type('share')

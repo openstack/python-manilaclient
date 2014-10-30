@@ -23,7 +23,7 @@ import six
 from manilaclient import client
 from manilaclient.common import constants
 from manilaclient import exceptions
-from manilaclient.openstack.common import cliutils
+from manilaclient.openstack.common.apiclient import utils as apiclient_utils
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v1 import fakes
@@ -144,8 +144,10 @@ class ShellTest(test_utils.TestCase):
         ]
         for alias in aliases:
             for separator in self.separators:
-                with mock.patch.object(cliutils, 'find_resource',
-                                       mock.Mock(return_value=fake_vt)):
+                with mock.patch.object(
+                        apiclient_utils,
+                        'find_resource',
+                        mock.Mock(return_value=fake_vt)):
                     self.run_command('list ' + alias + separator + fake_vt.id)
                     self.assert_called(
                         'GET', '/shares/detail?volume_type_id=' + fake_vt.id)
@@ -207,8 +209,10 @@ class ShellTest(test_utils.TestCase):
     def test_list_filter_by_snapshot(self):
         fake_s = type('Empty', (object,), {'id': 'fake_snapshot_id'})
         for separator in self.separators:
-            with mock.patch.object(cliutils, 'find_resource',
-                                   mock.Mock(return_value=fake_s)):
+            with mock.patch.object(
+                    apiclient_utils,
+                    'find_resource',
+                    mock.Mock(return_value=fake_s)):
                 self.run_command('list --snapshot' + separator + fake_s.id)
                 self.assert_called(
                     'GET', '/shares/detail?snapshot_id=' + fake_s.id)
@@ -231,8 +235,10 @@ class ShellTest(test_utils.TestCase):
         fake_sn = type('Empty', (object,), {'id': 'fake_share_network_id'})
         for alias in aliases:
             for separator in self.separators:
-                with mock.patch.object(cliutils, 'find_resource',
-                                       mock.Mock(return_value=fake_sn)):
+                with mock.patch.object(
+                        apiclient_utils,
+                        'find_resource',
+                        mock.Mock(return_value=fake_sn)):
                     self.run_command('list ' + alias + separator + fake_sn.id)
                     self.assert_called(
                         'GET', '/shares/detail?share_network_id=' + fake_sn.id)
