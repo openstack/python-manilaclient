@@ -1,28 +1,48 @@
-Python API
-==========
-In order to use the python api directly, you must first obtain an auth token and identify which endpoint you wish to speak to. Once you have done so, you can use the API like so::
+Python bindings to the OpenStack Manila API
+===========================================
 
-    >>> from manilaclient import client
-    >>> manila = client.Client('1', $OS_USER_NAME, $OS_PASSWORD, $OS_TENANT_NAME, $OS_AUTH_URL)
-    >>> manila.shares.list()
-    []
-    >>> share = manila.shares.create(share_proto="nfs", size=1, share_network_id="some_share_network_id")
-    >>> share.id
-    ce06d0a8-5c1b-4e2c-81d2-39eca6bbfb70
-    >>> manila.shares.list()
-    [<Share: ce06d0a8-5c1b-4e2c-81d2-39eca6bbfb70>]
-    >>>share.delete
+This is a client for OpenStack Manila API. There's :doc:`a Python API
+<api>` (the :mod:`manilaclient` module), and a :doc:`command-line script
+<shell>` (installed as :program:`manila`). Each implements the entire
+OpenStack Manila API.
 
-Command-line Tool
-=================
-In order to use the CLI, you must provide your OpenStack username, password, tenant, and auth endpoint. Use the corresponding configuration options (``--os-username``, ``--os-password``, ``--os-tenant-id``, and ``--os-auth-url``) or set them in environment variables::
+You'll need credentials for an OpenStack cloud that implements the
+Manila API in order to use the manila client.
 
-    export OS_USERNAME=user
-    export OS_PASSWORD=pass
-    export OS_TENANT_ID=b363706f891f48019483f8bd6503c54b
-    export OS_AUTH_URL=http://auth.example.com:5000/v2.0
+Contents:
 
-Once you've configured your authentication parameters, you can run ``manila help`` to see a complete listing of available commands.
+.. toctree::
+   :maxdepth: 2
+
+   shell
+   api
+
+Contributing
+============
+
+Code is hosted at `git.openstack.org`_. Submit bugs to the
+python-manilaclient project on `Launchpad`_. Submit code to the
+openstack/python-manilaclient project using `Gerrit`_.
+
+.. _git.openstack.org: https://git.openstack.org/cgit/openstack/python-manilaclient
+.. _Launchpad: https://launchpad.net/python-manilaclient
+.. _Gerrit: http://wiki.openstack.org/GerritWorkflow
+
+Testing
+-------
+
+The preferred way to run the unit tests is using ``tox``.
+
+See `Consistent Testing Interface`_ for more details.
+
+.. _Consistent Testing Interface: http://git.openstack.org/cgit/openstack/governance/tree/reference/project-testing-interface.rst
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 
 Release Notes
