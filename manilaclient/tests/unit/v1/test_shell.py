@@ -19,6 +19,7 @@ import mock
 from oslo.serialization import jsonutils
 import requests
 import six
+from six.moves.urllib import parse
 
 from manilaclient import client
 from manilaclient.common import constants
@@ -471,6 +472,175 @@ class ShellTest(test_utils.TestCase):
         self.run_command('snapshot-reset-state --state error 1234')
         expected = {'os-reset_status': {'status': 'error'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list(self):
+        self.run_command('share-network-list')
+        self.assert_called(
+            'GET',
+            '/share-networks/detail',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_all_tenants(self):
+        self.run_command('share-network-list --all-tenants')
+        self.assert_called(
+            'GET',
+            '/share-networks/detail?all_tenants=1',
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(shell_v1, '_find_security_service', mock.Mock())
+    def test_share_network_list_filter_by_security_service(self):
+        ss = type('FakeSecurityService', (object,), {'id': 'fake-ss-id'})
+        shell_v1._find_security_service.return_value = ss
+        for command in ['--security_service', '--security-service']:
+            self.run_command('share-network-list %(command)s %(ss_id)s' %
+                             {'command': command,
+                              'ss_id': ss.id})
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?security_service_id=%s' % ss.id,
+            )
+            shell_v1._find_security_service.assert_called_with(mock.ANY, ss.id)
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_project_id_aliases(self):
+        for command in ['--project-id', '--project_id']:
+            self.run_command('share-network-list %s 1234' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?project_id=1234',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_created_before_aliases(self):
+        for command in ['--created-before', '--created_before']:
+            self.run_command('share-network-list %s 2001-01-01' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?created_before=2001-01-01',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_created_since_aliases(self):
+        for command in ['--created-since', '--created_since']:
+            self.run_command('share-network-list %s 2001-01-01' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?created_since=2001-01-01',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_neutron_net_id_aliases(self):
+        for command in ['--neutron-net-id', '--neutron-net_id',
+                        '--neutron_net-id', '--neutron_net_id']:
+            self.run_command('share-network-list %s fake-id' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?neutron_net_id=fake-id',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_neutron_subnet_id_aliases(self):
+        for command in ['--neutron-subnet-id', '--neutron-subnet_id',
+                        '--neutron_subnet-id', '--neutron_subnet_id']:
+            self.run_command('share-network-list %s fake-id' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?neutron_subnet_id=fake-id',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_network_type_aliases(self):
+        for command in ['--network_type', '--network-type']:
+            self.run_command('share-network-list %s local' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?network_type=local',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_segmentation_id_aliases(self):
+        for command in ['--segmentation-id', '--segmentation_id']:
+            self.run_command('share-network-list %s 1234' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?segmentation_id=1234',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_ip_version_aliases(self):
+        for command in ['--ip-version', '--ip_version']:
+            self.run_command('share-network-list %s 4' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?ip_version=4',
+            )
+            utils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(utils, 'print_list', mock.Mock())
+    def test_share_network_list_all_filters(self):
+        filters = {
+            'name': 'fake-name',
+            'project-id': '1234',
+            'created-since': '2001-01-01',
+            'created-before': '2002-02-02',
+            'neutron-net-id': 'fake-net',
+            'neutron-subnet-id': 'fake-subnet',
+            'network-type': 'local',
+            'segmentation-id': '5678',
+            'cidr': 'fake-cidr',
+            'ip-version': '4',
+            'offset': 10,
+            'limit': 20,
+        }
+        command_str = 'share-network-list'
+        for key, value in six.iteritems(filters):
+            command_str += ' --%(key)s=%(value)s' % {'key': key,
+                                                     'value': value}
+        self.run_command(command_str)
+        query = parse.urlencode(sorted([(k.replace('-', '_'), v) for (k, v)
+                                        in list(filters.items())]))
+        self.assert_called(
+            'GET',
+            '/share-networks/detail?%s' % query,
+        )
+        utils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name'])
 
     def test_share_network_security_service_add(self):
         self.run_command('share-network-security-service-add fake_share_nw '

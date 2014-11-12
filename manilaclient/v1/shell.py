@@ -1052,19 +1052,118 @@ def do_share_network_show(cs, args):
     default=0,
     help='Display information from all tenants (Admin only).')
 @cliutils.arg(
-    '--status',
-    metavar='<status>',
+    '--project-id',
+    '--project_id',  # alias
+    metavar='<project_id>',
+    action='single_alias',
     default=None,
-    help='Filter results by status.')
+    help='Filter results by project ID.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help='Filter results by name.')
+@cliutils.arg(
+    '--created-since',
+    '--created_since',  # alias
+    metavar='<created_since>',
+    action='single_alias',
+    default=None,
+    help='''Return only share networks created since given date. '''
+         '''The date is in the format 'yyyy-mm-dd'.''')
+@cliutils.arg(
+    '--created-before',
+    '--created_before',  # alias
+    metavar='<created_before>',
+    action='single_alias',
+    default=None,
+    help='''Return only share networks created until given date. '''
+         '''The date is in the format 'yyyy-mm-dd'.''')
+@cliutils.arg(
+    '--security-service',
+    '--security_service',  # alias
+    metavar='<security_service>',
+    action='single_alias',
+    default=None,
+    help='Filter results by attached security service.')
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron_net_id', '--neutron_net-id', '--neutron-net_id',  # aliases
+    metavar='<neutron_net_id>',
+    action='single_alias',
+    default=None,
+    help='Filter results by neutron net ID.')
+@cliutils.arg(
+    '--neutron-subnet-id',
+    '--neutron_subnet_id', '--neutron-subnet_id',  # aliases
+    '--neutron_subnet-id',  # alias
+    metavar='<neutron_subnet_id>',
+    action='single_alias',
+    default=None,
+    help='Filter results by neutron subnet ID.')
+@cliutils.arg(
+    '--network-type',
+    '--network_type',  # alias
+    metavar='<network_type>',
+    action='single_alias',
+    default=None,
+    help='Filter results by network type.')
+@cliutils.arg(
+    '--segmentation-id',
+    '--segmentation_id',  # alias
+    metavar='<segmentation_id>',
+    type=int,
+    action='single_alias',
+    default=None,
+    help='Filter results by segmentation ID.')
+@cliutils.arg(
+    '--cidr',
+    metavar='<cidr>',
+    default=None,
+    help='Filter results by CIDR.')
+@cliutils.arg(
+    '--ip-version',
+    '--ip_version',  # alias
+    metavar='<ip_version>',
+    type=int,
+    action='single_alias',
+    default=None,
+    help='Filter results by IP version.')
+@cliutils.arg(
+    '--offset',
+    metavar='<offset>',
+    type=int,
+    default=None,
+    help='Start position of share networks listing.')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Number of share networks to return per request.')
 def do_share_network_list(cs, args):
     """Get a list of network info."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     search_opts = {
         'all_tenants': all_tenants,
-        'status': args.status,
+        'project_id': args.project_id,
+        'name': args.name,
+        'created_since': args.created_since,
+        'created_before': args.created_before,
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'network_type': args.network_type,
+        'segmentation_id': args.segmentation_id,
+        'cidr': args.cidr,
+        'ip_version': args.ip_version,
+        'offset': args.offset,
+        'limit': args.limit,
     }
+    if args.security_service:
+        search_opts['security_service_id'] = _find_security_service(
+            cs, args.security_service).id
     share_networks = cs.share_networks.list(search_opts=search_opts)
-    fields = ['id', 'name', 'status']
+    fields = ['id', 'name']
     utils.print_list(share_networks, fields=fields)
 
 
