@@ -20,10 +20,14 @@ pull requests.
 .. _Launchpad: https://launchpad.net/python-manilaclient
 .. _Gerrit: http://wiki.openstack.org/GerritWorkflow
 
-This code a fork of `Jacobian's python-cloudservers`__ If you need API support
-for the Rackspace API solely or the BSD license, you should use that repository.
-python-manilaclient is licensed under the Apache License like the rest of OpenStack.
+This code is a fork of `Cinderclient`_ of Grizzly release and then it was
+developed separately. Cinderclient code is a fork of
+`Jacobian's python-cloudservers`__ If you need API support for the Rackspace
+API solely or the BSD license, you should use that repository.
+python-manilaclient is licensed under the Apache License like the rest of
+OpenStack.
 
+.. _Cinderclient: https://github.com/openstack/python-cinderclient
 __ http://github.com/jacobian/python-cloudservers
 
 .. contents:: Contents:
@@ -39,19 +43,12 @@ You'll need to provide your OpenStack username and password. You can do this
 with the ``--os-username``, ``--os-password`` and  ``--os-tenant-name``
 params, but it's easier to just set them as environment variables::
 
-    export OS_USERNAME=openstack
-    export OS_PASSWORD=yadayada
-    export OS_TENANT_NAME=myproject
+    export OS_USERNAME=foouser
+    export OS_PASSWORD=barpass
+    export OS_TENANT_NAME=fooproject
 
-You will also need to define the authentication url with ``--os-auth-url``
-and the version of the API with ``--version``.  Or set them as an environment
-variables as well::
-
-    export OS_AUTH_URL=http://example.com:8774/v1.1/
-    export OS_VOLUME_API_VERSION=1
-
-If you are using Keystone, you need to set the MANILA_URL to the keystone
-endpoint::
+You will also need to define the authentication url either with param
+``--os-auth-url`` or as an environment variable::
 
     export OS_AUTH_URL=http://example.com:5000/v2.0/
 
@@ -60,81 +57,7 @@ can specify the one you want with ``--os-region-name`` (or
 ``export OS_REGION_NAME``). It defaults to the first in the list returned.
 
 You'll find complete documentation on the shell by running
-``manila help``::
-
-    usage: manila [--debug] [--os-username <auth-user-name>]
-                  [--os-password <auth-password>]
-                  [--os-tenant-name <auth-tenant-name>] [--os-auth-url <auth-url>]
-                  [--os-region-name <region-name>] [--service-type <service-type>]
-                  [--service-name <service-name>]
-                  [--volume-service-name <volume-service-name>]
-                  [--endpoint-type <endpoint-type>]
-                  [--os-volume-api-version <compute-api-ver>]
-                  [--os-cacert <ca-certificate>] [--retries <retries>]
-                  <subcommand> ...
-
-    Command-line interface to the OpenStack Manila API.
-
-    Positional arguments:
-      <subcommand>
-        absolute-limits     Print a list of absolute limits for a user
-        create              Add a new volume.
-        credentials         Show user credentials returned from auth
-        delete              Remove a volume.
-        endpoints           Discover endpoints that get returned from the
-                            authenticate services
-        extra-specs-list    Print a list of current 'volume types and extra specs'
-                            (Admin Only).
-        list                List all the volumes.
-        quota-class-show    List the quotas for a quota class.
-        quota-class-update  Update the quotas for a quota class.
-        quota-defaults      List the default quotas for a tenant.
-        quota-show          List the quotas for a tenant.
-        quota-update        Update the quotas for a tenant.
-        rate-limits         Print a list of rate limits for a user
-        rename              Rename a volume.
-        show                Show details about a volume.
-        snapshot-create     Add a new snapshot.
-        snapshot-delete     Remove a snapshot.
-        snapshot-list       List all the snapshots.
-        snapshot-rename     Rename a snapshot.
-        snapshot-show       Show details about a snapshot.
-        type-create         Create a new volume type.
-        type-delete         Delete a specific volume type
-        type-key            Set or unset extra_spec for a volume type.
-        type-list           Print a list of available 'volume types'.
-        bash-completion     Prints all of the commands and options to stdout so
-                            that the
-        help                Display help about this program or one of its
-                            subcommands.
-        list-extensions     List all the os-api extensions that are available.
-
-    Optional arguments:
-      --debug               Print debugging output
-      --os-username <auth-user-name>
-                            Defaults to env[OS_USERNAME].
-      --os-password <auth-password>
-                            Defaults to env[OS_PASSWORD].
-      --os-tenant-name <auth-tenant-name>
-                            Defaults to env[OS_TENANT_NAME].
-      --os-auth-url <auth-url>
-                            Defaults to env[OS_AUTH_URL].
-      --os-region-name <region-name>
-                            Defaults to env[OS_REGION_NAME].
-      --service-type <service-type>
-                            Defaults to compute for most actions
-      --service-name <service-name>
-                            Defaults to env[MANILA_SERVICE_NAME]
-      --volume-service-name <volume-service-name>
-                            Defaults to env[MANILA_VOLUME_SERVICE_NAME]
-      --endpoint-type <endpoint-type>
-                            Defaults to env[MANILA_ENDPOINT_TYPE] or publicURL.
-      --os-volume-api-version <compute-api-ver>
-                            Accepts 1,defaults to env[OS_VOLUME_API_VERSION].
-      --os-cacert <ca-certificate>
-                            Specify a CA bundle file to use in verifying a TLS
-                            (https) server certificate. Defaults to env[OS_CACERT]
-      --retries <retries>   Number of retries.
+``manila help``, see ``manila help COMMAND`` for help on a specific command.
 
 Python API
 ----------
@@ -145,6 +68,6 @@ Quick-start using keystone::
 
     # use v2.0 auth with http://example.com:5000/v2.0/")
     >>> from manilaclient.v1 import client
-    >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="volume")
-    >>> nt.volumes.list()
+    >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="share")
+    >>> nt.shares.list()
     [...]
