@@ -70,8 +70,8 @@ DEFAULT_CONFIG_FILE = (
     '%s.conf' % PROJECT_NAME)
 DEFAULT_CONFIG_DIR = (
     os.environ.get('OS_%s_CONFIG_DIR' % PROJECT_NAME.upper()) or
-    os.path.join(os.path.abspath(os.path.dirname(
-        os.path.dirname(os.path.dirname(__file__)))), "etc/manilaclient")
+    os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))),
+                 "etc/manilaclient")
 )
 DEFAULT_CONFIG_PATH = os.path.join(DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE)
 FAILOVER_CONFIG_PATH = '/etc/%(pn)s/%(cn)s' % {
