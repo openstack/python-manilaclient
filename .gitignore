@@ -14,3 +14,4 @@ setuptools_git*.egg
 setuptools_git*.egg
 AUTHORS
 ChangeLog
+doc/source/manila_cli_output.rst.inc

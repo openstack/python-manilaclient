@@ -47,3 +47,5 @@ From there, all shell commands take the form::
 Run :program:`manila help` to get a full list of all possible commands,
 and run :program:`manila help <command>` to get detailed help for that
 command.
+
+.. include:: manila_cli_output.rst.inc
