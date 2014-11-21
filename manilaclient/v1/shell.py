@@ -740,7 +740,7 @@ def do_list(cs, args):
     nargs='?',
     type=str,
     const='any',
-    default='any',
+    default=None,
     choices=['any', 'used', 'unused', ],
     help='Either filter or not snapshots by its usage. OPTIONAL: Default=any.')
 @cliutils.arg(
