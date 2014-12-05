@@ -18,7 +18,7 @@ pull requests.
 
 .. _Github: https://github.com/openstack/python-manilaclient
 .. _Launchpad: https://launchpad.net/python-manilaclient
-.. _Gerrit: http://wiki.openstack.org/GerritWorkflow
+.. _Gerrit: http://docs.openstack.org/infra/manual/developers.html#development-workflow
 
 This code is a fork of `Cinderclient`_ of Grizzly release and then it was
 developed separately. Cinderclient code is a fork of

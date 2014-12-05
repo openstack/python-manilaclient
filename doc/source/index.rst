@@ -26,7 +26,7 @@ openstack/python-manilaclient project using `Gerrit`_.
 
 .. _git.openstack.org: https://git.openstack.org/cgit/openstack/python-manilaclient
 .. _Launchpad: https://launchpad.net/python-manilaclient
-.. _Gerrit: http://wiki.openstack.org/GerritWorkflow
+.. _Gerrit: http://docs.openstack.org/infra/manual/developers.html#development-workflow
 
 Testing
 -------
