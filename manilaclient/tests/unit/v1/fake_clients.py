@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
+from six.moves.urllib import parse
 
 from manilaclient import client as base_client
 from manilaclient.tests.unit import fakes
@@ -48,7 +45,7 @@ class FakeHTTPClient(base_client.HTTPClient):
             assert 'body' in kwargs
 
         # Call the method
-        args = urlparse.parse_qsl(urlparse.urlparse(url)[4])
+        args = parse.parse_qsl(parse.urlparse(url)[4])
         kwargs.update(args)
         munged_url = url.rsplit('?', 1)[0]
         munged_url = munged_url.strip('/').replace('/', '_').replace('.', '_')

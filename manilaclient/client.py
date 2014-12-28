@@ -23,24 +23,16 @@ from __future__ import print_function
 
 import logging
 import os
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
 
 try:
     from eventlet import sleep
 except ImportError:
     from time import sleep  # noqa
 
-# Python 2.5 compat fix
-if not hasattr(urlparse, 'parse_qsl'):
-    import cgi
-    urlparse.parse_qsl = cgi.parse_qsl
-
 from oslo.serialization import jsonutils
 from oslo.utils import importutils
 import requests
+from six.moves.urllib import parse
 
 from manilaclient import exceptions
 from manilaclient import service_catalog
@@ -296,7 +288,7 @@ class HTTPClient(object):
             self.keyring_saver.save_password()
 
     def authenticate(self):
-        magic_tuple = urlparse.urlsplit(self.auth_url)
+        magic_tuple = parse.urlsplit(self.auth_url)
         scheme, netloc, path, query, frag = magic_tuple
         port = magic_tuple.port
         if port is None:
@@ -310,8 +302,8 @@ class HTTPClient(object):
         # TODO(sandy): Assume admin endpoint is 35357 for now.
         # Ideally this is going to have to be provided by the service catalog.
         new_netloc = netloc.replace(':%d' % port, ':%d' % (35357,))
-        admin_url = urlparse.urlunsplit((scheme, new_netloc,
-                                         path, query, frag))
+        admin_url = parse.urlunsplit((scheme, new_netloc,
+                                      path, query, frag))
 
         auth_url = self.auth_url
         if self.version == "v2.0":
