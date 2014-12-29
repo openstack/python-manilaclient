@@ -34,6 +34,10 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)
 
+    def get_shares_1111(self, **kw):
+        share = {'share': {'id': 1111, 'name': 'share1111'}}
+        return (200, {}, share)
+
     def get_shares(self, **kw):
         endpoint = "http://127.0.0.1:8786/v1"
         share_id = '1234'
@@ -135,6 +139,32 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert 'status' in body['os-reset_status']
         elif action == 'os-force_delete':
             assert body[action] is None
+        else:
+            raise AssertionError("Unexpected share action: %s" % action)
+        return (resp, {}, _body)
+
+    def post_shares_1111_action(self, body, **kw):
+        _body = None
+        resp = 202
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action == 'os-allow_access':
+            expected = ['access_level', 'access_to', 'access_type']
+            actual = sorted(list(body[action]))
+            err_msg = "expected '%s', actual is '%s'" % (expected, actual)
+            assert expected == actual, err_msg
+            _body = {'access': {}}
+        elif action == 'os-access_list':
+            assert body[action] is None
+            _body = {
+                'access_list': [{
+                    'access_level': 'rw',
+                    'state': 'active',
+                    'id': '1122',
+                    'access_type': 'ip',
+                    'access_to': '10.0.0.7'
+                }]
+            }
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)

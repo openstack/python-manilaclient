@@ -41,33 +41,37 @@ class SharesTest(utils.TestCase):
     def test_share_allow_access_cert(self):
         access_type = 'cert'
         access_to = 'client.example.com'
+        access_level = None
 
-        self.share.allow(access_type, access_to)
+        self.share.allow(access_type, access_to, access_level)
 
         self.assertTrue(self.share.manager.allow.called)
 
     def test_share_allow_access_cert_error_gt64(self):
         access_type = 'cert'
         access_to = 'x' * 65
+        access_level = None
 
-        self.assertRaises(exceptions.CommandError,
-                          self.share.allow, access_type, access_to)
+        self.assertRaises(exceptions.CommandError, self.share.allow,
+                          access_type, access_to, access_level)
         self.assertFalse(self.share.manager.allow.called)
 
     def test_share_allow_access_cert_error_whitespace(self):
         access_type = 'cert'
         access_to = ' '
+        access_level = None
 
-        self.assertRaises(exceptions.CommandError,
-                          self.share.allow, access_type, access_to)
+        self.assertRaises(exceptions.CommandError, self.share.allow,
+                          access_type, access_to, access_level)
         self.assertFalse(self.share.manager.allow.called)
 
     def test_share_allow_access_cert_error_zero(self):
         access_type = 'cert'
         access_to = ''
+        access_level = None
 
-        self.assertRaises(exceptions.CommandError,
-                          self.share.allow, access_type, access_to)
+        self.assertRaises(exceptions.CommandError, self.share.allow,
+                          access_type, access_to, access_level)
         self.assertFalse(self.share.manager.allow.called)
 
     # Testcases for class ShareManager
@@ -144,13 +148,13 @@ class SharesTest(utils.TestCase):
     def test_allow_access_to_share(self):
         share = cs.shares.get(1234)
         ip = '192.168.0.1'
-        cs.shares.allow(share, 'ip', ip)
+        cs.shares.allow(share, 'ip', ip, None)
         cs.assert_called('POST', '/shares/1234/action')
 
     def test_allow_access_to_share_with_cert(self):
         share = cs.shares.get(1234)
         common_name = 'test.example.com'
-        cs.shares.allow(share, 'cert', common_name)
+        cs.shares.allow(share, 'cert', common_name, None)
         cs.assert_called('POST', '/shares/1234/action')
 
     def test_get_metadata(self):
