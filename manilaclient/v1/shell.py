@@ -1560,7 +1560,7 @@ def do_service_list(cs, args):
         'zone': args.zone,
         'state': args.state,
     }
-    fields = ["Binary", "Host", "Zone", "Status", "State", "Updated_at"]
+    fields = ["Id", "Binary", "Host", "Zone", "Status", "State", "Updated_at"]
     services = cs.services.list(search_opts=search_opts)
     utils.print_list(services, fields=fields)
 
