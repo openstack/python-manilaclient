@@ -118,7 +118,7 @@ function copy_subunit_log {
 
 function run_pep8 {
   echo "Running pep8 ..."
-  srcfiles="manilaclient tests"
+  srcfiles="manilaclient"
   # Just run PEP8 in current environment
   #
   # NOTE(sirp): W602 (deprecated 3-arg raise) is being ignored for the
