@@ -25,10 +25,10 @@ from manilaclient import client
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import utils as apiclient_utils
+from manilaclient.openstack.common import cliutils
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v1 import fakes
-from manilaclient import utils
 from manilaclient.v1 import client as client_v1
 from manilaclient.v1 import shell as shell_v1
 
@@ -478,29 +478,29 @@ class ShellTest(test_utils.TestCase):
         expected = {'os-reset_status': {'status': 'error'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list(self):
         self.run_command('share-network-list')
         self.assert_called(
             'GET',
             '/share-networks/detail',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_all_tenants(self):
         self.run_command('share-network-list --all-tenants')
         self.assert_called(
             'GET',
             '/share-networks/detail?all_tenants=1',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     @mock.patch.object(shell_v1, '_find_security_service', mock.Mock())
     def test_share_network_list_filter_by_security_service(self):
         ss = type('FakeSecurityService', (object,), {'id': 'fake-ss-id'})
@@ -514,11 +514,11 @@ class ShellTest(test_utils.TestCase):
                 '/share-networks/detail?security_service_id=%s' % ss.id,
             )
             shell_v1._find_security_service.assert_called_with(mock.ANY, ss.id)
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_project_id_aliases(self):
         for command in ['--project-id', '--project_id']:
             self.run_command('share-network-list %s 1234' % command)
@@ -526,11 +526,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?project_id=1234',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_created_before_aliases(self):
         for command in ['--created-before', '--created_before']:
             self.run_command('share-network-list %s 2001-01-01' % command)
@@ -538,11 +538,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?created_before=2001-01-01',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_created_since_aliases(self):
         for command in ['--created-since', '--created_since']:
             self.run_command('share-network-list %s 2001-01-01' % command)
@@ -550,11 +550,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?created_since=2001-01-01',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_neutron_net_id_aliases(self):
         for command in ['--neutron-net-id', '--neutron-net_id',
                         '--neutron_net-id', '--neutron_net_id']:
@@ -563,11 +563,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?neutron_net_id=fake-id',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_neutron_subnet_id_aliases(self):
         for command in ['--neutron-subnet-id', '--neutron-subnet_id',
                         '--neutron_subnet-id', '--neutron_subnet_id']:
@@ -576,11 +576,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?neutron_subnet_id=fake-id',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_network_type_aliases(self):
         for command in ['--network_type', '--network-type']:
             self.run_command('share-network-list %s local' % command)
@@ -588,11 +588,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?network_type=local',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_segmentation_id_aliases(self):
         for command in ['--segmentation-id', '--segmentation_id']:
             self.run_command('share-network-list %s 1234' % command)
@@ -600,11 +600,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?segmentation_id=1234',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_ip_version_aliases(self):
         for command in ['--ip-version', '--ip_version']:
             self.run_command('share-network-list %s 4' % command)
@@ -612,11 +612,11 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-networks/detail?ip_version=4',
             )
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_all_filters(self):
         filters = {
             'name': 'fake-name',
@@ -643,7 +643,7 @@ class ShellTest(test_utils.TestCase):
             'GET',
             '/share-networks/detail?%s' % query,
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name'])
 
@@ -784,18 +784,18 @@ class ShellTest(test_utils.TestCase):
 
         cmd.split.assert_called_once_with()
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list(self):
         self.run_command('security-service-list')
         self.assert_called(
             'GET',
             '/security-services',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     @mock.patch.object(shell_v1, '_find_share_network', mock.Mock())
     def test_security_service_list_filter_share_network(self):
         class FakeShareNetwork:
@@ -811,33 +811,33 @@ class ShellTest(test_utils.TestCase):
                 '/security-services?share_network_id=%s' % sn.id,
             )
             shell_v1._find_share_network.assert_called_with(mock.ANY, sn.id)
-            utils.print_list.assert_called_with(
+            cliutils.print_list.assert_called_with(
                 mock.ANY,
                 fields=['id', 'name', 'status', 'type'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list_detailed(self):
         self.run_command('security-service-list --detailed')
         self.assert_called(
             'GET',
             '/security-services/detail',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type', 'share_networks'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list_all_tenants(self):
         self.run_command('security-service-list --all-tenants')
         self.assert_called(
             'GET',
             '/security-services?all_tenants=1',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list_all_filters(self):
         filters = {
             'status': 'new',
@@ -861,18 +861,18 @@ class ShellTest(test_utils.TestCase):
             '&name=fake-name&offset=10&server=fake-server&status=new'
             '&type=ldap&user=fake-user',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
 
-    @mock.patch.object(utils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list_filter_by_dns_ip_alias(self):
         self.run_command('security-service-list --dns_ip 1.1.1.1')
         self.assert_called(
             'GET',
             '/security-services?dns_ip=1.1.1.1',
         )
-        utils.print_list.assert_called_once_with(
+        cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
 

@@ -16,7 +16,6 @@
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 from manilaclient.openstack.common import cliutils
-from manilaclient import utils
 
 
 class ListExtResource(common_base.Resource):
@@ -44,4 +43,4 @@ def do_list_extensions(client, _args):
     """List all the os-api extensions that are available."""
     extensions = client.list_extensions.show_all()
     fields = ["Name", "Summary", "Alias", "Updated"]
-    utils.print_list(extensions, fields)
+    cliutils.print_list(extensions, fields)

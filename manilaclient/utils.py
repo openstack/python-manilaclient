@@ -10,50 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import print_function
-
-import sys
-
-from oslo.utils import encodeutils
-import prettytable
-import six
-
-
-def _print(pt, order=None):
-    output = pt.get_string(sortby=order) if order else pt.get_string()
-    if sys.version_info >= (3, 0):
-        print(output)
-    else:
-        print(encodeutils.safe_encode(output))
-
-
-def print_list(objs, fields, formatters={}, order_by=None):
-    mixed_case_fields = ['serverId']
-    pt = prettytable.PrettyTable([f for f in fields], caching=False)
-    pt.aligns = ['l' for f in fields]
-
-    for o in objs:
-        row = []
-        for field in fields:
-            if field in formatters:
-                row.append(formatters[field](o))
-            else:
-                if field in mixed_case_fields:
-                    field_name = field.replace(' ', '_')
-                else:
-                    field_name = field.lower().replace(' ', '_')
-                data = getattr(o, field_name, '')
-                row.append(data)
-        pt.add_row(row)
-    _print(pt, order_by)
-
-
-def print_dict(d, property="Property"):
-    pt = prettytable.PrettyTable([property, 'Value'], caching=False)
-    pt.aligns = ['l', 'l']
-    [pt.add_row(list(r)) for r in six.iteritems(d)]
-    _print(pt, property)
-
 
 class HookableMixin(object):
     """Mixin so classes can register and run hooks."""

@@ -23,7 +23,6 @@ from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import utils as apiclient_utils
 from manilaclient.openstack.common import cliutils
-from manilaclient import utils
 from manilaclient.v1 import quotas
 
 
@@ -64,7 +63,7 @@ def _find_share(cs, share):
 
 def _print_share(cs, share):
     info = share._info.copy()
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 def _find_share_snapshot(cs, snapshot):
@@ -75,7 +74,7 @@ def _find_share_snapshot(cs, snapshot):
 def _print_share_snapshot(cs, snapshot):
     info = snapshot._info.copy()
     info.pop('links')
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 def _find_share_network(cs, share_network):
@@ -131,14 +130,14 @@ def do_endpoints(cs, args):
     """Discover endpoints that get returned from the authenticate services."""
     catalog = cs.client.service_catalog.catalog
     for e in catalog['access']['serviceCatalog']:
-        utils.print_dict(e['endpoints'][0], e['name'])
+        cliutils.print_dict(e['endpoints'][0], e['name'])
 
 
 def do_credentials(cs, args):
     """Show user credentials returned from auth."""
     catalog = cs.client.service_catalog.catalog
-    utils.print_dict(catalog['access']['user'], "User Credentials")
-    utils.print_dict(catalog['access']['token'], "Token")
+    cliutils.print_dict(catalog['access']['user'], "User Credentials")
+    cliutils.print_dict(catalog['access']['token'], "Token")
 
 _quota_resources = ['shares', 'snapshots', 'gigabytes', 'share_networks']
 
@@ -147,7 +146,7 @@ def _quota_show(quotas):
     quota_dict = {}
     for resource in _quota_resources:
         quota_dict[resource] = getattr(quotas, resource, None)
-    utils.print_dict(quota_dict)
+    cliutils.print_dict(quota_dict)
 
 
 def _quota_update(manager, identifier, args):
@@ -320,7 +319,7 @@ def do_absolute_limits(cs, args):
     """Print a list of absolute limits for a user."""
     limits = cs.limits.get().absolute
     columns = ['Name', 'Value']
-    utils.print_list(limits, columns)
+    cliutils.print_list(limits, columns)
 
 
 @cliutils.service_type('share')
@@ -328,7 +327,7 @@ def do_rate_limits(cs, args):
     """Print a list of rate limits for a user."""
     limits = cs.limits.get().rate
     columns = ['Verb', 'URI', 'Value', 'Remain', 'Unit', 'Next_Available']
-    utils.print_list(limits, columns)
+    cliutils.print_list(limits, columns)
 
 
 @cliutils.arg(
@@ -428,7 +427,7 @@ def do_metadata_show(cs, args):
     """Show metadata of given share."""
     share = _find_share(cs, args.share)
     metadata = cs.shares.get_metadata(share)._info
-    utils.print_dict(metadata, 'Metadata-property')
+    cliutils.print_dict(metadata, 'Metadata-property')
 
 
 @cliutils.arg(
@@ -447,7 +446,7 @@ def do_metadata_update_all(cs, args):
     share = _find_share(cs, args.share)
     metadata = _extract_metadata(args)
     metadata = share.update_all_metadata(metadata)._info['metadata']
-    utils.print_dict(metadata, 'Metadata-property')
+    cliutils.print_dict(metadata, 'Metadata-property')
 
 
 @cliutils.arg(
@@ -522,7 +521,7 @@ def do_access_allow(cs, args):
     """Allow access to the share."""
     share = _find_share(cs, args.share)
     access = share.allow(args.access_type, args.access_to)
-    utils.print_dict(access)
+    cliutils.print_dict(access)
 
 
 @cliutils.arg(
@@ -549,7 +548,8 @@ def do_access_list(cs, args):
     """Show access list for share."""
     share = _find_share(cs, args.share)
     access_list = share.access_list()
-    utils.print_list(access_list, ['id', 'access type', 'access to', 'state'])
+    cliutils.print_list(access_list,
+                        ['id', 'access type', 'access to', 'state'])
 
 
 @cliutils.arg(
@@ -704,7 +704,7 @@ def do_list(cs, args):
         sort_key=args.sort_key,
         sort_dir=args.sort_dir,
     )
-    utils.print_list(shares, list_of_keys)
+    cliutils.print_list(shares, list_of_keys)
 
 
 @cliutils.arg(
@@ -799,7 +799,7 @@ def do_snapshot_list(cs, args):
         sort_key=args.sort_key,
         sort_dir=args.sort_dir,
     )
-    utils.print_list(snapshots, list_of_keys)
+    cliutils.print_list(snapshots, list_of_keys)
 
 
 @cliutils.arg(
@@ -991,7 +991,7 @@ def do_share_network_create(cs, args):
               'description': args.description}
     share_network = cs.share_networks.create(**values)
     info = share_network._info.copy()
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 @cliutils.arg(
@@ -1028,7 +1028,7 @@ def do_share_network_update(cs, args):
     share_network = _find_share_network(
         cs, args.share_network).update(**values)
     info = share_network._info.copy()
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 @cliutils.arg(
@@ -1039,7 +1039,7 @@ def do_share_network_show(cs, args):
     """Get a description for network used by the tenant."""
     share_network = _find_share_network(cs, args.share_network)
     info = share_network._info.copy()
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 @cliutils.arg(
@@ -1164,7 +1164,7 @@ def do_share_network_list(cs, args):
             cs, args.security_service).id
     share_networks = cs.share_networks.list(search_opts=search_opts)
     fields = ['id', 'name']
-    utils.print_list(share_networks, fields=fields)
+    cliutils.print_list(share_networks, fields=fields)
 
 
 @cliutils.arg(
@@ -1209,7 +1209,7 @@ def do_share_network_security_service_list(cs, args):
     }
     security_services = cs.security_services.list(search_opts=search_opts)
     fields = ['id', 'name', 'status', 'type', ]
-    utils.print_list(security_services, fields=fields)
+    cliutils.print_list(security_services, fields=fields)
 
 
 @cliutils.arg(
@@ -1273,7 +1273,7 @@ def do_security_service_create(cs, args):
     }
     security_service = cs.security_services.create(args.type, **values)
     info = security_service._info.copy()
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 @cliutils.arg(
@@ -1328,7 +1328,7 @@ def do_security_service_update(cs, args):
     }
     security_service = _find_security_service(
         cs, args.security_service).update(**values)
-    utils.print_dict(security_service._info)
+    cliutils.print_dict(security_service._info)
 
 
 @cliutils.arg(
@@ -1339,7 +1339,7 @@ def do_security_service_show(cs, args):
     """Show security service."""
     security_service = _find_security_service(cs, args.security_service)
     info = security_service._info.copy()
-    utils.print_dict(info)
+    cliutils.print_dict(info)
 
 
 @cliutils.arg(
@@ -1437,7 +1437,7 @@ def do_security_service_list(cs, args):
     fields = ['id', 'name', 'status', 'type', ]
     if args.detailed:
         fields.append('share_networks')
-    utils.print_list(security_services, fields=fields)
+    cliutils.print_list(security_services, fields=fields)
 
 
 @cliutils.arg(
@@ -1487,7 +1487,7 @@ def do_share_server_list(cs, args):
         "Updated_at",
     ]
     share_servers = cs.share_servers.list(search_opts=search_opts)
-    utils.print_list(share_servers, fields=fields)
+    cliutils.print_list(share_servers, fields=fields)
 
 
 @cliutils.arg(
@@ -1502,7 +1502,7 @@ def do_share_server_show(cs, args):
     # so remove big dict from view.
     if "backend_details" in share_server._info:
         del share_server._info["backend_details"]
-    utils.print_dict(share_server._info)
+    cliutils.print_dict(share_server._info)
 
 
 @cliutils.arg(
@@ -1513,7 +1513,7 @@ def do_share_server_show(cs, args):
 def do_share_server_details(cs, args):
     """Show share server details."""
     details = cs.share_servers.details(args.id)
-    utils.print_dict(details._info)
+    cliutils.print_dict(details._info)
 
 
 @cliutils.arg(
@@ -1562,7 +1562,7 @@ def do_service_list(cs, args):
     }
     fields = ["Id", "Binary", "Host", "Zone", "Status", "State", "Updated_at"]
     services = cs.services.list(search_opts=search_opts)
-    utils.print_list(services, fields=fields)
+    cliutils.print_list(services, fields=fields)
 
 
 def _print_type_extra_specs(vol_type):
@@ -1573,12 +1573,12 @@ def _print_type_extra_specs(vol_type):
 
 
 def _print_volume_type_list(vtypes):
-    utils.print_list(vtypes, ['ID', 'Name'])
+    cliutils.print_list(vtypes, ['ID', 'Name'])
 
 
 def _print_type_and_extra_specs_list(vtypes):
     formatters = {'extra_specs': _print_type_extra_specs}
-    utils.print_list(vtypes, ['ID', 'Name', 'extra_specs'], formatters)
+    cliutils.print_list(vtypes, ['ID', 'Name', 'extra_specs'], formatters)
 
 
 def _find_volume_type(cs, vtype):
