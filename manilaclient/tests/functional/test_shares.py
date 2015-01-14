@@ -49,7 +49,8 @@ class ManilaClientTestSharesReadOnly(base.BaseTestCase):
         self.assertRaises(
             exceptions.CommandFailed,
             self.clients['user'].manila,
-            'this-does-not-exist')
+            'list',
+            params='--share-server fake')
 
     @ddt.data('admin', 'user')
     def test_shares_list_filter_by_project_id(self, role):
