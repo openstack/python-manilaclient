@@ -1,4 +1,4 @@
-# Copyright 2014 Mirantis Inc.
+# Copyright 2015 Mirantis Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,15 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
+
 from manilaclient.tests.functional import base
 
 
-class ManilaClientTestList(base.BaseTestCase):
+@ddt.ddt
+class ManilaClientTestLimitsReadOnly(base.BaseTestCase):
 
-    # TODO(vponomaryov): add more tests
+    @ddt.data('admin', 'user')
+    def test_rate_limits(self, role):
+        self.clients[role].manila('rate-limits')
 
-    def test_manila_list_by_admin(self):
-        self.clients['admin'].manila('list')
-
-    def test_manila_list_by_user(self):
-        self.clients['user'].manila('list')
+    @ddt.data('admin', 'user')
+    def test_absolute_limits(self, role):
+        self.clients[role].manila('absolute-limits')
