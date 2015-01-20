@@ -63,6 +63,7 @@ def _find_share(cs, share):
 
 def _print_share(cs, share):
     info = share._info.copy()
+    info.pop('links', None)
     cliutils.print_dict(info)
 
 
@@ -73,7 +74,7 @@ def _find_share_snapshot(cs, snapshot):
 
 def _print_share_snapshot(cs, snapshot):
     info = snapshot._info.copy()
-    info.pop('links')
+    info.pop('links', None)
     cliutils.print_dict(info)
 
 
