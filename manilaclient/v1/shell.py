@@ -398,6 +398,13 @@ def do_rate_limits(cs, args):
     action='single_alias',
     help='Optional share type. Use of optional volume type is deprecated'
          '(Default=None)')
+@cliutils.arg(
+    '--public',
+    dest='public',
+    action='store_true',
+    default=False,
+    help="Level of visibility for share. Defines whether other tenants are "
+         "able to see it or not.")
 @cliutils.service_type('share')
 def do_create(cs, args):
     """Creates a new share (NFS, CIFS, GlusterFS or HDFS)."""
@@ -413,7 +420,8 @@ def do_create(cs, args):
                              args.name, args.description,
                              metadata=share_metadata,
                              share_network=share_network,
-                             share_type=args.share_type)
+                             share_type=args.share_type,
+                             is_public=args.public)
     _print_share(cs, share)
 
 
@@ -765,12 +773,18 @@ def do_access_list(cs, args):
     default=None,
     action='single_alias',
     help="Filter results by project id. Useful with set key '--all-tenants'.")
+@cliutils.arg(
+    '--public',
+    dest='public',
+    action='store_true',
+    default=False,
+    help="Add public shares from all tenants to result.")
 @cliutils.service_type('share')
 def do_list(cs, args):
     """List NAS shares with filters."""
     list_of_keys = [
-        'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Share Type',
-        'Export location', 'Host',
+        'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
+        'Share Type', 'Export location', 'Host',
     ]
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
 
@@ -797,6 +811,7 @@ def do_list(cs, args):
         'extra_specs': _extract_extra_specs(args),
         'share_server_id': args.share_server_id,
         'project_id': args.project_id,
+        'is_public': args.public,
     }
     shares = cs.shares.list(
         search_opts=search_opts,
@@ -949,17 +964,25 @@ def do_snapshot_create(cs, args):
     metavar='<share>',
     help='Name or ID of the share to rename.')
 @cliutils.arg(
-    'name',
-    nargs='?',
+    '--name',
     metavar='<name>',
+    default=None,
     help='New name for the share.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
     help='Optional share description. (Default=None)',
     default=None)
+@cliutils.arg(
+    '--is-public',
+    '--is_public',  # alias
+    metavar='<is_public>',
+    default=None,
+    type=str,
+    action="single_alias",
+    help='Public share is visible for all tenants.')
 @cliutils.service_type('share')
-def do_rename(cs, args):
+def do_update(cs, args):
     """Rename a share."""
     kwargs = {}
 
@@ -967,8 +990,11 @@ def do_rename(cs, args):
         kwargs['display_name'] = args.name
     if args.description is not None:
         kwargs['display_description'] = args.description
+    if args.is_public is not None:
+        kwargs['is_public'] = strutils.bool_from_string(args.is_public,
+                                                        strict=True)
     if not kwargs:
-        msg = "Must supply either name or description."
+        msg = "Must supply name, description or is_public value."
         raise exceptions.CommandError(msg)
     _find_share(cs, args.share).update(**kwargs)
 

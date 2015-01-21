@@ -17,6 +17,7 @@
 import ddt
 import fixtures
 import mock
+from oslo_utils import strutils
 import six
 from six.moves.urllib import parse
 
@@ -59,6 +60,19 @@ class ShellTest(test_utils.TestCase):
         # Following shows available separators for optional params
         # and its values
         self.separators = [' ', '=']
+        self.create_share_body = {
+            "share": {
+                "share_type": None,
+                "name": None,
+                "snapshot_id": None,
+                "description": None,
+                "metadata": {},
+                "share_proto": "nfs",
+                "share_network_id": None,
+                "size": 1,
+                "is_public": False,
+            }
+        }
 
     def tearDown(self):
         # For some method like test_image_meta_bad_action we are
@@ -261,6 +275,23 @@ class ShellTest(test_utils.TestCase):
             for separator in self.separators:
                 self.run_command('list ' + alias + separator + 'fake_id')
                 self.assert_called('GET', '/shares/detail?project_id=fake_id')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_with_public_shares(self):
+        listed_fields = [
+            'ID',
+            'Name',
+            'Size',
+            'Share Proto',
+            'Status',
+            'Is Public',
+            'Share Type',
+            'Export location',
+            'Host'
+        ]
+        self.run_command('list --public')
+        self.assert_called('GET', '/shares/detail?is_public=True')
+        cliutils.print_list.assert_called_with(mock.ANY, listed_fields)
 
     def test_show(self):
         self.run_command('show 1234')
@@ -467,25 +498,46 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('POST', '/types', body=expected)
 
-    def test_rename(self):
+    @ddt.data('--is-public', '--is_public')
+    def test_update(self, alias):
         # basic rename with positional agruments
-        self.run_command('rename 1234 new-name')
+        self.run_command('update 1234 --name new-name')
         expected = {'share': {'display_name': 'new-name'}}
         self.assert_called('PUT', '/shares/1234', body=expected)
         # change description only
-        self.run_command('rename 1234 --description=new-description')
+        self.run_command('update 1234 --description=new-description')
         expected = {'share': {'display_description': 'new-description'}}
         self.assert_called('PUT', '/shares/1234', body=expected)
-        # rename and change description
-        self.run_command('rename 1234 new-name '
-                         '--description=new-description')
+        # update is_public attr
+        valid_is_public_values = strutils.TRUE_STRINGS + strutils.FALSE_STRINGS
+        for is_public in valid_is_public_values:
+            self.run_command('update 1234 %(alias)s %(value)s' % {
+                'alias': alias,
+                'value': is_public})
+            expected = {
+                'share': {
+                    'is_public': strutils.bool_from_string(is_public,
+                                                           strict=True),
+                },
+            }
+            self.assert_called('PUT', '/shares/1234', body=expected)
+        for invalid_val in ['truebar', 'bartrue']:
+            self.assertRaises(ValueError, self.run_command,
+                              'update 1234 %(alias)s %(value)s' % {
+                                  'alias': alias,
+                                  'value': invalid_val})
+        # update all attributes
+        self.run_command('update 1234 --name new-name '
+                         '--description=new-description '
+                         '%s True' % alias)
         expected = {'share': {
             'display_name': 'new-name',
             'display_description': 'new-description',
+            'is_public': True,
         }}
         self.assert_called('PUT', '/shares/1234', body=expected)
         self.assertRaises(exceptions.CommandError,
-                          self.run_command, 'rename 1234')
+                          self.run_command, 'update 1234')
 
     def test_rename_snapshot(self):
         # basic rename with positional agruments
@@ -508,7 +560,7 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('PUT', '/snapshots/1234', body=expected)
         # noop, the only all will be the lookup
         self.assertRaises(exceptions.CommandError,
-                          self.run_command, 'rename 1234')
+                          self.run_command, 'snapshot-rename 1234')
 
     def test_set_metadata_set(self):
         self.run_command('metadata 1234 set key1=val1 key2=val2')
@@ -846,18 +898,12 @@ class ShellTest(test_utils.TestCase):
     def test_create_share(self):
         # Use only required fields
         self.run_command("create nfs 1")
-        expected = {
-            "share": {
-                "share_type": None,
-                "name": None,
-                "snapshot_id": None,
-                "description": None,
-                "metadata": {},
-                "share_proto": "nfs",
-                "share_network_id": None,
-                "size": 1,
-            }
-        }
+        self.assert_called("POST", "/shares", body=self.create_share_body)
+
+    def test_create_public_share(self):
+        expected = self.create_share_body.copy()
+        expected['share']['is_public'] = True
+        self.run_command("create --public nfs 1")
         self.assert_called("POST", "/shares", body=expected)
 
     def test_create_with_share_network(self):
@@ -866,36 +912,16 @@ class ShellTest(test_utils.TestCase):
         with mock.patch.object(shell_v1, "_find_share_network",
                                mock.Mock(return_value=sn)):
             self.run_command("create nfs 1 --share-network %s" % sn)
-            expected = {
-                "share": {
-                    "share_type": None,
-                    "name": None,
-                    "snapshot_id": None,
-                    "description": None,
-                    "metadata": {},
-                    "share_proto": "nfs",
-                    "share_network_id": sn,
-                    "size": 1,
-                }
-            }
+            expected = self.create_share_body.copy()
+            expected['share']['share_network_id'] = sn
             self.assert_called("POST", "/shares", body=expected)
             shell_v1._find_share_network.assert_called_once_with(mock.ANY, sn)
 
     def test_create_with_metadata(self):
         # Except required fields added metadata
         self.run_command("create nfs 1 --metadata key1=value1 key2=value2")
-        expected = {
-            "share": {
-                "share_type": None,
-                "name": None,
-                "snapshot_id": None,
-                "description": None,
-                "metadata": {"key1": "value1", "key2": "value2"},
-                "share_proto": "nfs",
-                "share_network_id": None,
-                "size": 1,
-            }
-        }
+        expected = self.create_share_body.copy()
+        expected['share']['metadata'] = {"key1": "value1", "key2": "value2"}
         self.assert_called("POST", "/shares", body=expected)
 
     def test_allow_access_cert(self):
