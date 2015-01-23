@@ -31,11 +31,30 @@ openstack/python-manilaclient project using `Gerrit`_.
 Testing
 -------
 
-The preferred way to run the unit tests is using ``tox``.
+Manilaclient has two types of tests - 'unit' and 'functional'.
+
+The preferred way to run tests is using ``tox``.
 
 See `Consistent Testing Interface`_ for more details.
 
 .. _Consistent Testing Interface: http://git.openstack.org/cgit/openstack/governance/tree/reference/project-testing-interface.rst
+
+Functional tests
+----------------
+
+Functional CLI tests require several things to be able to run:
+- Deployed and working manila service.
+- Configured config file.
+
+Config file is used to get information like 'auth_url', 'username',
+'tenant_name' and 'password'.
+To get config sample need to run following 'tox' job:
+$ tox -e genconfig
+This will create file 'etc/manilaclient/manilaclient.conf.sample' with all
+available config opts.
+Then rename it removing ".sample" and set values for opts there. After it,
+tests can be run using following tox job:
+$ tox -e functional
 
 Indices and tables
 ==================
