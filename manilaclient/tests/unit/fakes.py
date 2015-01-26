@@ -45,7 +45,12 @@ class FakeClient(object):
             expected + called)
 
         if body is not None:
-            assert self.client.callstack[pos][2] == body
+            actual = self.client.callstack[pos][2]
+
+            assert actual == body, "Expected %(b)s; got %(a)s" % {
+                'b': body,
+                'a': actual
+            }
 
     def assert_called_anytime(self, method, url, body=None):
         """Assert than an API method was called anytime in the test."""
