@@ -784,6 +784,49 @@ class ShellTest(test_utils.TestCase):
 
         cmd.split.assert_called_once_with()
 
+    def test_allow_access_with_access_level(self):
+        aliases = ['--access_level', '--access-level']
+        expected = {
+            "os-allow_access": {
+                "access_type": "ip",
+                "access_to": "10.0.0.6",
+                "access_level": "ro",
+            }
+        }
+
+        for alias in aliases:
+            for s in self.separators:
+                self.run_command(
+                    "access-allow " + alias + s + "ro 1111 ip 10.0.0.6")
+                self.assert_called("POST", "/shares/1111/action",
+                                   body=expected)
+
+    def test_allow_access_with_valid_access_levels(self):
+        expected = {
+            "os-allow_access": {
+                "access_type": "ip",
+                "access_to": "10.0.0.6",
+            }
+        }
+
+        for level in ['rw', 'ro']:
+            expected["os-allow_access"]['access_level'] = level
+            self.run_command(
+                "access-allow --access-level " + level + " 1111 ip 10.0.0.6")
+            self.assert_called("POST", "/shares/1111/action",
+                               body=expected)
+
+    def test_allow_access_with_invalid_access_level(self):
+        self.assertRaises(SystemExit, self.run_command,
+                          "access-allow --access-level fake 1111 ip 10.0.0.6")
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_access_list(self):
+        self.run_command("access-list 1111")
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            ['id', 'access type', 'access to', 'access level', 'state'])
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list(self):
         self.run_command('security-service-list')

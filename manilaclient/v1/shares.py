@@ -44,10 +44,10 @@ class Share(common_base.Resource):
         """Delete the specified share ignoring its current state."""
         self.manager.force_delete(self)
 
-    def allow(self, access_type, access):
+    def allow(self, access_type, access, access_level):
         """Allow access to a share."""
         self._validate_access(access_type, access)
-        return self.manager.allow(self, access_type, access)
+        return self.manager.allow(self, access_type, access, access_level)
 
     def deny(self, id):
         """Deny access from IP to a share."""
@@ -235,16 +235,23 @@ class ShareManager(base.ManagerWithFind):
     def force_delete(self, share):
         return self._action('os-force_delete', common_base.getid(share))
 
-    def allow(self, share, access_type, access):
+    def allow(self, share, access_type, access, access_level):
         """Allow access from IP to a shares.
 
         :param share: The :class:`Share` to delete.
         :param access_type: string that represents access type ('ip','domain')
         :param access: string that represents access ('127.0.0.1')
+        :param access_level: string that represents access level ('rw', 'ro')
         """
+        access_params = {
+            'access_type': access_type,
+            'access_to': access,
+        }
+        if access_level:
+            access_params['access_level'] = access_level
         access = self._action('os-allow_access', share,
-                              {'access_type': access_type,
-                               'access_to': access})[1]["access"]
+                              access_params)[1]["access"]
+
         return access
 
     def deny(self, share, id):

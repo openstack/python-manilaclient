@@ -517,11 +517,20 @@ def do_show(cs, args):
     'access_to',
     metavar='<access_to>',
     help='Value that defines access.')
+@cliutils.arg(
+    '--access-level',
+    '--access_level',  # alias
+    metavar='<access_level>',
+    type=str,
+    default=None,
+    choices=['rw', 'ro'],
+    help='Share access level ("rw" and "ro" access levels are supported). '
+         'Defaults to None.')
 @cliutils.service_type('share')
 def do_access_allow(cs, args):
     """Allow access to the share."""
     share = _find_share(cs, args.share)
-    access = share.allow(args.access_type, args.access_to)
+    access = share.allow(args.access_type, args.access_to, args.access_level)
     cliutils.print_dict(access)
 
 
@@ -549,8 +558,9 @@ def do_access_list(cs, args):
     """Show access list for share."""
     share = _find_share(cs, args.share)
     access_list = share.access_list()
-    cliutils.print_list(access_list,
-                        ['id', 'access type', 'access to', 'state'])
+    cliutils.print_list(
+        access_list,
+        ['id', 'access type', 'access to', 'access level', 'state'])
 
 
 @cliutils.arg(
