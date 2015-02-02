@@ -82,7 +82,7 @@ class ShareTypeManager(base.ManagerWithFind):
         """
         return self._list("/types", "share_types")
 
-    def get(self, share_type):
+    def get(self, share_type="default"):
         """Get a specific share type.
 
         :param share_type: The ID of the :class:`ShareType` to get.

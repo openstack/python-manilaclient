@@ -252,6 +252,10 @@ class ShellTest(test_utils.TestCase):
         )
         self.assert_called('GET', '/share-networks/detail')
 
+    def test_type_list_default_volume_type(self):
+        self.run_command('type-list')
+        self.assert_called_anytime('GET', '/types/default')
+
     def test_list_filter_by_project_id(self):
         aliases = ['--project-id', '--project_id']
         for alias in aliases:

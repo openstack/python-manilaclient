@@ -1589,8 +1589,16 @@ def _print_type_extra_specs(share_type):
         return None
 
 
-def _print_share_type_list(stypes):
-    cliutils.print_list(stypes, ['ID', 'Name'])
+def _print_share_type_list(stypes, default_share_type=None):
+
+    def _is_default(share_type):
+        if share_type == default_share_type:
+            return 'YES'
+        else:
+            return '-'
+
+    formatters = {'is_default': _is_default}
+    cliutils.print_list(stypes, ['ID', 'Name', 'is_default'], formatters)
 
 
 def _print_type_and_extra_specs_list(stypes):
@@ -1606,8 +1614,13 @@ def _find_share_type(cs, stype):
 @cliutils.service_type('share')
 def do_type_list(cs, args):
     """Print a list of available 'share types'."""
+    try:
+        default = cs.share_types.get()
+    except exceptions.NotFound:
+        default = None
+
     stypes = cs.share_types.list()
-    _print_share_type_list(stypes)
+    _print_share_type_list(stypes, default_share_type=default)
 
 
 @cliutils.service_type('share')

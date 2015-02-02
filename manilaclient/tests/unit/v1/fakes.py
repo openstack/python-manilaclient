@@ -266,6 +266,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_shares_1234_metadata(self, **kw):
         return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
 
+    def get_types_default(self, **kw):
+        return self.get_types_1(**kw)
+
     def get_types(self, **kw):
         return (200, {}, {
             'share_types': [{'id': 1,
