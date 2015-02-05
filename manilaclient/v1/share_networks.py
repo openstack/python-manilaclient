@@ -47,10 +47,12 @@ class ShareNetworkManager(base.ManagerWithFind):
     resource_class = ShareNetwork
 
     def create(self, neutron_net_id=None, neutron_subnet_id=None,
-               name=None, description=None):
+               nova_net_id=None, name=None, description=None):
         """Create share network.
 
-        :param metadata: metadata specific to the manila network plugin in use
+        :param neutron_net_id: ID of Neutron network
+        :param neutron_subnet_id: ID of Neutron subnet
+        :param nova_net_id: ID of Nova network
         :param name: share network name
         :param description: share network description
         :rtype: :class:`ShareNetwork`
@@ -60,6 +62,8 @@ class ShareNetworkManager(base.ManagerWithFind):
             values['neutron_net_id'] = neutron_net_id
         if neutron_subnet_id:
             values['neutron_subnet_id'] = neutron_subnet_id
+        if nova_net_id:
+            values['nova_net_id'] = nova_net_id
         if name:
             values['name'] = name
         if description:
@@ -115,17 +119,20 @@ class ShareNetworkManager(base.ManagerWithFind):
                          RESOURCE_NAME)
 
     def update(self, share_network, neutron_net_id=None,
-               neutron_subnet_id=None, name=None, description=None):
+               neutron_subnet_id=None, nova_net_id=None,
+               name=None, description=None):
         """Updates a share network.
 
         :param share_network: share network to update.
-        :rtype: :class:`NetworkInfo`
+        :rtype: :class:`ShareNetwork`
         """
         values = {}
         if neutron_net_id:
             values['neutron_net_id'] = neutron_net_id
         if neutron_subnet_id:
             values['neutron_subnet_id'] = neutron_subnet_id
+        if nova_net_id:
+            values['nova_net_id'] = nova_net_id
         if name:
             values['name'] = name
         if description:

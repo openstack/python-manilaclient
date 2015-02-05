@@ -980,14 +980,25 @@ def do_reset_state(cs, args):
 
 
 @cliutils.arg(
-    '--neutron-net-id',
-    metavar='neutron-net-id',
+    '--nova-net-id',
+    '--nova-net_id', '--nova_net_id', '--nova_net-id',  # aliases
+    metavar='<nova-net-id>',
     default=None,
+    action='single_alias',
+    help="Nova net ID. Used to set up network for share servers.")
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
+    metavar='<neutron-net-id>',
+    default=None,
+    action='single_alias',
     help="Neutron network ID. Used to set up network for share servers.")
 @cliutils.arg(
     '--neutron-subnet-id',
-    metavar='neutron-subnet-id',
+    '--neutron-subnet_id', '--neutron_subnet_id', '--neutron_subnet-id',
+    metavar='<neutron-subnet-id>',
     default=None,
+    action='single_alias',
     help="Neutron subnet ID. Used to set up network for share servers. "
          "This subnet should belong to specified neutron network.")
 @cliutils.arg(
@@ -1002,10 +1013,12 @@ def do_reset_state(cs, args):
     help="Share network description.")
 def do_share_network_create(cs, args):
     """Create description for network used by the tenant."""
-    values = {'neutron_net_id': args.neutron_net_id,
-              'neutron_subnet_id': args.neutron_subnet_id,
-              'name': args.name,
-              'description': args.description}
+    values = dict(
+        neutron_net_id=args.neutron_net_id,
+        neutron_subnet_id=args.neutron_subnet_id,
+        nova_net_id=args.nova_net_id,
+        name=args.name,
+        description=args.description)
     share_network = cs.share_networks.create(**values)
     info = share_network._info.copy()
     cliutils.print_dict(info)
@@ -1016,14 +1029,25 @@ def do_share_network_create(cs, args):
     metavar='<share-network>',
     help='Name or ID of share network to update.')
 @cliutils.arg(
-    '--neutron-net-id',
-    metavar='neutron-net-id',
+    '--nova-net-id',
+    '--nova-net_id', '--nova_net_id', '--nova_net-id',  # aliases
+    metavar='<nova-net-id>',
     default=None,
+    action='single_alias',
+    help="Nova net ID. Used to set up network for share servers.")
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
+    metavar='<neutron-net-id>',
+    default=None,
+    action='single_alias',
     help="Neutron network ID. Used to set up network for share servers.")
 @cliutils.arg(
     '--neutron-subnet-id',
-    metavar='neutron-subnet-id',
+    '--neutron-subnet_id', '--neutron_subnet_id', '--neutron_subnet-id',
+    metavar='<neutron-subnet-id>',
     default=None,
+    action='single_alias',
     help="Neutron subnet ID. Used to set up network for share servers. "
          "This subnet should belong to specified neutron network.")
 @cliutils.arg(
@@ -1038,10 +1062,12 @@ def do_share_network_create(cs, args):
     help="Share network description.")
 def do_share_network_update(cs, args):
     """Update share network data."""
-    values = {'neutron_net_id': args.neutron_net_id,
-              'neutron_subnet_id': args.neutron_subnet_id,
-              'name': args.name,
-              'description': args.description}
+    values = dict(
+        neutron_net_id=args.neutron_net_id,
+        neutron_subnet_id=args.neutron_subnet_id,
+        nova_net_id=args.nova_net_id,
+        name=args.name,
+        description=args.description)
     share_network = _find_share_network(
         cs, args.share_network).update(**values)
     info = share_network._info.copy()
@@ -1103,6 +1129,13 @@ def do_share_network_show(cs, args):
     action='single_alias',
     default=None,
     help='Filter results by attached security service.')
+@cliutils.arg(
+    '--nova-net-id',
+    '--nova_net_id', '--nova_net-id', '--nova-net_id',  # aliases
+    metavar='<nova_net_id>',
+    action='single_alias',
+    default=None,
+    help='Filter results by Nova net ID.')
 @cliutils.arg(
     '--neutron-net-id',
     '--neutron_net_id', '--neutron_net-id', '--neutron-net_id',  # aliases
@@ -1167,6 +1200,7 @@ def do_share_network_list(cs, args):
         'name': args.name,
         'created_since': args.created_since,
         'created_before': args.created_before,
+        'nova_net_id': args.nova_net_id,
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
         'network_type': args.network_type,

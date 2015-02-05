@@ -31,10 +31,13 @@ class ShareNetworkTest(utils.TestCase):
     def setUp(self):
         super(ShareNetworkTest, self).setUp()
         self.manager = share_networks.ShareNetworkManager(api=None)
-        self.values = {'neutron_net_id': 'fake net id',
-                       'neutron_subnet_id': 'fake subnet id',
-                       'name': 'fake name',
-                       'description': 'new whatever'}
+        self.values = {
+            'nova_net_id': 'fake_nova_net_id',
+            'neutron_net_id': 'fake net id',
+            'neutron_subnet_id': 'fake subnet id',
+            'name': 'fake name',
+            'description': 'new whatever',
+        }
 
     def test_create(self):
         body_expected = {share_networks.RESOURCE_NAME: self.values}

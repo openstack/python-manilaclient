@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
 import fixtures
 import mock
 import six
@@ -30,6 +31,7 @@ from manilaclient.tests.unit.v1 import fakes
 from manilaclient.v1 import shell as shell_v1
 
 
+@ddt.ddt
 class ShellTest(test_utils.TestCase):
 
     FAKE_ENV = {
@@ -479,6 +481,50 @@ class ShellTest(test_utils.TestCase):
         expected = {'os-reset_status': {'status': 'error'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
 
+    @ddt.data(
+        {},
+        {'--name': 'fake_name'},
+        {'--description': 'fake_description'},
+        {'--nova_net_id': 'fake_nova_net_id'},
+        {'--neutron_net_id': 'fake_neutron_net_id'},
+        {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
+        {'--description': 'fake_description',
+         '--name': 'fake_name',
+         '--neutron_net_id': 'fake_neutron_net_id',
+         '--neutron_subnet_id': 'fake_neutron_subnet_id',
+         '--nova_net_id': 'fake_nova_net_id'})
+    def test_share_network_create(self, data):
+        cmd = 'share-network-create'
+        for k, v in data.items():
+            cmd += ' ' + k + ' ' + v
+
+        self.run_command(cmd)
+
+        self.assert_called('POST', '/share-networks')
+
+    @ddt.data(
+        {'--name': 'fake_name'},
+        {'--description': 'fake_description'},
+        {'--nova_net_id': 'fake_nova_net_id'},
+        {'--neutron_net_id': 'fake_neutron_net_id'},
+        {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
+        {'--description': 'fake_description',
+         '--name': 'fake_name',
+         '--neutron_net_id': 'fake_neutron_net_id',
+         '--neutron_subnet_id': 'fake_neutron_subnet_id',
+         '--nova_net_id': 'fake_nova_net_id'})
+    def test_share_network_update(self, data):
+        cmd = 'share-network-update 1111'
+        expected = dict()
+        for k, v in data.items():
+            cmd += ' ' + k + ' ' + v
+            expected[k[2:]] = v
+        expected = dict(share_network=expected)
+
+        self.run_command(cmd)
+
+        self.assert_called('PUT', '/share-networks/1111', body=expected)
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list(self):
         self.run_command('share-network-list')
@@ -550,6 +596,19 @@ class ShellTest(test_utils.TestCase):
             self.assert_called(
                 'GET',
                 '/share-networks/detail?created_since=2001-01-01',
+            )
+            cliutils.print_list.assert_called_with(
+                mock.ANY,
+                fields=['id', 'name'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_network_list_nova_net_id_aliases(self):
+        for command in ['--nova-net-id', '--nova-net_id',
+                        '--nova_net-id', '--nova_net_id']:
+            self.run_command('share-network-list %s fake-id' % command)
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?nova_net_id=fake-id',
             )
             cliutils.print_list.assert_called_with(
                 mock.ANY,

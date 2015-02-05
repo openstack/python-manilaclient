@@ -171,6 +171,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
 
+    def post_share_networks(self, **kwargs):
+        return (202, {}, {'share_network': {}})
+
     def post_shares(self, **kwargs):
         return (202, {}, {'share': {}})
 
@@ -185,6 +188,10 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def delete_share_servers_1234(self, **kwargs):
         return (202, {}, None)
+
+    def put_share_networks_1111(self, **kwargs):
+        share_network = {'share_network': {'id': 1111}}
+        return (200, {}, share_network)
 
     def put_shares_1234(self, **kwargs):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
