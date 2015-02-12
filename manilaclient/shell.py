@@ -307,7 +307,7 @@ class OpenStackManilaShell(object):
                             action='version',
                             version=manilaclient.__version__)
 
-        parser.add_argument('--debug',
+        parser.add_argument('-d', '--debug',
                             action='store_true',
                             default=cliutils.env('manilaclient_DEBUG',
                                                  default=False),
