@@ -136,7 +136,7 @@ class ShareManager(base.ManagerWithFind):
         :param snapshot_id: ID of the snapshot
         :param name: Name of the NAS
         :param description: Short description of a share
-        :param share_proto: Type of NAS (NFS or CIFS)
+        :param share_proto: Type of NAS (NFS, CIFS, GlusterFS or HDFS)
         :param metadata: Optional metadata to set on volume creation
         :rtype: :class:`Share`
         """

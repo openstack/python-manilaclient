@@ -60,8 +60,8 @@ class ShellTest(utils.TestCase):
     def test_help(self):
         required = [
             '.*?^usage: ',
-            '.*?^\s+create\s+Creates new NAS storage '
-            '\(NFS, CIFS or GlusterFS\).',
+            '.*?^\s+create\s+Creates a new share '
+            '\(NFS, CIFS, GlusterFS or HDFS\).',
             '.*?(?m)^See "manila help COMMAND" for help '
             'on a specific command.',
         ]

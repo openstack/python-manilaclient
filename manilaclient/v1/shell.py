@@ -335,7 +335,7 @@ def do_rate_limits(cs, args):
     'share_protocol',
     metavar='<share_protocol>',
     type=str,
-    help='Share type (NFS, CIFS or GlusterFS).')
+    help='Share type (NFS, CIFS, GlusterFS or HDFS).')
 @cliutils.arg(
     'size',
     metavar='<size>',
@@ -375,7 +375,7 @@ def do_rate_limits(cs, args):
     default=None)
 @cliutils.service_type('share')
 def do_create(cs, args):
-    """Creates new NAS storage (NFS, CIFS or GlusterFS)."""
+    """Creates a new share (NFS, CIFS, GlusterFS or HDFS)."""
 
     share_metadata = None
     if args.metadata is not None:
