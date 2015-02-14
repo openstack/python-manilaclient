@@ -21,6 +21,7 @@ from manilaclient import httpclient
 from manilaclient.v1 import limits
 from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
+from manilaclient.v1 import scheduler_stats
 from manilaclient.v1 import security_services
 from manilaclient.v1 import services
 from manilaclient.v1 import share_networks
@@ -161,6 +162,7 @@ class Client(object):
 
         self.share_types = share_types.ShareTypeManager(self)
         self.share_servers = share_servers.ShareServerManager(self)
+        self.pools = scheduler_stats.PoolManager(self)
 
         self._load_extensions(extensions)
 

@@ -1066,3 +1066,26 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_pool_list(self):
+        self.run_command('pool-list')
+        self.assert_called(
+            'GET',
+            '/scheduler-stats/pools?backend=.%2A&host=.%2A&pool=.%2A',
+        )
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            fields=["Name", "Host", "Backend", "Pool"])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_pool_list_with_filters(self):
+        self.run_command(
+            'pool-list --host host1 --backend backend1 --pool pool1')
+        self.assert_called(
+            'GET',
+            '/scheduler-stats/pools?backend=backend1&host=host1&pool=pool1',
+        )
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            fields=["Name", "Host", "Backend", "Pool"])

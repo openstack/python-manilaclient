@@ -1836,3 +1836,35 @@ def do_type_key(cs, args):
             stype.set_keys(keypair)
         elif args.action == 'unset':
             stype.unset_keys(list(keypair))
+
+
+@cliutils.arg(
+    '--host',
+    metavar='<host>',
+    type=str,
+    default='.*',
+    help='Filter results by host name.  Regular expressions are supported.')
+@cliutils.arg(
+    '--backend',
+    metavar='<backend>',
+    type=str,
+    default='.*',
+    help='Filter results by backend name.  Regular expressions are supported.')
+@cliutils.arg(
+    '--pool',
+    metavar='<pool>',
+    type=str,
+    default='.*',
+    help='Filter results by pool name.  Regular expressions are supported.')
+@cliutils.service_type('share')
+def do_pool_list(cs, args):
+    """List all backend storage pools known to the scheduler (Admin only)."""
+
+    search_opts = {
+        'host': args.host,
+        'backend': args.backend,
+        'pool': args.pool,
+    }
+    fields = ["Name", "Host", "Backend", "Pool"]
+    pools = cs.pools.list(detailed=False, search_opts=search_opts)
+    cliutils.print_list(pools, fields=fields)

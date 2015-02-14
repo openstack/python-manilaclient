@@ -274,6 +274,25 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, security_services)
 
+    def get_scheduler_stats_pools(self, **kw):
+        pools = {
+            'pools': [
+                {
+                    'name': 'host1@backend1#pool1',
+                    'host': 'host1',
+                    'backend': 'backend1',
+                    'pool': 'pool1',
+                },
+                {
+                    'name': 'host1@backend1#pool2',
+                    'host': 'host1',
+                    'backend': 'backend1',
+                    'pool': 'pool2',
+                }
+            ]
+        }
+        return (200, {}, pools)
+
     #
     # Set/Unset metadata
     #
