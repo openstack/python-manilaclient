@@ -15,32 +15,32 @@
 
 
 """
-Volume Type interface.
+Share Type interface.
 """
 
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
 
-class VolumeType(common_base.Resource):
-    """A Volume Type is the type of volume to be created."""
+class ShareType(common_base.Resource):
+    """A Share Type is the type of share to be created."""
 
     def __repr__(self):
-        return "<VolumeType: %s>" % self.name
+        return "<ShareType: %s>" % self.name
 
     def get_keys(self):
-        """Get extra specs from a volume type.
+        """Get extra specs from a share type.
 
-        :param vol_type: The :class:`VolumeType` to get extra specs from
+        :param share_type: The :class:`ShareType` to get extra specs from
         """
         _resp, body = self.manager.api.client.get(
             "/types/%s/extra_specs" % common_base.getid(self))
         return body["extra_specs"]
 
     def set_keys(self, metadata):
-        """Set extra specs on a volume type.
+        """Set extra specs on a share type.
 
-        :param type : The :class:`VolumeType` to set extra spec on
+        :param type : The :class:`ShareType` to set extra spec on
         :param metadata: A dict of key/value pairs to be set
         """
         body = {'extra_specs': metadata}
@@ -52,9 +52,9 @@ class VolumeType(common_base.Resource):
         )
 
     def unset_keys(self, keys):
-        """Unset extra specs on a volume type.
+        """Unset extra specs on a share type.
 
-        :param type_id: The :class:`VolumeType` to unset extra spec on
+        :param type_id: The :class:`ShareType` to unset extra spec on
         :param keys: A list of keys to be unset
         """
 
@@ -70,45 +70,45 @@ class VolumeType(common_base.Resource):
                 return resp
 
 
-class VolumeTypeManager(base.ManagerWithFind):
-    """Manage :class:`VolumeType` resources."""
+class ShareTypeManager(base.ManagerWithFind):
+    """Manage :class:`ShareType` resources."""
 
-    resource_class = VolumeType
+    resource_class = ShareType
 
     def list(self, search_opts=None):
-        """Get a list of all volume types.
+        """Get a list of all share types.
 
-        :rtype: list of :class:`VolumeType`.
+        :rtype: list of :class:`ShareType`.
         """
-        return self._list("/types", "volume_types")
+        return self._list("/types", "share_types")
 
-    def get(self, volume_type):
-        """Get a specific volume type.
+    def get(self, share_type):
+        """Get a specific share type.
 
-        :param volume_type: The ID of the :class:`VolumeType` to get.
-        :rtype: :class:`VolumeType`
+        :param share_type: The ID of the :class:`ShareType` to get.
+        :rtype: :class:`ShareType`
         """
-        return self._get("/types/%s" % common_base.getid(volume_type),
-                         "volume_type")
+        return self._get("/types/%s" % common_base.getid(share_type),
+                         "share_type")
 
-    def delete(self, volume_type):
-        """Delete a specific volume_type.
+    def delete(self, share_type):
+        """Delete a specific share_type.
 
-        :param volume_type: The name or ID of the :class:`VolumeType` to get.
+        :param share_type: The name or ID of the :class:`ShareType` to get.
         """
-        self._delete("/types/%s" % common_base.getid(volume_type))
+        self._delete("/types/%s" % common_base.getid(share_type))
 
     def create(self, name):
-        """Create a volume type.
+        """Create a share type.
 
-        :param name: Descriptive name of the volume type
-        :rtype: :class:`VolumeType`
+        :param name: Descriptive name of the share type
+        :rtype: :class:`ShareType`
         """
 
         body = {
-            "volume_type": {
+            "share_type": {
                 "name": name,
             }
         }
 
-        return self._create("/types", body, "volume_type")
+        return self._create("/types", body, "share_type")

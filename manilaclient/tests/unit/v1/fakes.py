@@ -268,23 +268,23 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_types(self, **kw):
         return (200, {}, {
-            'volume_types': [{'id': 1,
-                              'name': 'test-type-1',
-                              'extra_specs': {}},
-                             {'id': 2,
-                              'name': 'test-type-2',
-                              'extra_specs': {}}]})
+            'share_types': [{'id': 1,
+                             'name': 'test-type-1',
+                             'extra_specs': {}},
+                            {'id': 2,
+                             'name': 'test-type-2',
+                             'extra_specs': {}}]})
 
     def get_types_1(self, **kw):
-        return (200, {}, {'volume_type': {
+        return (200, {}, {'share_type': {
             'id': 1, 'name': 'test-type-1', 'extra_specs': {}}})
 
     def get_types_2(self, **kw):
-        return (200, {}, {'volume_type': {
+        return (200, {}, {'share_type': {
             'id': 2, 'name': 'test-type-2', 'extra_specs': {}}})
 
     def post_types(self, body, **kw):
-        return (202, {}, {'volume_type': {
+        return (202, {}, {'share_type': {
             'id': 3, 'name': 'test-type-3', 'extra_specs': {}}})
 
     def post_types_1_extra_specs(self, body, **kw):

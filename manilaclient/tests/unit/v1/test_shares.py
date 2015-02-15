@@ -135,9 +135,9 @@ class SharesTest(utils.TestCase):
         cs.shares.list(detailed=False, sort_key='snapshot')
         cs.assert_called('GET', '/shares?sort_key=snapshot_id')
 
-    def test_list_shares_filter_by_volume_type_alias(self):
-        cs.shares.list(detailed=False, sort_key='volume_type')
-        cs.assert_called('GET', '/shares?sort_key=volume_type_id')
+    def test_list_shares_filter_by_share_type_alias(self):
+        cs.shares.list(detailed=False, sort_key='share_type')
+        cs.assert_called('GET', '/shares?sort_key=share_type_id')
 
     def test_list_shares_by_improper_direction(self):
         self.assertRaises(ValueError, cs.shares.list, sort_dir='fake')

@@ -129,7 +129,7 @@ class ShareManager(base.ManagerWithFind):
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
-               volume_type=None):
+               share_type=None):
         """Create NAS.
 
         :param size: Size of NAS in GB
@@ -137,7 +137,7 @@ class ShareManager(base.ManagerWithFind):
         :param name: Name of the NAS
         :param description: Short description of a share
         :param share_proto: Type of NAS (NFS, CIFS, GlusterFS or HDFS)
-        :param metadata: Optional metadata to set on volume creation
+        :param metadata: Optional metadata to set on share creation
         :rtype: :class:`Share`
         """
 
@@ -153,13 +153,13 @@ class ShareManager(base.ManagerWithFind):
                           'metadata': share_metadata,
                           'share_proto': share_proto,
                           'share_network_id': common_base.getid(share_network),
-                          'volume_type': volume_type}}
+                          'share_type': share_type}}
         return self._create('/shares', body, 'share')
 
     def get(self, share_id):
         """Get a share.
 
-        :param share_id: The ID of the share to delete.
+        :param share_id: The ID of the share to get.
         :rtype: :class:`Share`
         """
         return self._get("/shares/%s" % share_id, "share")
@@ -193,8 +193,8 @@ class ShareManager(base.ManagerWithFind):
             if sort_key in constants.SHARE_SORT_KEY_VALUES:
                 search_opts['sort_key'] = sort_key
                 # NOTE(vponomaryov): Replace aliases with appropriate keys
-                if sort_key == 'volume_type':
-                    search_opts['sort_key'] = 'volume_type_id'
+                if sort_key == 'share_type':
+                    search_opts['sort_key'] = 'share_type_id'
                 elif sort_key == 'snapshot':
                     search_opts['sort_key'] = 'snapshot_id'
                 elif sort_key == 'share_network':
@@ -290,7 +290,7 @@ class ShareManager(base.ManagerWithFind):
                             body, "metadata")
 
     def delete_metadata(self, share, keys):
-        """Delete specified keys from volumes metadata.
+        """Delete specified keys from shares metadata.
 
         :param share: The :class:`Share`.
         :param keys: A list of keys to be removed.
@@ -302,7 +302,7 @@ class ShareManager(base.ManagerWithFind):
     def update_all_metadata(self, share, metadata):
         """Update all metadata of a share.
 
-        :param share: The :class:`Volume`.
+        :param share: The :class:`Share`.
         :param metadata: A list of keys to be updated.
         """
         body = {'metadata': metadata}

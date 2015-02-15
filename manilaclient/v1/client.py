@@ -19,8 +19,8 @@ from manilaclient.v1 import services
 from manilaclient.v1 import share_networks
 from manilaclient.v1 import share_servers
 from manilaclient.v1 import share_snapshots
+from manilaclient.v1 import share_types
 from manilaclient.v1 import shares
-from manilaclient.v1 import volume_types
 
 
 class Client(object):
@@ -58,7 +58,7 @@ class Client(object):
         self.shares = shares.ShareManager(self)
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
-        self.volume_types = volume_types.VolumeTypeManager(self)
+        self.share_types = share_types.ShareTypeManager(self)
         self.share_servers = share_servers.ShareServerManager(self)
 
         # Add in any extensions...

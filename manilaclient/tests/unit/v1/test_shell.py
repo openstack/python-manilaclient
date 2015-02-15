@@ -137,28 +137,28 @@ class ShellTest(test_utils.TestCase):
                 '/shares/detail?extra_specs=%7B%27key%27%3A+%27value%27%7D',
             )
 
-    def test_list_filter_by_volume_type_and_its_aliases(self):
-        fake_vt = type('Empty', (object,), {'id': 'fake_vt'})
+    def test_list_filter_by_share_type_and_its_aliases(self):
+        fake_st = type('Empty', (object,), {'id': 'fake_st'})
         aliases = [
-            '--volume-type', '--volume_type', '--volume-type-id',
-            '--volume-type_id', '--volume_type-id', '--volume_type_id',
+            '--share-type', '--share_type', '--share-type-id',
+            '--share-type_id', '--share_type-id', '--share_type_id',
         ]
         for alias in aliases:
             for separator in self.separators:
                 with mock.patch.object(
                         apiclient_utils,
                         'find_resource',
-                        mock.Mock(return_value=fake_vt)):
-                    self.run_command('list ' + alias + separator + fake_vt.id)
+                        mock.Mock(return_value=fake_st)):
+                    self.run_command('list ' + alias + separator + fake_st.id)
                     self.assert_called(
-                        'GET', '/shares/detail?volume_type_id=' + fake_vt.id)
+                        'GET', '/shares/detail?share_type_id=' + fake_st.id)
 
-    def test_list_filter_by_volume_type_not_found(self):
+    def test_list_filter_by_share_type_not_found(self):
         for separator in self.separators:
             self.assertRaises(
                 exceptions.CommandError,
                 self.run_command,
-                'list --volume-type' + separator + 'not_found_expected',
+                'list --share-type' + separator + 'not_found_expected',
             )
             self.assert_called('GET', '/types')
 
@@ -197,7 +197,7 @@ class ShellTest(test_utils.TestCase):
                     self.run_command('list ' + alias + separator + key)
                     key = 'share_network_id' if key == 'share_network' else key
                     key = 'snapshot_id' if key == 'snapshot' else key
-                    key = 'volume_type_id' if key == 'volume_type' else key
+                    key = 'share_type_id' if key == 'share_type' else key
                     self.assert_called('GET', '/shares/detail?sort_key=' + key)
 
     def test_list_with_fake_sort_key(self):
@@ -700,7 +700,7 @@ class ShellTest(test_utils.TestCase):
         self.run_command("create nfs 1")
         expected = {
             "share": {
-                "volume_type": None,
+                "share_type": None,
                 "name": None,
                 "snapshot_id": None,
                 "description": None,
@@ -720,7 +720,7 @@ class ShellTest(test_utils.TestCase):
             self.run_command("create nfs 1 --share-network %s" % sn)
             expected = {
                 "share": {
-                    "volume_type": None,
+                    "share_type": None,
                     "name": None,
                     "snapshot_id": None,
                     "description": None,
@@ -738,7 +738,7 @@ class ShellTest(test_utils.TestCase):
         self.run_command("create nfs 1 --metadata key1=value1 key2=value2")
         expected = {
             "share": {
-                "volume_type": None,
+                "share_type": None,
                 "name": None,
                 "snapshot_id": None,
                 "description": None,

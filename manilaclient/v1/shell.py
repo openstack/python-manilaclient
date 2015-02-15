@@ -64,6 +64,9 @@ def _find_share(cs, share):
 def _print_share(cs, share):
     info = share._info.copy()
     info.pop('links', None)
+    # No need to print both volume_type and share_type to CLI
+    if 'volume_type' in info and 'share_type' in info:
+        info.pop('volume_type', None)
     cliutils.print_dict(info)
 
 
@@ -369,10 +372,12 @@ def do_rate_limits(cs, args):
     help='Optional share description. (Default=None)',
     default=None)
 @cliutils.arg(
-    '--volume-type',
-    metavar='<volume-type>',
-    help='Optional volume type. (Default=None)',
-    default=None)
+    '--share-type', '--share_type', '--volume-type', '--volume_type',
+    metavar='<share-type>',
+    default=None,
+    action='single_alias',
+    help='Optional share type. Use of optional volume type is deprecated'
+         '(Default=None)')
 @cliutils.service_type('share')
 def do_create(cs, args):
     """Creates a new share (NFS, CIFS, GlusterFS or HDFS)."""
@@ -388,7 +393,7 @@ def do_create(cs, args):
                              args.name, args.description,
                              metadata=share_metadata,
                              share_network=share_network,
-                             volume_type=args.volume_type)
+                             share_type=args.share_type)
     _print_share(cs, share)
 
 
@@ -606,18 +611,19 @@ def do_access_list(cs, args):
     nargs='*',
     metavar='<key=value>',
     action='single_alias',
-    help='Filters results by a extra specs key and value of volume type that '
+    help='Filters results by a extra specs key and value of share type that '
          'was used for share creation. OPTIONAL: Default=None',
     default=None)
 @cliutils.arg(
-    '--volume-type',
-    '--volume_type', '--volume-type-id',  # aliases
-    '--volume-type_id', '--volume_type-id', '--volume_type_id',  # aliases
-    metavar='<volume_type>',
+    '--share-type', '--volume-type'
+    '--share_type', '--share-type-id', '--volume-type-id',  # aliases
+    '--share-type_id', '--share_type-id', '--share_type_id',  # aliases
+    '--volume_type', '--volume_type_id',
+    metavar='<share_type>',
     type=str,
     default=None,
     action='single_alias',
-    help='Filter results by a volume type id or name that was used for share '
+    help='Filter results by a share type id or name that was used for share '
          'creation.')
 @cliutils.arg(
     '--limit',
@@ -681,14 +687,14 @@ def do_access_list(cs, args):
 def do_list(cs, args):
     """List NAS shares with filters."""
     list_of_keys = [
-        'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Volume Type',
+        'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Share Type',
         'Export location', 'Host',
     ]
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
 
     empty_obj = type('Empty', (object,), {'id': None})
-    volume_type = (_find_volume_type(cs, args.volume_type)
-                   if args.volume_type else empty_obj)
+    share_type = (_find_share_type(cs, args.share_type)
+                  if args.share_type else empty_obj)
 
     snapshot = (_find_share_snapshot(cs, args.snapshot)
                 if args.snapshot else empty_obj)
@@ -704,7 +710,7 @@ def do_list(cs, args):
         'host': args.host,
         'share_network_id': share_network.id,
         'snapshot_id': snapshot.id,
-        'volume_type_id': volume_type.id,
+        'share_type_id': share_type.id,
         'metadata': _extract_metadata(args),
         'extra_specs': _extract_extra_specs(args),
         'share_server_id': args.share_server_id,
@@ -1576,67 +1582,67 @@ def do_service_list(cs, args):
     cliutils.print_list(services, fields=fields)
 
 
-def _print_type_extra_specs(vol_type):
+def _print_type_extra_specs(share_type):
     try:
-        return vol_type.get_keys()
+        return share_type.get_keys()
     except exceptions.NotFound:
-        return "N/A"
+        return None
 
 
-def _print_volume_type_list(vtypes):
-    cliutils.print_list(vtypes, ['ID', 'Name'])
+def _print_share_type_list(stypes):
+    cliutils.print_list(stypes, ['ID', 'Name'])
 
 
-def _print_type_and_extra_specs_list(vtypes):
+def _print_type_and_extra_specs_list(stypes):
     formatters = {'extra_specs': _print_type_extra_specs}
-    cliutils.print_list(vtypes, ['ID', 'Name', 'extra_specs'], formatters)
+    cliutils.print_list(stypes, ['ID', 'Name', 'extra_specs'], formatters)
 
 
-def _find_volume_type(cs, vtype):
-    """Get a volume type by name or ID."""
-    return apiclient_utils.find_resource(cs.volume_types, vtype)
+def _find_share_type(cs, stype):
+    """Get a share type by name or ID."""
+    return apiclient_utils.find_resource(cs.share_types, stype)
 
 
 @cliutils.service_type('share')
 def do_type_list(cs, args):
-    """Print a list of available 'volume types'."""
-    vtypes = cs.volume_types.list()
-    _print_volume_type_list(vtypes)
+    """Print a list of available 'share types'."""
+    stypes = cs.share_types.list()
+    _print_share_type_list(stypes)
 
 
 @cliutils.service_type('share')
 def do_extra_specs_list(cs, args):
-    """Print a list of current 'volume types and extra specs' (Admin Only)."""
-    vtypes = cs.volume_types.list()
-    _print_type_and_extra_specs_list(vtypes)
+    """Print a list of current 'share types and extra specs' (Admin Only)."""
+    stypes = cs.share_types.list()
+    _print_type_and_extra_specs_list(stypes)
 
 
 @cliutils.arg(
     'name',
     metavar='<name>',
-    help="Name of the new volume type.")
+    help="Name of the new share type.")
 @cliutils.service_type('share')
 def do_type_create(cs, args):
-    """Create a new volume type."""
-    vtype = cs.volume_types.create(args.name)
-    _print_volume_type_list([vtype])
+    """Create a new share type."""
+    stype = cs.share_types.create(args.name)
+    _print_share_type_list([stype])
 
 
 @cliutils.arg(
     'id',
     metavar='<id>',
-    help="Name or ID of the volume type to delete.")
+    help="Name or ID of the share type to delete.")
 @cliutils.service_type('share')
 def do_type_delete(cs, args):
-    """Delete a specific volume type."""
-    volume_type = _find_volume_type(cs, args.id)
-    cs.volume_types.delete(volume_type)
+    """Delete a specific share type."""
+    share_type = _find_share_type(cs, args.id)
+    cs.share_types.delete(share_type)
 
 
 @cliutils.arg(
-    'vtype',
-    metavar='<vtype>',
-    help="Name or ID of the volume type.")
+    'stype',
+    metavar='<stype>',
+    help="Name or ID of the share type.")
 @cliutils.arg(
     'action',
     metavar='<action>',
@@ -1650,13 +1656,13 @@ def do_type_delete(cs, args):
     help='Extra_specs to set or unset (key is only necessary on unset).')
 @cliutils.service_type('share')
 def do_type_key(cs, args):
-    """Set or unset extra_spec for a volume type."""
-    vtype = _find_volume_type(cs, args.vtype)
+    """Set or unset extra_spec for a share type."""
+    stype = _find_share_type(cs, args.stype)
 
     if args.metadata is not None:
         keypair = _extract_metadata(args)
 
         if args.action == 'set':
-            vtype.set_keys(keypair)
+            stype.set_keys(keypair)
         elif args.action == 'unset':
-            vtype.unset_keys(list(keypair))
+            stype.unset_keys(list(keypair))

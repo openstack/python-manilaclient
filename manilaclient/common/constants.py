@@ -23,7 +23,7 @@ SHARE_SORT_KEY_VALUES = (
     'user_id', 'project_id',
     'created_at', 'updated_at',
     'display_name', 'name',
-    'volume_type_id', 'volume_type',
+    'share_type_id', 'share_type',
     'share_network_id', 'share_network',
     'snapshot_id', 'snapshot',
 )

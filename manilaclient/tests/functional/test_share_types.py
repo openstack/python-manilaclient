@@ -19,12 +19,12 @@ from manilaclient.tests.functional import base
 
 
 @ddt.ddt
-class ManilaClientTestVolumeTypesReadOnly(base.BaseTestCase):
+class ManilaClientTestShareTypesReadOnly(base.BaseTestCase):
 
     @ddt.data('admin', 'user')
-    def test_volume_type_list(self, role):
+    def test_share_type_list(self, role):
         self.clients[role].manila('type-list')
 
-    @ddt.data('admin', 'user')
+    @ddt.data('admin')
     def test_extra_specs_list(self, role):
         self.clients[role].manila('extra-specs-list')
