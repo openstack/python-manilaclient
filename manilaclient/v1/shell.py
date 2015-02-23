@@ -132,16 +132,16 @@ def _extract_extra_specs(args):
 
 def do_endpoints(cs, args):
     """Discover endpoints that get returned from the authenticate services."""
-    catalog = cs.client.service_catalog.catalog
-    for e in catalog['access']['serviceCatalog']:
+    catalog = cs.keystone_client.service_catalog.catalog
+    for e in catalog['serviceCatalog']:
         cliutils.print_dict(e['endpoints'][0], e['name'])
 
 
 def do_credentials(cs, args):
     """Show user credentials returned from auth."""
-    catalog = cs.client.service_catalog.catalog
-    cliutils.print_dict(catalog['access']['user'], "User Credentials")
-    cliutils.print_dict(catalog['access']['token'], "Token")
+    catalog = cs.keystone_client.service_catalog.catalog
+    cliutils.print_dict(catalog['user'], "User Credentials")
+    cliutils.print_dict(catalog['token'], "Token")
 
 _quota_resources = ['shares', 'snapshots', 'gigabytes', 'share_networks']
 
@@ -184,9 +184,9 @@ def _quota_update(manager, identifier, args):
     help='ID of user to list the quotas for.')
 def do_quota_show(cs, args):
     """List the quotas for a tenant/user."""
-
+    project_id = cs.keystone_client.project_id
     if not args.tenant:
-        _quota_show(cs.quotas.get(cs.client.tenant_id, user_id=args.user))
+        _quota_show(cs.quotas.get(project_id, user_id=args.user))
     else:
         _quota_show(cs.quotas.get(args.tenant, user_id=args.user))
 
@@ -198,9 +198,9 @@ def do_quota_show(cs, args):
     help='ID of tenant to list the default quotas for.')
 def do_quota_defaults(cs, args):
     """List the default quotas for a tenant."""
-
+    project_id = cs.keystone_client.project_id
     if not args.tenant:
-        _quota_show(cs.quotas.defaults(cs.client.tenant_id))
+        _quota_show(cs.quotas.defaults(project_id))
     else:
         _quota_show(cs.quotas.defaults(args.tenant))
 
@@ -265,9 +265,9 @@ def do_quota_delete(cs, args):
 
     The quota will revert back to default.
     """
-
     if not args.tenant:
-        cs.quotas.delete(cs.client.tenant_id, user_id=args.user)
+        project_id = cs.keystone_client.project_id
+        cs.quotas.delete(project_id, user_id=args.user)
     else:
         cs.quotas.delete(args.tenant, user_id=args.user)
 

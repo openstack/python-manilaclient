@@ -13,10 +13,11 @@
 import mock
 import requests
 
-from manilaclient import client
 from manilaclient import exceptions
+from manilaclient import httpclient
 from manilaclient.tests.unit import utils
 
+fake_user_agent = "fake"
 
 fake_response = utils.TestResponse({
     "status_code": 200,
@@ -42,17 +43,36 @@ bad_500_response = utils.TestResponse({
 })
 bad_500_request = mock.Mock(return_value=(bad_500_response))
 
+retry_after_response = utils.TestResponse({
+    "status_code": 413,
+    "text": '',
+    "headers": {
+        "retry-after": "5"
+    },
+})
+retry_after_mock_request = mock.Mock(return_value=retry_after_response)
 
-def get_client(retries=0):
-    cl = client.HTTPClient("username", "password",
-                           "project_id", "auth_test", retries=retries)
-    return cl
+retry_after_no_headers_response = utils.TestResponse({
+    "status_code": 413,
+    "text": '',
+})
+retry_after_no_headers_mock_request = mock.Mock(
+    return_value=retry_after_no_headers_response)
+
+retry_after_non_supporting_response = utils.TestResponse({
+    "status_code": 403,
+    "text": '',
+    "headers": {
+        "retry-after": "5"
+    },
+})
+retry_after_non_supporting_mock_request = mock.Mock(
+    return_value=retry_after_non_supporting_response)
 
 
 def get_authed_client(retries=0):
-    cl = get_client(retries=retries)
-    cl.management_url = "http://example.com"
-    cl.auth_token = "token"
+    cl = httpclient.HTTPClient("http://example.com", "token", fake_user_agent,
+                               retries=retries, http_log_debug=True)
     return cl
 
 
@@ -66,8 +86,7 @@ class ClientTest(utils.TestCase):
         def test_get_call():
             resp, body = cl.get("/hi")
             headers = {"X-Auth-Token": "token",
-                       "X-Auth-Project-Id": "project_id",
-                       "User-Agent": cl.USER_AGENT,
+                       "User-Agent": fake_user_agent,
                        'Accept': 'application/json', }
             mock_request.assert_called_with(
                 "GET",
@@ -78,28 +97,6 @@ class ClientTest(utils.TestCase):
             self.assertEqual(body, {"hi": "there"})
 
         test_get_call()
-
-    def test_get_reauth_0_retries(self):
-        cl = get_authed_client(retries=0)
-
-        self.requests = [bad_401_request, mock_request]
-
-        def request(*args, **kwargs):
-            next_request = self.requests.pop(0)
-            return next_request(*args, **kwargs)
-
-        def reauth():
-            cl.management_url = "http://example.com"
-            cl.auth_token = "token"
-
-        @mock.patch.object(cl, 'authenticate', reauth)
-        @mock.patch.object(requests, "request", request)
-        @mock.patch('time.time', mock.Mock(return_value=1234))
-        def test_get_call():
-            resp, body = cl.get("/hi")
-
-        test_get_call()
-        self.assertEqual(self.requests, [])
 
     def test_get_retry_500(self):
         cl = get_authed_client(retries=1)
@@ -177,10 +174,9 @@ class ClientTest(utils.TestCase):
             cl.post("/hi", body=[1, 2, 3])
             headers = {
                 "X-Auth-Token": "token",
-                "X-Auth-Project-Id": "project_id",
                 "Content-Type": "application/json",
                 'Accept': 'application/json',
-                "User-Agent": cl.USER_AGENT
+                "User-Agent": fake_user_agent
             }
             mock_request.assert_called_with(
                 "POST",
@@ -190,13 +186,3 @@ class ClientTest(utils.TestCase):
                 **self.TEST_REQUEST_BASE)
 
         test_post_call()
-
-    def test_auth_failure(self):
-        cl = get_client()
-
-        # response must not have x-server-management-url header
-        @mock.patch.object(requests, "request", mock_request)
-        def test_auth_call():
-            self.assertRaises(exceptions.AuthorizationFailure, cl.authenticate)
-
-        test_auth_call()

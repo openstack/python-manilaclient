@@ -24,7 +24,9 @@ class FakeClient(fakes.FakeClient):
     def __init__(self, *args, **kwargs):
         client.Client.__init__(self, 'username', 'password',
                                'project_id', 'auth_url',
-                               extensions=kwargs.get('extensions'))
+                               input_auth_token='token',
+                               extensions=kwargs.get('extensions'),
+                               service_catalog_url='http://localhost:8786')
         self.client = FakeHTTPClient(**kwargs)
 
 

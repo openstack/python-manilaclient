@@ -14,7 +14,7 @@
 
 from six.moves.urllib import parse
 
-from manilaclient import client as base_client
+from manilaclient import httpclient
 from manilaclient.tests.unit import fakes
 from manilaclient.tests.unit import utils
 from manilaclient.v1 import client
@@ -29,7 +29,7 @@ class FakeClient(fakes.FakeClient, client.Client):
         self.client = FakeHTTPClient(**kwargs)
 
 
-class FakeHTTPClient(base_client.HTTPClient):
+class FakeHTTPClient(httpclient.HTTPClient):
 
     def __init__(self, **kwargs):
         self.username = 'username'
