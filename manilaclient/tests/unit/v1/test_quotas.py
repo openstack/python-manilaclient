@@ -41,16 +41,22 @@ class QuotaSetsTest(utils.TestCase):
 
     def test_update_quota(self):
         q = cs.quotas.get('test')
-        q.update(shares=2)
+        q.update(shares=1)
         q.update(snapshots=2)
+        q.update(gigabytes=3)
+        q.update(snapshot_gigabytes=4)
+        q.update(share_networks=5)
         cs.assert_called('PUT', '/os-quota-sets/test')
 
     def test_update_user_quota(self):
         tenant_id = 'test'
         user_id = 'fake_user'
         q = cs.quotas.get(tenant_id)
-        q.update(shares=2, user_id=user_id)
+        q.update(shares=1, user_id=user_id)
         q.update(snapshots=2, user_id=user_id)
+        q.update(gigabytes=3, user_id=user_id)
+        q.update(snapshot_gigabytes=4, user_id=user_id)
+        q.update(share_networks=5, user_id=user_id)
         url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
         cs.assert_called('PUT', url)
 

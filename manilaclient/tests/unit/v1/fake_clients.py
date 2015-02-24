@@ -85,6 +85,7 @@ class FakeHTTPClient(httpclient.HTTPClient):
                 'shares': 1,
                 'snapshots': 1,
                 'gigabytes': 1,
+                'snapshot_gigabytes': 1,
                 'share_networks': 1,
             }
         }
@@ -98,6 +99,7 @@ class FakeHTTPClient(httpclient.HTTPClient):
                 'shares': 1,
                 'snapshots': 1,
                 'gigabytes': 1,
+                'snapshot_gigabytes': 1,
                 'share_networks': 1,
             }
         }
@@ -114,6 +116,7 @@ class FakeHTTPClient(httpclient.HTTPClient):
                 'shares': 2,
                 'snapshots': 2,
                 'gigabytes': 1,
+                'snapshot_gigabytes': 1,
                 'share_networks': 1,
             }
         }
@@ -131,6 +134,7 @@ class FakeHTTPClient(httpclient.HTTPClient):
                 'shares': 1,
                 'snapshots': 1,
                 'gigabytes': 1,
+                'snapshot_gigabytes': 1,
                 'share_networks': 1,
             }
         }
@@ -147,6 +151,7 @@ class FakeHTTPClient(httpclient.HTTPClient):
                 'shares': 2,
                 'snapshots': 2,
                 'gigabytes': 1,
+                'snapshot_gigabytes': 1,
                 'share_networks': 1,
             }
         }

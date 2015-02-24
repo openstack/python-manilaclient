@@ -40,7 +40,8 @@ class QuotaSetManager(base.ManagerWithFind):
             url = "/os-quota-sets/%s" % tenant_id
         return self._get(url, "quota_set")
 
-    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,
+    def update(self, tenant_id, shares=None, snapshots=None,
+               gigabytes=None, snapshot_gigabytes=None,
                share_networks=None, force=None, user_id=None):
 
         body = {
@@ -49,6 +50,7 @@ class QuotaSetManager(base.ManagerWithFind):
                 'shares': shares,
                 'snapshots': snapshots,
                 'gigabytes': gigabytes,
+                'snapshot_gigabytes': snapshot_gigabytes,
                 'share_networks': share_networks,
                 'force': force,
             },
