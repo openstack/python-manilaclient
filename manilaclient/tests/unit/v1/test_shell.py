@@ -379,6 +379,60 @@ class ShellTest(test_utils.TestCase):
             'snapshot-list --sort-key fake_sort_key',
         )
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_type_list(self):
+        self.run_command('type-list')
+
+        self.assert_called('GET', '/types')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['ID', 'Name', 'is_default', 'required_extra_specs'], mock.ANY)
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_extra_specs_list(self):
+        self.run_command('extra-specs-list')
+
+        self.assert_called('GET', '/types')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, ['ID', 'Name', 'all_extra_specs'], mock.ANY)
+
+    # TODO(imalinovskiy):
+    # uncomment following block when this patch and appropriate manila patch
+    # will be merged.
+    # def test_type_create_without_required_extra_spec(self):
+    #     self.assertRaises(
+    #         SystemExit,
+    #         self.run_command,
+    #         'type-create test',
+    #     )
+
+    # @ddt.data('fake', 'f', 't')
+    # def test_type_create_invalid_extra_spec(self, extra_spec):
+    #     self.assertRaises(
+    #         exceptions.CommandError,
+    #         self.run_command,
+    #         'type-create test ' + extra_spec,
+    #     )
+
+    @ddt.unpack
+    @ddt.data({'expected_bool': True, 'text': 'true'},
+              {'expected_bool': True, 'text': '1'},
+              {'expected_bool': False, 'text': 'false'},
+              {'expected_bool': False, 'text': '0'})
+    def test_type_create(self, expected_bool, text):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "extra_specs": {
+                    "driver_handles_share_servers": expected_bool
+                }
+            }
+        }
+
+        self.run_command('type-create test ' + text)
+
+        self.assert_called('POST', '/types', body=expected)
+
     def test_rename(self):
         # basic rename with positional agruments
         self.run_command('rename 1234 new-name')

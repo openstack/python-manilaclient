@@ -24,10 +24,21 @@ class TypesTest(utils.TestCase):
         cs.assert_called('GET', '/types')
         for t in tl:
             self.assertIsInstance(t, share_types.ShareType)
+            self.assertTrue(callable(getattr(t, 'get_required_keys', '')))
+            self.assertEqual({'test': 'test'}, t.get_required_keys())
 
     def test_create(self):
-        t = cs.share_types.create('test-type-3')
-        cs.assert_called('POST', '/types')
+        expected_body = {
+            "share_type": {
+                "name": 'test-type-3',
+                "extra_specs": {
+                    "driver_handles_share_servers": True
+                }
+            }
+        }
+
+        t = cs.share_types.create('test-type-3', True)
+        cs.assert_called('POST', '/types', expected_body)
         self.assertIsInstance(t, share_types.ShareType)
 
     def test_set_key(self):
