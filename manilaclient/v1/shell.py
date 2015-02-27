@@ -145,7 +145,13 @@ def do_credentials(cs, args):
     cliutils.print_dict(catalog['user'], "User Credentials")
     cliutils.print_dict(catalog['token'], "Token")
 
-_quota_resources = ['shares', 'snapshots', 'gigabytes', 'share_networks']
+_quota_resources = [
+    'shares',
+    'snapshots',
+    'gigabytes',
+    'snapshot_gigabytes',
+    'share_networks',
+]
 
 
 def _quota_show(quotas):
@@ -235,6 +241,14 @@ def do_quota_defaults(cs, args):
     default=None,
     help='New value for the "gigabytes" quota.')
 @cliutils.arg(
+    '--snapshot-gigabytes',
+    '--snapshot_gigabytes',  # alias
+    metavar='<snapshot_gigabytes>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "snapshot_gigabytes" quota.')
+@cliutils.arg(
     '--share-networks',
     metavar='<share-networks>',
     type=int,
@@ -307,6 +321,14 @@ def do_quota_class_show(cs, args):
     type=int,
     default=None,
     help='New value for the "gigabytes" quota.')
+@cliutils.arg(
+    '--snapshot-gigabytes',
+    '--snapshot_gigabytes',  # alias
+    metavar='<snapshot_gigabytes>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "snapshot_gigabytes" quota.')
 @cliutils.arg(
     '--share-networks',
     metavar='<share-networks>',
