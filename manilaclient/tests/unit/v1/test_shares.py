@@ -15,6 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
 import mock
 
 from manilaclient import exceptions
@@ -30,6 +31,7 @@ extensions = [
 cs = fakes.FakeClient(extensions=extensions)
 
 
+@ddt.ddt
 class SharesTest(utils.TestCase):
 
     # Testcases for class Share
@@ -72,6 +74,26 @@ class SharesTest(utils.TestCase):
 
         self.assertRaises(exceptions.CommandError, self.share.allow,
                           access_type, access_to, access_level)
+        self.assertFalse(self.share.manager.allow.called)
+
+    @ddt.data(
+        'Administrator',
+        'MYDOMAIN\Administrator',
+        'fake\\]{.-_\'`;}[',
+        '1' * 4,
+        '1' * 32)
+    def test_share_allow_access_user(self, user):
+        self.share.allow('user', user, None)
+        self.assertTrue(self.share.manager.allow.called)
+
+    @ddt.data(
+        '',
+        'abc',
+        'root^',
+        '1' * 33)
+    def test_share_allow_access_user_invalid(self, user):
+        self.assertRaises(
+            exceptions.CommandError, self.share.allow, 'user', user, None)
         self.assertFalse(self.share.manager.allow.called)
 
     # Testcases for class ShareManager
