@@ -19,6 +19,8 @@ import os
 import sys
 import time
 
+from oslo_utils import strutils
+
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import utils as apiclient_utils
@@ -1582,11 +1584,27 @@ def do_service_list(cs, args):
     cliutils.print_list(services, fields=fields)
 
 
+def _print_dict(data_dict):
+    formatted_data = []
+
+    for date in data_dict:
+        formatted_data.append("%s : %s" % (date, data_dict[date]))
+
+    return "\n".join(formatted_data)
+
+
 def _print_type_extra_specs(share_type):
     try:
-        return share_type.get_keys()
+        return _print_dict(share_type.get_keys())
     except exceptions.NotFound:
         return None
+
+
+def _print_type_required_extra_specs(share_type):
+    try:
+        return _print_dict(share_type.get_required_keys())
+    except exceptions.NotFound:
+        return "N/A"
 
 
 def _print_share_type_list(stypes, default_share_type=None):
@@ -1597,13 +1615,22 @@ def _print_share_type_list(stypes, default_share_type=None):
         else:
             return '-'
 
-    formatters = {'is_default': _is_default}
-    cliutils.print_list(stypes, ['ID', 'Name', 'is_default'], formatters)
+    formatters = {
+        'is_default': _is_default,
+        'required_extra_specs': _print_type_required_extra_specs
+    }
+
+    fields = ['ID', 'Name', 'is_default', 'required_extra_specs']
+
+    cliutils.print_list(stypes, fields, formatters)
 
 
 def _print_type_and_extra_specs_list(stypes):
-    formatters = {'extra_specs': _print_type_extra_specs}
-    cliutils.print_list(stypes, ['ID', 'Name', 'extra_specs'], formatters)
+    formatters = {
+        'all_extra_specs': _print_type_extra_specs,
+    }
+    fields = ['ID', 'Name', 'all_extra_specs']
+    cliutils.print_list(stypes, fields, formatters)
 
 
 def _find_share_type(cs, stype):
@@ -1634,10 +1661,34 @@ def do_extra_specs_list(cs, args):
     'name',
     metavar='<name>',
     help="Name of the new share type.")
+@cliutils.arg(
+    'spec_driver_handles_share_servers',
+    metavar='<spec_driver_handles_share_servers>',
+    default='',
+    nargs='?',
+    help="Required extra specification. "
+         "Valid values 'true'/'1' and 'false'/'0'")
 @cliutils.service_type('share')
 def do_type_create(cs, args):
     """Create a new share type."""
-    stype = cs.share_types.create(args.name)
+
+    # TODO(imalinovskiy):
+    # remove this block and uncomment following block
+    # when this patch and appropriate manila patch
+    # will be merged.
+    extra_spec = strutils.bool_from_string(
+        args.spec_driver_handles_share_servers)
+
+    # try:
+    #     extra_spec = strutils.bool_from_string(
+    #         args.spec_driver_handles_share_servers, strict=True)
+    # except ValueError as e:
+    #     import six
+    #     msg = ("Argument spec_driver_handles_share_servers "
+    #            "argument is not valid: %s" % six.text_type(e))
+    #     raise exceptions.CommandError(msg)
+
+    stype = cs.share_types.create(args.name, extra_spec)
     _print_share_type_list([stype])
 
 

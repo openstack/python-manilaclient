@@ -25,6 +25,10 @@ from manilaclient.openstack.common.apiclient import base as common_base
 class ShareType(common_base.Resource):
     """A Share Type is the type of share to be created."""
 
+    def __init__(self, manager, info, loaded=False):
+        super(ShareType, self).__init__(manager, info, loaded)
+        self._required_extra_specs = info.get('required_extra_specs', {})
+
     def __repr__(self):
         return "<ShareType: %s>" % self.name
 
@@ -36,6 +40,9 @@ class ShareType(common_base.Resource):
         _resp, body = self.manager.api.client.get(
             "/types/%s/extra_specs" % common_base.getid(self))
         return body["extra_specs"]
+
+    def get_required_keys(self):
+        return self._required_extra_specs
 
     def set_keys(self, metadata):
         """Set extra specs on a share type.
@@ -98,7 +105,7 @@ class ShareTypeManager(base.ManagerWithFind):
         """
         self._delete("/types/%s" % common_base.getid(share_type))
 
-    def create(self, name):
+    def create(self, name, spec_driver_handles_share_servers):
         """Create a share type.
 
         :param name: Descriptive name of the share type
@@ -108,6 +115,10 @@ class ShareTypeManager(base.ManagerWithFind):
         body = {
             "share_type": {
                 "name": name,
+                "extra_specs": {
+                    "driver_handles_share_servers":
+                        spec_driver_handles_share_servers
+                }
             }
         }
 
