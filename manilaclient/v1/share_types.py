@@ -32,13 +32,23 @@ class ShareType(common_base.Resource):
     def __repr__(self):
         return "<ShareType: %s>" % self.name
 
-    def get_keys(self):
+    def get_keys(self, prefer_resource_data=True):
         """Get extra specs from a share type.
 
-        :param share_type: The :class:`ShareType` to get extra specs from
+        :param prefer_resource_data: By default extra_specs are retrieved from
+        resource data, but user can force this method to make API call.
+        :return: dict with extra specs
         """
+        extra_specs = getattr(self, 'extra_specs', None)
+
+        if prefer_resource_data and extra_specs:
+            return extra_specs
+
         _resp, body = self.manager.api.client.get(
             "/types/%s/extra_specs" % common_base.getid(self))
+
+        self.extra_specs = body["extra_specs"]
+
         return body["extra_specs"]
 
     def get_required_keys(self):
