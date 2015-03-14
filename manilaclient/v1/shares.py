@@ -36,6 +36,10 @@ class Share(common_base.Resource):
         """Update this share."""
         self.manager.update(self, **kwargs)
 
+    def unmanage(self, **kwargs):
+        """Unmanage this share."""
+        self.manager.unmanage(self, **kwargs)
+
     def delete(self):
         """Delete this share."""
         self.manager.delete(self)
@@ -147,15 +151,44 @@ class ShareManager(base.ManagerWithFind):
         else:
             share_metadata = metadata
 
-        body = {'share': {'size': size,
-                          'snapshot_id': snapshot_id,
-                          'name': name,
-                          'description': description,
-                          'metadata': share_metadata,
-                          'share_proto': share_proto,
-                          'share_network_id': common_base.getid(share_network),
-                          'share_type': share_type}}
+        body = {
+            'share': {
+                'size': size,
+                'snapshot_id': snapshot_id,
+                'name': name,
+                'description': description,
+                'metadata': share_metadata,
+                'share_proto': share_proto,
+                'share_network_id': common_base.getid(share_network),
+                'share_type': share_type
+            }
+        }
         return self._create('/shares', body, 'share')
+
+    def manage(self, service_host, protocol, export_path,
+               driver_options=None, share_type=None,
+               name=None, description=None):
+
+        if not driver_options:
+            driver_options = {}
+
+        body = {
+            'share': {
+                'service_host': service_host,
+                'share_type': share_type,
+                'protocol': protocol,
+                'export_path': export_path,
+                'driver_options': driver_options,
+                'name': name,
+                'description': description
+            }
+        }
+
+        return self._create('/os-share-manage', body, 'share')
+
+    def unmanage(self, share):
+        return self.api.client.post(
+            "/os-share-unmanage/%s/unmanage" % common_base.getid(share))
 
     def get(self, share_id):
         """Get a share.

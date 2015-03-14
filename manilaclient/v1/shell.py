@@ -103,33 +103,28 @@ def _translate_keys(collection, convert):
 
 
 def _extract_metadata(args):
-    metadata = {}
-    if args.metadata:
-        for metadatum in args.metadata:
-            # unset doesn't require a val, so we have the if/else
-            if '=' in metadatum:
-                (key, value) = metadatum.split('=', 1)
-            else:
-                key = metadatum
-                value = None
-
-            metadata[key] = value
-    return metadata
+    return _extract_key_value_options(args, 'metadata')
 
 
 def _extract_extra_specs(args):
-    extra_specs = {}
-    if args.extra_specs:
-        for extra_spec in args.extra_specs:
+    return _extract_key_value_options(args, 'extra_specs')
+
+
+def _extract_key_value_options(args, option_name):
+    result_dict = {}
+    options = getattr(args, option_name, None)
+
+    if options:
+        for option in options:
             # unset doesn't require a val, so we have the if/else
-            if '=' in extra_spec:
-                (key, value) = extra_spec.split('=', 1)
+            if '=' in option:
+                (key, value) = option.split('=', 1)
             else:
-                key = extra_spec
+                key = option
                 value = None
 
-            extra_specs[key] = value
-    return extra_specs
+            result_dict[key] = value
+    return result_dict
 
 
 def do_endpoints(cs, args):
@@ -477,6 +472,68 @@ def do_metadata_update_all(cs, args):
     metadata = _extract_metadata(args)
     metadata = share.update_all_metadata(metadata)._info['metadata']
     cliutils.print_dict(metadata, 'Metadata-property')
+
+
+@cliutils.arg(
+    'service_host',
+    metavar='<service_host>',
+    type=str,
+    help='manage-share service host: some.host@driver[#pool]')
+@cliutils.arg(
+    'protocol',
+    metavar='<protocol>',
+    type=str,
+    help='Protocol of the share to manage, such as NFS or CIFS.')
+@cliutils.arg(
+    'export_path',
+    metavar='<export_path>',
+    type=str,
+    help='Share export path.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    help='Optional share name. (Default=None)',
+    default=None)
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional share description. (Default=None)',
+    default=None)
+@cliutils.arg(
+    '--share_type', '--share-type',
+    metavar='<share_type>',
+    default=None,
+    action='single_alias',
+    help='Optional share type assigned to share. (Default=None)')
+@cliutils.arg(
+    '--driver_options', '--driver-options',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    action='single_alias',
+    help='Driver option key=value pairs (Optional, Default=None).',
+    default=None)
+def do_manage(cs, args):
+    """Manage share not handled by Manila."""
+    driver_options = _extract_key_value_options(args, 'driver_options')
+
+    share = cs.shares.manage(
+        args.service_host, args.protocol, args.export_path,
+        driver_options=driver_options, share_type=args.share_type,
+        name=args.name, description=args.description
+    )
+
+    _print_share(cs, share)
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share(s).')
+def do_unmanage(cs, args):
+    """Unmanage share."""
+    share_ref = _find_share(cs, args.share)
+    share_ref.unmanage()
 
 
 @cliutils.arg(

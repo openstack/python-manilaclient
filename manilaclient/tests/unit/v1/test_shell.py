@@ -266,6 +266,43 @@ class ShellTest(test_utils.TestCase):
         self.run_command('show 1234')
         self.assert_called('GET', '/shares/1234')
 
+    @ddt.data({'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
+                           ' --share_type fake_share_type',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+                   'share_type': 'fake_share_type',
+               }},
+              {'cmd_args': '--share_type fake_share_type',
+               'valid_params': {
+                   'driver_options': {},
+                   'share_type': 'fake_share_type',
+               }},
+              {'cmd_args': '',
+               'valid_params': {
+                   'driver_options': {},
+                   'share_type': None,
+               }},)
+    @ddt.unpack
+    def test_manage(self, cmd_args, valid_params):
+        self.run_command('manage fake_service fake_protocol fake_export_path '
+                         + cmd_args)
+        expected = {
+            'share': {
+                'service_host': 'fake_service',
+                'protocol': 'fake_protocol',
+                'export_path': 'fake_export_path',
+                'name': None,
+                'description': None,
+            }
+        }
+        expected['share'].update(valid_params)
+
+        self.assert_called('POST', '/os-share-manage', body=expected)
+
+    def test_unmanage(self):
+        self.run_command('unmanage 1234')
+        self.assert_called('POST', '/os-share-unmanage/1234/unmanage')
+
     def test_delete(self):
         self.run_command('delete 1234')
         self.assert_called('DELETE', '/shares/1234')

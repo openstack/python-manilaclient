@@ -122,6 +122,26 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }]}
         return (200, {}, snapshots)
 
+    def post_os_share_manage(self, body, **kw):
+        _body = {'share': {'id': 'fake'}}
+        resp = 202
+
+        if not ('service_host' in body['share']
+                and 'share_type' in body['share']
+                and 'export_path' in body['share']
+                and 'protocol' in body['share']
+                and 'driver_options' in body['share']):
+            resp = 422
+
+        result = (resp, {}, _body)
+        return result
+
+    def post_os_share_unmanage_1234_unmanage(self, **kw):
+        _body = None
+        resp = 202
+        result = (resp, {}, _body)
+        return result
+
     def post_shares_1234_action(self, body, **kw):
         _body = None
         resp = 202

@@ -110,6 +110,15 @@ class SharesTest(utils.TestCase):
         cs.shares.delete(share)
         cs.assert_called('DELETE', '/shares/1234')
 
+    def test_manage_share(self):
+        cs.shares.manage('fake_service', 'fake_proto', 'fake_export_path', {})
+        cs.assert_called('POST', '/os-share-manage')
+
+    def test_unmanage_share(self):
+        share = cs.shares.get('1234')
+        cs.shares.unmanage(share)
+        cs.assert_called('POST', '/os-share-unmanage/1234/unmanage')
+
     def test_force_delete_share(self):
         share = cs.shares.get('1234')
         cs.shares.force_delete(share)
