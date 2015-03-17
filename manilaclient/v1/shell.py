@@ -20,6 +20,7 @@ import sys
 import time
 
 from oslo_utils import strutils
+import six
 
 from manilaclient.common import constants
 from manilaclient import exceptions
@@ -1785,21 +1786,13 @@ def do_extra_specs_list(cs, args):
 def do_type_create(cs, args):
     """Create a new share type."""
 
-    # TODO(imalinovskiy):
-    # remove this block and uncomment following block
-    # when this patch and appropriate manila patch
-    # will be merged.
-    extra_spec = strutils.bool_from_string(
-        args.spec_driver_handles_share_servers)
-
-    # try:
-    #     extra_spec = strutils.bool_from_string(
-    #         args.spec_driver_handles_share_servers, strict=True)
-    # except ValueError as e:
-    #     import six
-    #     msg = ("Argument spec_driver_handles_share_servers "
-    #            "argument is not valid: %s" % six.text_type(e))
-    #     raise exceptions.CommandError(msg)
+    try:
+        extra_spec = strutils.bool_from_string(
+            args.spec_driver_handles_share_servers, strict=True)
+    except ValueError as e:
+        msg = ("Argument spec_driver_handles_share_servers "
+               "argument is not valid: %s" % six.text_type(e))
+        raise exceptions.CommandError(msg)
 
     stype = cs.share_types.create(args.name, extra_spec)
     _print_share_type_list([stype])

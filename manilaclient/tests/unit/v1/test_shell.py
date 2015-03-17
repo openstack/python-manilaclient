@@ -433,23 +433,20 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY, ['ID', 'Name', 'all_extra_specs'], mock.ANY)
 
-    # TODO(imalinovskiy):
-    # uncomment following block when this patch and appropriate manila patch
-    # will be merged.
-    # def test_type_create_without_required_extra_spec(self):
-    #     self.assertRaises(
-    #         SystemExit,
-    #         self.run_command,
-    #         'type-create test',
-    #     )
+    def test_type_create_without_required_extra_spec(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test',
+        )
 
-    # @ddt.data('fake', 'f', 't')
-    # def test_type_create_invalid_extra_spec(self, extra_spec):
-    #     self.assertRaises(
-    #         exceptions.CommandError,
-    #         self.run_command,
-    #         'type-create test ' + extra_spec,
-    #     )
+    @ddt.data('fake', 'FFFalse', 'trueee')
+    def test_type_create_invalid_extra_spec(self, extra_spec):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test ' + extra_spec,
+        )
 
     @ddt.unpack
     @ddt.data({'expected_bool': True, 'text': 'true'},
