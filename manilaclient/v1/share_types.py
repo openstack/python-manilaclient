@@ -32,6 +32,11 @@ class ShareType(common_base.Resource):
     def __repr__(self):
         return "<ShareType: %s>" % self.name
 
+    @property
+    def is_public(self):
+        """Provide a user-friendly accessor to os-share-type-access."""
+        return self._info.get("os-share-type-access:is_public", 'N/A')
+
     def get_keys(self, prefer_resource_data=True):
         """Get extra specs from a share type.
 
@@ -92,12 +97,15 @@ class ShareTypeManager(base.ManagerWithFind):
 
     resource_class = ShareType
 
-    def list(self, search_opts=None):
+    def list(self, search_opts=None, show_all=True):
         """Get a list of all share types.
 
         :rtype: list of :class:`ShareType`.
         """
-        return self._list("/types", "share_types")
+        query_string = ''
+        if show_all:
+            query_string = '?is_public=all'
+        return self._list("/types%s" % query_string, "share_types")
 
     def get(self, share_type="default"):
         """Get a specific share type.
@@ -115,7 +123,7 @@ class ShareTypeManager(base.ManagerWithFind):
         """
         self._delete("/types/%s" % common_base.getid(share_type))
 
-    def create(self, name, spec_driver_handles_share_servers):
+    def create(self, name, spec_driver_handles_share_servers, is_public=True):
         """Create a share type.
 
         :param name: Descriptive name of the share type
@@ -125,10 +133,11 @@ class ShareTypeManager(base.ManagerWithFind):
         body = {
             "share_type": {
                 "name": name,
+                "os-share-type-access:is_public": is_public,
                 "extra_specs": {
                     "driver_handles_share_servers":
                         spec_driver_handles_share_servers
-                }
+                },
             }
         }
 

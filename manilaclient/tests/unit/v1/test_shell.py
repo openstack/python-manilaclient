@@ -159,7 +159,7 @@ class ShellTest(test_utils.TestCase):
                 self.run_command,
                 'list --share-type' + separator + 'not_found_expected',
             )
-            self.assert_called('GET', '/types')
+            self.assert_called('GET', '/types?is_public=all')
 
     def test_list_with_limit(self):
         for separator in self.separators:
@@ -251,9 +251,51 @@ class ShellTest(test_utils.TestCase):
         )
         self.assert_called('GET', '/share-networks/detail')
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_type_list(self):
+        self.run_command('type-list')
+
+        self.assert_called('GET', '/types')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs'],
+            mock.ANY)
+
     def test_type_list_default_volume_type(self):
         self.run_command('type-list')
         self.assert_called_anytime('GET', '/types/default')
+
+    def test_type_list_all(self):
+        self.run_command('type-list --all')
+        self.assert_called_anytime('GET', '/types?is_public=all')
+
+    @ddt.data(True, False)
+    def test_type_create_with_access(self, public):
+        expected = {
+            'share_type': {
+                'name': 'test-type-3',
+                'extra_specs': {'driver_handles_share_servers': False},
+                'os-share-type-access:is_public': public
+            }
+        }
+        self.run_command(
+            'type-create test-type-3 false --is-public %s' %
+            six.text_type(public))
+        self.assert_called('POST', '/types', body=expected)
+
+    def test_type_access_list(self):
+        self.run_command('type-access-list 3')
+        self.assert_called('GET', '/types/3/os-share-type-access')
+
+    def test_type_access_add_project(self):
+        expected = {'addProjectAccess': {'project': '101'}}
+        self.run_command('type-access-add 3 101')
+        self.assert_called('POST', '/types/3/action', body=expected)
+
+    def test_type_access_remove_project(self):
+        expected = {'removeProjectAccess': {'project': '101'}}
+        self.run_command('type-access-remove 3 101')
+        self.assert_called('POST', '/types/3/action', body=expected)
 
     def test_list_filter_by_project_id(self):
         aliases = ['--project-id', '--project_id']
@@ -417,19 +459,10 @@ class ShellTest(test_utils.TestCase):
         )
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_type_list(self):
-        self.run_command('type-list')
-
-        self.assert_called('GET', '/types')
-        cliutils.print_list.assert_called_once_with(
-            mock.ANY,
-            ['ID', 'Name', 'is_default', 'required_extra_specs'], mock.ANY)
-
-    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_extra_specs_list(self):
         self.run_command('extra-specs-list')
 
-        self.assert_called('GET', '/types')
+        self.assert_called('GET', '/types?is_public=all')
         cliutils.print_list.assert_called_once_with(
             mock.ANY, ['ID', 'Name', 'all_extra_specs'], mock.ANY)
 
@@ -457,6 +490,7 @@ class ShellTest(test_utils.TestCase):
         expected = {
             "share_type": {
                 "name": "test",
+                "os-share-type-access:is_public": True,
                 "extra_specs": {
                     "driver_handles_share_servers": expected_bool
                 }

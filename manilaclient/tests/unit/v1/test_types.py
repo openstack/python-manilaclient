@@ -25,23 +25,29 @@ cs = fakes.FakeClient()
 class TypesTest(utils.TestCase):
     def test_list_types(self):
         tl = cs.share_types.list()
-        cs.assert_called('GET', '/types')
+        cs.assert_called('GET', '/types?is_public=all')
         for t in tl:
             self.assertIsInstance(t, share_types.ShareType)
             self.assertTrue(callable(getattr(t, 'get_required_keys', '')))
             self.assertEqual({'test': 'test'}, t.get_required_keys())
 
-    def test_create(self):
+    def test_list_types_only_public(self):
+        cs.share_types.list(show_all=False)
+        cs.assert_called('GET', '/types')
+
+    @ddt.data(True, False)
+    def test_create(self, is_public):
         expected_body = {
             "share_type": {
                 "name": 'test-type-3',
+                'os-share-type-access:is_public': is_public,
                 "extra_specs": {
                     "driver_handles_share_servers": True
                 }
             }
         }
 
-        t = cs.share_types.create('test-type-3', True)
+        t = cs.share_types.create('test-type-3', True, is_public=is_public)
         cs.assert_called('POST', '/types', expected_body)
         self.assertIsInstance(t, share_types.ShareType)
 

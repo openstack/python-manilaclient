@@ -27,6 +27,7 @@ from manilaclient.v1 import services
 from manilaclient.v1 import share_networks
 from manilaclient.v1 import share_servers
 from manilaclient.v1 import share_snapshots
+from manilaclient.v1 import share_type_access
 from manilaclient.v1 import share_types
 from manilaclient.v1 import shares
 
@@ -161,6 +162,7 @@ class Client(object):
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
         self.share_types = share_types.ShareTypeManager(self)
+        self.share_type_access = share_type_access.ShareTypeAccessManager(self)
         self.share_servers = share_servers.ShareServerManager(self)
         self.pools = scheduler_stats.PoolManager(self)
 
