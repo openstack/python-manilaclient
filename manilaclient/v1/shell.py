@@ -67,9 +67,30 @@ def _find_share(cs, share):
 def _print_share(cs, share):
     info = share._info.copy()
     info.pop('links', None)
+
+    # NOTE(vponomaryov): remove deprecated single field 'export_location' and
+    # leave only list field 'export_locations'. Also, transform the latter to
+    # text with new line separators to make it pretty in CLI.
+    # It will look like following:
+    # +-------------------+--------------------------------------------+
+    # | Property          | Value                                      |
+    # +-------------------+--------------------------------------------+
+    # | status            | available                                  |
+    # | export_locations  | 1.2.3.4:/f/o/o                             |
+    # |                   | 5.6.7.8:/b/a/r                             |
+    # |                   | 9.10.11.12:/q/u/u/z                        |
+    # | id                | d778d2ee-b6bb-4c5f-9f5d-6f3057d549b1       |
+    # | size              | 1                                          |
+    # | share_proto       | NFS                                        |
+    # +-------------------+--------------------------------------------+
+    if info.get('export_locations'):
+        info.pop('export_location', None)
+        info['export_locations'] = "\n".join(info['export_locations'])
+
     # No need to print both volume_type and share_type to CLI
     if 'volume_type' in info and 'share_type' in info:
         info.pop('volume_type', None)
+
     cliutils.print_dict(info)
 
 
