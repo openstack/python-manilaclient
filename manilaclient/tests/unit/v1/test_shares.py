@@ -105,6 +105,24 @@ class SharesTest(utils.TestCase):
         cs.shares.create('cifs', 2)
         cs.assert_called('POST', '/shares')
 
+    @ddt.data(True, False)
+    def test_create_share_with_public_attr_defined(self, is_public):
+        body = {
+            'share': {
+                'is_public': is_public,
+                'share_type': None,
+                'name': None,
+                'snapshot_id': None,
+                'description': None,
+                'metadata': {},
+                'share_proto': 'nfs',
+                'share_network_id': None,
+                'size': 1,
+            }
+        }
+        cs.shares.create('nfs', 1, is_public=is_public)
+        cs.assert_called('POST', '/shares', body)
+
     def test_delete_share(self):
         share = cs.shares.get('1234')
         cs.shares.delete(share)
@@ -127,7 +145,7 @@ class SharesTest(utils.TestCase):
 
     def test_list_shares_index(self):
         cs.shares.list(detailed=False)
-        cs.assert_called('GET', '/shares')
+        cs.assert_called('GET', '/shares?is_public=True')
 
     def test_list_shares_index_with_search_opts(self):
         search_opts = {
@@ -135,11 +153,13 @@ class SharesTest(utils.TestCase):
             'fake_int': 1,
         }
         cs.shares.list(detailed=False, search_opts=search_opts)
-        cs.assert_called('GET', '/shares?fake_int=1&fake_str=fake_str_value')
+        cs.assert_called(
+            'GET',
+            '/shares?fake_int=1&fake_str=fake_str_value&is_public=True')
 
     def test_list_shares_detailed(self):
         cs.shares.list(detailed=True)
-        cs.assert_called('GET', '/shares/detail')
+        cs.assert_called('GET', '/shares/detail?is_public=True')
 
     def test_list_shares_detailed_with_search_opts(self):
         search_opts = {
@@ -148,27 +168,32 @@ class SharesTest(utils.TestCase):
         }
         cs.shares.list(detailed=True, search_opts=search_opts)
         cs.assert_called(
-            'GET', '/shares/detail?fake_int=1&fake_str=fake_str_value')
+            'GET',
+            '/shares/detail?fake_int=1&fake_str=fake_str_value&is_public=True')
 
     def test_list_shares_sort_by_asc_and_host_key(self):
         cs.shares.list(detailed=False, sort_key='host', sort_dir='asc')
-        cs.assert_called('GET', '/shares?sort_dir=asc&sort_key=host')
+        cs.assert_called('GET',
+                         '/shares?is_public=True&sort_dir=asc&sort_key=host')
 
     def test_list_shares_sort_by_desc_and_size_key(self):
         cs.shares.list(detailed=False, sort_key='size', sort_dir='desc')
-        cs.assert_called('GET', '/shares?sort_dir=desc&sort_key=size')
+        cs.assert_called('GET',
+                         '/shares?is_public=True&sort_dir=desc&sort_key=size')
 
     def test_list_shares_filter_by_share_network_alias(self):
         cs.shares.list(detailed=False, sort_key='share_network')
-        cs.assert_called('GET', '/shares?sort_key=share_network_id')
+        cs.assert_called('GET',
+                         '/shares?is_public=True&sort_key=share_network_id')
 
     def test_list_shares_filter_by_snapshot_alias(self):
         cs.shares.list(detailed=False, sort_key='snapshot')
-        cs.assert_called('GET', '/shares?sort_key=snapshot_id')
+        cs.assert_called('GET', '/shares?is_public=True&sort_key=snapshot_id')
 
     def test_list_shares_filter_by_share_type_alias(self):
         cs.shares.list(detailed=False, sort_key='share_type')
-        cs.assert_called('GET', '/shares?sort_key=share_type_id')
+        cs.assert_called('GET',
+                         '/shares?is_public=True&sort_key=share_type_id')
 
     def test_list_shares_by_improper_direction(self):
         self.assertRaises(ValueError, cs.shares.list, sort_dir='fake')

@@ -134,7 +134,7 @@ class ShareManager(base.ManagerWithFind):
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
-               share_type=None):
+               share_type=None, is_public=False):
         """Create NAS.
 
         :param size: Size of NAS in GB
@@ -160,7 +160,8 @@ class ShareManager(base.ManagerWithFind):
                 'metadata': share_metadata,
                 'share_proto': share_proto,
                 'share_network_id': common_base.getid(share_network),
-                'share_type': share_type
+                'share_type': share_type,
+                'is_public': is_public
             }
         }
         return self._create('/shares', body, 'share')
@@ -243,6 +244,9 @@ class ShareManager(base.ManagerWithFind):
             else:
                 raise ValueError('sort_dir must be one of the following: %s.'
                                  % ', '.join(constants.SORT_DIR_VALUES))
+
+        if 'is_public' not in search_opts:
+            search_opts['is_public'] = True
 
         if search_opts:
             query_string = urlencode(
