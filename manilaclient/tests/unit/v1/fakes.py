@@ -342,6 +342,26 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             'extra_specs': {'test': 'test'},
             'required_extra_specs': {'test': 'test'}}})
 
+    def get_types_3(self, **kw):
+        return (200, {}, {
+            'share_type': {
+                'id': 3,
+                'name': 'test-type-3',
+                'extra_specs': {},
+                'os-share-type-access:is_public': False
+            }
+        })
+
+    def get_types_4(self, **kw):
+        return (200, {}, {
+            'share_type': {
+                'id': 4,
+                'name': 'test-type-3',
+                'extra_specs': {},
+                'os-share-type-access:is_public': True
+            }
+        })
+
     def post_types(self, body, **kw):
         share_type = body['share_type']
         return (202, {}, {
@@ -353,6 +373,19 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             }
         })
 
+    def post_types_3_action(self, body, **kw):
+        _body = None
+        resp = 202
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action == 'addProjectAccess':
+            assert 'project' in body['addProjectAccess']
+        elif action == 'removeProjectAccess':
+            assert 'project' in body['removeProjectAccess']
+        else:
+            raise AssertionError('Unexpected action: %s' % action)
+        return (resp, {}, _body)
+
     def post_types_1_extra_specs(self, body, **kw):
         assert list(body) == ['extra_specs']
         return (200, {}, {'extra_specs': {'k': 'v'}})
@@ -362,6 +395,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def delete_types_1(self, **kw):
         return (202, {}, None)
+
+    def get_types_3_os_share_type_access(self, **kw):
+        return (200, {}, {'share_type_access': [
+            {'share_type_id': '11111111-1111-1111-1111-111111111111',
+             'project_id': '00000000-0000-0000-0000-000000000000'}
+        ]})
 
 
 def fake_create(url, body, response_key):

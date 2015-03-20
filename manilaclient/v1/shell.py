@@ -1776,13 +1776,20 @@ def _print_share_type_list(stypes, default_share_type=None):
         else:
             return '-'
 
+    def is_public(share_type):
+        return 'public' if share_type.is_public else 'private'
+
     formatters = {
+        'Visibility': is_public,
         'is_default': _is_default,
-        'required_extra_specs': _print_type_required_extra_specs
+        'required_extra_specs': _print_type_required_extra_specs,
     }
 
-    fields = ['ID', 'Name', 'is_default', 'required_extra_specs']
+    for stype in stypes:
+        stype = stype.to_dict()
+        stype['Visibility'] = stype.pop('is_public', 'unknown')
 
+    fields = ['ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs']
     cliutils.print_list(stypes, fields, formatters)
 
 
@@ -1800,6 +1807,12 @@ def _find_share_type(cs, stype):
 
 
 @cliutils.service_type('share')
+@cliutils.arg(
+    '--all',
+    dest='all',
+    action='store_true',
+    default=False,
+    help='Display all share types (Admin only).')
 def do_type_list(cs, args):
     """Print a list of available 'share types'."""
     try:
@@ -1807,7 +1820,7 @@ def do_type_list(cs, args):
     except exceptions.NotFound:
         default = None
 
-    stypes = cs.share_types.list()
+    stypes = cs.share_types.list(show_all=args.all)
     _print_share_type_list(stypes, default_share_type=default)
 
 
@@ -1829,6 +1842,12 @@ def do_extra_specs_list(cs, args):
     nargs='?',
     help="Required extra specification. "
          "Valid values 'true'/'1' and 'false'/'0'")
+@cliutils.arg(
+    '--is_public',
+    '--is-public',
+    metavar='<is_public>',
+    action='single_alias',
+    help="Make type accessible to the public (default true).")
 @cliutils.service_type('share')
 def do_type_create(cs, args):
     """Create a new share type."""
@@ -1841,7 +1860,8 @@ def do_type_create(cs, args):
                "argument is not valid: %s" % six.text_type(e))
         raise exceptions.CommandError(msg)
 
-    stype = cs.share_types.create(args.name, extra_spec)
+    is_public = strutils.bool_from_string(args.is_public, default=True)
+    stype = cs.share_types.create(args.name, extra_spec, is_public=is_public)
     _print_share_type_list([stype])
 
 
@@ -1915,3 +1935,53 @@ def do_pool_list(cs, args):
     fields = ["Name", "Host", "Backend", "Pool"]
     pools = cs.pools.list(detailed=False, search_opts=search_opts)
     cliutils.print_list(pools, fields=fields)
+
+
+@cliutils.arg(
+    'share_type',
+    metavar='<share_type>',
+    help="Filter results by share type name or ID.")
+@cliutils.service_type('share')
+def do_type_access_list(cs, args):
+    """Print access information about the given share type."""
+    share_type = _find_share_type(cs, args.share_type)
+    if share_type.is_public:
+        raise exceptions.CommandError("Forbidden to get access list "
+                                      "for public share type.")
+    access_list = cs.share_type_access.list(share_type)
+
+    columns = ['Project_ID']
+    cliutils.print_list(access_list, columns)
+
+
+@cliutils.arg(
+    'share_type',
+    metavar='<share_type>',
+    help="Share type name or ID to add access"
+         " for the given project.")
+@cliutils.arg(
+    'project_id',
+    metavar='<project_id>',
+    help='Project ID to add share type access for.')
+@cliutils.service_type('share')
+def do_type_access_add(cs, args):
+    """Adds share type access for the given project."""
+    vtype = _find_share_type(cs, args.share_type)
+    cs.share_type_access.add_project_access(vtype, args.project_id)
+
+
+@cliutils.arg(
+    'share_type',
+    metavar='<share_type>',
+    help=('Share type name or ID to remove access '
+          'for the given project.'))
+@cliutils.arg(
+    'project_id',
+    metavar='<project_id>',
+    help='Project ID to remove share type access for.')
+@cliutils.service_type('share')
+def do_type_access_remove(cs, args):
+    """Removes share type access for the given project."""
+    vtype = _find_share_type(cs, args.share_type)
+    cs.share_type_access.remove_project_access(
+        vtype, args.project_id)
