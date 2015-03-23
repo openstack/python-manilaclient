@@ -333,3 +333,8 @@ class SharesTest(utils.TestCase):
         expected_body = {'os-shrink': {'new_size': size}}
         cs.shares.shrink(share, size)
         cs.assert_called('POST', '/shares/1234/action', expected_body)
+
+    def test_migrate_share(self):
+        host = 'fake_host'
+        self.share.migrate_share(host, True)
+        self.assertTrue(self.share.manager.migrate_share.called)

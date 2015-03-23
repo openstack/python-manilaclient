@@ -40,6 +40,10 @@ class Share(common_base.Resource):
         """Unmanage this share."""
         self.manager.unmanage(self, **kwargs)
 
+    def migrate_share(self, host, force_host_copy):
+        """Migrate the share to a new host."""
+        self.manager.migrate_share(self, host, force_host_copy)
+
     def delete(self):
         """Delete this share."""
         self.manager.delete(self)
@@ -170,6 +174,18 @@ class ShareManager(base.ManagerWithFind):
             'is_public': is_public
         }
         return self._create('/shares', {'share': body}, 'share')
+
+    def migrate_share(self, share, host, force_host_copy):
+        """Migrate share to new host and pool.
+
+        :param share: The :class:'share' to migrate
+        :param host: The destination host and pool
+        :param force_host_copy: Skip driver optimizations
+        """
+
+        return self._action('os-migrate_share',
+                            share, {'host': host,
+                                    'force_host_copy': force_host_copy})
 
     def manage(self, service_host, protocol, export_path,
                driver_options=None, share_type=None,

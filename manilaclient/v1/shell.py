@@ -23,6 +23,7 @@ import time
 from oslo_utils import strutils
 import six
 
+from manilaclient import api_versions
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import utils as apiclient_utils
@@ -453,6 +454,23 @@ def do_create(cs, args):
                              share_type=args.share_type,
                              is_public=args.public)
     _print_share(cs, share)
+
+
+@cliutils.arg(
+    'share', metavar='<share>', help='Name or ID of share to migrate.')
+@cliutils.arg('host', metavar='<host#pool>', help='Destination host and pool.')
+@cliutils.arg('--force-host-copy', metavar='<True|False>',
+              choices=['True', 'False'], required=False,
+              help='Enables or disables generic host-based '
+              'force-migration, which bypasses driver '
+              'optimizations. Default=False.',
+              default=False)
+@cliutils.service_type('share')
+@api_versions.experimental_api
+def do_migrate(cs, args):
+    """Migrates share to a new host."""
+    share = _find_share(cs, args.share)
+    share.migrate_share(args.host, args.force_host_copy)
 
 
 @cliutils.arg(
