@@ -135,89 +135,114 @@ class ShareManager(base.ManagerWithFind):
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False):
-        """Create NAS.
+        """Create a share.
 
-        :param size: Size of NAS in GB
-        :param snapshot_id: ID of the snapshot
-        :param name: Name of the NAS
-        :param description: Short description of a share
-        :param share_proto: Type of NAS (NFS, CIFS, GlusterFS or HDFS)
-        :param metadata: Optional metadata to set on share creation
+        :param share_proto: text - share protocol for new share
+            available values are NFS, CIFS, GlusterFS and HDFS.
+        :param size: int - size in GB
+        :param snapshot_id: text - ID of the snapshot
+        :param name: text - name of new share
+        :param description: text - description of a share
+        :param metadata: dict - optional metadata to set on share creation
+        :param share_network: either instance of ShareNetwork or text with ID
+        :param share_type: either instance of ShareType or text with ID
+        :param is_public: bool, whether to set share as public or not.
         :rtype: :class:`Share`
         """
-
-        if metadata is None:
-            share_metadata = {}
-        else:
-            share_metadata = metadata
-
+        share_metadata = metadata if metadata is not None else dict()
         body = {
-            'share': {
-                'size': size,
-                'snapshot_id': snapshot_id,
-                'name': name,
-                'description': description,
-                'metadata': share_metadata,
-                'share_proto': share_proto,
-                'share_network_id': common_base.getid(share_network),
-                'share_type': share_type,
-                'is_public': is_public
-            }
+            'size': size,
+            'snapshot_id': snapshot_id,
+            'name': name,
+            'description': description,
+            'metadata': share_metadata,
+            'share_proto': share_proto,
+            'share_network_id': common_base.getid(share_network),
+            'share_type': common_base.getid(share_type),
+            'is_public': is_public
         }
-        return self._create('/shares', body, 'share')
+        return self._create('/shares', {'share': body}, 'share')
 
     def manage(self, service_host, protocol, export_path,
                driver_options=None, share_type=None,
                name=None, description=None):
+        """Manage some existing share.
 
-        if not driver_options:
-            driver_options = {}
-
+        :param service_host: text - host of share service where share is runing
+        :param protocol: text - share protocol that is used
+        :param export_path: text - export path of share
+        :param driver_options: dict - custom set of key-values.
+        :param share_type: text - share type that should be used for share
+        :param name: text - name of new share
+        :param description: - description for new share
+        """
+        driver_options = driver_options if driver_options else dict()
         body = {
-            'share': {
-                'service_host': service_host,
-                'share_type': share_type,
-                'protocol': protocol,
-                'export_path': export_path,
-                'driver_options': driver_options,
-                'name': name,
-                'description': description
-            }
+            'service_host': service_host,
+            'share_type': share_type,
+            'protocol': protocol,
+            'export_path': export_path,
+            'driver_options': driver_options,
+            'name': name,
+            'description': description
         }
-
-        return self._create('/os-share-manage', body, 'share')
+        return self._create('/os-share-manage', {'share': body}, 'share')
 
     def unmanage(self, share):
+        """Unmanage a share.
+
+        :param share: either share object or text with its ID.
+        """
         return self.api.client.post(
             "/os-share-unmanage/%s/unmanage" % common_base.getid(share))
 
-    def get(self, share_id):
+    def get(self, share):
         """Get a share.
 
-        :param share_id: The ID of the share to get.
+        :param share: either share object or text with its ID.
         :rtype: :class:`Share`
         """
+        share_id = common_base.getid(share)
         return self._get("/shares/%s" % share_id, "share")
 
     def update(self, share, **kwargs):
         """Updates a share.
 
-        :param share: Share to update.
+        :param share: either share object or text with its ID.
         :rtype: :class:`Share`
         """
         if not kwargs:
             return
 
         body = {'share': kwargs, }
-        return self._update("/shares/%s" % share.id, body)
+        share_id = common_base.getid(share)
+        return self._update("/shares/%s" % share_id, body)
 
     def list(self, detailed=True, search_opts=None,
              sort_key=None, sort_dir=None):
         """Get a list of all shares.
 
-        :param detailed: Whether to return detailed share info.
-        :param search_opts: Search options to filter out shares.
-        :param sort_key: Key to be sorted.
+        :param detailed: Whether to return detailed share info or not.
+        :param search_opts: dict with search options to filter out shares.
+            available keys are below (('name1', 'name2', ...), 'type'):
+            - ('all_tenants', int)
+            - ('is_public', bool)
+            - ('metadata', dict)
+            - ('extra_specs', dict)
+            - ('limit', int)
+            - ('offset', int)
+            - ('name', text)
+            - ('status', text)
+            - ('host', text)
+            - ('share_server_id', text)
+            - (('share_network_id', 'share_network'), text)
+            - (('share_type_id', 'share_type'), text)
+            - (('snapshot_id', 'snapshot'), text)
+            Note, that member context will have restricted set of
+            available search opts. For admin context filtering also available
+            by each share attr from its Model. So, this list is not full for
+            admin context.
+        :param sort_key: Key to be sorted (i.e. 'created_at' or 'status').
         :param sort_dir: Sort direction, should be 'desc' or 'asc'.
         :rtype: list of :class:`Share`
         """
@@ -266,17 +291,21 @@ class ShareManager(base.ManagerWithFind):
     def delete(self, share):
         """Delete a share.
 
-        :param share: The :class:`Share` to delete.
+        :param share: either share object or text with its ID.
         """
         self._delete("/shares/%s" % common_base.getid(share))
 
     def force_delete(self, share):
+        """Delete a share forcibly - share status will be avoided.
+
+        :param share: either share object or text with its ID.
+        """
         return self._action('os-force_delete', common_base.getid(share))
 
     def allow(self, share, access_type, access, access_level):
-        """Allow access from IP to a shares.
+        """Allow access to a share.
 
-        :param share: The :class:`Share` to delete.
+        :param share: either share object or text with its ID.
         :param access_type: string that represents access type ('ip','domain')
         :param access: string that represents access ('127.0.0.1')
         :param access_level: string that represents access level ('rw', 'ro')
@@ -292,16 +321,19 @@ class ShareManager(base.ManagerWithFind):
 
         return access
 
-    def deny(self, share, id):
-        """Deny access from IP to a shares.
+    def deny(self, share, access_id):
+        """Deny access to a share.
 
-        :param share: The :class:`Share` to delete.
-        :param ip: string that represents ip address
+        :param share: either share object or text with its ID.
+        :param access_id: ID of share access rule
         """
-        return self._action('os-deny_access', share, {'access_id': id})
+        return self._action('os-deny_access', share, {'access_id': access_id})
 
     def access_list(self, share):
-        """Get access list to the share."""
+        """Get access list to a share.
+
+        :param share: either share object or text with its ID.
+        """
         access_list = self._action("os-access_list", share)[1]["access_list"]
         if access_list:
             t = collections.namedtuple('Access', list(access_list[0]))
@@ -310,17 +342,17 @@ class ShareManager(base.ManagerWithFind):
             return []
 
     def get_metadata(self, share):
-        """Get a shares metadata.
+        """Get metadata of a share.
 
-        :param share: The :class:`Share`.
+        :param share: either share object or text with its ID.
         """
         return self._get("/shares/%s/metadata" % common_base.getid(share),
                          "metadata")
 
     def set_metadata(self, share, metadata):
-        """Update/Set a shares metadata.
+        """Set or update metadata for share.
 
-        :param share: The :class:`Share`.
+        :param share: either share object or text with its ID.
         :param metadata: A list of keys to be set.
         """
         body = {'metadata': metadata}
@@ -330,17 +362,18 @@ class ShareManager(base.ManagerWithFind):
     def delete_metadata(self, share, keys):
         """Delete specified keys from shares metadata.
 
-        :param share: The :class:`Share`.
+        :param share: either share object or text with its ID.
         :param keys: A list of keys to be removed.
         """
-        for k in keys:
-            self._delete("/shares/%s/metadata/%s" % (common_base.getid(share),
-                         k))
+        share_id = common_base.getid(share)
+        for key in keys:
+            self._delete("/shares/%(share_id)s/metadata/%(key)s" % {
+                'share_id': share_id, 'key': key})
 
     def update_all_metadata(self, share, metadata):
         """Update all metadata of a share.
 
-        :param share: The :class:`Share`.
+        :param share: either share object or text with its ID.
         :param metadata: A list of keys to be updated.
         """
         body = {'metadata': metadata}
@@ -348,12 +381,22 @@ class ShareManager(base.ManagerWithFind):
                             body)
 
     def _action(self, action, share, info=None, **kwargs):
-        """Perform a share 'action'."""
+        """Perform a share 'action'.
+
+        :param action: text with action name.
+        :param share: either share object or text with its ID.
+        :param info: dict with data for specified 'action'.
+        :param kwargs: dict with data to be provided for action hooks.
+        """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
         url = '/shares/%s/action' % common_base.getid(share)
         return self.api.client.post(url, body=body)
 
     def reset_state(self, share, state):
-        """Update the provided share with the provided state."""
+        """Update the provided share with the provided state.
+
+        :param share: either share object or text with its ID.
+        :param state: text with new state to set for share.
+        """
         return self._action('os-reset_status', share, {'status': state})

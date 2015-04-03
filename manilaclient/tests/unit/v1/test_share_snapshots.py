@@ -15,6 +15,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
+
 from manilaclient import extension
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v1 import fakes
@@ -27,11 +29,39 @@ extensions = [
 cs = fakes.FakeClient(extensions=extensions)
 
 
+@ddt.ddt
 class ShareSnapshotsTest(utils.TestCase):
 
     def test_create_share_snapshot(self):
         cs.share_snapshots.create(1234)
         cs.assert_called('POST', '/snapshots')
+
+    @ddt.data(
+        type('SnapshotUUID', (object, ), {'uuid': '1234'}),
+        type('SnapshotID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_get_share_snapshot(self, snapshot):
+        snapshot = cs.share_snapshots.get(snapshot)
+        cs.assert_called('GET', '/snapshots/1234')
+
+    @ddt.data(
+        type('SnapshotUUID', (object, ), {'uuid': '1234'}),
+        type('SnapshotID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_update_share_snapshot(self, snapshot):
+        data = dict(foo='bar', quuz='foobar')
+        snapshot = cs.share_snapshots.update(snapshot, **data)
+        cs.assert_called('PUT', '/snapshots/1234', {'snapshot': data})
+
+    @ddt.data(
+        type('SnapshotUUID', (object, ), {'uuid': '1234'}),
+        type('SnapshotID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_reset_snapshot_state(self, snapshot):
+        state = 'available'
+        expected_body = {'os-reset_status': {'status': 'available'}}
+        cs.share_snapshots.reset_state(snapshot, state)
+        cs.assert_called('POST', '/snapshots/1234/action', expected_body)
 
     def test_delete_share_snapshot(self):
         snapshot = cs.share_snapshots.get(1234)
