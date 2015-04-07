@@ -17,6 +17,7 @@ from keystoneclient.v2_0 import client as keystone_client_v2
 from keystoneclient.v3 import client as keystone_client_v3
 import six
 
+from manilaclient import exceptions
 from manilaclient import httpclient
 from manilaclient.v1 import limits
 from manilaclient.v1 import quota_classes
@@ -94,10 +95,18 @@ class Client(object):
 
         check_deprecated_arguments()
 
+        if input_auth_token and not service_catalog_url:
+            msg = ("For token-based authentication you should "
+                   "provide 'input_auth_token' and 'service_catalog_url'.")
+            raise exceptions.ClientException(msg)
+
         self.project_id = tenant_id if tenant_id is not None else project_id
         self.keystone_client = None
         self.session = session
 
+        # NOTE(u_glide): token authorization has highest priority.
+        # That's why session and/or password will be ignored
+        # if token is provided.
         if not input_auth_token:
             if session:
                 self.keystone_client = adapter.LegacyJsonAdapter(
