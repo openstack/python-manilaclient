@@ -97,16 +97,63 @@ class SharesTest(utils.TestCase):
         self.assertFalse(self.share.manager.allow.called)
 
     # Testcases for class ShareManager
-    def test_create_nfs_share(self):
-        cs.shares.create('nfs', 1)
-        cs.assert_called('POST', '/shares')
 
-    def test_create_cifs_share(self):
-        cs.shares.create('cifs', 2)
-        cs.assert_called('POST', '/shares')
+    @ddt.data('nfs', 'cifs', 'glusterfs', 'hdfs')
+    def test_create_share_with_protocol(self, protocol):
+        expected = {
+            'size': 1,
+            'snapshot_id': None,
+            'name': None,
+            'description': None,
+            'metadata': dict(),
+            'share_proto': protocol,
+            'share_network_id': None,
+            'share_type': None,
+            'is_public': False,
+        }
+        cs.shares.create(protocol, 1)
+        cs.assert_called('POST', '/shares', {'share': expected})
+
+    @ddt.data(
+        type('ShareNetworkUUID', (object, ), {'uuid': 'fake_nw'}),
+        type('ShareNetworkID', (object, ), {'id': 'fake_nw'}),
+        'fake_nw')
+    def test_create_share_with_share_network(self, share_network):
+        expected = {
+            'size': 1,
+            'snapshot_id': None,
+            'name': None,
+            'description': None,
+            'metadata': dict(),
+            'share_proto': 'nfs',
+            'share_network_id': 'fake_nw',
+            'share_type': None,
+            'is_public': False,
+        }
+        cs.shares.create('nfs', 1, share_network=share_network)
+        cs.assert_called('POST', '/shares', {'share': expected})
+
+    @ddt.data(
+        type('ShareTypeUUID', (object, ), {'uuid': 'fake_st'}),
+        type('ShareTypeID', (object, ), {'id': 'fake_st'}),
+        'fake_st')
+    def test_create_share_with_share_type(self, share_type):
+        expected = {
+            'size': 1,
+            'snapshot_id': None,
+            'name': None,
+            'description': None,
+            'metadata': dict(),
+            'share_proto': 'nfs',
+            'share_network_id': None,
+            'share_type': 'fake_st',
+            'is_public': False,
+        }
+        cs.shares.create('nfs', 1, share_type=share_type)
+        cs.assert_called('POST', '/shares', {'share': expected})
 
     @ddt.data(True, False)
-    def test_create_share_with_public_attr_defined(self, is_public):
+    def test_create_share_with_all_params_defined(self, is_public):
         body = {
             'share': {
                 'is_public': is_public,
@@ -122,6 +169,23 @@ class SharesTest(utils.TestCase):
         }
         cs.shares.create('nfs', 1, is_public=is_public)
         cs.assert_called('POST', '/shares', body)
+
+    @ddt.data(
+        type('ShareUUID', (object, ), {'uuid': '1234'}),
+        type('ShareID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_get_share(self, share):
+        share = cs.shares.get(share)
+        cs.assert_called('GET', '/shares/1234')
+
+    @ddt.data(
+        type('ShareUUID', (object, ), {'uuid': '1234'}),
+        type('ShareID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_get_update(self, share):
+        data = dict(foo='bar', quuz='foobar')
+        share = cs.shares.update(share, **data)
+        cs.assert_called('PUT', '/shares/1234', {'share': data})
 
     def test_delete_share(self):
         share = cs.shares.get('1234')
@@ -222,12 +286,30 @@ class SharesTest(utils.TestCase):
         cs.assert_called('POST', '/shares/1234/metadata',
                          {'metadata': {'k1': 'v2'}})
 
-    def test_delete_metadata(self):
+    @ddt.data(
+        type('ShareUUID', (object, ), {'uuid': '1234'}),
+        type('ShareID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_delete_metadata(self, share):
         keys = ['key1']
-        cs.shares.delete_metadata(1234, keys)
+        cs.shares.delete_metadata(share, keys)
         cs.assert_called('DELETE', '/shares/1234/metadata/key1')
 
-    def test_metadata_update_all(self):
-        cs.shares.update_all_metadata(1234, {'k1': 'v1'})
+    @ddt.data(
+        type('ShareUUID', (object, ), {'uuid': '1234'}),
+        type('ShareID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_metadata_update_all(self, share):
+        cs.shares.update_all_metadata(share, {'k1': 'v1'})
         cs.assert_called('PUT', '/shares/1234/metadata',
                          {'metadata': {'k1': 'v1'}})
+
+    @ddt.data(
+        type('ShareUUID', (object, ), {'uuid': '1234'}),
+        type('ShareID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_reset_share_state(self, share):
+        state = 'available'
+        expected_body = {'os-reset_status': {'status': 'available'}}
+        cs.shares.reset_state(share, state)
+        cs.assert_called('POST', '/shares/1234/action', expected_body)

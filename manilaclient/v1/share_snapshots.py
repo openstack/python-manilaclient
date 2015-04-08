@@ -67,12 +67,14 @@ class ShareSnapshotManager(base.ManagerWithFind):
                              'description': description}}
         return self._create('/snapshots', body, 'snapshot')
 
-    def get(self, snapshot_id):
+    def get(self, snapshot):
         """Get a snapshot.
 
-        :param snapshot_id: The ID of the snapshot to get.
+        :param snapshot: The :class:`ShareSnapshot` instance or string with ID
+            of snapshot to delete.
         :rtype: :class:`ShareSnapshot`
         """
+        snapshot_id = common_base.getid(snapshot)
         return self._get('/snapshots/%s' % snapshot_id, 'snapshot')
 
     def list(self, detailed=True, search_opts=None, sort_key=None,
@@ -131,14 +133,16 @@ class ShareSnapshotManager(base.ManagerWithFind):
     def update(self, snapshot, **kwargs):
         """Update a snapshot.
 
-        :param snapshot: Snapshot to update.
+        :param snapshot: The :class:`ShareSnapshot` instance or string with ID
+            of snapshot to delete.
         :rtype: :class:`ShareSnapshot`
         """
         if not kwargs:
             return
 
         body = {'snapshot': kwargs, }
-        return self._update("/snapshots/%s" % snapshot.id, body)
+        snapshot_id = common_base.getid(snapshot)
+        return self._update("/snapshots/%s" % snapshot_id, body)
 
     def reset_state(self, snapshot, state):
         """Update the specified share snapshot with the provided state."""
