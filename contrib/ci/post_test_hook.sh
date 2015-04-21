@@ -42,6 +42,10 @@ iniset $MANILACLIENT_CONF DEFAULT admin_tenant_name $OS_TENANT_NAME
 iniset $MANILACLIENT_CONF DEFAULT admin_password $OS_PASSWORD
 iniset $MANILACLIENT_CONF DEFAULT admin_auth_url $OS_AUTH_URL
 
+# Suppress errors in cleanup of resources
+SUPPRESS_ERRORS=${SUPPRESS_ERRORS_IN_CLEANUP:-True}
+iniset $MANILACLIENT_CONF DEFAULT suppress_errors_in_cleanup $SUPPRESS_ERRORS
+
 # let us control if we die or not
 set +o errexit
 

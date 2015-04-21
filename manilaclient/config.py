@@ -17,6 +17,7 @@ import copy
 import os
 
 from oslo.config import cfg
+import oslo_log._options as log_options
 
 # 1. Define opts
 
@@ -59,6 +60,10 @@ base_opts = [
                    'OS_MANILA_EXEC_DIR',
                    os.path.join(os.path.abspath('.'), '.tox/functional/bin')),
                help="The path to manilaclient to be executed."),
+    cfg.BoolOpt("suppress_errors_in_cleanup",
+                default=True,
+                help="Whether to suppress errors with clean up operation "
+                     "or not."),
 ]
 
 # 2. Generate config
@@ -99,8 +104,10 @@ CONF.register_opts(base_opts)
 
 
 def list_opts():
-    """Return a list of oslo.config options available in Manilaclient."""
-    return [
+    """Return a list of oslo_config options available in Manilaclient."""
+    opts = [
         (None, copy.deepcopy(auth_opts)),
         (None, copy.deepcopy(base_opts)),
     ]
+    opts.extend(log_options.list_opts())
+    return opts

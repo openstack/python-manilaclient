@@ -13,36 +13,138 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
+import traceback
 
+from oslo_log import log
 from tempest_lib.cli import base
+from tempest_lib import exceptions as lib_exc
 
 from manilaclient import config
 from manilaclient.tests.functional import client
 
 CONF = config.CONF
+LOG = log.getLogger(__name__)
+
+
+class handle_cleanup_exceptions(object):
+    """Handle exceptions raised with cleanup operations.
+
+    Always suppress errors when lib_exc.NotFound or lib_exc.Forbidden
+    are raised.
+    Suppress all other exceptions only in case config opt
+    'suppress_errors_in_cleanup' is True.
+    """
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if not (isinstance(exc_value,
+                           (lib_exc.NotFound, lib_exc.Forbidden)) or
+                CONF.suppress_errors_in_cleanup):
+            return False  # Do not suppress error if any
+        if exc_traceback:
+            LOG.error("Suppressed cleanup error: "
+                      "\n%s" % traceback.format_exc())
+        return True  # Suppress error if any
 
 
 class BaseTestCase(base.ClientTestBase):
-    def _get_clients(self):
-        cli_dir = os.environ.get(
-            'OS_MANILA_EXEC_DIR',
-            os.path.join(os.path.abspath('.'), '.tox/functional/bin'))
 
-        clients = {
-            'admin': client.ManilaCLIClient(
-                username=CONF.admin_username,
-                password=CONF.admin_password,
-                tenant_name=CONF.admin_tenant_name,
-                uri=CONF.admin_auth_url or CONF.auth_url,
-                cli_dir=cli_dir,
-            ),
-            'user': client.ManilaCLIClient(
-                username=CONF.username,
-                password=CONF.password,
-                tenant_name=CONF.tenant_name,
-                uri=CONF.auth_url,
-                cli_dir=cli_dir,
-            ),
+    # Will be cleaned up after test suite run
+    class_resources = []
+
+    # Will be cleaned up after single test run
+    method_resources = []
+
+    def setUp(self):
+        super(BaseTestCase, self).setUp()
+        self.addCleanup(self.clear_resources)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(BaseTestCase, cls).tearDownClass()
+        cls.clear_resources(cls.class_resources)
+
+    @classmethod
+    def clear_resources(cls, resources=None):
+        """Deletes resources, that were created in test suites.
+
+        This method tries to remove resources from resource list,
+        if it is not found, assume it was deleted in test itself.
+        It is expected, that all resources were added as LIFO
+        due to restriction of deletion resources, that are in the chain.
+        :param resources: dict with keys 'type','id','client' and 'deleted'
+        """
+
+        if resources is None:
+            resources = cls.method_resources
+        for res in resources:
+            if "deleted" not in res:
+                res["deleted"] = False
+            if "client" not in res:
+                res["client"] = cls.get_cleanup_client()
+            if not(res["deleted"]):
+                res_id = res['id']
+                client = res["client"]
+                with handle_cleanup_exceptions():
+                    # TODO(vponomaryov): add support for other resources
+                    if res["type"] is "share_type":
+                        client.delete_share_type(res_id)
+                        client.wait_for_share_type_deletion(res_id)
+                    else:
+                        LOG.warn("Provided unsupported resource type for "
+                                 "cleanup '%s'. Skipping." % res["type"])
+                res["deleted"] = True
+
+    @classmethod
+    def get_admin_client(cls):
+        return client.ManilaCLIClient(
+            username=CONF.admin_username,
+            password=CONF.admin_password,
+            tenant_name=CONF.admin_tenant_name,
+            uri=CONF.admin_auth_url or CONF.auth_url,
+            cli_dir=CONF.manila_exec_dir)
+
+    @classmethod
+    def get_user_client(cls):
+        return client.ManilaCLIClient(
+            username=CONF.username,
+            password=CONF.password,
+            tenant_name=CONF.tenant_name,
+            uri=CONF.auth_url,
+            cli_dir=CONF.manila_exec_dir)
+
+    @property
+    def admin_client(self):
+        if not hasattr(self, '_admin_client'):
+            self._admin_client = self.get_admin_client()
+        return self._admin_client
+
+    @property
+    def user_client(self):
+        if not hasattr(self, '_user_client'):
+            self._user_client = self.get_user_client()
+        return self._user_client
+
+    def _get_clients(self):
+        return {'admin': self.admin_client, 'user': self.user_client}
+
+    def create_share_type(self, name=None, driver_handles_share_servers=True,
+                          is_public=True, client=None, cleanup_in_class=True):
+        if client is None:
+            client = self.admin_client
+        share_type = client.create_share_type(
+            name=name,
+            driver_handles_share_servers=driver_handles_share_servers,
+            is_public=is_public)
+        resource = {
+            "type": "share_type",
+            "id": share_type["ID"],
+            "client": client,
         }
-        return clients
+        if cleanup_in_class:
+            self.class_resources.insert(0, resource)
+        else:
+            self.method_resources.insert(0, resource)
+        return share_type
