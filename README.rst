@@ -71,3 +71,8 @@ Quick-start using keystone::
     >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="share")
     >>> nt.shares.list()
     [...]
+
+* License: Apache License, Version 2.0
+* Documentation: http://docs.openstack.org/developer/python-manilaclient
+* Source: http://git.openstack.org/cgit/openstack/python-manilaclient
+* Bugs: http://bugs.launchpad.net/python-manilaclient
