@@ -154,3 +154,22 @@ class ManilaCLIClient(base.CLIClient):
         """
         self.wait_for_resource_deletion(
             SHARE_TYPE, res_id=share_type, interval=2, timeout=6)
+
+    def get_project_id(self, name_or_id):
+        project_id = self.openstack(
+            'project show -f value -c id %s' % name_or_id)
+        return project_id.strip()
+
+    def add_share_type_access(self, share_type_name_or_id, project_id):
+        data = dict(st=share_type_name_or_id, project=project_id)
+        self.manila('type-access-add %(st)s %(project)s' % data)
+
+    def remove_share_type_access(self, share_type_name_or_id, project_id):
+        data = dict(st=share_type_name_or_id, project=project_id)
+        self.manila('type-access-remove %(st)s %(project)s' % data)
+
+    def list_share_type_access(self, share_type_id):
+        projects_raw = self.manila('type-access-list %s' % share_type_id)
+        projects = output_parser.listing(projects_raw)
+        project_ids = [pr['Project_ID'] for pr in projects]
+        return project_ids
