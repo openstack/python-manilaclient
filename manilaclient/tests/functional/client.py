@@ -22,6 +22,7 @@ from tempest_lib.common.utils import data_utils
 from tempest_lib import exceptions as tempest_lib_exc
 
 from manilaclient.tests.functional import exceptions
+from manilaclient.tests.functional import utils
 
 SHARE_TYPE = 'share_type'
 
@@ -173,3 +174,38 @@ class ManilaCLIClient(base.CLIClient):
         projects = output_parser.listing(projects_raw)
         project_ids = [pr['Project_ID'] for pr in projects]
         return project_ids
+
+    def set_share_type_extra_specs(self, share_type_name_or_id, extra_specs):
+        """Set key-value pair for share type."""
+        if not (isinstance(extra_specs, dict) and extra_specs):
+            raise exceptions.InvalidData(
+                message='Provided invalid extra specs - %s' % extra_specs)
+        cmd = 'type-key %s set ' % share_type_name_or_id
+        for key, value in extra_specs.items():
+            cmd += '%(key)s=%(value)s ' % {'key': key, 'value': value}
+        return self.manila(cmd)
+
+    def unset_share_type_extra_specs(self, share_type_name_or_id,
+                                     extra_specs_keys):
+        """Unset key-value pair for share type."""
+        if not (isinstance(extra_specs_keys, list) and extra_specs_keys):
+            raise exceptions.InvalidData(
+                message='Provided invalid extra specs - %s' % extra_specs_keys)
+        cmd = 'type-key %s unset ' % share_type_name_or_id
+        for key in extra_specs_keys:
+            cmd += '%s ' % key
+        return self.manila(cmd)
+
+    def list_all_share_type_extra_specs(self):
+        """List extra specs for all share types."""
+        extra_specs_raw = self.manila('extra-specs-list')
+        extra_specs = utils.listing(extra_specs_raw)
+        return extra_specs
+
+    def list_share_type_extra_specs(self, share_type_name_or_id):
+        """List extra specs for specific share type by its Name or ID."""
+        all_share_types = self.list_all_share_type_extra_specs()
+        for share_type in all_share_types:
+            if share_type_name_or_id in (share_type['ID'], share_type['Name']):
+                return share_type['all_extra_specs']
+        raise exceptions.ShareTypeNotFound(share_type=share_type_name_or_id)

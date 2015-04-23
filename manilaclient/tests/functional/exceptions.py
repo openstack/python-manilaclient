@@ -26,3 +26,11 @@ class ResourceReleaseFailed(exceptions.TempestException):
 
 class InvalidResource(exceptions.TempestException):
     message = "Provided invalid resource: %(message)s"
+
+
+class InvalidData(exceptions.TempestException):
+    message = "Provided invalid data: %(message)s"
+
+
+class ShareTypeNotFound(exceptions.TempestException):
+    message = "Share type '%(share_type)s' was not found"

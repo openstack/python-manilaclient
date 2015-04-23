@@ -147,3 +147,39 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
         # Project ID is in access list - false
         st_access_list = self.admin_client.list_share_type_access(st_id)
         self.assertNotIn(user_project_id, st_access_list)
+
+
+@ddt.ddt
+class ShareTypeExtraSpecsReadWriteTest(base.BaseTestCase):
+
+    @ddt.data(
+        {'is_public': True, 'dhss': False},
+        {'is_public': True, 'dhss': True},
+        {'is_public': False, 'dhss': True},
+        {'is_public': False, 'dhss': False},
+    )
+    @ddt.unpack
+    def test_share_type_extra_specs_life_cycle(self, is_public, dhss):
+
+        # Create share type
+        st = self.create_share_type(
+            driver_handles_share_servers=dhss, is_public=is_public)
+
+        # Add extra specs to share type
+        st_extra_specs = dict(foo_key='foo_value', bar_key='bar_value')
+        self.admin_client.set_share_type_extra_specs(
+            st['ID'], st_extra_specs)
+
+        # View list of extra specs
+        extra_specs = self.admin_client.list_share_type_extra_specs(st['ID'])
+        for k, v in st_extra_specs.items():
+            self.assertIn('%s : %s' % (k, v), extra_specs)
+
+        # Remove one extra spec
+        self.admin_client.unset_share_type_extra_specs(st['ID'], ['foo_key'])
+
+        # Verify that removed extra spec is absent
+        extra_specs = self.admin_client.list_share_type_extra_specs(st['ID'])
+        self.assertNotIn('foo_key : foo_value', extra_specs)
+        self.assertIn('bar_key : bar_value', extra_specs)
+        self.assertIn('driver_handles_share_servers : %s' % dhss, extra_specs)
