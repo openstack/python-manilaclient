@@ -92,6 +92,9 @@ class BaseTestCase(base.ClientTestBase):
                     if res["type"] is "share_type":
                         client.delete_share_type(res_id)
                         client.wait_for_share_type_deletion(res_id)
+                    elif res["type"] is "share_network":
+                        client.delete_share_network(res_id)
+                        client.wait_for_share_network_deletion(res_id)
                     else:
                         LOG.warn("Provided unsupported resource type for "
                                  "cleanup '%s'. Skipping." % res["type"])
@@ -148,3 +151,27 @@ class BaseTestCase(base.ClientTestBase):
         else:
             self.method_resources.insert(0, resource)
         return share_type
+
+    @classmethod
+    def create_share_network(cls, name=None, description=None,
+                             nova_net_id=None, neutron_net_id=None,
+                             neutron_subnet_id=None, client=None,
+                             cleanup_in_class=True):
+        if client is None:
+            client = cls.get_admin_client()
+        share_network = client.create_share_network(
+            name=name,
+            description=description,
+            nova_net_id=nova_net_id,
+            neutron_net_id=neutron_net_id,
+            neutron_subnet_id=neutron_subnet_id)
+        resource = {
+            "type": "share_network",
+            "id": share_network["id"],
+            "client": client,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        return share_network

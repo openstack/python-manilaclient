@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import re
 import time
 
 import six
@@ -25,6 +26,21 @@ from manilaclient.tests.functional import exceptions
 from manilaclient.tests.functional import utils
 
 SHARE_TYPE = 'share_type'
+SHARE_NETWORK = 'share_network'
+
+
+def not_found_wrapper(f):
+
+    def wrapped_func(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except tempest_lib_exc.CommandFailed as e:
+            if re.search('No (\w+) with a name or ID', e.stderr):
+                # Raise appropriate 'NotFound' error
+                raise tempest_lib_exc.NotFound()
+            raise
+
+    return wrapped_func
 
 
 class ManilaCLIClient(base.CLIClient):
@@ -64,6 +80,8 @@ class ManilaCLIClient(base.CLIClient):
         # TODO(vponomaryov): add support for other resource types
         if res_type == SHARE_TYPE:
             func = self.is_share_type_deleted
+        elif res_type == SHARE_NETWORK:
+            func = self.is_share_network_deleted
         else:
             raise exceptions.InvalidResource(message=res_type)
 
@@ -77,6 +95,8 @@ class ManilaCLIClient(base.CLIClient):
         if not deleted:
             raise exceptions.ResourceReleaseFailed(
                 res_type=res_type, res_id=res_id)
+
+    # Share types
 
     def create_share_type(self, name=None, driver_handles_share_servers=True,
                           is_public=True):
@@ -112,16 +132,10 @@ class ManilaCLIClient(base.CLIClient):
         share_type = output_parser.listing(share_type_raw)[0]
         return share_type
 
+    @not_found_wrapper
     def delete_share_type(self, share_type):
         """Deletes share type by its Name or ID."""
-        try:
-            return self.manila('type-delete %s' % share_type)
-        except tempest_lib_exc.CommandFailed as e:
-            not_found_msg = 'No sharetype with a name or ID'
-            if not_found_msg in e.stderr:
-                # Assuming it was deleted in tests
-                raise tempest_lib_exc.NotFound()
-            raise
+        return self.manila('type-delete %s' % share_type)
 
     def list_share_types(self, list_all=True):
         """List share types.
@@ -161,20 +175,24 @@ class ManilaCLIClient(base.CLIClient):
             'project show -f value -c id %s' % name_or_id)
         return project_id.strip()
 
+    @not_found_wrapper
     def add_share_type_access(self, share_type_name_or_id, project_id):
         data = dict(st=share_type_name_or_id, project=project_id)
         self.manila('type-access-add %(st)s %(project)s' % data)
 
+    @not_found_wrapper
     def remove_share_type_access(self, share_type_name_or_id, project_id):
         data = dict(st=share_type_name_or_id, project=project_id)
         self.manila('type-access-remove %(st)s %(project)s' % data)
 
+    @not_found_wrapper
     def list_share_type_access(self, share_type_id):
         projects_raw = self.manila('type-access-list %s' % share_type_id)
         projects = output_parser.listing(projects_raw)
         project_ids = [pr['Project_ID'] for pr in projects]
         return project_ids
 
+    @not_found_wrapper
     def set_share_type_extra_specs(self, share_type_name_or_id, extra_specs):
         """Set key-value pair for share type."""
         if not (isinstance(extra_specs, dict) and extra_specs):
@@ -185,6 +203,7 @@ class ManilaCLIClient(base.CLIClient):
             cmd += '%(key)s=%(value)s ' % {'key': key, 'value': value}
         return self.manila(cmd)
 
+    @not_found_wrapper
     def unset_share_type_extra_specs(self, share_type_name_or_id,
                                      extra_specs_keys):
         """Unset key-value pair for share type."""
@@ -209,3 +228,144 @@ class ManilaCLIClient(base.CLIClient):
             if share_type_name_or_id in (share_type['ID'], share_type['Name']):
                 return share_type['all_extra_specs']
         raise exceptions.ShareTypeNotFound(share_type=share_type_name_or_id)
+
+    # Share networks
+
+    def create_share_network(self, name=None, description=None,
+                             nova_net_id=None, neutron_net_id=None,
+                             neutron_subnet_id=None):
+        """Creates share network.
+
+        :param name: text -- desired name of new share network
+        :param description: text -- desired description of new share network
+        :param nova_net_id: text -- ID of Nova network
+        :param neutron_net_id: text -- ID of Neutron network
+        :param neutron_subnet_id: text -- ID of Neutron subnet
+
+        NOTE: 'nova_net_id' and 'neutron_net_id'/'neutron_subnet_id' are
+            mutually exclusive.
+        """
+        params = self._combine_share_network_data(
+            name=name,
+            description=description,
+            nova_net_id=nova_net_id,
+            neutron_net_id=neutron_net_id,
+            neutron_subnet_id=neutron_subnet_id)
+        share_network_raw = self.manila('share-network-create %s' % params)
+        share_network = output_parser.details(share_network_raw)
+        return share_network
+
+    def _combine_share_network_data(self, name=None, description=None,
+                                    nova_net_id=None, neutron_net_id=None,
+                                    neutron_subnet_id=None):
+        """Combines params for share network operations 'create' and 'update'.
+
+        :returns: text -- set of CLI parameters
+        """
+        data = dict()
+        if name is not None:
+            data['--name'] = name
+        if description is not None:
+            data['--description'] = description
+        if nova_net_id is not None:
+            data['--nova_net_id'] = nova_net_id
+        if neutron_net_id is not None:
+            data['--neutron_net_id'] = neutron_net_id
+        if neutron_subnet_id is not None:
+            data['--neutron_subnet_id'] = neutron_subnet_id
+        cmd = ''
+        for key, value in data.items():
+            cmd += "%(k)s='%(v)s' " % dict(k=key, v=value)
+        return cmd
+
+    @not_found_wrapper
+    def get_share_network(self, share_network):
+        """Returns share network by its Name or ID."""
+        share_network_raw = self.manila(
+            'share-network-show %s' % share_network)
+        share_network = output_parser.details(share_network_raw)
+        return share_network
+
+    @not_found_wrapper
+    def update_share_network(self, share_network, name=None, description=None,
+                             nova_net_id=None, neutron_net_id=None,
+                             neutron_subnet_id=None):
+        """Updates share-network by its name or ID.
+
+        :param name: text -- new name for share network
+        :param description: text -- new description for share network
+        :param nova_net_id: text -- ID of some Nova network
+        :param neutron_net_id: text -- ID of some Neutron network
+        :param neutron_subnet_id: text -- ID of some Neutron subnet
+
+        NOTE: 'nova_net_id' and 'neutron_net_id'/'neutron_subnet_id' are
+            mutually exclusive.
+        """
+        sn_params = self._combine_share_network_data(
+            name=name,
+            description=description,
+            nova_net_id=nova_net_id,
+            neutron_net_id=neutron_net_id,
+            neutron_subnet_id=neutron_subnet_id)
+        share_network_raw = self.manila(
+            'share-network-update %(sn)s %(params)s' % dict(
+                sn=share_network, params=sn_params))
+        share_network = output_parser.details(share_network_raw)
+        return share_network
+
+    @not_found_wrapper
+    def delete_share_network(self, share_network):
+        """Deletes share network by its Name or ID."""
+        return self.manila('share-network-delete %s' % share_network)
+
+    @staticmethod
+    def _stranslate_to_cli_optional_param(param):
+        if len(param) < 1 or not isinstance(param, six.string_types):
+            raise exceptions.InvalidData(
+                'Provided wrong parameter for translation.')
+        while not param[0:2] == '--':
+            param = '-' + param
+        return param.replace('_', '-')
+
+    def list_share_networks(self, all_tenants=False, filters=None):
+        """List share networks.
+
+        :param all_tenants: bool -- whether to list share-networks that belong
+            only to current project or for all projects.
+        :param filters: dict -- filters for listing of share networks.
+            Example, input:
+                {'project_id': 'foo'}
+                {'-project_id': 'foo'}
+                {'--project_id': 'foo'}
+                {'project-id': 'foo'}
+            will be transformed to filter parameter "--project-id=foo"
+        """
+        cmd = 'share-network-list '
+        if all_tenants:
+            cmd += '--all-tenants '
+        if filters and isinstance(filters, dict):
+            for k, v in filters.items():
+                cmd += '%(k)s=%(v)s ' % {
+                    'k': self._stranslate_to_cli_optional_param(k), 'v': v}
+        share_networks_raw = self.manila(cmd)
+        share_networks = utils.listing(share_networks_raw)
+        return share_networks
+
+    def is_share_network_deleted(self, share_network):
+        """Says whether share network is deleted or not.
+
+        :param share_network: text -- Name or ID of share network
+        """
+        share_types = self.list_share_networks(True)
+        for list_element in share_types:
+            if share_network in (list_element['id'], list_element['name']):
+                return False
+        return True
+
+    def wait_for_share_network_deletion(self, share_network):
+        """Wait for share network deletion by its Name or ID.
+
+        :param share_network: text -- Name or ID of share network
+        """
+        self.wait_for_resource_deletion(
+            SHARE_NETWORK, res_id=share_network, interval=2, timeout=6)

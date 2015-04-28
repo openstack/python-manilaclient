@@ -32,5 +32,5 @@ class InvalidData(exceptions.TempestException):
     message = "Provided invalid data: %(message)s"
 
 
-class ShareTypeNotFound(exceptions.TempestException):
+class ShareTypeNotFound(exceptions.NotFound):
     message = "Share type '%(share_type)s' was not found"
