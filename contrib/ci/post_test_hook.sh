@@ -26,7 +26,7 @@ sudo chown -R jenkins:stack .
 # Create manilaclient config file
 touch $MANILACLIENT_CONF
 
-# Import 'iniset' func from devstack functions
+# Import functions from devstack
 source $BASE/new/devstack/functions
 
 # Set options to config client.
@@ -46,11 +46,43 @@ iniset $MANILACLIENT_CONF DEFAULT admin_auth_url $OS_AUTH_URL
 SUPPRESS_ERRORS=${SUPPRESS_ERRORS_IN_CLEANUP:-True}
 iniset $MANILACLIENT_CONF DEFAULT suppress_errors_in_cleanup $SUPPRESS_ERRORS
 
+# Create share network and use it for functional tests if required
+USE_SHARE_NETWORK=$(trueorfalse True USE_SHARE_NETWORK)
+if [[ ${USE_SHARE_NETWORK} = True ]]; then
+    SHARE_NETWORK_NAME=${SHARE_NETWORK_NAME:-ci}
+
+    if [[ "$JOB_NAME" =~ "neutron" ]]; then
+        DEFAULT_NEUTRON_NET=$(neutron net-show private -c id -f value)
+        DEFAULT_NEUTRON_SUBNET=$(neutron subnet-show private-subnet -c id -f value)
+        NEUTRON_NET=${NEUTRON_NET:-$DEFAULT_NEUTRON_NET}
+        NEUTRON_SUBNET=${NEUTRON_SUBNET:-$DEFAULT_NEUTRON_SUBNET}
+        manila share-network-create \
+            --name $SHARE_NETWORK_NAME \
+            --neutron-net $NEUTRON_NET \
+            --neutron-subnet $NEUTRON_SUBNET
+    else
+        DEFAULT_NOVA_NET=$(nova net-list | grep private | awk '{print $2}')
+        NOVA_NET=${NOVA_NET:-$DEFAULT_NOVA_NET}
+        manila share-network-create \
+            --name $SHARE_NETWORK_NAME \
+            --nova-net $NOVA_NET
+    fi
+    iniset $MANILACLIENT_CONF DEFAULT share_network $SHARE_NETWORK_NAME
+    iniset $MANILACLIENT_CONF DEFAULT admin_share_network $SHARE_NETWORK_NAME
+fi
+
+# Set share type if required
+if [[ "$SHARE_TYPE" ]]; then
+    iniset $MANILACLIENT_CONF DEFAULT share_type $SHARE_TYPE
+fi
+
 # let us control if we die or not
 set +o errexit
 
+CONCURRENCY=${CONCURRENCY:-8}
+
 # Run functional tests
-sudo -H -u jenkins tox -e functional -v
+sudo -H -u jenkins tox -e functional -v -- --concurrency=$CONCURRENCY
 EXIT_CODE=$?
 
 if [ -d ".testrepository" ] ; then

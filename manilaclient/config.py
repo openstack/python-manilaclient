@@ -66,6 +66,33 @@ base_opts = [
                      "or not."),
 ]
 
+share_opts = [
+    cfg.StrOpt("share_network",
+               default=None,
+               help="Share network Name or ID, that will be used for shares. "
+                    "Some backend drivers require a share network for share "
+                    "creation."),
+    cfg.StrOpt("admin_share_network",
+               default=None,
+               help="Share network Name or ID, that will be used for shares "
+                    "in admin tenant."),
+    cfg.StrOpt("share_type",
+               default=None,
+               help="Share type Name or ID, that will be used with share "
+                    "creation scheduling. Optional."),
+    cfg.ListOpt("enable_protocols",
+                default=["nfs", "cifs"],
+                help="List of all enabled protocols. The first protocol in "
+                     "the list will be used as the default protocol."),
+    cfg.IntOpt("build_interval",
+               default=3,
+               help="Time in seconds between share availability checks."),
+    cfg.IntOpt("build_timeout",
+               default=500,
+               help="Timeout in seconds to wait for a share to become "
+                    "available."),
+]
+
 # 2. Generate config
 
 PROJECT_NAME = 'manilaclient'
@@ -99,6 +126,7 @@ else:
 
 CONF.register_opts(auth_opts)
 CONF.register_opts(base_opts)
+CONF.register_opts(share_opts)
 
 # 4. Define list_opts for config sample generator
 
@@ -108,6 +136,7 @@ def list_opts():
     opts = [
         (None, copy.deepcopy(auth_opts)),
         (None, copy.deepcopy(base_opts)),
+        (None, copy.deepcopy(share_opts)),
     ]
     opts.extend(log_options.list_opts())
     return opts

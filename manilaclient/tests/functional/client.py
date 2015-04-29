@@ -16,15 +16,19 @@
 import re
 import time
 
+from oslo_utils import strutils
 import six
 from tempest_lib.cli import base
 from tempest_lib.cli import output_parser
 from tempest_lib.common.utils import data_utils
 from tempest_lib import exceptions as tempest_lib_exc
 
+from manilaclient import config
 from manilaclient.tests.functional import exceptions
 from manilaclient.tests.functional import utils
 
+CONF = config.CONF
+SHARE = 'share'
 SHARE_TYPE = 'share_type'
 SHARE_NETWORK = 'share_network'
 
@@ -43,7 +47,31 @@ def not_found_wrapper(f):
     return wrapped_func
 
 
+def forbidden_wrapper(f):
+
+    def wrapped_func(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except tempest_lib_exc.CommandFailed as e:
+            if re.search('HTTP 403', e.stderr):
+                # Raise appropriate 'Forbidden' error.
+                raise tempest_lib_exc.Forbidden()
+            raise
+
+    return wrapped_func
+
+
 class ManilaCLIClient(base.CLIClient):
+
+    def __init__(self, *args, **kwargs):
+        super(ManilaCLIClient, self).__init__(*args, **kwargs)
+        if CONF.enable_protocols:
+            self.share_protocol = CONF.enable_protocols[0]
+        else:
+            msg = "Configuration option 'enable_protocols' is not defined."
+            raise exceptions.InvalidConfiguration(reason=msg)
+        self.build_interval = CONF.build_interval
+        self.build_timeout = CONF.build_timeout
 
     def manila(self, action, flags='', params='', fail_ok=False,
                endpoint_type='publicURL', merge_stderr=False):
@@ -82,6 +110,8 @@ class ManilaCLIClient(base.CLIClient):
             func = self.is_share_type_deleted
         elif res_type == SHARE_NETWORK:
             func = self.is_share_network_deleted
+        elif res_type == SHARE:
+            func = self.is_share_deleted
         else:
             raise exceptions.InvalidResource(message=res_type)
 
@@ -148,6 +178,17 @@ class ManilaCLIClient(base.CLIClient):
         share_types_raw = self.manila(cmd)
         share_types = output_parser.listing(share_types_raw)
         return share_types
+
+    def get_share_type(self, share_type):
+        """Get share type.
+
+        :param share_type: str -- Name or ID of share type
+        """
+        share_types = self.list_share_types(True)
+        for st in share_types:
+            if share_type in (st['ID'], st['Name']):
+                return st
+        raise tempest_lib_exc.NotFound()
 
     def is_share_type_deleted(self, share_type):
         """Says whether share type is deleted or not.
@@ -369,3 +410,158 @@ class ManilaCLIClient(base.CLIClient):
         """
         self.wait_for_resource_deletion(
             SHARE_NETWORK, res_id=share_network, interval=2, timeout=6)
+
+    # Shares
+
+    def create_share(self, share_protocol, size, share_network=None,
+                     share_type=None, name=None, description=None,
+                     public=False, snapshot=None, metadata=None):
+        """Creates a share.
+
+        :param share_protocol: str -- share protocol of a share.
+        :param size: int/str -- desired size of a share.
+        :param share_network: str -- Name or ID of share network to use.
+        :param share_type: str -- Name or ID of share type to use.
+        :param name: str -- desired name of new share.
+        :param description: str -- desired description of new share.
+        :param public: bool -- should a share be public or not.
+            Default is False.
+        :param snapshot: str -- Name or ID of a snapshot to use as source.
+        :param metadata: dict -- key-value data to provide with share creation.
+        """
+        cmd = 'create %(share_protocol)s %(size)s ' % {
+            'share_protocol': share_protocol, 'size': size}
+        if share_network is not None:
+            cmd += '--share-network %s ' % share_network
+        if share_type is not None:
+            cmd += '--share-type %s ' % share_type
+        if name is None:
+            name = data_utils.rand_name('autotest_share_name')
+        cmd += '--name %s ' % name
+        if description is None:
+            description = data_utils.rand_name('autotest_share_description')
+        cmd += '--description %s ' % description
+        if public:
+            cmd += '--public'
+        if snapshot is not None:
+            cmd += '--snapshot %s ' % snapshot
+        if metadata:
+            metadata_cli = ''
+            for k, v in metadata.items():
+                metadata_cli += '%(k)s=%(v)s ' % {'k': k, 'v': v}
+            if metadata_cli:
+                cmd += '--metadata %s ' % metadata_cli
+        share_raw = self.manila(cmd)
+        share = output_parser.details(share_raw)
+        return share
+
+    @not_found_wrapper
+    def get_share(self, share):
+        """Returns a share by its Name or ID."""
+        share_raw = self.manila('show %s' % share)
+        share = output_parser.details(share_raw)
+        return share
+
+    @not_found_wrapper
+    def update_share(self, share, name=None, description=None,
+                     is_public=False):
+        """Updates a share.
+
+        :param share: str -- name or ID of a share that should be updated.
+        :param name: str -- desired name of new share.
+        :param description: str -- desired description of new share.
+        :param is_public: bool -- should a share be public or not.
+            Default is False.
+        """
+        cmd = 'update %s ' % share
+        if name:
+            cmd += '--name %s ' % name
+        if description:
+            cmd += '--description %s ' % description
+        is_public = strutils.bool_from_string(is_public, strict=True)
+        cmd += '--is-public %s ' % is_public
+
+        return self.manila(cmd)
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def delete_share(self, shares):
+        """Deletes share[s] by Names or IDs.
+
+        :param shares: either str or list of str that can be either Name
+            or ID of a share(s) that should be deleted.
+        """
+        if not isinstance(shares, list):
+            shares = [shares]
+        cmd = 'delete '
+        for share in shares:
+            cmd += '%s ' % share
+        return self.manila(cmd)
+
+    def list_shares(self, all_tenants=False, filters=None):
+        """List shares.
+
+        :param all_tenants: bool -- whether to list shares that belong
+            only to current project or for all projects.
+        :param filters: dict -- filters for listing of shares.
+            Example, input:
+                {'project_id': 'foo'}
+                {-'project_id': 'foo'}
+                {--'project_id': 'foo'}
+                {'project-id': 'foo'}
+            will be transformed to filter parameter "--project-id=foo"
+        """
+        cmd = 'list '
+        if all_tenants:
+            cmd += '--all-tenants '
+        if filters and isinstance(filters, dict):
+            for k, v in filters.items():
+                cmd += '%(k)s=%(v)s ' % {
+                    'k': self._stranslate_to_cli_optional_param(k), 'v': v}
+        shares_raw = self.manila(cmd)
+        shares = utils.listing(shares_raw)
+        return shares
+
+    def is_share_deleted(self, share):
+        """Says whether share is deleted or not.
+
+        :param share: str -- Name or ID of share
+        """
+        try:
+            self.get_share(share)
+            return False
+        except tempest_lib_exc.NotFound:
+            return True
+
+    def wait_for_share_deletion(self, share):
+        """Wait for share deletion by its Name or ID.
+
+        :param share: str -- Name or ID of share
+        """
+        self.wait_for_resource_deletion(
+            SHARE, res_id=share, interval=5, timeout=300)
+
+    def wait_for_share_status(self, share, status):
+        """Waits for a share to reach a given status."""
+        body = self.get_share(share)
+        share_name = body['name']
+        share_status = body['status']
+        start = int(time.time())
+
+        while share_status != status:
+            time.sleep(self.build_interval)
+            body = self.get_share(share)
+            share_status = body['status']
+
+            if share_status == status:
+                return
+            elif 'error' in share_status.lower():
+                raise exceptions.ShareBuildErrorException(share=share)
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = (
+                    "Share %(share_name)s failed to reach %(status)s status "
+                    "within the required time (%(build_timeout)s s)." % {
+                        "share_name": share_name, "status": status,
+                        "build_timeout": self.build_timeout})
+                raise tempest_lib_exc.TimeoutException(message)

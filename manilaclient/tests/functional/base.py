@@ -95,6 +95,9 @@ class BaseTestCase(base.ClientTestBase):
                     elif res["type"] is "share_network":
                         client.delete_share_network(res_id)
                         client.wait_for_share_network_deletion(res_id)
+                    elif res["type"] is "share":
+                        client.delete_share(res_id)
+                        client.wait_for_share_deletion(res_id)
                     else:
                         LOG.warn("Provided unsupported resource type for "
                                  "cleanup '%s'. Skipping." % res["type"])
@@ -102,21 +105,27 @@ class BaseTestCase(base.ClientTestBase):
 
     @classmethod
     def get_admin_client(cls):
-        return client.ManilaCLIClient(
+        manilaclient = client.ManilaCLIClient(
             username=CONF.admin_username,
             password=CONF.admin_password,
             tenant_name=CONF.admin_tenant_name,
             uri=CONF.admin_auth_url or CONF.auth_url,
             cli_dir=CONF.manila_exec_dir)
+        # Set specific for admin project share network
+        manilaclient.share_network = CONF.admin_share_network
+        return manilaclient
 
     @classmethod
     def get_user_client(cls):
-        return client.ManilaCLIClient(
+        manilaclient = client.ManilaCLIClient(
             username=CONF.username,
             password=CONF.password,
             tenant_name=CONF.tenant_name,
             uri=CONF.auth_url,
             cli_dir=CONF.manila_exec_dir)
+        # Set specific for user project share network
+        manilaclient.share_network = CONF.share_network
+        return manilaclient
 
     @property
     def admin_client(self):
@@ -133,10 +142,11 @@ class BaseTestCase(base.ClientTestBase):
     def _get_clients(self):
         return {'admin': self.admin_client, 'user': self.user_client}
 
-    def create_share_type(self, name=None, driver_handles_share_servers=True,
+    @classmethod
+    def create_share_type(cls, name=None, driver_handles_share_servers=True,
                           is_public=True, client=None, cleanup_in_class=True):
         if client is None:
-            client = self.admin_client
+            client = cls.get_admin_client()
         share_type = client.create_share_type(
             name=name,
             driver_handles_share_servers=driver_handles_share_servers,
@@ -147,9 +157,9 @@ class BaseTestCase(base.ClientTestBase):
             "client": client,
         }
         if cleanup_in_class:
-            self.class_resources.insert(0, resource)
+            cls.class_resources.insert(0, resource)
         else:
-            self.method_resources.insert(0, resource)
+            cls.method_resources.insert(0, resource)
         return share_type
 
     @classmethod
@@ -175,3 +185,40 @@ class BaseTestCase(base.ClientTestBase):
         else:
             cls.method_resources.insert(0, resource)
         return share_network
+
+    @classmethod
+    def create_share(cls, share_protocol=None, size=None, share_network=None,
+                     share_type=None, name=None, description=None,
+                     public=False, snapshot=None, metadata=None,
+                     client=None, cleanup_in_class=False,
+                     wait_for_creation=True):
+        if client is None:
+            client = cls.get_admin_client()
+        data = {
+            'share_protocol': share_protocol or client.share_protocol,
+            'size': size or 1,
+            'name': name,
+            'description': description,
+            'public': public,
+            'snapshot': snapshot,
+            'metadata': metadata,
+        }
+        share_network = share_network or client.share_network
+        share_type = share_type or CONF.share_type
+        if share_network:
+            data['share_network'] = share_network
+        if share_type:
+            data['share_type'] = share_type
+        share = client.create_share(**data)
+        resource = {
+            "type": "share",
+            "id": share["id"],
+            "client": client,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        if wait_for_creation:
+            client.wait_for_share_status(share['id'], 'available')
+        return share

@@ -14,9 +14,14 @@
 #    under the License.
 
 import ddt
+from tempest_lib.common.utils import data_utils
 from tempest_lib import exceptions
+import testtools
 
+from manilaclient import config
 from manilaclient.tests.functional import base
+
+CONF = config.CONF
 
 
 @ddt.ddt
@@ -89,3 +94,112 @@ class SharesListReadOnlyTest(base.BaseTestCase):
     @ddt.data('admin', 'user')
     def test_snapshot_list_filter_by_status(self, role):
         self.clients[role].manila('snapshot-list', params='--status status')
+
+
+@ddt.ddt
+class SharesListReadWriteTest(base.BaseTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(SharesListReadWriteTest, cls).setUpClass()
+        cls.private_name = data_utils.rand_name('autotest_share_name')
+        cls.private_description = data_utils.rand_name(
+            'autotest_share_description')
+        cls.public_name = data_utils.rand_name('autotest_public_share_name')
+        cls.public_description = data_utils.rand_name(
+            'autotest_public_share_description')
+
+        cls.private_share = cls.create_share(
+            name=cls.private_name,
+            description=cls.private_description,
+            public=False,
+            cleanup_in_class=True,
+            client=cls.get_user_client(),
+            wait_for_creation=False)
+
+        cls.public_share = cls.create_share(
+            name=cls.public_name,
+            description=cls.public_description,
+            public=True,
+            client=cls.get_user_client(),
+            cleanup_in_class=True)
+
+        for share_id in (cls.private_share['id'], cls.public_share['id']):
+            cls.get_admin_client().wait_for_share_status(share_id, 'available')
+
+    def _list_shares(self, filters=None):
+        filters = filters or dict()
+        shares = self.user_client.list_shares(filters=filters)
+
+        self.assertTrue(len(shares) > 1)
+        for s_id in (self.private_share['id'], self.public_share['id']):
+            self.assertTrue(any(s_id == s['ID'] for s in shares))
+        if filters:
+            for share in shares:
+                try:
+                    get = self.user_client.get_share(share['ID'])
+                except exceptions.NotFound:
+                    # NOTE(vponomaryov): Case when some share was deleted
+                    # between our 'list' and 'get' requests. Skip such case.
+                    # It occurs with concurrently running tests.
+                    continue
+                for k, v in filters.items():
+                    if k in ('share_network', 'share-network'):
+                        k = 'share_network_id'
+                    if v != 'deleting' and get[k] == 'deleting':
+                        continue
+                    self.assertEqual(v, get[k])
+
+    def test_list_shares(self):
+        self._list_shares()
+
+    def test_list_shares_for_all_tenants(self):
+        shares = self.user_client.list_shares(True)
+        self.assertTrue(len(shares) > 1)
+        for s_id in (self.private_share['id'], self.public_share['id']):
+            self.assertTrue(any(s_id == s['ID'] for s in shares))
+
+    def test_list_shares_by_name(self):
+        shares = self.user_client.list_shares(
+            filters={'name': self.private_name})
+
+        self.assertEqual(1, len(shares))
+        self.assertTrue(
+            any(self.private_share['id'] == s['ID'] for s in shares))
+        for share in shares:
+            get = self.user_client.get_share(share['ID'])
+            self.assertEqual(self.private_name, get['name'])
+
+    def test_list_shares_by_share_type(self):
+        share_type_name = self.user_client.get_share_type(
+            self.private_share['share_type'])['Name']
+        self._list_shares({'share_type': share_type_name})
+
+    def test_list_shares_by_status(self):
+        self._list_shares({'status': 'available'})
+
+    def test_list_shares_by_project_id(self):
+        project_id = self.user_client.get_project_id(
+            self.admin_client.tenant_name)
+        self._list_shares({'project_id': project_id})
+
+    @testtools.skipUnless(
+        CONF.share_network, "Usage of Share networks is disabled")
+    def test_list_shares_by_share_network(self):
+        share_network_id = self.user_client.get_share_network(
+            CONF.share_network)['id']
+        self._list_shares({'share_network': share_network_id})
+
+    def test_list_shares_by_host(self):
+        get = self.user_client.get_share(self.private_share['id'])
+        self._list_shares({'host': get['host']})
+
+    @ddt.data(
+        {'limit': 1},
+        {'limit': 2},
+        {'limit': 1, 'offset': 1},
+        {'limit': 2, 'offset': 0},
+    )
+    def test_list_shares_with_limit(self, filters):
+        shares = self.user_client.list_shares(filters=filters)
+        self.assertEqual(filters['limit'], len(shares))
