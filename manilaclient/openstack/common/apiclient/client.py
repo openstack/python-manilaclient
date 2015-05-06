@@ -33,7 +33,7 @@ try:
 except ImportError:
     import json
 
-from oslo.utils import importutils
+from oslo_utils import importutils
 import requests
 
 from manilaclient.openstack.common._i18n import _

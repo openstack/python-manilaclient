@@ -16,7 +16,7 @@
 import copy
 import os
 
-from oslo.config import cfg
+from oslo_config import cfg
 import oslo_log._options as log_options
 
 # 1. Define opts
