@@ -3,7 +3,7 @@
 # process, which may cause wedges in the gate later.
 
 # pbr should be first
-pbr>=0.6,!=0.7,<1.0
+pbr>=0.11,<2.0
 
 argparse
 iso8601>=0.1.9
