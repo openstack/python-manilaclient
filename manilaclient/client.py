@@ -20,7 +20,7 @@
 OpenStack Client interface. Handles the REST calls and responses.
 """
 
-from oslo.utils import importutils
+from oslo_utils import importutils
 
 from manilaclient import exceptions
 

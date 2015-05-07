@@ -19,7 +19,7 @@
 import copy
 import logging
 
-from oslo.serialization import jsonutils
+from oslo_serialization import jsonutils
 from oslo_utils import strutils
 import requests
 import six
