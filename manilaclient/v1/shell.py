@@ -482,7 +482,7 @@ def do_metadata_show(cs, args):
     """Show metadata of given share."""
     share = _find_share(cs, args.share)
     metadata = cs.shares.get_metadata(share)._info
-    cliutils.print_dict(metadata, 'Metadata-property')
+    cliutils.print_dict(metadata, 'Property')
 
 
 @cliutils.arg(
@@ -501,7 +501,7 @@ def do_metadata_update_all(cs, args):
     share = _find_share(cs, args.share)
     metadata = _extract_metadata(args)
     metadata = share.update_all_metadata(metadata)._info['metadata']
-    cliutils.print_dict(metadata, 'Metadata-property')
+    cliutils.print_dict(metadata, 'Property')
 
 
 @cliutils.arg(

@@ -565,3 +565,58 @@ class ManilaCLIClient(base.CLIClient):
                         "share_name": share_name, "status": status,
                         "build_timeout": self.build_timeout})
                 raise tempest_lib_exc.TimeoutException(message)
+
+    @not_found_wrapper
+    def _set_share_metadata(self, share, data, update_all=False):
+        """Sets a share metadata.
+
+        :param share: str -- Name or ID of a share.
+        :param data: dict -- key-value pairs to set as metadata.
+        :param update_all: bool -- if set True then all keys except provided
+            will be deleted.
+        """
+        if not (isinstance(data, dict) and data):
+            msg = ('Provided invalid data for setting of share metadata - '
+                   '%s' % data)
+            raise exceptions.InvalidData(message=msg)
+        if update_all:
+            cmd = 'metadata-update-all %s ' % share
+        else:
+            cmd = 'metadata %s set ' % share
+        for k, v in data.items():
+            cmd += '%(k)s=%(v)s ' % {'k': k, 'v': v}
+        return self.manila(cmd)
+
+    def update_all_share_metadata(self, share, data):
+        metadata_raw = self._set_share_metadata(share, data, True)
+        metadata = output_parser.details(metadata_raw)
+        return metadata
+
+    def set_share_metadata(self, share, data):
+        return self._set_share_metadata(share, data, False)
+
+    @not_found_wrapper
+    def unset_share_metadata(self, share, keys):
+        """Unsets some share metadata by keys.
+
+        :param share: str -- Name or ID of a share
+        :param keys: str/list -- key or list of keys to unset.
+        """
+        if not (isinstance(keys, list) and keys):
+            msg = ('Provided invalid data for unsetting of share metadata - '
+                   '%s' % keys)
+            raise exceptions.InvalidData(message=msg)
+        cmd = 'metadata %s unset ' % share
+        for key in keys:
+            cmd += '%s ' % key
+        return self.manila(cmd)
+
+    @not_found_wrapper
+    def get_share_metadata(self, share):
+        """Returns list of all share metadata.
+
+        :param share: str -- Name or ID of a share.
+        """
+        metadata_raw = self.manila('metadata-show %s' % share)
+        metadata = output_parser.details(metadata_raw)
+        return metadata
