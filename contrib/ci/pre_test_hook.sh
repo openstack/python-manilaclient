@@ -16,3 +16,8 @@
 
 # Install manila devstack integration
 cp -r $BASE/new/manila/contrib/devstack/* $BASE/new/devstack
+
+localrc_path=$BASE/new/devstack/localrc
+
+# Set big quota for share networks to avoid limit exceedances
+echo "MANILA_OPTGROUP_DEFAULT_quota_share_networks=50" >> $localrc_path
