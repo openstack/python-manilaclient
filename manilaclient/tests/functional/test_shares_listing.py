@@ -20,7 +20,7 @@ from manilaclient.tests.functional import base
 
 
 @ddt.ddt
-class ManilaClientTestSharesReadOnly(base.BaseTestCase):
+class SharesListReadOnlyTest(base.BaseTestCase):
 
     @ddt.data('admin', 'user')
     def test_shares_list(self, role):
