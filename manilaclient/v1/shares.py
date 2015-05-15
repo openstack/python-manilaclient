@@ -127,6 +127,10 @@ class Share(common_base.Resource):
         """Update the share with the provided state."""
         self.manager.reset_state(self, state)
 
+    def extend(self, new_size):
+        """Extend the size of the specified share."""
+        self.manager.extend(self, new_size)
+
 
 class ShareManager(base.ManagerWithFind):
     """Manage :class:`Share` resources."""
@@ -400,3 +404,11 @@ class ShareManager(base.ManagerWithFind):
         :param state: text with new state to set for share.
         """
         return self._action('os-reset_status', share, {'status': state})
+
+    def extend(self, share, new_size):
+        """Extend the size of the specified share.
+
+        :param share: either share object or text with its ID.
+        :param new_size: The desired size to extend share to.
+        """
+        return self._action('os-extend', share, {'new_size': new_size})

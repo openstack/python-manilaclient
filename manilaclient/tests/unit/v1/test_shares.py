@@ -313,3 +313,13 @@ class SharesTest(utils.TestCase):
         expected_body = {'os-reset_status': {'status': 'available'}}
         cs.shares.reset_state(share, state)
         cs.assert_called('POST', '/shares/1234/action', expected_body)
+
+    @ddt.data(
+        type('ShareUUID', (object, ), {'uuid': '1234'}),
+        type('ShareID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_extend_share(self, share):
+        size = 123
+        expected_body = {'os-extend': {'new_size': size}}
+        cs.shares.extend(share, size)
+        cs.assert_called('POST', '/shares/1234/action', expected_body)

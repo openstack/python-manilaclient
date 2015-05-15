@@ -635,6 +635,11 @@ class ShellTest(test_utils.TestCase):
             args = Arguments(metadata=input[0])
             self.assertEqual(shell_v1._extract_metadata(args), input[1])
 
+    def test_extend(self):
+        self.run_command('extend 1234 77')
+        expected = {'os-extend': {'new_size': 77}}
+        self.assert_called('POST', '/shares/1234/action', body=expected)
+
     def test_reset_state(self):
         self.run_command('reset-state 1234')
         expected = {'os-reset_status': {'status': 'available'}}
