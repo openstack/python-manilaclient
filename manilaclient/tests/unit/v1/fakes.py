@@ -161,6 +161,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert 'status' in body['os-reset_status']
         elif action == 'os-force_delete':
             assert body[action] is None
+        elif action == 'os-extend':
+            assert body[action] is not None
+            assert body[action]['new_size'] is not None
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)

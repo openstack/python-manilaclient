@@ -1985,3 +1985,16 @@ def do_type_access_remove(cs, args):
     vtype = _find_share_type(cs, args.share_type)
     cs.share_type_access.remove_project_access(
         vtype, args.project_id)
+
+
+@cliutils.arg('share', metavar='<share>',
+              help='Name or ID of share to extend.')
+@cliutils.arg('new_size',
+              metavar='<new_size>',
+              type=int,
+              help='New size of share, in GBs.')
+@cliutils.service_type('share')
+def do_extend(cs, args):
+    """Increases the size of an existing share."""
+    share = _find_share(cs, args.share)
+    cs.shares.extend(share, args.new_size)
