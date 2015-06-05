@@ -131,6 +131,10 @@ class Share(common_base.Resource):
         """Extend the size of the specified share."""
         self.manager.extend(self, new_size)
 
+    def shrink(self, new_size):
+        """Shrink the size of the specified share."""
+        self.manager.shrink(self, new_size)
+
 
 class ShareManager(base.ManagerWithFind):
     """Manage :class:`Share` resources."""
@@ -412,3 +416,11 @@ class ShareManager(base.ManagerWithFind):
         :param new_size: The desired size to extend share to.
         """
         return self._action('os-extend', share, {'new_size': new_size})
+
+    def shrink(self, share, new_size):
+        """Shrink the size of the specified share.
+
+        :param share: either share object or text with its ID.
+        :param new_size: The desired size to shrink share to.
+        """
+        return self._action('os-shrink', share, {'new_size': new_size})

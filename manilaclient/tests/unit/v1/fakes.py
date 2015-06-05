@@ -161,7 +161,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert 'status' in body['os-reset_status']
         elif action == 'os-force_delete':
             assert body[action] is None
-        elif action == 'os-extend':
+        elif action in ('os-extend', 'os-shrink'):
             assert body[action] is not None
             assert body[action]['new_size'] is not None
         else:
