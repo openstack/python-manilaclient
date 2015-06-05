@@ -91,6 +91,22 @@ share_opts = [
                default=500,
                help="Timeout in seconds to wait for a share to become "
                     "available."),
+    cfg.DictOpt('access_types_mapping',
+                default={'nfs': 'ip', 'cifs': 'ip'},
+                help="Dict contains access types mapping to share "
+                     "protocol. It will be used to create access rules "
+                     "for shares. Format: '<protocol>: <type1> <type2>',..."
+                     "Allowed share protocols: nfs, cifs, glusterfs, hdfs. "),
+    cfg.DictOpt('access_levels_mapping',
+                default={'nfs': 'rw ro', 'cifs': 'rw'},
+                help="Dict contains access levels mapping to share "
+                     "protocol. It will be used to create access rules for "
+                     "shares. Format: '<protocol>: <level1> <level2>',... "
+                     "Allowed share protocols: nfs, cifs, glusterfs, hdfs. "),
+    cfg.StrOpt("username_for_user_rules",
+               default="TESTDOMAIN\\Administrator",
+               help="Username, that will be used in share access tests for "
+                    "user type of access."),
 ]
 
 # 2. Generate config

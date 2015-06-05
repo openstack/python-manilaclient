@@ -42,3 +42,11 @@ class InvalidConfiguration(exceptions.TempestException):
 
 class ShareBuildErrorException(exceptions.TempestException):
     message = "Share %(share)s failed to build and is in ERROR status"
+
+
+class AccessRuleCreateErrorException(exceptions.TempestException):
+    message = "Access rule %(access)s failed to create and is in ERROR state."
+
+
+class AccessRuleDeleteErrorException(exceptions.TempestException):
+    message = "Access rule %(access)s failed to delete and is in ERROR state."

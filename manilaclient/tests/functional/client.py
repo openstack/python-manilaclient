@@ -620,3 +620,80 @@ class ManilaCLIClient(base.CLIClient):
         metadata_raw = self.manila('metadata-show %s' % share)
         metadata = output_parser.details(metadata_raw)
         return metadata
+
+    @not_found_wrapper
+    def list_access(self, share_id):
+        access_list_raw = self.manila('access-list %s' % share_id)
+        return output_parser.listing(access_list_raw)
+
+    @not_found_wrapper
+    def get_access(self, share_id, access_id):
+        for access in self.list_access(share_id):
+            if access['id'] == access_id:
+                return access
+        raise tempest_lib_exc.NotFound()
+
+    @not_found_wrapper
+    def access_allow(self, share_id, access_type, access_to, access_level):
+        raw_access = self.manila(
+            'access-allow  --access-level %(level)s %(id)s %(type)s '
+            '%(access_to)s' % {
+                'level': access_level,
+                'id': share_id,
+                'type': access_type,
+                'access_to': access_to,
+            })
+        return output_parser.details(raw_access)
+
+    @not_found_wrapper
+    def access_deny(self, share_id, access_id):
+        self.manila('access-deny %(share_id)s %(access_id)s' % {
+            'share_id': share_id,
+            'access_id': access_id,
+        })
+
+    def wait_for_access_rule_status(self, share_id, access_id, state='active'):
+        access = self.get_access(share_id, access_id)
+
+        start = int(time.time())
+        while access['state'] != state:
+            time.sleep(self.build_interval)
+            access = self.get_access(share_id, access_id)
+
+            if access['state'] == state:
+                return
+            elif access['state'] == 'error':
+                raise exceptions.AccessRuleCreateErrorException(
+                    access=access_id)
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = (
+                    "Access rule %(access)s failed to reach %(state)s state "
+                    "within the required time (%(build_timeout)s s)." % {
+                        "access": access_id, "state": state,
+                        "build_timeout": self.build_timeout})
+                raise tempest_lib_exc.TimeoutException(message)
+
+    def wait_for_access_rule_deletion(self, share_id, access_id):
+        try:
+            access = self.get_access(share_id, access_id)
+        except tempest_lib_exc.NotFound:
+            return
+
+        start = int(time.time())
+        while True:
+            time.sleep(self.build_interval)
+            try:
+                access = self.get_access(share_id, access_id)
+            except tempest_lib_exc.NotFound:
+                return
+
+            if access['state'] == 'error':
+                raise exceptions.AccessRuleDeleteErrorException(
+                    access=access_id)
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = (
+                    "Access rule %(access)s failed to reach deleted state "
+                    "within the required time (%s s)." % self.build_timeout)
+                raise tempest_lib_exc.TimeoutException(message)
