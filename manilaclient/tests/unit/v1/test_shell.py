@@ -645,6 +645,11 @@ class ShellTest(test_utils.TestCase):
         expected = {'os-reset_status': {'status': 'available'}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
+    def test_shrink(self):
+        self.run_command('shrink 1234 77')
+        expected = {'os-shrink': {'new_size': 77}}
+        self.assert_called('POST', '/shares/1234/action', body=expected)
+
     def test_reset_state_with_flag(self):
         self.run_command('reset-state --state error 1234')
         expected = {'os-reset_status': {'status': 'error'}}

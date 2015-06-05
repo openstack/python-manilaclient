@@ -1998,3 +1998,16 @@ def do_extend(cs, args):
     """Increases the size of an existing share."""
     share = _find_share(cs, args.share)
     cs.shares.extend(share, args.new_size)
+
+
+@cliutils.arg('share', metavar='<share>',
+              help='Name or ID of share to shrink.')
+@cliutils.arg('new_size',
+              metavar='<new_size>',
+              type=int,
+              help='New size of share, in GBs.')
+@cliutils.service_type('share')
+def do_shrink(cs, args):
+    """Decreases the size of an existing share."""
+    share = _find_share(cs, args.share)
+    cs.shares.shrink(share, args.new_size)
