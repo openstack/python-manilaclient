@@ -31,12 +31,14 @@ source $BASE/new/devstack/functions
 
 # Set options to config client.
 source $BASE/new/devstack/accrc/demo/demo
+export OS_TENANT_NAME=${OS_PROJECT_NAME:-$OS_TENANT_NAME}
 iniset $MANILACLIENT_CONF DEFAULT username $OS_USERNAME
 iniset $MANILACLIENT_CONF DEFAULT tenant_name $OS_TENANT_NAME
 iniset $MANILACLIENT_CONF DEFAULT password $OS_PASSWORD
 iniset $MANILACLIENT_CONF DEFAULT auth_url $OS_AUTH_URL
 
 source $BASE/new/devstack/accrc/demo/admin
+export OS_TENANT_NAME=${OS_PROJECT_NAME:-$OS_TENANT_NAME}
 iniset $MANILACLIENT_CONF DEFAULT admin_username $OS_USERNAME
 iniset $MANILACLIENT_CONF DEFAULT admin_tenant_name $OS_TENANT_NAME
 iniset $MANILACLIENT_CONF DEFAULT admin_password $OS_PASSWORD
