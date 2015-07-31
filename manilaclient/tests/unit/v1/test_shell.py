@@ -71,6 +71,7 @@ class ShellTest(test_utils.TestCase):
                 "share_network_id": None,
                 "size": 1,
                 "is_public": False,
+                "availability_zone": None,
             }
         }
 
@@ -329,7 +330,8 @@ class ShellTest(test_utils.TestCase):
             'Is Public',
             'Share Type',
             'Export location',
-            'Host'
+            'Host',
+            'Availability Zone'
         ]
         self.run_command('list --public')
         self.assert_called('GET', '/shares/detail?is_public=True')

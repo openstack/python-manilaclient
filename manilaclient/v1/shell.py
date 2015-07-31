@@ -426,6 +426,12 @@ def do_rate_limits(cs, args):
     default=False,
     help="Level of visibility for share. Defines whether other tenants are "
          "able to see it or not.")
+@cliutils.arg(
+    '--availability-zone', '--availability_zone', '--az',
+    metavar='<availability-zone>',
+    default=None,
+    action='single_alias',
+    help='Availability zone in which share should be created.')
 @cliutils.service_type('share')
 def do_create(cs, args):
     """Creates a new share (NFS, CIFS, GlusterFS or HDFS)."""
@@ -442,7 +448,8 @@ def do_create(cs, args):
                              metadata=share_metadata,
                              share_network=share_network,
                              share_type=args.share_type,
-                             is_public=args.public)
+                             is_public=args.public,
+                             availability_zone=args.availability_zone)
     _print_share(cs, share)
 
 
@@ -805,7 +812,7 @@ def do_list(cs, args):
     """List NAS shares with filters."""
     list_of_keys = [
         'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
-        'Share Type', 'Export location', 'Host',
+        'Share Type', 'Export location', 'Host', 'Availability Zone'
     ]
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
 
