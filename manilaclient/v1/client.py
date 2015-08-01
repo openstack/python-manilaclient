@@ -20,6 +20,8 @@ import six
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient import httpclient
+from manilaclient.v1 import consistency_group_snapshots as cg_snapshots
+from manilaclient.v1 import consistency_groups
 from manilaclient.v1 import limits
 from manilaclient.v1 import quota_classes
 from manilaclient.v1 import quotas
@@ -179,6 +181,10 @@ class Client(object):
         self.share_type_access = share_type_access.ShareTypeAccessManager(self)
         self.share_servers = share_servers.ShareServerManager(self)
         self.pools = scheduler_stats.PoolManager(self)
+        self.consistency_groups = (
+            consistency_groups.ConsistencyGroupManager(self))
+        self.cg_snapshots = (
+            cg_snapshots.ConsistencyGroupSnapshotManager(self))
 
         self._load_extensions(extensions)
 

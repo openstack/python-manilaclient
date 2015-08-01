@@ -12,16 +12,21 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import functools
+
 import manilaclient
 from manilaclient.common import constants
 
 
 def experimental_api(f):
     """Adds to HTTP Header to indicate this is an experimental API call."""
-    def _decorator(*args, **kwargs):
+
+    @functools.wraps(f)
+    def _wrapper(*args, **kwargs):
         client = args[0]
         if isinstance(client, manilaclient.v1.client.Client):
             dh = client.client.default_headers
             dh[constants.EXPERIMENTAL_HTTP_HEADER] = 'true'
-        f(*args, **kwargs)
-    return _decorator
+
+        return f(*args, **kwargs)
+    return _wrapper

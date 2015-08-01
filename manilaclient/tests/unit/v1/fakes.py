@@ -371,6 +371,97 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, pools)
 
+    def get_consistency_groups_detail(self, **kw):
+        consistency_groups = {
+            'consistency_groups': [
+                {
+                    'id': 1234,
+                    'status': 'available',
+                    'name': 'cgname',
+                    'description': 'my cg'
+                }
+            ]
+        }
+        return (200, {}, consistency_groups)
+
+    def delete_consistency_groups_1234(self, **kw):
+        return (202, {}, None)
+
+    def post_consistency_groups_1234_action(self, **kw):
+        return (202, {}, None)
+
+    def post_consistency_groups(self, body, **kw):
+        return (202, {}, {
+            'consistency_group': {
+                'id': 'fake-cg-id',
+                'name': 'fake_name'
+            }
+        })
+
+    def get_cgsnapshots_fake_cg_id_members(self, **kw):
+        members = {
+            'cgsnapshot_members': [
+                {
+                    'id': 1234,
+                    'name': 'fake name',
+                    'created_at': '05050505',
+                    'size': '50PB',
+                    'share_protocol': 'NFS',
+                    'project_id': '2221234',
+                    'share_type_id': '3331234',
+                },
+                {
+                    'id': 4321,
+                    'name': 'fake name 2',
+                    'created_at': '03030303',
+                    'size': '50PB',
+                    'share_protocol': 'NFS',
+                    'project_id': '2224321',
+                    'share_type_id': '3334321',
+                }
+            ]
+        }
+        return(200, {}, members)
+
+    def get_cgsnapshots(self, **kw):
+        cg_snapshots = {
+            'cgsnapshots': [
+                {
+                    'id': 1234,
+                    'status': 'available',
+                    'name': 'cgsnapshotname',
+                }
+            ]
+        }
+        return (200, {}, cg_snapshots)
+
+    def get_cgsnapshots_detail(self, **kw):
+        cg_snapshots = {
+            'cgsnapshots': [
+                {
+                    'id': 1234,
+                    'status': 'available',
+                    'name': 'cgsnapshotname',
+                    'description': 'my cgsnapshot'
+                }
+            ]
+        }
+        return (200, {}, cg_snapshots)
+
+    def delete_cgsnapshots_1234(self, **kw):
+        return (202, {}, None)
+
+    def post_cgsnapshots_1234_action(self, **kw):
+        return (202, {}, None)
+
+    def post_cgsnapshots(self, body, **kw):
+        return (202, {}, {
+            'cgsnapshot': {
+                'id': 3,
+                'name': 'cust_snapshot',
+            }
+        })
+
     #
     # Set/Unset metadata
     #

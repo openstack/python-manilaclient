@@ -63,6 +63,7 @@ class ShellTest(test_utils.TestCase):
         self.separators = [' ', '=']
         self.create_share_body = {
             "share": {
+                "consistency_group_id": None,
                 "share_type": None,
                 "name": None,
                 "snapshot_id": None,
@@ -1294,3 +1295,135 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             ['ID', 'Status', 'Version', 'Min_version'],
             field_labels=['ID', 'Status', 'Version', 'Minimum Version'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_cg_list(self):
+        self.run_command('cg-list')
+        self.assert_called('GET', '/consistency-groups/detail')
+
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['id', 'name', 'description', 'status'])
+
+    @ddt.data(
+        '--source-cgsnapshot-id fake-cg-id',
+        '--name fake_name --source-cgsnapshot-id fake-cg-id',
+        '--description my_fake_description --name fake_name',
+    )
+    def test_cg_create(self, data):
+        cmd = 'cg-create' + ' ' + data
+        self.run_command(cmd)
+        self.assert_called('POST', '/consistency-groups')
+
+    @mock.patch.object(shell_v1, '_find_consistency_group', mock.Mock())
+    def test_cg_delete(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_consistency_group.return_value = fcg
+
+        self.run_command('cg-delete fake-cg')
+        self.assert_called('DELETE', '/consistency-groups/1234')
+
+    @mock.patch.object(shell_v1, '_find_consistency_group', mock.Mock())
+    def test_cg_delete_force(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_consistency_group.return_value = fcg
+
+        self.run_command('cg-delete --force fake-cg')
+        self.assert_called('POST', '/consistency-groups/1234/action',
+                           {'os-force_delete': None})
+
+    @mock.patch.object(shell_v1, '_find_consistency_group', mock.Mock())
+    def test_cg_reset_state_with_flag(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_consistency_group.return_value = fcg
+
+        self.run_command('cg-reset-state --state error 1234')
+        self.assert_called('POST', '/consistency-groups/1234/action',
+                           {'os-reset_status': {'status': 'error'}})
+
+    @mock.patch.object(shell_v1, '_find_cg_snapshot', mock.Mock())
+    def test_cg_snapshot_reset_state(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_cg_snapshot.return_value = fcg
+
+        self.run_command('cg-snapshot-reset-state 1234')
+        self.assert_called('POST', '/cgsnapshots/1234/action',
+                           {'os-reset_status': {'status': 'available'}})
+
+    @mock.patch.object(shell_v1, '_find_cg_snapshot', mock.Mock())
+    def test_cg_snapshot_reset_state_with_flag(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_cg_snapshot.return_value = fcg
+
+        self.run_command('cg-snapshot-reset-state --state creating 1234')
+        self.assert_called('POST', '/cgsnapshots/1234/action',
+                           {'os-reset_status': {'status': 'creating'}})
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_cg_snapshot_list(self):
+        self.run_command('cg-snapshot-list')
+        self.assert_called('GET', '/cgsnapshots/detail')
+
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['id', 'name', 'description', 'status'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    @mock.patch.object(shell_v1, '_find_cg_snapshot', mock.Mock())
+    def test_cg_snapshot_members(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': 'fake-cg-id'})
+        shell_v1._find_cg_snapshot.return_value = fcg
+
+        self.run_command('cg-snapshot-members fake-cg-id')
+        self.assert_called('GET', '/cgsnapshots/fake-cg-id/members')
+        shell_v1._find_cg_snapshot.assert_called_with(mock.ANY, fcg.id)
+
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Size', 'Created_at',
+                              'Share_protocol', 'Share_id', 'Share_type_id'])
+
+    def test_cg_snapshot_list_all_tenants_only_key(self):
+        self.run_command('cg-snapshot-list --all-tenants')
+        self.assert_called('GET', '/cgsnapshots/detail?all_tenants=1')
+
+    def test_cg_snapshot_list_all_tenants_key_and_value_1(self):
+        for separator in self.separators:
+            self.run_command(
+                'cg-snapshot-list --all-tenants' + separator + '1')
+            self.assert_called('GET', '/cgsnapshots/detail?all_tenants=1')
+
+    def test_cg_snapshot_list_with_filters(self):
+        self.run_command('cg-snapshot-list --limit 10 --offset 0')
+        self.assert_called('GET', '/cgsnapshots/detail?limit=10&offset=0')
+
+    @ddt.data(
+        'fake-cg-id',
+        '--name fake_name fake-cg-id',
+        "--description my_fake_description --name fake_name  fake-cg-id",
+    )
+    @mock.patch.object(shell_v1, '_find_consistency_group', mock.Mock())
+    def test_cg_snapshot_create(self, data):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': 'fake-cg-id'})
+        shell_v1._find_consistency_group.return_value = fcg
+
+        cmd = 'cg-snapshot-create' + ' ' + data
+
+        self.run_command(cmd)
+
+        shell_v1._find_consistency_group.assert_called_with(mock.ANY, fcg.id)
+        self.assert_called('POST', '/cgsnapshots')
+
+    @mock.patch.object(shell_v1, '_find_cg_snapshot', mock.Mock())
+    def test_cg_snapshot_delete(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_cg_snapshot.return_value = fcg
+
+        self.run_command('cg-snapshot-delete fake-cg')
+        self.assert_called('DELETE', '/cgsnapshots/1234')
+
+    @mock.patch.object(shell_v1, '_find_cg_snapshot', mock.Mock())
+    def test_cg_snapshot_delete_force(self):
+        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
+        shell_v1._find_cg_snapshot.return_value = fcg
+
+        self.run_command('cg-snapshot-delete --force fake-cg')
+        self.assert_called('POST', '/cgsnapshots/1234/action',
+                           {'os-force_delete': None})

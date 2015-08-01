@@ -107,6 +107,33 @@ def _print_share_instance(cs, instance):
     cliutils.print_dict(info)
 
 
+def _find_consistency_group(cs, consistency_group):
+    """Get a consistency group ID."""
+    return apiclient_utils.find_resource(cs.consistency_groups,
+                                         consistency_group)
+
+
+def _print_consistency_group(cs, consistency_group):
+    info = consistency_group._info.copy()
+    info.pop('links', None)
+
+    if info.get('share_types'):
+        info['share_types'] = "\n".join(info['share_types'])
+
+    cliutils.print_dict(info)
+
+
+def _find_cg_snapshot(cs, cg_snapshot):
+    """Get a consistency group snapshot by name or ID."""
+    return apiclient_utils.find_resource(cs.cg_snapshots, cg_snapshot)
+
+
+def _print_cg_snapshot(cs, cg_snapshot):
+    info = cg_snapshot._info.copy()
+    info.pop('links', None)
+    cliutils.print_dict(info)
+
+
 def _find_share_snapshot(cs, snapshot):
     """Get a snapshot by ID."""
     return apiclient_utils.find_resource(cs.share_snapshots, snapshot)
@@ -453,6 +480,15 @@ def do_rate_limits(cs, args):
     default=None,
     action='single_alias',
     help='Availability zone in which share should be created.')
+@cliutils.arg(
+    '--consistency-group',
+    '--consistency_group',
+    '--cg',
+    metavar='<consistency-group>',
+    action='single_alias',
+    help='Optional consistency group name or ID in which to create the share. '
+         '(Default=None)',
+    default=None)
 @cliutils.service_type('sharev2')
 def do_create(cs, args):
     """Creates a new share (NFS, CIFS, GlusterFS or HDFS)."""
@@ -460,6 +496,11 @@ def do_create(cs, args):
     share_metadata = None
     if args.metadata is not None:
         share_metadata = _extract_metadata(args)
+
+    consistency_group = None
+    if args.consistency_group:
+        consistency_group = _find_consistency_group(cs,
+                                                    args.consistency_group).id
 
     share_network = None
     if args.share_network:
@@ -470,7 +511,8 @@ def do_create(cs, args):
                              share_network=share_network,
                              share_type=args.share_type,
                              is_public=args.public,
-                             availability_zone=args.availability_zone)
+                             availability_zone=args.availability_zone,
+                             consistency_group_id=consistency_group,)
     _print_share(cs, share)
 
 
@@ -846,6 +888,15 @@ def do_access_list(cs, args):
     action='store_true',
     default=False,
     help="Add public shares from all tenants to result.")
+@cliutils.arg(
+    '--consistency-group',
+    '--consistency_group',
+    '--cg',
+    metavar='<consistency_group>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Filter results by consistency group name or ID.')
 @cliutils.service_type('sharev2')
 def do_list(cs, args):
     """List NAS shares with filters."""
@@ -864,6 +915,11 @@ def do_list(cs, args):
 
     share_network = (_find_share_network(cs, args.share_network)
                      if args.share_network else empty_obj)
+
+    consistency_group = None
+    if args.consistency_group:
+        consistency_group = _find_consistency_group(cs, args.consistency_group)
+
     search_opts = {
         'offset': args.offset,
         'limit': args.limit,
@@ -880,6 +936,10 @@ def do_list(cs, args):
         'project_id': args.project_id,
         'is_public': args.public,
     }
+
+    if consistency_group:
+        search_opts['consistency_group_id'] = consistency_group.id
+
     shares = cs.shares.list(
         search_opts=search_opts,
         sort_key=args.sort_key,
@@ -1019,8 +1079,7 @@ def do_share_instance_reset_state(cs, args):
     default=None,
     action='single_alias',
     help='Key to be sorted, available keys are %(keys)s. '
-         'OPTIONAL: Default=None.' % {
-             'keys': constants.SNAPSHOT_SORT_KEY_VALUES})
+         'Default=None.' % {'keys': constants.SNAPSHOT_SORT_KEY_VALUES})
 @cliutils.arg(
     '--sort-dir',
     '--sort_dir',  # alias
@@ -2162,3 +2221,418 @@ def do_shrink(cs, args):
     """Decreases the size of an existing share."""
     share = _find_share(cs, args.share)
     cs.shares.shrink(share, args.new_size)
+
+
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    help='Optional consistency group name. (Default=None)',
+    default=None)
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional consistency group description. (Default=None)',
+    default=None)
+@cliutils.arg(
+    '--share-types', '--share_types',
+    metavar='<share_types>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Optional list of share types. (Default=None)')
+@cliutils.arg(
+    '--share-network',
+    '--share_network',
+    metavar='<share_network>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Specify share-network name or id.')
+@cliutils.arg(
+    '--source-cgsnapshot-id',
+    '--source_cgsnapshot_id',
+    metavar='<source_cgsnapshot_id>',
+    type=str,
+    action='single_alias',
+    help='Optional snapshot ID to create the share from. (Default=None)',
+    default=None)
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_create(cs, args):
+    """Creates a new consistency group."""
+
+    share_types = []
+    if args.share_types:
+        s_types = args.share_types.split(',')
+        for s_type in s_types:
+            share_type = _find_share_type(cs, s_type)
+            share_types.append(share_type)
+
+    share_network = None
+    if args.share_network:
+        share_network = _find_share_network(cs, args.share_network)
+
+    kwargs = {'name': args.name, 'description': args.description}
+
+    if share_types:
+        kwargs['share_types'] = share_types
+    if share_network:
+        kwargs['share_network'] = share_network
+    if args.source_cgsnapshot_id:
+        kwargs['source_cgsnapshot_id'] = args.source_cgsnapshot_id
+
+    consistency_group = cs.consistency_groups.create(**kwargs)
+
+    _print_consistency_group(cs, consistency_group)
+
+
+@cliutils.arg(
+    '--all-tenants',
+    dest='all_tenants',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help='Display information from all tenants (Admin only).')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of consistency groups to return. (Default=None)')
+@cliutils.arg(
+    '--offset',
+    metavar="<offset>",
+    default=None,
+    help='Start position of consistency group listing.')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_list(cs, args):
+    """List consistency groups with filters."""
+    list_of_keys = [
+        'id', 'name', 'description', 'status',
+    ]
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+
+    search_opts = {
+        'all_tenants': all_tenants,
+        'offset': args.offset,
+        'limit': args.limit,
+    }
+    consistency_groups = cs.consistency_groups.list(
+        search_opts=search_opts,
+    )
+    cliutils.print_list(consistency_groups, fields=list_of_keys)
+
+
+@cliutils.arg(
+    'consistency_group',
+    metavar='<consistency_group>',
+    help='Name or ID of the consistency group.')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_show(cs, args):
+    """Show details about a consistency group."""
+    consistency_group = _find_consistency_group(cs, args.consistency_group)
+    _print_consistency_group(cs, consistency_group)
+
+
+@cliutils.arg(
+    'consistency_group',
+    metavar='<consistency_group>',
+    help='Name or ID of the consistency group to update.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help='Optional new name for the consistency group. (Default=None)')
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional consistency group description. (Default=None)',
+    default=None)
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_update(cs, args):
+    """Update a consistency group."""
+    kwargs = {}
+
+    if args.name is not None:
+        kwargs['name'] = args.name
+    if args.description is not None:
+        kwargs['description'] = args.description
+
+    if not kwargs:
+        msg = "Must supply name and/or description"
+        raise exceptions.CommandError(msg)
+    _find_consistency_group(cs, args.consistency_group).update(**kwargs)
+
+
+@cliutils.arg(
+    'consistency_group',
+    metavar='<consistency_group>',
+    nargs='+',
+    help='Name or ID of the consistency group(s).')
+@cliutils.arg(
+    '--force',
+    action='store_true',
+    default=False,
+    help='Attempt to force delete the consistency group (Default=False).')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_delete(cs, args):
+    """Remove one or more consistency groups."""
+    failure_count = 0
+    kwargs = {}
+
+    if args.force is not None:
+        kwargs['force'] = args.force
+
+    for consistency_group in args.consistency_group:
+        try:
+            cg_ref = _find_consistency_group(cs, consistency_group)
+            cs.consistency_groups.delete(cg_ref, **kwargs)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for consistency group %s failed: %s" % (
+                consistency_group, e), file=sys.stderr)
+
+    if failure_count == len(args.consistency_group):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "consistency groups.")
+
+
+@cliutils.arg(
+    'consistency_group',
+    metavar='<consistency_group>',
+    help='Name or ID of the consistency group state to modify.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the consistency group. '
+          'Options include available, error, creating, deleting, '
+          'error_deleting. If no state is provided, '
+          'available will be used.'))
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_reset_state(cs, args):
+    """Explicitly update the state of a consistency group."""
+    cg = _find_consistency_group(cs, args.consistency_group)
+    cs.consistency_groups.reset_state(cg, args.state)
+
+
+@cliutils.arg(
+    'consistency_group',
+    metavar='<consistency_group>',
+    help='Name or ID of the consistency group.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    help='Optional consistency group snapshot name. (Default=None)',
+    default=None)
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional consistency group snapshot description. (Default=None)',
+    default=None)
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_create(cs, args):
+    """Creates a new consistency group."""
+
+    kwargs = {'name': args.name, 'description': args.description}
+
+    consistency_group = _find_consistency_group(cs, args.consistency_group)
+    consistency_group_id = consistency_group.id
+    cg_snapshot = cs.cg_snapshots.create(consistency_group_id, **kwargs)
+    _print_consistency_group(cs, cg_snapshot)
+
+
+@cliutils.arg(
+    '--all-tenants',
+    dest='all_tenants',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help='Display information from all tenants (Admin only).')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of consistency group snapshots to return.'
+         '(Default=None)')
+@cliutils.arg(
+    '--offset',
+    metavar="<offset>",
+    default=None,
+    help='Start position of consistency group snapshot listing.')
+@cliutils.arg(
+    '--detailed',
+    dest='detailed',
+    default=True,
+    help='Show detailed information about snapshots.')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_list(cs, args):
+    """List consistency group snapshots with filters."""
+    list_of_keys = [
+        'id', 'name', 'description', 'status',
+    ]
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+
+    search_opts = {
+        'all_tenants': all_tenants,
+        'offset': args.offset,
+        'limit': args.limit,
+    }
+    cg_snapshot = cs.cg_snapshots.list(
+        detailed=args.detailed,
+        search_opts=search_opts,
+    )
+    cliutils.print_list(cg_snapshot, fields=list_of_keys)
+
+
+@cliutils.arg(
+    'cg_snapshot',
+    metavar='<cg_snapshot>',
+    help='Name or ID of the consistency group snapshot.')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_show(cs, args):
+    """Show details about a consistency group snapshot."""
+    cg_snapshot = _find_cg_snapshot(cs, args.cg_snapshot)
+    _print_cg_snapshot(cs, cg_snapshot)
+
+
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the consistency group. '
+          'Options include available, error, creating, deleting, '
+          'error_deleting. If no state is provided, '
+          'available will be used.'))
+@cliutils.arg(
+    'cg_snapshot',
+    metavar='<cg_snapshot>',
+    help='Name or ID of the consistency group snapshot.')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_reset_state(cs, args):
+    """Explicitly update the state of a consistency group."""
+    cg = _find_cg_snapshot(cs, args.cg_snapshot)
+    cs.cg_snapshots.reset_state(cg, args.state)
+
+
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of shares to return. (Default=None)')
+@cliutils.arg(
+    '--offset',
+    metavar="<offset>",
+    default=None,
+    help='Start position of security services listing.')
+@cliutils.arg(
+    'cg_snapshot',
+    metavar='<cg_snapshot>',
+    help='Name or ID of the consistency group snapshot.')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_members(cs, args):
+    """Get member details for a consistency group snapshot."""
+    cg_snapshot = _find_cg_snapshot(cs, args.cg_snapshot)
+
+    search_opts = {
+        'offset': args.offset,
+        'limit': args.limit,
+    }
+
+    cg_members = cs.cg_snapshots.members(
+        cg_snapshot,
+        search_opts
+    )
+
+    list_of_keys = [
+        'Id',
+        'Size',
+        'Created_at',
+        'Share_protocol',
+        'Share_id',
+        'Share_type_id',
+    ]
+
+    cliutils.print_list(cg_members, fields=list_of_keys)
+
+
+@cliutils.arg(
+    'cg_snapshot',
+    metavar='<cg_snapshot>',
+    help='Name or ID of the cg snapshot to update.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help='Optional new name for the cg snapshot. (Default=None')
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional cg snapshot description. (Default=None)',
+    default=None)
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_update(cs, args):
+    """Update a consistency group snapshot."""
+    kwargs = {}
+
+    if args.name is not None:
+        kwargs['name'] = args.name
+    if args.description is not None:
+        kwargs['description'] = args.description
+
+    if not kwargs:
+        msg = "Must supply name and/or description"
+        raise exceptions.CommandError(msg)
+    _find_cg_snapshot(cs, args.cg_snapshot).update(**kwargs)
+
+
+@cliutils.arg(
+    'cg_snapshot',
+    metavar='<cg_snapshot>',
+    nargs='+',
+    help='Name or ID of the consistency group snapshot.')
+@cliutils.arg(
+    '--force',
+    action='store_true',
+    default=False,
+    help='Attempt to force delete the cg snapshot(s) (Default=False).')
+@cliutils.service_type('sharev2')
+@api_versions.experimental_api
+def do_cg_snapshot_delete(cs, args):
+    """Remove one or more consistency group snapshots."""
+    failure_count = 0
+    kwargs = {}
+
+    if args.force is not None:
+        kwargs['force'] = args.force
+
+    for cg_snapshot in args.cg_snapshot:
+        try:
+            cg_ref = _find_cg_snapshot(cs, cg_snapshot)
+
+            cs.cg_snapshots.delete(cg_ref, **kwargs)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for consistency group snapshot %s failed: %s" % (
+                cg_snapshot, e), file=sys.stderr)
+
+    if failure_count == len(args.cg_snapshot):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "consistency group snapshots.")

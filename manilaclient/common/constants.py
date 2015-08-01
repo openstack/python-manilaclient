@@ -17,6 +17,7 @@
 
 # These are used for providing desired sorting params with list requests
 SORT_DIR_VALUES = ('asc', 'desc')
+
 SHARE_SORT_KEY_VALUES = (
     'id', 'status', 'size', 'host', 'share_proto',
     'export_location', 'availability_zone',
@@ -36,7 +37,40 @@ SNAPSHOT_SORT_KEY_VALUES = (
     'user_id',
     'project_id',
     'progress',
-    'name', 'display_name',
+    'name',
+    'display_name',
+)
+
+CONSISTENCY_GROUP_SORT_KEY_VALUES = (
+    'id',
+    'name',
+    'status',
+    'host',
+    'user_id',
+    'project_id',
+    'created_at',
+    'source_cgsnapshot_id',
+)
+
+CG_SNAPSHOT_SORT_KEY_VALUES = (
+    'id',
+    'name',
+    'status',
+    'host',
+    'user_id',
+    'project_id',
+    'created_at',
+)
+
+CG_SNAPSHOT_MEMBERS_SORT_KEY_VALUES = (
+    'id',
+    'name',
+    'created_at',
+    'size',
+    'share_protocol',
+    'project_id',
+    'share_type_id',
+    'cgsnapshot_id',
 )
 
 EXPERIMENTAL_HTTP_HEADER = 'X-OpenStack-Manila-API-Experimental'

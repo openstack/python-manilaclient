@@ -151,7 +151,8 @@ class ShareManager(base.ManagerWithFind):
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
-               share_type=None, is_public=False, availability_zone=None):
+               share_type=None, is_public=False, availability_zone=None,
+               consistency_group_id=None):
         """Create a share.
 
         :param share_proto: text - share protocol for new share
@@ -164,6 +165,8 @@ class ShareManager(base.ManagerWithFind):
         :param share_network: either instance of ShareNetwork or text with ID
         :param share_type: either instance of ShareType or text with ID
         :param is_public: bool, whether to set share as public or not.
+        :param consistency_group_id: text - ID of the consistency group to
+            which the share should belong
         :rtype: :class:`Share`
         """
         share_metadata = metadata if metadata is not None else dict()
@@ -178,6 +181,7 @@ class ShareManager(base.ManagerWithFind):
             'share_type': common_base.getid(share_type),
             'is_public': is_public,
             'availability_zone': availability_zone,
+            'consistency_group_id': consistency_group_id,
         }
         return self._create('/shares', {'share': body}, 'share')
 

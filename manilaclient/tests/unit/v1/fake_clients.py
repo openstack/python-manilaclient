@@ -14,6 +14,7 @@
 
 from six.moves.urllib import parse
 
+from manilaclient.common import constants
 from manilaclient import httpclient
 from manilaclient.tests.unit import fakes
 from manilaclient.tests.unit import utils
@@ -37,6 +38,11 @@ class FakeHTTPClient(httpclient.HTTPClient):
         self.auth_url = 'auth_url'
         self.callstack = []
         self.base_url = 'localhost'
+        self.default_headers = {
+            'X-Auth-Token': 'xabc123',
+            'X-Openstack-Manila-Api-Version': constants.MAX_API_VERSION,
+            'Accept': 'application/json',
+        }
 
     def _cs_request(self, url, method, **kwargs):
         return self._cs_request_with_retries(url, method, **kwargs)
