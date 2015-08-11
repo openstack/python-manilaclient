@@ -25,6 +25,7 @@ from manilaclient import base
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.v1 import share_instances
 
 
 class Share(common_base.Resource):
@@ -138,6 +139,10 @@ class Share(common_base.Resource):
     def shrink(self, new_size):
         """Shrink the size of the specified share."""
         self.manager.shrink(self, new_size)
+
+    def list_instances(self):
+        """List instances of the specified share."""
+        self.manager.list_instances(self)
 
 
 class ShareManager(base.ManagerWithFind):
@@ -441,3 +446,14 @@ class ShareManager(base.ManagerWithFind):
         :param new_size: The desired size to shrink share to.
         """
         return self._action('os-shrink', share, {'new_size': new_size})
+
+    def list_instances(self, share):
+        """List instances of the specified share.
+
+        :param share: either share object or text with its ID.
+        """
+        return self._list(
+            '/shares/%s/instances' % common_base.getid(share),
+            'share_instances',
+            obj_class=share_instances.ShareInstance
+        )
