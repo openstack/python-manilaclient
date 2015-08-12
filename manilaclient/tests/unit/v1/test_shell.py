@@ -497,13 +497,6 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY, ['ID', 'Name', 'all_extra_specs'], mock.ANY)
 
-    def test_type_create_without_required_extra_spec(self):
-        self.assertRaises(
-            exceptions.CommandError,
-            self.run_command,
-            'type-create test',
-        )
-
     @ddt.data('fake', 'FFFalse', 'trueee')
     def test_type_create_invalid_extra_spec(self, extra_spec):
         self.assertRaises(

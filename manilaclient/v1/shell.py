@@ -1838,10 +1838,9 @@ def do_extra_specs_list(cs, args):
 @cliutils.arg(
     'spec_driver_handles_share_servers',
     metavar='<spec_driver_handles_share_servers>',
-    default='',
-    nargs='?',
+    type=str,
     help="Required extra specification. "
-         "Valid values 'true'/'1' and 'false'/'0'")
+         "Valid values are 'true'/'1' and 'false'/'0'")
 @cliutils.arg(
     '--is_public',
     '--is-public',
