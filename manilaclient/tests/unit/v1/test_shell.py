@@ -272,7 +272,8 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/types')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs'],
+            ['ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs',
+             'optional_extra_specs'],
             mock.ANY)
 
     def test_type_list_default_volume_type(self):
@@ -288,7 +289,10 @@ class ShellTest(test_utils.TestCase):
         expected = {
             'share_type': {
                 'name': 'test-type-3',
-                'extra_specs': {'driver_handles_share_servers': False},
+                'extra_specs': {
+                    'driver_handles_share_servers': False,
+                    'snapshot_support': True,
+                },
                 'os-share-type-access:is_public': public
             }
         }
@@ -498,11 +502,11 @@ class ShellTest(test_utils.TestCase):
             mock.ANY, ['ID', 'Name', 'all_extra_specs'], mock.ANY)
 
     @ddt.data('fake', 'FFFalse', 'trueee')
-    def test_type_create_invalid_extra_spec(self, extra_spec):
+    def test_type_create_invalid_dhss_value(self, value):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            'type-create test ' + extra_spec,
+            'type-create test ' + value,
         )
 
     @ddt.unpack
@@ -516,7 +520,8 @@ class ShellTest(test_utils.TestCase):
                 "name": "test",
                 "os-share-type-access:is_public": True,
                 "extra_specs": {
-                    "driver_handles_share_servers": expected_bool
+                    "driver_handles_share_servers": expected_bool,
+                    "snapshot_support": True,
                 }
             }
         }
@@ -524,6 +529,37 @@ class ShellTest(test_utils.TestCase):
         self.run_command('type-create test ' + text)
 
         self.assert_called('POST', '/types', body=expected)
+
+    @ddt.unpack
+    @ddt.data(
+        *([{'expected_bool': True, 'text': v}
+           for v in ('true', 'True', '1', 'TRUE', 'tRuE')] +
+          [{'expected_bool': False, 'text': v}
+           for v in ('false', 'False', '0', 'FALSE', 'fAlSe')])
+    )
+    def test_create_with_snapshot_support(self, expected_bool, text):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "os-share-type-access:is_public": True,
+                "extra_specs": {
+                    "driver_handles_share_servers": False,
+                    "snapshot_support": expected_bool,
+                }
+            }
+        }
+
+        self.run_command('type-create test false --snapshot-support ' + text)
+
+        self.assert_called('POST', '/types', body=expected)
+
+    @ddt.data('fake', 'FFFalse', 'trueee')
+    def test_type_create_invalid_snapshot_support_value(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test false --snapshot-support ' + value,
+        )
 
     @ddt.data('--is-public', '--is_public')
     def test_update(self, alias):

@@ -1769,6 +1769,13 @@ def _print_type_required_extra_specs(share_type):
         return "N/A"
 
 
+def _print_type_optional_extra_specs(share_type):
+    try:
+        return _print_dict(share_type.get_optional_keys())
+    except exceptions.NotFound:
+        return "N/A"
+
+
 def _print_share_type_list(stypes, default_share_type=None):
 
     def _is_default(share_type):
@@ -1784,13 +1791,21 @@ def _print_share_type_list(stypes, default_share_type=None):
         'Visibility': is_public,
         'is_default': _is_default,
         'required_extra_specs': _print_type_required_extra_specs,
+        'optional_extra_specs': _print_type_optional_extra_specs,
     }
 
     for stype in stypes:
         stype = stype.to_dict()
         stype['Visibility'] = stype.pop('is_public', 'unknown')
 
-    fields = ['ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs']
+    fields = [
+        'ID',
+        'Name',
+        'Visibility',
+        'is_default',
+        'required_extra_specs',
+        'optional_extra_specs',
+    ]
     cliutils.print_list(stypes, fields, formatters)
 
 
@@ -1843,6 +1858,13 @@ def do_extra_specs_list(cs, args):
     help="Required extra specification. "
          "Valid values are 'true'/'1' and 'false'/'0'")
 @cliutils.arg(
+    '--snapshot_support',
+    '--snapshot-support',
+    metavar='<snapshot_support>',
+    action='single_alias',
+    help="Boolean extra spec that used for filtering of back ends by their "
+         "capability to create share snapshots. (Default is True).")
+@cliutils.arg(
     '--is_public',
     '--is-public',
     metavar='<is_public>',
@@ -1851,17 +1873,28 @@ def do_extra_specs_list(cs, args):
 @cliutils.service_type('share')
 def do_type_create(cs, args):
     """Create a new share type."""
-
+    kwargs = {
+        "name": args.name,
+        "is_public": strutils.bool_from_string(args.is_public, default=True),
+    }
     try:
-        extra_spec = strutils.bool_from_string(
-            args.spec_driver_handles_share_servers, strict=True)
+        kwargs['spec_driver_handles_share_servers'] = (
+            strutils.bool_from_string(
+                args.spec_driver_handles_share_servers, strict=True))
     except ValueError as e:
         msg = ("Argument spec_driver_handles_share_servers "
                "argument is not valid: %s" % six.text_type(e))
         raise exceptions.CommandError(msg)
+    try:
+        if args.snapshot_support:
+            kwargs['spec_snapshot_support'] = strutils.bool_from_string(
+                args.snapshot_support, strict=True)
+    except ValueError as e:
+        msg = ("Argument 'snapshot_support' is of boolean type and has "
+               "invalid value: %s" % six.text_type(e))
+        raise exceptions.CommandError(msg)
 
-    is_public = strutils.bool_from_string(args.is_public, default=True)
-    stype = cs.share_types.create(args.name, extra_spec, is_public=is_public)
+    stype = cs.share_types.create(**kwargs)
     _print_share_type_list([stype])
 
 

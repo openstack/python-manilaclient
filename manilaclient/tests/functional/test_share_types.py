@@ -69,16 +69,21 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
         {'is_public': True, 'dhss': True},
         {'is_public': False, 'dhss': True},
         {'is_public': False, 'dhss': False},
+        {'is_public': False, 'dhss': True, 'snapshot_support': False},
+        {'is_public': False, 'dhss': False, 'snapshot_support': True},
     )
     @ddt.unpack
-    def test_create_delete_share_type(self, is_public, dhss):
+    def test_create_delete_share_type(self, is_public, dhss,
+                                      snapshot_support=True):
         share_type_name = data_utils.rand_name('manilaclient_functional_test')
         dhss_expected = 'driver_handles_share_servers : %s' % dhss
+        snapshot_support_expected = 'snapshot_support : %s' % snapshot_support
 
         # Create share type
         share_type = self.create_share_type(
             name=share_type_name,
             driver_handles_share_servers=dhss,
+            snapshot_support=snapshot_support,
             is_public=is_public)
 
         st_id = share_type['ID']
@@ -88,6 +93,8 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
             self.assertIn(key, share_type)
         self.assertEqual(share_type_name, share_type['Name'])
         self.assertEqual(dhss_expected, share_type['required_extra_specs'])
+        self.assertEqual(
+            snapshot_support_expected, share_type['optional_extra_specs'])
         self.assertEqual('public' if is_public else 'private',
                          share_type['Visibility'].lower())
         self.assertEqual('-', share_type['is_default'])
