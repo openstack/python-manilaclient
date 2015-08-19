@@ -18,6 +18,8 @@ try:
 except ImportError:
     from urllib.parse import urlencode  # noqa
 
+import six
+
 from manilaclient import base
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import base as common_base
@@ -127,16 +129,20 @@ class ShareNetworkManager(base.ManagerWithFind):
         :rtype: :class:`ShareNetwork`
         """
         values = {}
-        if neutron_net_id:
+        if neutron_net_id is not None:
             values['neutron_net_id'] = neutron_net_id
-        if neutron_subnet_id:
+        if neutron_subnet_id is not None:
             values['neutron_subnet_id'] = neutron_subnet_id
-        if nova_net_id:
+        if nova_net_id is not None:
             values['nova_net_id'] = nova_net_id
-        if name:
+        if name is not None:
             values['name'] = name
-        if description:
+        if description is not None:
             values['description'] = description
+
+        for k, v in six.iteritems(values):
+            if v == '':
+                values[k] = None
 
         if not values:
             msg = "Must specify fields to be updated"

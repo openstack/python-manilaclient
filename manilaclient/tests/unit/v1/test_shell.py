@@ -689,7 +689,17 @@ class ShellTest(test_utils.TestCase):
          '--name': 'fake_name',
          '--neutron_net_id': 'fake_neutron_net_id',
          '--neutron_subnet_id': 'fake_neutron_subnet_id',
-         '--nova_net_id': 'fake_nova_net_id'})
+         '--nova_net_id': 'fake_nova_net_id'},
+        {'--name': '""'},
+        {'--description': '""'},
+        {'--nova_net_id': '""'},
+        {'--neutron_net_id': '""'},
+        {'--neutron_subnet_id': '""'},
+        {'--description': '""',
+         '--name': '""',
+         '--neutron_net_id': '""',
+         '--neutron_subnet_id': '""',
+         '--nova_net_id': '""'},)
     def test_share_network_update(self, data):
         cmd = 'share-network-update 1111'
         expected = dict()
