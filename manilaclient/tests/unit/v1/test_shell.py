@@ -1130,6 +1130,47 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
 
+    @ddt.data(
+        {'--name': 'fake_name'},
+        {'--description': 'fake_description'},
+        {'--dns-ip': 'fake_dns_ip'},
+        {'--domain': 'fake_domain'},
+        {'--server': 'fake_server'},
+        {'--user': 'fake_user'},
+        {'--password': 'fake_password'},
+        {'--name': 'fake_name',
+         '--description': 'fake_description',
+         '--dns-ip': 'fake_dns_ip',
+         '--domain': 'fake_domain',
+         '--server': 'fake_server',
+         '--user': 'fake_user',
+         '--password': 'fake_password'},
+        {'--name': '""'},
+        {'--description': '""'},
+        {'--dns-ip': '""'},
+        {'--domain': '""'},
+        {'--server': '""'},
+        {'--user': '""'},
+        {'--password': '""'},
+        {'--name': '""',
+         '--description': '""',
+         '--dns-ip': '""',
+         '--domain': '""',
+         '--server': '""',
+         '--user': '""',
+         '--password': '""'},)
+    def test_security_service_update(self, data):
+        cmd = 'security-service-update 1111'
+        expected = dict()
+        for k, v in data.items():
+            cmd += ' ' + k + ' ' + v
+            expected[k[2:].replace('-', '_')] = v
+        expected = dict(security_service=expected)
+
+        self.run_command(cmd)
+
+        self.assert_called('PUT', '/security-services/1111', body=expected)
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list(self):
         self.run_command('pool-list')

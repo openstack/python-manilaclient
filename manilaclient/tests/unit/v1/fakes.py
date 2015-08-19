@@ -277,6 +277,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, security_services)
 
+    def get_security_services_1111(self, **kw):
+        ss = {'security_service': {'id': 1111, 'name': 'fake_ss'}}
+        return (200, {}, ss)
+
+    def put_security_services_1111(self, **kwargs):
+        ss = {'security_service': {'id': 1111, 'name': 'fake_ss'}}
+        return (200, {}, ss)
+
     def get_scheduler_stats_pools(self, **kw):
         pools = {
             'pools': [

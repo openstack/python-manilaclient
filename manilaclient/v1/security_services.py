@@ -18,6 +18,8 @@ try:
 except ImportError:
     from urllib.parse import urlencode  # noqa
 
+import six
+
 from manilaclient import base
 from manilaclient import exceptions
 from manilaclient.openstack.common.apiclient import base as common_base
@@ -109,20 +111,24 @@ class SecurityServiceManager(base.ManagerWithFind):
         """
 
         values = {}
-        if dns_ip:
+        if dns_ip is not None:
             values['dns_ip'] = dns_ip
-        if server:
+        if server is not None:
             values['server'] = server
-        if domain:
+        if domain is not None:
             values['domain'] = domain
-        if user:
+        if user is not None:
             values['user'] = user
-        if password:
+        if password is not None:
             values['password'] = password
-        if name:
+        if name is not None:
             values['name'] = name
-        if description:
+        if description is not None:
             values['description'] = description
+
+        for k, v in six.iteritems(values):
+            if v == '':
+                values[k] = None
 
         if not values:
             msg = "Must specify fields to be updated"
