@@ -508,7 +508,7 @@ def do_metadata_update_all(cs, args):
     'service_host',
     metavar='<service_host>',
     type=str,
-    help='manage-share service host: some.host@driver[#pool]')
+    help='manage-share service host: some.host@driver#pool')
 @cliutils.arg(
     'protocol',
     metavar='<protocol>',
@@ -518,7 +518,8 @@ def do_metadata_update_all(cs, args):
     'export_path',
     metavar='<export_path>',
     type=str,
-    help='Share export path.')
+    help='Share export path, NFS share such as: 10.0.0.1:/foo_path, '
+         'CIFS share such as: \\10.0.0.1\foo_name_of_cifs_share')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -531,7 +532,7 @@ def do_metadata_update_all(cs, args):
     default=None)
 @cliutils.arg(
     '--share_type', '--share-type',
-    metavar='<share_type>',
+    metavar='<share-type>',
     default=None,
     action='single_alias',
     help='Optional share type assigned to share. (Default=None)')
