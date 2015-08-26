@@ -13,6 +13,7 @@
 import mock
 import requests
 
+from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient import httpclient
 from manilaclient.tests.unit import utils
@@ -72,7 +73,8 @@ retry_after_non_supporting_mock_request = mock.Mock(
 
 def get_authed_client(retries=0):
     cl = httpclient.HTTPClient("http://example.com", "token", fake_user_agent,
-                               retries=retries, http_log_debug=True)
+                               retries=retries, http_log_debug=True,
+                               api_version=constants.MAX_API_VERSION)
     return cl
 
 
@@ -85,9 +87,12 @@ class ClientTest(utils.TestCase):
         @mock.patch('time.time', mock.Mock(return_value=1234))
         def test_get_call():
             resp, body = cl.get("/hi")
-            headers = {"X-Auth-Token": "token",
-                       "User-Agent": fake_user_agent,
-                       'Accept': 'application/json', }
+            headers = {
+                "X-Auth-Token": "token",
+                "User-Agent": fake_user_agent,
+                "X-Openstack-Manila-Api-Version": constants.MAX_API_VERSION,
+                'Accept': 'application/json',
+            }
             mock_request.assert_called_with(
                 "GET",
                 "http://example.com/hi",
@@ -176,6 +181,7 @@ class ClientTest(utils.TestCase):
                 "X-Auth-Token": "token",
                 "Content-Type": "application/json",
                 'Accept': 'application/json',
+                "X-Openstack-Manila-Api-Version": constants.MAX_API_VERSION,
                 "User-Agent": fake_user_agent
             }
             mock_request.assert_called_with(

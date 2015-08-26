@@ -33,13 +33,14 @@ from oslo_utils import encodeutils
 import six
 
 from manilaclient import client
+from manilaclient.common import constants
 from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.openstack.common import cliutils
 from manilaclient.v1 import shell as shell_v1
 # from manilaclient.v2 import shell as shell_v2
 
-DEFAULT_OS_SHARE_API_VERSION = "1"
+DEFAULT_OS_SHARE_API_VERSION = constants.MAX_API_VERSION
 DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
 DEFAULT_MANILA_SERVICE_TYPE = 'share'
 
@@ -218,11 +219,11 @@ class OpenStackManilaShell(object):
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-share-api-version',
-                            metavar='<compute-api-ver>',
+                            metavar='<share-api-ver>',
                             default=cliutils.env(
                                 'OS_SHARE_API_VERSION',
                                 default=DEFAULT_OS_SHARE_API_VERSION),
-                            help='Accepts 1 or 2, defaults '
+                            help='Accepts 1.x to override default '
                                  'to env[OS_SHARE_API_VERSION].')
         parser.add_argument('--os_share_api_version',
                             help=argparse.SUPPRESS)
@@ -294,7 +295,7 @@ class OpenStackManilaShell(object):
 
     def _discover_via_contrib_path(self, version):
         module_path = os.path.dirname(os.path.abspath(__file__))
-        version_str = "v%s" % version.replace('.', '_')
+        version_str = "v%s" % version.split('.')[0]
         ext_path = os.path.join(module_path, version_str, 'contrib')
         ext_glob = os.path.join(ext_path, "*.py")
 

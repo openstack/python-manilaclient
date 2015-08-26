@@ -36,8 +36,15 @@ class FakeHTTPClient(httpclient.HTTPClient):
         self.password = 'password'
         self.auth_url = 'auth_url'
         self.callstack = []
+        self.base_url = 'localhost'
 
     def _cs_request(self, url, method, **kwargs):
+        return self._cs_request_with_retries(url, method, **kwargs)
+
+    def _cs_request_base_url(self, url, method, **kwargs):
+        return self._cs_request_with_retries(url, method, **kwargs)
+
+    def _cs_request_with_retries(self, url, method, **kwargs):
         # Check that certain things are called correctly
         if method in ['GET', 'DELETE']:
             assert 'body' not in kwargs

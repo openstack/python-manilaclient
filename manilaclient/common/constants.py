@@ -38,3 +38,6 @@ SNAPSHOT_SORT_KEY_VALUES = (
     'progress',
     'name', 'display_name',
 )
+
+EXPERIMENTAL_HTTP_HEADER = 'X-OpenStack-Manila-API-Experimental'
+MAX_API_VERSION = '1.4'

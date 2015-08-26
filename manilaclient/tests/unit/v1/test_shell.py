@@ -1152,3 +1152,12 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_with(
             mock.ANY,
             fields=["Name", "Host", "Backend", "Pool"])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_api_version(self):
+        self.run_command('api-version')
+        self.assert_called('GET', '')
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            ['ID', 'Status', 'Version', 'Min_version'],
+            field_labels=['ID', 'Status', 'Version', 'Minimum Version'])

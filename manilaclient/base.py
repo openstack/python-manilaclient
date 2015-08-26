@@ -138,6 +138,14 @@ class Manager(utils.HookableMixin):
         else:
             return self.resource_class(self, body, loaded=True)
 
+    def _get_with_base_url(self, url, response_key=None):
+        resp, body = self.api.client.get_with_base_url(url)
+        if response_key:
+            return [self.resource_class(self, res, loaded=True)
+                    for res in body[response_key] if res]
+        else:
+            return self.resource_class(self, body, loaded=True)
+
     def _create(self, url, body, response_key, return_raw=False, **kwargs):
         self.run_hooks('modify_body_for_create', body, **kwargs)
         resp, body = self.api.client.post(url, body=body)

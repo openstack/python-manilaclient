@@ -39,6 +39,10 @@ def get_client_class(version):
     return importutils.import_class(client_path)
 
 
+def get_major_version(version):
+    return version.split('.')[0]
+
+
 def Client(version, *args, **kwargs):
-    client_class = get_client_class(version)
-    return client_class(*args, **kwargs)
+    client_class = get_client_class(get_major_version(version))
+    return client_class(version, *args, **kwargs)
