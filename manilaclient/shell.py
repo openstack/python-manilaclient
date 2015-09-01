@@ -32,16 +32,19 @@ import sys
 from oslo_utils import encodeutils
 import six
 
+from manilaclient import api_versions
 from manilaclient import client
 from manilaclient.common import constants
 from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.openstack.common import cliutils
-from manilaclient.v1 import shell as shell_v1
+from manilaclient.v2 import shell as shell_v2
 
-DEFAULT_OS_SHARE_API_VERSION = constants.MAX_API_VERSION
+DEFAULT_OS_SHARE_API_VERSION = api_versions.MAX_VERSION
 DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
-DEFAULT_MANILA_SERVICE_TYPE = constants.V2_SERVICE_TYPE
+V1_MAJOR_VERSION = '1'
+V2_MAJOR_VERSION = '2'
+
 
 logger = logging.getLogger(__name__)
 
@@ -320,10 +323,10 @@ class OpenStackManilaShell(object):
 
         try:
             actions_module = {
-                '1.1': shell_v1,
+                V2_MAJOR_VERSION: shell_v2,
             }[version]
         except KeyError:
-            actions_module = shell_v1
+            actions_module = shell_v2
 
         self._find_actions(subparsers, actions_module)
         self._find_actions(subparsers, self)
@@ -335,18 +338,18 @@ class OpenStackManilaShell(object):
 
         return parser
 
-    def _discover_extensions(self, version):
+    def _discover_extensions(self, api_version):
         extensions = []
         for name, module in itertools.chain(
-                self._discover_via_python_path(version),
-                self._discover_via_contrib_path(version)):
+                self._discover_via_python_path(),
+                self._discover_via_contrib_path(api_version)):
 
             extension = manilaclient.extension.Extension(name, module)
             extensions.append(extension)
 
         return extensions
 
-    def _discover_via_python_path(self, version):
+    def _discover_via_python_path(self):
         for (module_loader, name, ispkg) in pkgutil.iter_modules():
             if name.endswith('python_manilaclient_ext'):
                 if not hasattr(module_loader, 'load_module'):
@@ -356,11 +359,9 @@ class OpenStackManilaShell(object):
                 module = module_loader.load_module(name)
                 yield name, module
 
-    def _discover_via_contrib_path(self, version):
+    def _discover_via_contrib_path(self, api_version):
         module_path = os.path.dirname(os.path.abspath(__file__))
-        # NOTE(cfouts) - temporary change to maintain other clients that are
-        # hardcoded to use the v1/client.py
-        version_str = 'v1'
+        version_str = 'v' + api_version.get_major_version()
         ext_path = os.path.join(module_path, version_str, 'contrib')
         ext_glob = os.path.join(ext_path, "*.py")
 
@@ -417,27 +418,40 @@ class OpenStackManilaShell(object):
         logger.setLevel(logging.DEBUG)
         logger.addHandler(streamhandler)
 
+    def _build_subcommands_and_extensions(self,
+                                          os_api_version,
+                                          argv,
+                                          options):
+
+        self.extensions = self._discover_extensions(os_api_version)
+        self._run_extension_hooks('__pre_parse_args__')
+
+        self.parser = self.get_subcommand_parser(
+            os_api_version.get_major_version())
+
+        if options.help or not argv:
+            self.parser.print_help()
+            return False
+
+        args = self.parser.parse_args(argv)
+        self._run_extension_hooks('__post_parse_args__', args)
+
+        return args
+
     def main(self, argv):
         # Parse args once to find version and debug settings
         parser = self.get_base_parser()
         (options, args) = parser.parse_known_args(argv)
         self.setup_debugging(options.debug)
 
+        os_api_version = self._validate_input_api_version(options)
+
         # build available subcommands based on version
-        self.extensions = self._discover_extensions(
-            options.os_share_api_version)
-        self._run_extension_hooks('__pre_parse_args__')
-
-        subcommand_parser = self.get_subcommand_parser(
-            options.os_share_api_version)
-        self.parser = subcommand_parser
-
-        if options.help or not argv:
-            subcommand_parser.print_help()
+        args = self._build_subcommands_and_extensions(os_api_version,
+                                                      argv,
+                                                      options)
+        if not args:
             return 0
-
-        args = subcommand_parser.parse_args(argv)
-        self._run_extension_hooks('__post_parse_args__', args)
 
         # Short-circuit and deal with help right away.
         if args.func == self.do_help:
@@ -447,31 +461,113 @@ class OpenStackManilaShell(object):
             self.do_bash_completion(args)
             return 0
 
-        (os_username, os_password, os_tenant_name, os_auth_url,
-         os_region_name, os_tenant_id, endpoint_type, insecure,
-         service_type, service_name, share_service_name,
-         cacert, os_cache, os_reset_cache, os_user_id, os_user_domain_id,
-         os_user_domain_name, os_project_domain_id, os_project_domain_name,
-         os_project_name, os_project_id, os_cert) = (
-             args.os_username, args.os_password, args.os_tenant_name,
-             args.os_auth_url, args.os_region_name, args.os_tenant_id,
-             args.endpoint_type, args.insecure, args.service_type,
-             args.service_name, args.share_service_name,
-             args.os_cacert, args.os_cache, args.os_reset_cache,
-             args.os_user_id, args.os_user_domain_id, args.os_user_domain_name,
-             args.os_project_domain_id, args.os_project_domain_name,
-             args.os_project_name, args.os_project_id, args.os_cert,
+        os_service_type = args.service_type
+        os_endpoint_type = args.endpoint_type
+
+        client_args = dict(
+            username=args.os_username,
+            password=args.os_password,
+            project_name=args.os_project_name or args.os_tenant_name,
+            auth_url=args.os_auth_url,
+            insecure=args.insecure,
+            region_name=args.os_region_name,
+            tenant_id=args.os_project_id or args.os_tenant_id,
+            endpoint_type=DEFAULT_MANILA_ENDPOINT_TYPE,
+            extensions=self.extensions,
+            service_type=constants.V1_SERVICE_TYPE,
+            service_name=args.service_name,
+            retries=options.retries,
+            http_log_debug=args.debug,
+            cacert=args.os_cacert,
+            use_keyring=args.os_cache,
+            force_new_token=args.os_reset_cache,
+            user_id=args.os_user_id,
+            user_domain_id=args.os_user_domain_id,
+            user_domain_name=args.os_user_domain_name,
+            project_domain_id=args.os_project_domain_id,
+            project_domain_name=args.os_project_domain_name,
+            cert=args.os_cert,
         )
 
-        if share_service_name:
-            service_name = share_service_name
+        # Handle deprecated parameters
+        if args.share_service_name:
+            client_args['share_service_name'] = args.share_service_name
 
-        if not endpoint_type:
-            endpoint_type = DEFAULT_MANILA_ENDPOINT_TYPE
+        self._validate_required_options(args.os_tenant_name,
+                                        args.os_tenant_id,
+                                        args.os_project_name,
+                                        args.os_project_id,
+                                        client_args['auth_url'])
 
-        if not service_type:
-            service_type = DEFAULT_MANILA_SERVICE_TYPE
-            service_type = cliutils.get_service_type(args.func) or service_type
+        # This client is needed to discover the server api version.
+        temp_client = client.Client(manilaclient.API_MAX_VERSION,
+                                    **client_args)
+
+        self.cs, discovered_version = self._discover_client(temp_client,
+                                                            os_api_version,
+                                                            os_endpoint_type,
+                                                            os_service_type,
+                                                            client_args)
+
+        args = self._build_subcommands_and_extensions(discovered_version,
+                                                      argv,
+                                                      options)
+
+        args.func(self.cs, args)
+
+    def _discover_client(self,
+                         current_client,
+                         os_api_version,
+                         os_endpoint_type,
+                         os_service_type,
+                         client_args):
+
+        if os_api_version == manilaclient.API_DEPRECATED_VERSION:
+            discovered_version = manilaclient.API_DEPRECATED_VERSION
+            os_service_type = constants.V1_SERVICE_TYPE
+        else:
+            discovered_version = api_versions.discover_version(
+                current_client,
+                os_api_version
+            )
+
+        if not os_endpoint_type:
+            os_endpoint_type = DEFAULT_MANILA_ENDPOINT_TYPE
+
+        if not os_service_type:
+            os_service_type = self._discover_service_type(discovered_version)
+
+        if (discovered_version != manilaclient.API_MAX_VERSION or
+                os_service_type != constants.V1_SERVICE_TYPE or
+                os_endpoint_type != DEFAULT_MANILA_ENDPOINT_TYPE):
+            client_args['version'] = discovered_version
+            client_args['service_type'] = os_service_type
+            client_args['endpoint_type'] = os_endpoint_type
+
+            return (client.Client(discovered_version, **client_args),
+                    discovered_version)
+        else:
+            return current_client, discovered_version
+
+    def _discover_service_type(self, discovered_version):
+        major_version = discovered_version.get_major_version()
+        service_type = constants.SERVICE_TYPES[major_version]
+        return service_type
+
+    def _validate_input_api_version(self, options):
+        if not options.os_share_api_version:
+            api_version = manilaclient.API_MAX_VERSION
+        else:
+            api_version = api_versions.get_api_version(
+                options.os_share_api_version)
+        return api_version
+
+    def _validate_required_options(self,
+                                   os_tenant_name,
+                                   os_tenant_id,
+                                   os_project_name,
+                                   os_project_id,
+                                   os_auth_url):
 
         if not (os_tenant_name or os_tenant_id or os_project_name or
                 os_project_id):
@@ -491,33 +587,6 @@ class OpenStackManilaShell(object):
             raise exc.CommandError(
                 "You must provide an auth url "
                 "via either --os-auth-url or env[OS_AUTH_URL]")
-
-        self.cs = client.Client(options.os_share_api_version,
-                                username=os_username,
-                                password=os_password,
-                                project_name=os_project_name or os_tenant_name,
-                                auth_url=os_auth_url,
-                                insecure=insecure,
-                                region_name=os_region_name,
-                                tenant_id=os_project_id or os_tenant_id,
-                                endpoint_type=endpoint_type,
-                                extensions=self.extensions,
-                                service_type=service_type,
-                                service_name=service_name,
-                                retries=options.retries,
-                                http_log_debug=args.debug,
-                                cacert=cacert,
-                                use_keyring=os_cache,
-                                force_new_token=os_reset_cache,
-                                api_version=options.os_share_api_version,
-                                user_id=os_user_id,
-                                user_domain_id=os_user_domain_id,
-                                user_domain_name=os_user_domain_name,
-                                project_domain_id=os_project_domain_id,
-                                project_domain_name=os_project_domain_name,
-                                cert=os_cert)
-
-        args.func(self.cs, args)
 
     def _run_extension_hooks(self, hook_type, *args, **kwargs):
         """Run hooks for all registered extensions."""

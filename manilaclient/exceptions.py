@@ -27,3 +27,14 @@ class NoTokenLookupException(ClientException):
     endpoints from an existing token.
     """
     pass
+
+
+class VersionNotFoundForAPIMethod(Exception):
+    msg_fmt = "API version '%(vers)s' is not supported on '%(method)s' method."
+
+    def __init__(self, version, method):
+        self.version = version
+        self.method = method
+
+    def __str__(self):
+        return self.msg_fmt % {"vers": self.version, "method": self.method}

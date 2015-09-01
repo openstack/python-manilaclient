@@ -19,6 +19,7 @@ import mock
 from six import moves
 from testtools import matchers
 
+import manilaclient
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient import shell
@@ -40,11 +41,20 @@ class OpenstackManilaShellTest(utils.TestCase):
         for k, v in env_vars.items():
             self.useFixture(fixtures.EnvironmentVariable(k, v))
 
+    def shell_discover_client(self,
+                              current_client,
+                              os_api_version,
+                              os_endpoint_type,
+                              os_service_type,
+                              client_args):
+        return current_client, manilaclient.API_MAX_VERSION
+
     def shell(self, argstr):
         orig = sys.stdout
         try:
             sys.stdout = moves.StringIO()
             _shell = shell.OpenStackManilaShell()
+            _shell._discover_client = self.shell_discover_client
             _shell.main(argstr.split())
         except SystemExit:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -93,8 +103,8 @@ class OpenstackManilaShellTest(utils.TestCase):
 
             self.shell('list')
 
-            mock_client.Client.assert_called_once_with(
-                constants.MAX_API_VERSION,
+            mock_client.Client.assert_called_with(
+                manilaclient.API_MAX_VERSION,
                 username=env_vars['OS_USERNAME'],
                 password=env_vars['OS_PASSWORD'],
                 project_name=env_vars['OS_PROJECT_NAME'],
@@ -104,14 +114,13 @@ class OpenstackManilaShellTest(utils.TestCase):
                 tenant_id=env_vars['OS_PROJECT_ID'],
                 endpoint_type='publicURL',
                 extensions=mock.ANY,
-                service_type='sharev2',
+                service_type=constants.V1_SERVICE_TYPE,
                 service_name='',
                 retries=0,
                 http_log_debug=False,
                 cacert=None,
                 use_keyring=False,
                 force_new_token=False,
-                api_version=constants.MAX_API_VERSION,
                 user_id=env_vars['OS_USER_ID'],
                 user_domain_id=env_vars['OS_USER_DOMAIN_ID'],
                 user_domain_name=env_vars['OS_USER_DOMAIN_NAME'],

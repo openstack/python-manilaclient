@@ -1,6 +1,6 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 #    Copyright 2012 OpenStack LLC
+# Copyright 2015 Chuck Fouts
+# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -18,6 +18,8 @@ __all__ = ['__version__']
 
 import pbr.version
 
+from manilaclient import api_versions
+
 version_info = pbr.version.VersionInfo('python-manilaclient')
 # We have a circular import problem when we first run python setup.py sdist
 # It's harmless, so deflect it.
@@ -25,3 +27,9 @@ try:
     __version__ = version_info.version_string()
 except AttributeError:
     __version__ = None
+
+
+API_MAX_VERSION = api_versions.APIVersion(api_versions.MAX_VERSION)
+API_MIN_VERSION = api_versions.APIVersion(api_versions.MIN_VERSION)
+API_DEPRECATED_VERSION = api_versions.APIVersion(
+    api_versions.DEPRECATED_VERSION)

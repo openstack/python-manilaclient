@@ -28,7 +28,7 @@ from manilaclient import exceptions
 def get_client_class(version):
     version_map = {
         '1': 'manilaclient.v1.client.Client',
-        '2': 'manilaclient.v1.client.Client',
+        '2': 'manilaclient.v2.client.Client',
     }
     try:
         client_path = version_map[str(version)]
@@ -40,10 +40,7 @@ def get_client_class(version):
     return importutils.import_class(client_path)
 
 
-def get_major_version(version):
-    return version.split('.')[0]
-
-
-def Client(version, *args, **kwargs):
-    client_class = get_client_class(get_major_version(version))
+def Client(api_version, *args, **kwargs):
+    client_class = get_client_class(api_version.get_major_version())
+    kwargs['api_version'] = api_version
     return client_class(*args, **kwargs)

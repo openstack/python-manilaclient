@@ -1,4 +1,5 @@
 # Copyright 2013 OpenStack LLC.
+# Copyright 2015 Chuck Fouts
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,49 +14,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+import sys
+import warnings
+
+from manilaclient.v2 import quota_classes
+
+warnings.warn("Module manilaclient.v1.quota_classes is deprecated (taken as "
+              "a basis for manilaclient.v2.quota_classes). "
+              "The preferable way to get a client class or object is to use "
+              "the manilaclient.client module.")
 
 
-class QuotaClassSet(common_base.Resource):
+class MovedModule(object):
+    def __init__(self, new_module):
+        self.new_module = new_module
 
-    @property
-    def id(self):
-        """Needed by base.Resource to self-refresh and be indexed."""
-        return self.class_name
+    def __getattr__(self, attr):
+        return getattr(self.new_module, attr)
 
-    def update(self, *args, **kwargs):
-        self.manager.update(self.class_name, *args, **kwargs)
-
-
-class QuotaClassSetManager(base.ManagerWithFind):
-    resource_class = QuotaClassSet
-
-    def get(self, class_name):
-        return self._get("/os-quota-class-sets/%s" % class_name,
-                         "quota_class_set")
-
-    def update(self,
-               class_name,
-               shares=None,
-               gigabytes=None,
-               snapshots=None,
-               snapshot_gigabytes=None,
-               share_networks=None):
-
-        body = {
-            'quota_class_set': {
-                'class_name': class_name,
-                'shares': shares,
-                'snapshots': snapshots,
-                'gigabytes': gigabytes,
-                'snapshot_gigabytes': snapshot_gigabytes,
-                'share_networks': share_networks,
-            }
-        }
-
-        for key in list(body['quota_class_set']):
-            if body['quota_class_set'][key] is None:
-                body['quota_class_set'].pop(key)
-
-        self._update('/os-quota-class-sets/%s' % class_name, body)
+sys.modules["manilaclient.v2.quota_classes"] = MovedModule(quota_classes)

@@ -14,4 +14,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from manilaclient.v1.client import Client    # noqa
+
+import sys
+
+from manilaclient import v2
+
+
+class MovedModule(object):
+    def __init__(self, new_module):
+        self.new_module = new_module
+
+    def __getattr__(self, attr):
+        return getattr(self.new_module, attr)
+
+sys.modules["maniliaclient.v1"] = MovedModule(v2)

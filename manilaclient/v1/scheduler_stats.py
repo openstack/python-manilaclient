@@ -1,4 +1,6 @@
-# Copyright (c) 2015 Clinton Knight.  All rights reserved.
+# Copyright (c) 2015 Clinton Knight.
+# Copyright 2015 Chuck Fouts
+# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,51 +14,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six.moves.urllib.parse as urlparse
+import sys
+import warnings
 
-from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.v2 import scheduler_stats
 
-
-RESOURCES_PATH = '/scheduler-stats/pools'
-RESOURCES_NAME = 'pools'
-
-
-class Pool(common_base.Resource):
-
-    def __repr__(self):
-        return "<Pool: %s>" % self.name
+warnings.warn("Module manilaclient.v1.scheduler_stats is deprecated (taken as "
+              "a basis for manilaclient.v2.scheduler_stats). "
+              "The preferable way to get a client class or object is to use "
+              "the manilaclient.client module.")
 
 
-class PoolManager(base.Manager):
-    """Manage :class:`Pool` resources."""
-    resource_class = Pool
+class MovedModule(object):
+    def __init__(self, new_module):
+        self.new_module = new_module
 
-    def list(self, detailed=True, search_opts=None):
-        """Get a list of pools.
+    def __getattr__(self, attr):
+        return getattr(self.new_module, attr)
 
-        :rtype: list of :class:`Pool`
-        """
-        if search_opts is None:
-            search_opts = {}
-
-        if search_opts:
-            query_string = urlparse.urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % (query_string,)
-        else:
-            query_string = ''
-
-        if detailed:
-            path = '%(resources_path)s/detail%(query)s' % {
-                'resources_path': RESOURCES_PATH,
-                'query': query_string
-            }
-        else:
-            path = '%(resources_path)s%(query)s' % {
-                'resources_path': RESOURCES_PATH,
-                'query': query_string
-            }
-
-        return self._list(path, RESOURCES_NAME)
+sys.modules["manilaclient.v2.scheduler_stats"] = MovedModule(scheduler_stats)

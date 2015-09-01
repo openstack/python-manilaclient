@@ -1,4 +1,5 @@
 # Copyright 2014 OpenStack LLC.
+# Copyright 2015 Chuck Fouts
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,56 +14,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
+import sys
+import warnings
 
-from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.v2 import services
 
-RESOURCES_PATH = '/os-services'
-RESOURCES_NAME = 'services'
+warnings.warn("Module manilaclient.v1.services is deprecated (taken as "
+              "a basis for manilaclient.v2.services). "
+              "The preferable way to get a client class or object is to use "
+              "the manilaclient.client module.")
 
 
-class Service(common_base.Resource):
+class MovedModule(object):
+    def __init__(self, new_module):
+        self.new_module = new_module
 
-    def __repr__(self):
-        return "<Service: %s>" % self.id
+    def __getattr__(self, attr):
+        return getattr(self.new_module, attr)
 
-    def api_version(self):
-        """Get api version."""
-        return self.manager.api_version(self)
-
-
-class ServiceManager(base.Manager):
-    """Manage :class:`Service` resources."""
-    resource_class = Service
-
-    def list(self, search_opts=None):
-        """Get a list of all services.
-
-        :rtype: list of :class:`Service`
-        """
-        query_string = ''
-        if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in six.iteritems(search_opts) if v]))
-            if query_string:
-                query_string = "?%s" % query_string
-        return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)
-
-    def enable(self, host, binary):
-        """Enable the service specified by hostname and binary."""
-        body = {"host": host, "binary": binary}
-        return self._update("/os-services/enable", body)
-
-    def disable(self, host, binary):
-        """Disable the service specified by hostname and binary."""
-        body = {"host": host, "binary": binary}
-        return self._update("/os-services/disable", body)
-
-    def api_version(self):
-        """Get api version."""
-        return self._get_with_base_url("", "versions")
+sys.modules["manilaclient.v2.services"] = MovedModule(services)

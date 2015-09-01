@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import six
+
 
 class HookableMixin(object):
     """Mixin so classes can register and run hooks."""
@@ -39,3 +41,13 @@ def safe_issubclass(*args):
         pass
 
     return False
+
+
+def get_function_name(func):
+    if six.PY2:
+        if hasattr(func, "im_class"):
+            return "%s.%s" % (func.im_class, func.__name__)
+        else:
+            return "%s.%s" % (func.__module__, func.__name__)
+    else:
+        return "%s.%s" % (func.__module__, func.__qualname__)

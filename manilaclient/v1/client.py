@@ -18,24 +18,22 @@ from keystoneclient import discover
 from keystoneclient import session
 import six
 
+import manilaclient
 from manilaclient.common import constants
+from manilaclient.common import httpclient
 from manilaclient import exceptions
-from manilaclient import httpclient
-from manilaclient.v1 import consistency_group_snapshots as cg_snapshots
-from manilaclient.v1 import consistency_groups
-from manilaclient.v1 import limits
-from manilaclient.v1 import quota_classes
-from manilaclient.v1 import quotas
-from manilaclient.v1 import scheduler_stats
-from manilaclient.v1 import security_services
-from manilaclient.v1 import services
-from manilaclient.v1 import share_instances
-from manilaclient.v1 import share_networks
-from manilaclient.v1 import share_servers
-from manilaclient.v1 import share_snapshots
-from manilaclient.v1 import share_type_access
-from manilaclient.v1 import share_types
-from manilaclient.v1 import shares
+from manilaclient.v2 import limits
+from manilaclient.v2 import quota_classes
+from manilaclient.v2 import quotas
+from manilaclient.v2 import scheduler_stats
+from manilaclient.v2 import security_services
+from manilaclient.v2 import services
+from manilaclient.v2 import share_networks
+from manilaclient.v2 import share_servers
+from manilaclient.v2 import share_snapshots
+from manilaclient.v2 import share_type_access
+from manilaclient.v2 import share_types
+from manilaclient.v2 import shares
 
 
 class Client(object):
@@ -73,7 +71,7 @@ class Client(object):
                  service_catalog_url=None, user_agent='python-manilaclient',
                  use_keyring=False, force_new_token=False,
                  cached_token_lifetime=300,
-                 api_version=constants.V1_API_VERSION,
+                 api_version=manilaclient.API_DEPRECATED_VERSION,
                  user_id=None,
                  user_domain_id=None,
                  user_domain_name=None,
@@ -189,6 +187,7 @@ class Client(object):
         if not service_catalog_url:
             raise RuntimeError("Could not find Manila endpoint in catalog")
 
+        self.api_version = api_version
         self.client = httpclient.HTTPClient(service_catalog_url,
                                             input_auth_token,
                                             user_agent,
@@ -197,7 +196,7 @@ class Client(object):
                                             timeout=timeout,
                                             retries=retries,
                                             http_log_debug=http_log_debug,
-                                            api_version=api_version)
+                                            api_version=self.api_version)
 
         self.limits = limits.LimitsManager(self)
         self.services = services.ServiceManager(self)
@@ -208,17 +207,12 @@ class Client(object):
         self.quotas = quotas.QuotaSetManager(self)
 
         self.shares = shares.ShareManager(self)
-        self.share_instances = share_instances.ShareInstanceManager(self)
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
         self.share_types = share_types.ShareTypeManager(self)
         self.share_type_access = share_type_access.ShareTypeAccessManager(self)
         self.share_servers = share_servers.ShareServerManager(self)
         self.pools = scheduler_stats.PoolManager(self)
-        self.consistency_groups = (
-            consistency_groups.ConsistencyGroupManager(self))
-        self.cg_snapshots = (
-            cg_snapshots.ConsistencyGroupSnapshotManager(self))
 
         self._load_extensions(extensions)
 
