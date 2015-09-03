@@ -93,7 +93,7 @@ if [ -d ".testrepository" ] ; then
     elif [ -f ".testrepository/0" ] ; then
         .tox/functional/bin/subunit-1to2 < .testrepository/0 > ./subunit_log.txt
     fi
-    .tox/functional/bin/python /usr/local/jenkins/slave_scripts/subunit2html.py ./subunit_log.txt testr_results.html
+    /usr/os-testr-env/bin/subunit2html ./subunit_log.txt testr_results.html
     SUBUNIT_SIZE=$(du -k ./subunit_log.txt | awk '{print $1}')
     gzip -9 ./subunit_log.txt
     gzip -9 ./testr_results.html
