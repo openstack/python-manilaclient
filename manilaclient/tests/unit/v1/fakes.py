@@ -32,6 +32,31 @@ class FakeClient(fakes.FakeClient):
 
 class FakeHTTPClient(fakes.FakeHTTPClient):
 
+    def get_(self, **kw):
+        body = {
+            "versions": [
+                {
+                    "status": "CURRENT",
+                    "updated": "2015-07-30T11:33:21Z",
+                    "links": [
+                        {
+                            "href": "http://docs.openstack.org/",
+                            "type": "text/html",
+                            "rel": "describedby",
+                        },
+                        {
+                            "href": "http://localhost:8786/v1/",
+                            "rel": "self",
+                        }
+                    ],
+                    "min_version": "1.0",
+                    "version": "1.1",
+                    "id": "v1.0",
+                }
+            ]
+        }
+        return (200, {}, body)
+
     def get_shares_1234(self, **kw):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)

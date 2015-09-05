@@ -14,6 +14,7 @@ import uuid
 
 from keystoneclient import session
 
+from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.tests.unit import utils
 from manilaclient.v1 import client
@@ -27,21 +28,24 @@ class ClientTest(utils.TestCase):
         base_url = uuid.uuid4().hex
 
         s = session.Session()
-        c = client.Client(session=s, service_catalog_url=base_url,
-                          retries=retries, input_auth_token='token')
+        c = client.Client(session=s, api_version=constants.MAX_API_VERSION,
+                          service_catalog_url=base_url, retries=retries,
+                          input_auth_token='token')
 
-        self.assertEqual(base_url, c.client.base_url)
+        self.assertEqual(base_url, c.client.endpoint_url)
         self.assertEqual(retries, c.client.retries)
 
     def test_auth_via_token_invalid(self):
         self.assertRaises(exceptions.ClientException, client.Client,
-                          input_auth_token='token')
+                          api_version=constants.MAX_API_VERSION,
+                          input_auth_token="token")
 
     def test_auth_via_token_and_session(self):
         s = session.Session()
         base_url = uuid.uuid4().hex
         c = client.Client(input_auth_token='token',
-                          service_catalog_url=base_url, session=s)
+                          service_catalog_url=base_url, session=s,
+                          api_version=constants.MAX_API_VERSION)
 
         self.assertIsNotNone(c.client)
         self.assertIsNone(c.keystone_client)
@@ -50,7 +54,8 @@ class ClientTest(utils.TestCase):
         base_url = uuid.uuid4().hex
 
         c = client.Client(input_auth_token='token',
-                          service_catalog_url=base_url)
+                          service_catalog_url=base_url,
+                          api_version=constants.MAX_API_VERSION)
 
         self.assertIsNotNone(c.client)
         self.assertIsNone(c.keystone_client)

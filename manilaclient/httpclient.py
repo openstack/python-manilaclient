@@ -33,10 +33,12 @@ except ImportError:
 
 
 class HTTPClient(object):
-    def __init__(self, base_url, token, user_agent,
+
+    def __init__(self, endpoint_url, token, user_agent, api_version,
                  insecure=False, cacert=None, timeout=None, retries=None,
                  http_log_debug=False):
-        self.base_url = base_url
+        self.endpoint_url = endpoint_url
+        self.base_url = self._get_base_url(self.endpoint_url)
         self.retries = retries
         self.http_log_debug = http_log_debug
 
@@ -45,6 +47,7 @@ class HTTPClient(object):
 
         self.default_headers = {
             'X-Auth-Token': token,
+            'X-Openstack-Manila-Api-Version': api_version,
             'User-Agent': user_agent,
             'Accept': 'application/json',
         }
@@ -56,6 +59,11 @@ class HTTPClient(object):
             self._logger.addHandler(ch)
             if hasattr(requests, 'logging'):
                 requests.logging.getLogger(requests.__name__).addHandler(ch)
+
+    def _get_base_url(self, url):
+        """Truncates url and returns transport, address, and port number."""
+        base_url = '/'.join(url.split('/')[:3]) + '/'
+        return base_url
 
     def _set_request_options(self, insecure, cacert, timeout=None):
         options = {'verify': True}
@@ -98,13 +106,24 @@ class HTTPClient(object):
         return resp, body
 
     def _cs_request(self, url, method, **kwargs):
+        return self._cs_request_with_retries(
+            self.endpoint_url + url,
+            method,
+            **kwargs)
+
+    def _cs_request_base_url(self, url, method, **kwargs):
+        return self._cs_request_with_retries(
+            self.base_url + url,
+            method,
+            **kwargs)
+
+    def _cs_request_with_retries(self, url, method, **kwargs):
         attempts = 0
         timeout = 1
         while True:
             attempts += 1
             try:
-                resp, body = self.request(self.base_url + url, method,
-                                          **kwargs)
+                resp, body = self.request(url, method, **kwargs)
                 return resp, body
             except (exceptions.BadRequest,
                     requests.exceptions.RequestException,
@@ -123,6 +142,9 @@ class HTTPClient(object):
                 })
             sleep(timeout)
             timeout *= 2
+
+    def get_with_base_url(self, url, **kwargs):
+        return self._cs_request_base_url(url, 'GET', **kwargs)
 
     def get(self, url, **kwargs):
         return self._cs_request(url, 'GET', **kwargs)

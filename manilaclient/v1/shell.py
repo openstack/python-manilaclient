@@ -15,6 +15,7 @@
 
 from __future__ import print_function
 
+
 import os
 import sys
 import time
@@ -147,6 +148,14 @@ def _extract_key_value_options(args, option_name):
 
             result_dict[key] = value
     return result_dict
+
+
+def do_api_version(cs, args):
+    """Display the API version information."""
+    columns = ['ID', 'Status', 'Version', 'Min_version']
+    column_labels = ['ID', 'Status', 'Version', 'Minimum Version']
+    versions = cs.services.api_version()
+    cliutils.print_list(versions, columns, field_labels=column_labels)
 
 
 def do_endpoints(cs, args):

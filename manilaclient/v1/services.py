@@ -31,6 +31,10 @@ class Service(common_base.Resource):
     def __repr__(self):
         return "<Service: %s>" % self.id
 
+    def api_version(self):
+        """Get api version."""
+        return self.manager.api_version(self)
+
 
 class ServiceManager(base.Manager):
     """Manage :class:`Service` resources."""
@@ -48,3 +52,7 @@ class ServiceManager(base.Manager):
             if query_string:
                 query_string = "?%s" % query_string
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)
+
+    def api_version(self):
+        """Get api version."""
+        return self._get_with_base_url("", "versions")

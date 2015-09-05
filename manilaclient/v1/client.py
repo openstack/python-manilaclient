@@ -58,9 +58,9 @@ class Client(object):
         >>> client.shares.list()
         ...
     """
-    def __init__(self, username=None, api_key=None, project_id=None,
-                 auth_url=None, insecure=False, timeout=None, tenant_id=None,
-                 project_name=None, region_name=None,
+    def __init__(self, api_version, username=None, api_key=None,
+                 project_id=None, auth_url=None, insecure=False, timeout=None,
+                 tenant_id=None, project_name=None, region_name=None,
                  endpoint_type='publicURL', extensions=None,
                  service_type='share', service_name=None, retries=None,
                  http_log_debug=False, input_auth_token=None, session=None,
@@ -157,7 +157,8 @@ class Client(object):
                                             cacert=cacert,
                                             timeout=timeout,
                                             retries=retries,
-                                            http_log_debug=http_log_debug)
+                                            http_log_debug=http_log_debug,
+                                            api_version=api_version)
 
         self.limits = limits.LimitsManager(self)
         self.services = services.ServiceManager(self)
