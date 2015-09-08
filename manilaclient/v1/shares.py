@@ -146,7 +146,7 @@ class ShareManager(base.ManagerWithFind):
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
-               share_type=None, is_public=False):
+               share_type=None, is_public=False, availability_zone=None):
         """Create a share.
 
         :param share_proto: text - share protocol for new share
@@ -171,7 +171,8 @@ class ShareManager(base.ManagerWithFind):
             'share_proto': share_proto,
             'share_network_id': common_base.getid(share_network),
             'share_type': common_base.getid(share_type),
-            'is_public': is_public
+            'is_public': is_public,
+            'availability_zone': availability_zone,
         }
         return self._create('/shares', {'share': body}, 'share')
 

@@ -110,6 +110,7 @@ class SharesTest(utils.TestCase):
             'share_network_id': None,
             'share_type': None,
             'is_public': False,
+            'availability_zone': None,
         }
         cs.shares.create(protocol, 1)
         cs.assert_called('POST', '/shares', {'share': expected})
@@ -129,6 +130,7 @@ class SharesTest(utils.TestCase):
             'share_network_id': 'fake_nw',
             'share_type': None,
             'is_public': False,
+            'availability_zone': None,
         }
         cs.shares.create('nfs', 1, share_network=share_network)
         cs.assert_called('POST', '/shares', {'share': expected})
@@ -148,12 +150,18 @@ class SharesTest(utils.TestCase):
             'share_network_id': None,
             'share_type': 'fake_st',
             'is_public': False,
+            'availability_zone': None,
         }
         cs.shares.create('nfs', 1, share_type=share_type)
         cs.assert_called('POST', '/shares', {'share': expected})
 
-    @ddt.data(True, False)
-    def test_create_share_with_all_params_defined(self, is_public):
+    @ddt.data({'is_public': True,
+               'availability_zone': 'nova'},
+              {'is_public': False,
+               'availability_zone': 'fake_azzzzz'})
+    @ddt.unpack
+    def test_create_share_with_all_params_defined(self, is_public,
+                                                  availability_zone):
         body = {
             'share': {
                 'is_public': is_public,
@@ -165,9 +173,11 @@ class SharesTest(utils.TestCase):
                 'share_proto': 'nfs',
                 'share_network_id': None,
                 'size': 1,
+                'availability_zone': availability_zone,
             }
         }
-        cs.shares.create('nfs', 1, is_public=is_public)
+        cs.shares.create('nfs', 1, is_public=is_public,
+                         availability_zone=availability_zone)
         cs.assert_called('POST', '/shares', body)
 
     @ddt.data(
