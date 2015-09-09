@@ -14,6 +14,7 @@
 #    under the License.
 
 import ddt
+import six
 from tempest_lib.common.utils import data_utils
 from tempest_lib import exceptions as tempest_lib_exc
 
@@ -101,6 +102,11 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
         {'nova_net_id': 'fake_nova_net_id'},
         {'neutron_net_id': 'fake_neutron_net_id',
          'neutron_subnet_id': 'fake_neutron_subnet_id'},
+        {'name': '""'},
+        {'description': '""'},
+        {'nova_net_id': '""'},
+        {'neutron_net_id': '""'},
+        {'neutron_subnet_id': '""'},
     )
     def test_create_update_share_network(self, net_data):
         sn = self.create_share_network(cleanup_in_class=False)
@@ -114,7 +120,9 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
             'neutron_net_id': 'None',
             'neutron_subnet_id': 'None',
         }
-        expected_data.update(net_data)
+        update_values = dict([(k, v) for k, v in six.iteritems(net_data)
+                              if v != '""'])
+        expected_data.update(update_values)
 
         for k, v in expected_data.items():
             self.assertEqual(v, update[k])

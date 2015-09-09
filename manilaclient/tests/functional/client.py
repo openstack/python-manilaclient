@@ -316,7 +316,7 @@ class ManilaCLIClient(base.CLIClient):
             data['--neutron_subnet_id'] = neutron_subnet_id
         cmd = ''
         for key, value in data.items():
-            cmd += "%(k)s='%(v)s' " % dict(k=key, v=value)
+            cmd += "%(k)s=%(v)s " % dict(k=key, v=value)
         return cmd
 
     @not_found_wrapper
