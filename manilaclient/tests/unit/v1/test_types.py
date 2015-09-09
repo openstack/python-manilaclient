@@ -23,33 +23,82 @@ cs = fakes.FakeClient()
 
 @ddt.ddt
 class TypesTest(utils.TestCase):
+
+    @ddt.data(
+        {'snapshot_support': 'False'},
+        {'snapshot_support': 'False', 'foo': 'bar'},
+    )
+    def test_init(self, extra_specs):
+        info = {'extra_specs': {'snapshot_support': 'False'}}
+
+        share_type = share_types.ShareType(share_types.ShareTypeManager, info)
+
+        self.assertTrue(hasattr(share_type, '_required_extra_specs'))
+        self.assertTrue(hasattr(share_type, '_optional_extra_specs'))
+        self.assertTrue(isinstance(share_type._required_extra_specs, dict))
+        self.assertTrue(isinstance(share_type._optional_extra_specs, dict))
+        self.assertEqual(
+            {'snapshot_support': 'False'}, share_type.get_optional_keys())
+
     def test_list_types(self):
         tl = cs.share_types.list()
         cs.assert_called('GET', '/types?is_public=all')
         for t in tl:
             self.assertIsInstance(t, share_types.ShareType)
             self.assertTrue(callable(getattr(t, 'get_required_keys', '')))
+            self.assertTrue(callable(getattr(t, 'get_optional_keys', '')))
             self.assertEqual({'test': 'test'}, t.get_required_keys())
+            self.assertEqual(
+                {'snapshot_support': 'unknown'}, t.get_optional_keys())
 
     def test_list_types_only_public(self):
         cs.share_types.list(show_all=False)
         cs.assert_called('GET', '/types')
 
-    @ddt.data(True, False)
-    def test_create(self, is_public):
+    @ddt.data(
+        (True, True, True),
+        (True, True, False),
+        (True, False, True),
+        (False, True, True),
+        (True, False, False),
+        (False, False, True),
+        (False, True, False),
+        (False, False, False),
+    )
+    @ddt.unpack
+    def test_create(self, is_public, dhss, snapshot_support):
         expected_body = {
             "share_type": {
                 "name": 'test-type-3',
                 'os-share-type-access:is_public': is_public,
                 "extra_specs": {
-                    "driver_handles_share_servers": True
+                    "driver_handles_share_servers": dhss,
+                    "snapshot_support": snapshot_support,
                 }
             }
         }
 
-        t = cs.share_types.create('test-type-3', True, is_public=is_public)
+        result = cs.share_types.create(
+            'test-type-3', dhss, snapshot_support, is_public=is_public)
         cs.assert_called('POST', '/types', expected_body)
-        self.assertIsInstance(t, share_types.ShareType)
+        self.assertIsInstance(result, share_types.ShareType)
+
+    @ddt.data(True, False)
+    def test_create_with_default_values(self, dhss):
+        expected_body = {
+            "share_type": {
+                "name": 'test-type-3',
+                'os-share-type-access:is_public': True,
+                "extra_specs": {
+                    "driver_handles_share_servers": dhss,
+                    "snapshot_support": True,
+                }
+            }
+        }
+
+        result = cs.share_types.create('test-type-3', dhss)
+        cs.assert_called('POST', '/types', expected_body)
+        self.assertIsInstance(result, share_types.ShareType)
 
     def test_set_key(self):
         t = cs.share_types.get(1)

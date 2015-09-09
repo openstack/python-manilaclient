@@ -28,6 +28,10 @@ class ShareType(common_base.Resource):
     def __init__(self, manager, info, loaded=False):
         super(ShareType, self).__init__(manager, info, loaded)
         self._required_extra_specs = info.get('required_extra_specs', {})
+        self._optional_extra_specs = {
+            'snapshot_support': info.get('extra_specs', {}).get(
+                'snapshot_support', 'unknown'),
+        }
 
     def __repr__(self):
         return "<ShareType: %s>" % self.name
@@ -58,6 +62,9 @@ class ShareType(common_base.Resource):
 
     def get_required_keys(self):
         return self._required_extra_specs
+
+    def get_optional_keys(self):
+        return self._optional_extra_specs
 
     def set_keys(self, metadata):
         """Set extra specs on a share type.
@@ -123,7 +130,8 @@ class ShareTypeManager(base.ManagerWithFind):
         """
         self._delete("/types/%s" % common_base.getid(share_type))
 
-    def create(self, name, spec_driver_handles_share_servers, is_public=True):
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=True, is_public=True):
         """Create a share type.
 
         :param name: Descriptive name of the share type
@@ -136,7 +144,8 @@ class ShareTypeManager(base.ManagerWithFind):
                 "os-share-type-access:is_public": is_public,
                 "extra_specs": {
                     "driver_handles_share_servers":
-                        spec_driver_handles_share_servers
+                        spec_driver_handles_share_servers,
+                    "snapshot_support": spec_snapshot_support,
                 },
             }
         }

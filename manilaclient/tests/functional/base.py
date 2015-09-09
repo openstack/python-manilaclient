@@ -144,12 +144,14 @@ class BaseTestCase(base.ClientTestBase):
 
     @classmethod
     def create_share_type(cls, name=None, driver_handles_share_servers=True,
+                          snapshot_support=True,
                           is_public=True, client=None, cleanup_in_class=True):
         if client is None:
             client = cls.get_admin_client()
         share_type = client.create_share_type(
             name=name,
             driver_handles_share_servers=driver_handles_share_servers,
+            snapshot_support=snapshot_support,
             is_public=is_public)
         resource = {
             "type": "share_type",
