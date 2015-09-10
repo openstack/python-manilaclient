@@ -28,6 +28,7 @@ from manilaclient import exceptions
 def get_client_class(version):
     version_map = {
         '1': 'manilaclient.v1.client.Client',
+        '2': 'manilaclient.v1.client.Client',
     }
     try:
         client_path = version_map[str(version)]
@@ -45,4 +46,4 @@ def get_major_version(version):
 
 def Client(version, *args, **kwargs):
     client_class = get_client_class(get_major_version(version))
-    return client_class(version, *args, **kwargs)
+    return client_class(*args, **kwargs)

@@ -38,11 +38,10 @@ from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.openstack.common import cliutils
 from manilaclient.v1 import shell as shell_v1
-# from manilaclient.v2 import shell as shell_v2
 
 DEFAULT_OS_SHARE_API_VERSION = constants.MAX_API_VERSION
 DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
-DEFAULT_MANILA_SERVICE_TYPE = 'share'
+DEFAULT_MANILA_SERVICE_TYPE = constants.V2_SERVICE_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +294,9 @@ class OpenStackManilaShell(object):
 
     def _discover_via_contrib_path(self, version):
         module_path = os.path.dirname(os.path.abspath(__file__))
-        version_str = "v%s" % version.split('.')[0]
+        # NOTE(cfouts) - temporary change to maintain other clients that are
+        # hardcoded to use the v1/client.py
+        version_str = 'v1'
         ext_path = os.path.join(module_path, version_str, 'contrib')
         ext_glob = os.path.join(ext_path, "*.py")
 
@@ -446,7 +447,8 @@ class OpenStackManilaShell(object):
                                 http_log_debug=args.debug,
                                 cacert=cacert,
                                 use_keyring=os_cache,
-                                force_new_token=os_reset_cache)
+                                force_new_token=os_reset_cache,
+                                api_version=options.os_share_api_version)
 
         args.func(self.cs, args)
 

@@ -17,6 +17,7 @@ from keystoneclient.v2_0 import client as keystone_client_v2
 from keystoneclient.v3 import client as keystone_client_v3
 import six
 
+from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient import httpclient
 from manilaclient.v1 import limits
@@ -59,16 +60,17 @@ class Client(object):
         >>> client.shares.list()
         ...
     """
-    def __init__(self, api_version, username=None, api_key=None,
+    def __init__(self, username=None, api_key=None,
                  project_id=None, auth_url=None, insecure=False, timeout=None,
                  tenant_id=None, project_name=None, region_name=None,
                  endpoint_type='publicURL', extensions=None,
-                 service_type='share', service_name=None, retries=None,
-                 http_log_debug=False, input_auth_token=None, session=None,
-                 auth=None, cacert=None, service_catalog_url=None,
-                 user_agent='python-manilaclient',
+                 service_type=constants.V1_SERVICE_TYPE, service_name=None,
+                 retries=None, http_log_debug=False, input_auth_token=None,
+                 session=None, auth=None, cacert=None,
+                 service_catalog_url=None, user_agent='python-manilaclient',
                  use_keyring=False, force_new_token=False,
-                 cached_token_lifetime=300, **kwargs):
+                 cached_token_lifetime=300,
+                 api_version=constants.V1_API_VERSION, **kwargs):
         service_name = kwargs.get("share_service_name", service_name)
 
         def check_deprecated_arguments():

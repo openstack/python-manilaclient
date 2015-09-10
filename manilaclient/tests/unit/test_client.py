@@ -18,7 +18,7 @@ import manilaclient.v1.client
 class ClientTest(utils.TestCase):
 
     def test_get_client_class_v1(self):
-        output = manilaclient.client.get_client_class('1')
+        output = manilaclient.client.get_client_class('2')
         self.assertEqual(output, manilaclient.v1.client.Client)
 
     def test_get_client_class_unknown(self):
