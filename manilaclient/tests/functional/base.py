@@ -224,3 +224,32 @@ class BaseTestCase(base.ClientTestBase):
         if wait_for_creation:
             client.wait_for_share_status(share['id'], 'available')
         return share
+
+    @classmethod
+    def create_security_service(cls, type='ldap', name=None, description=None,
+                                dns_ip=None, server=None, domain=None,
+                                user=None, password=None, client=None,
+                                cleanup_in_class=False):
+        if client is None:
+            client = cls.get_admin_client()
+        data = {
+            'type': type,
+            'name': name,
+            'description': description,
+            'user': user,
+            'password': password,
+            'server': server,
+            'domain': domain,
+            'dns_ip': dns_ip,
+        }
+        ss = client.create_security_service(**data)
+        resource = {
+            "type": "share",
+            "id": ss["id"],
+            "client": client,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        return ss

@@ -703,3 +703,67 @@ class ManilaCLIClient(base.CLIClient):
                     "Access rule %(access)s failed to reach deleted state "
                     "within the required time (%s s)." % self.build_timeout)
                 raise tempest_lib_exc.TimeoutException(message)
+
+    def create_security_service(self, type='ldap', name=None, description=None,
+                                dns_ip=None, server=None, domain=None,
+                                user=None, password=None):
+        """Creates security service.
+
+        :param type: security service type (ldap, kerberos or active_directory)
+        :param name: desired name of new security service.
+        :param description: desired description of new security service.
+        :param dns_ip: DNS IP address inside tenant's network.
+        :param server: security service IP address or hostname.
+        :param domain: security service domain.
+        :param user: user of the new security service.
+        :param password: password used by user.
+        """
+
+        cmd = 'security-service-create %s ' % type
+        cmd += self. _combine_security_service_data(
+            name=name,
+            description=description,
+            dns_ip=dns_ip,
+            server=server,
+            domain=domain,
+            user=user,
+            password=password)
+
+        ss_raw = self.manila(cmd)
+        security_service = output_parser.details(ss_raw)
+        return security_service
+
+    @not_found_wrapper
+    def update_security_service(self, security_service, name=None,
+                                description=None, dns_ip=None, server=None,
+                                domain=None, user=None, password=None):
+        cmd = 'security-service-update %s ' % security_service
+        cmd += self. _combine_security_service_data(
+            name=name,
+            description=description,
+            dns_ip=dns_ip,
+            server=server,
+            domain=domain,
+            user=user,
+            password=password)
+        return output_parser.details(self.manila(cmd))
+
+    def _combine_security_service_data(self, name=None, description=None,
+                                       dns_ip=None, server=None, domain=None,
+                                       user=None, password=None):
+        data = ''
+        if name is not None:
+            data += '--name %s ' % name
+        if description is not None:
+            data += '--description %s ' % description
+        if dns_ip is not None:
+            data += '--dns-ip %s ' % dns_ip
+        if server is not None:
+            data += '--server %s ' % server
+        if domain is not None:
+            data += '--domain %s ' % domain
+        if user is not None:
+            data += '--user %s ' % user
+        if password is not None:
+            data += '--password %s ' % password
+        return data
