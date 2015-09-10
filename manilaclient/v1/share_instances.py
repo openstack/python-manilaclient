@@ -1,0 +1,77 @@
+# Copyright 2015 Mirantis inc.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+from manilaclient import base
+from manilaclient.openstack.common.apiclient import base as common_base
+
+
+class ShareInstance(common_base.Resource):
+    """A share is an extra block level storage to the OpenStack instances."""
+    def __repr__(self):
+        return "<Share: %s>" % self.id
+
+    def force_delete(self):
+        """Delete the specified share ignoring its current state."""
+        self.manager.force_delete(self)
+
+    def reset_state(self, state):
+        """Update the share with the provided state."""
+        self.manager.reset_state(self, state)
+
+
+class ShareInstanceManager(base.ManagerWithFind):
+    """Manage :class:`ShareInstances` resources."""
+    resource_class = ShareInstance
+
+    def get(self, instance):
+        """Get a share instance.
+
+        :param instance: either share object or text with its ID.
+        :rtype: :class:`ShareInstance`
+        """
+        share_id = common_base.getid(instance)
+        return self._get("/share_instances/%s" % share_id, "share_instance")
+
+    def list(self):
+        """List all share instances."""
+        return self._list('/share_instances', 'share_instances')
+
+    def _action(self, action, instance, info=None, **kwargs):
+        """Perform a share instnace 'action'.
+
+        :param action: text with action name.
+        :param instance: either share object or text with its ID.
+        :param info: dict with data for specified 'action'.
+        :param kwargs: dict with data to be provided for action hooks.
+        """
+        body = {action: info}
+        self.run_hooks('modify_body_for_action', body, **kwargs)
+        url = '/share_instances/%s/action' % common_base.getid(instance)
+        return self.api.client.post(url, body=body)
+
+    def force_delete(self, instance):
+        """Delete a share instance forcibly - share status will be avoided.
+
+        :param instance: either share instance object or text with its ID.
+        """
+        return self._action('os-force_delete', common_base.getid(instance))
+
+    def reset_state(self, instance, state):
+        """Update the provided share instance with the provided state.
+
+        :param instance: either share object or text with its ID.
+        :param state: text with new state to set for share.
+        """
+        return self._action('os-reset_status', instance, {'status': state})

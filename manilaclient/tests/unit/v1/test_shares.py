@@ -344,6 +344,11 @@ class SharesTest(utils.TestCase):
         cs.shares.shrink(share, size)
         cs.assert_called('POST', '/shares/1234/action', expected_body)
 
+    def test_list_share_instances(self):
+        share = type('ShareID', (object, ), {'id': '1234'})
+        cs.shares.list_instances(share)
+        cs.assert_called('GET', '/shares/1234/instances')
+
     def test_migrate_share(self):
         host = 'fake_host'
         self.share.migrate_share(host, True)

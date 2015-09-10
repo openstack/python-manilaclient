@@ -25,6 +25,7 @@ from manilaclient.v1 import quotas
 from manilaclient.v1 import scheduler_stats
 from manilaclient.v1 import security_services
 from manilaclient.v1 import services
+from manilaclient.v1 import share_instances
 from manilaclient.v1 import share_networks
 from manilaclient.v1 import share_servers
 from manilaclient.v1 import share_snapshots
@@ -169,6 +170,7 @@ class Client(object):
         self.quotas = quotas.QuotaSetManager(self)
 
         self.shares = shares.ShareManager(self)
+        self.share_instances = share_instances.ShareInstanceManager(self)
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
         self.share_types = share_types.ShareTypeManager(self)

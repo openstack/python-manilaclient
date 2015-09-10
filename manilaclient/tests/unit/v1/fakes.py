@@ -29,6 +29,15 @@ class FakeClient(fakes.FakeClient):
                                service_catalog_url='http://localhost:8786')
         self.client = FakeHTTPClient(**kwargs)
 
+fake_share_instance = {
+    'id': 1234,
+    'share_id': 'fake',
+    'status': 'available',
+    'availability_zone': 'fake',
+    'share_network_id': 'fake',
+    'share_server_id': 'fake',
+}
+
 
 class FakeHTTPClient(fakes.FakeHTTPClient):
 
@@ -119,6 +128,39 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action] is None
         else:
             raise AssertionError("Unexpected action: %s" % action)
+        return (resp, {}, _body)
+
+    def _share_instances(self):
+        instances = {
+            'share_instances': [
+                fake_share_instance
+            ]
+        }
+        return (200, {}, instances)
+
+    def get_share_instances(self, **kw):
+        return self._share_instances()
+
+    def get_shares_fake_instances(self, **kw):
+        return self._share_instances()
+
+    def get_shares_1234_instances(self, **kw):
+        return self._share_instances()
+
+    def get_share_instances_1234(self):
+        return (200, {}, {'share_instance': fake_share_instance})
+
+    def post_share_instances_1234_action(self, body, **kw):
+        _body = None
+        resp = 202
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action == 'os-reset_status':
+            assert 'status' in body['os-reset_status']
+        elif action == 'os-force_delete':
+            assert body[action] is None
+        else:
+            raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
 
     def get_snapshots(self, **kw):

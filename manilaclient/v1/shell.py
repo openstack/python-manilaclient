@@ -96,6 +96,17 @@ def _print_share(cs, share):
     cliutils.print_dict(info)
 
 
+def _find_share_instance(cs, instance):
+    """Get a share instance by ID."""
+    return apiclient_utils.find_resource(cs.share_instances, instance)
+
+
+def _print_share_instance(cs, instance):
+    info = instance._info.copy()
+    info.pop('links', None)
+    cliutils.print_dict(info)
+
+
 def _find_share_snapshot(cs, snapshot):
     """Get a snapshot by ID."""
     return apiclient_utils.find_resource(cs.share_snapshots, snapshot)
@@ -875,6 +886,79 @@ def do_list(cs, args):
         sort_dir=args.sort_dir,
     )
     cliutils.print_list(shares, list_of_keys)
+
+
+@cliutils.arg(
+    '--share-id',
+    '--share_id',  # alias
+    metavar='<share_id>',
+    default=None,
+    action='single_alias',
+    help='Filter results by share ID.')
+@cliutils.service_type('share')
+def do_share_instance_list(cs, args):
+    """List share instances."""
+    share = _find_share(cs, args.share_id) if args.share_id else None
+
+    list_of_keys = [
+        'ID', 'Share ID', 'Host', 'Status', 'Availability Zone',
+        'Share Network ID', 'Share Server ID'
+    ]
+    if share:
+        instances = cs.shares.list_instances(share)
+    else:
+        instances = cs.share_instances.list()
+
+    cliutils.print_list(instances, list_of_keys)
+
+
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    help='Name or ID of the share instance.')
+@cliutils.service_type('share')
+def do_share_instance_show(cs, args):
+    """Show details about a share instance."""
+    instance = _find_share_instance(cs, args.instance)
+    _print_share_instance(cs, instance)
+
+
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    nargs='+',
+    help='Name or ID of the instance(s) to force delete.')
+def do_share_instance_force_delete(cs, args):
+    """Attempt force-delete of share instance, regardless of state."""
+    failure_count = 0
+    for instance in args.instance:
+        try:
+            _find_share_instance(cs, instance).force_delete()
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share instance %s failed: %s" % (instance, e),
+                  file=sys.stderr)
+    if failure_count == len(args.instance):
+        raise exceptions.CommandError("Unable to force delete any of "
+                                      "specified share instances.")
+
+
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    help='Name or ID of the share instance to modify.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the instance. Options include '
+          'available, error, creating, deleting, error_deleting. If no '
+          'state is provided, available will be used.'))
+@cliutils.service_type('share')
+def do_share_instance_reset_state(cs, args):
+    """Explicitly update the state of a share instance."""
+    instance = _find_share_instance(cs, args.instance)
+    instance.reset_state(args.state)
 
 
 @cliutils.arg(

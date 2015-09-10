@@ -29,6 +29,7 @@ from manilaclient.openstack.common import cliutils
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v1 import fakes
+from manilaclient.v1 import share_instances
 from manilaclient.v1 import shell as shell_v1
 
 
@@ -265,6 +266,49 @@ class ShellTest(test_utils.TestCase):
             'list --share-network not_found_expected',
         )
         self.assert_called('GET', '/share-networks/detail')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_instance_list(self):
+        self.run_command('share-instance-list')
+
+        self.assert_called('GET', '/share_instances')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['ID', 'Share ID', 'Host', 'Status', 'Availability Zone',
+             'Share Network ID', 'Share Server ID'])
+
+    @mock.patch.object(apiclient_utils, 'find_resource',
+                       mock.Mock(return_value='fake'))
+    def test_share_instance_list_with_share(self):
+        self.run_command('share-instance-list --share-id=fake')
+        self.assert_called('GET', '/shares/fake/instances')
+
+    def test_share_instance_list_invalid_share(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'share-instance-list --share-id=not-found-id',
+        )
+
+    def test_share_instance_show(self):
+        self.run_command('share-instance-show 1234')
+        self.assert_called('GET', '/share_instances/1234')
+
+    def test_share_instance_reset_state(self):
+        self.run_command('share-instance-reset-state 1234')
+        expected = {'os-reset_status': {'status': 'available'}}
+        self.assert_called('POST', '/share_instances/1234/action',
+                           body=expected)
+
+    def test_share_instance_force_delete(self):
+        manager_mock = mock.Mock()
+        share_instance = share_instances.ShareInstance(
+            manager_mock, {'id': 'fake'}, True)
+
+        with mock.patch.object(shell_v1, '_find_share_instance',
+                               mock.Mock(return_value=share_instance)):
+            self.run_command('share-instance-force-delete 1234')
+            manager_mock.force_delete.assert_called_once_with(share_instance)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_type_list(self):
