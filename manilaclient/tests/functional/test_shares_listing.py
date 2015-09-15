@@ -171,9 +171,10 @@ class SharesListReadWriteTest(base.BaseTestCase):
             self.assertEqual(self.private_name, get['name'])
 
     def test_list_shares_by_share_type(self):
-        share_type_name = self.user_client.get_share_type(
-            self.private_share['share_type'])['Name']
-        self._list_shares({'share_type': share_type_name})
+        share_type_id = self.user_client.get_share_type(
+            self.private_share['share_type'])['ID']
+        # NOTE(vponomaryov): this is API 2.6+ specific
+        self._list_shares({'share_type': share_type_id})
 
     def test_list_shares_by_status(self):
         self._list_shares({'status': 'available'})
