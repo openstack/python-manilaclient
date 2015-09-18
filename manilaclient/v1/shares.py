@@ -45,9 +45,9 @@ class Share(common_base.Resource):
         """Migrate the share to a new host."""
         self.manager.migrate_share(self, host, force_host_copy)
 
-    def delete(self):
+    def delete(self, consistency_group_id=None):
         """Delete this share."""
-        self.manager.delete(self)
+        self.manager.delete(self, consistency_group_id=consistency_group_id)
 
     def force_delete(self):
         """Delete the specified share ignoring its current state."""
@@ -322,12 +322,17 @@ class ShareManager(base.ManagerWithFind):
 
         return self._list(path, 'shares')
 
-    def delete(self, share):
+    def delete(self, share, consistency_group_id=None):
         """Delete a share.
 
         :param share: either share object or text with its ID.
+        :param consistency_group_id: text - ID of the consistency group to
+            which the share belongs to.
         """
-        self._delete("/shares/%s" % common_base.getid(share))
+        url = "/shares/%s" % common_base.getid(share)
+        if consistency_group_id:
+            url += "?consistency_group_id=%s" % consistency_group_id
+        self._delete(url)
 
     def force_delete(self, share):
         """Delete a share forcibly - share status will be avoided.

@@ -431,6 +431,19 @@ class ShellTest(test_utils.TestCase):
         self.run_command('delete 1234')
         self.assert_called('DELETE', '/shares/1234')
 
+    @ddt.data(
+        '--cg 1234', '--consistency-group 1234', '--consistency_group 1234')
+    @mock.patch.object(shell_v1, '_find_consistency_group', mock.Mock())
+    def test_delete_with_cg(self, cg_cmd):
+        fcg = type(
+            'FakeConsistencyGroup', (object,), {'id': cg_cmd.split()[-1]})
+        shell_v1._find_consistency_group.return_value = fcg
+
+        self.run_command('delete 1234 %s' % cg_cmd)
+
+        self.assert_called('DELETE', '/shares/1234?consistency_group_id=1234')
+        self.assertTrue(shell_v1._find_consistency_group.called)
+
     def test_delete_not_found(self):
         self.assertRaises(
             exceptions.CommandError,

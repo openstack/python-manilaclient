@@ -107,6 +107,7 @@ def _print_share_instance(cs, instance):
     cliutils.print_dict(info)
 
 
+@api_versions.experimental_api
 def _find_consistency_group(cs, consistency_group):
     """Get a consistency group ID."""
     return apiclient_utils.find_resource(cs.consistency_groups,
@@ -659,6 +660,16 @@ def do_unmanage(cs, args):
     metavar='<share>',
     nargs='+',
     help='Name or ID of the share(s).')
+@cliutils.arg(
+    '--consistency-group',
+    '--consistency_group',
+    '--cg',
+    metavar='<consistency-group>',
+    action='single_alias',
+    help='Optional consistency group name or ID which contains the share. '
+         '(Default=None)',
+    default=None)
+@cliutils.service_type('sharev2')
 def do_delete(cs, args):
     """Remove one or more shares."""
     failure_count = 0
@@ -666,7 +677,12 @@ def do_delete(cs, args):
     for share in args.share:
         try:
             share_ref = _find_share(cs, share)
-            share_ref.delete()
+            if args.consistency_group:
+                consistency_group_id = _find_consistency_group(
+                    cs, args.consistency_group).id
+                share_ref.delete(consistency_group_id=consistency_group_id)
+            else:
+                share_ref.delete()
         except Exception as e:
             failure_count += 1
             print("Delete for share %s failed: %s" % (share, e),
