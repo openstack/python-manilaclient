@@ -145,9 +145,16 @@ class Client(object):
         elif not service_catalog_url:
             catalog = self.keystone_client.service_catalog.get_endpoints(
                 service_type)
-
             if service_type in catalog:
-                for e_type, endpoint in catalog.get(service_type)[0].items():
+                if not region_name:
+                    catalog_entry = catalog.get(service_type)[0]
+                else:
+                    for catalog_entry in catalog.get(service_type):
+                        if catalog_entry.get("region") == region_name:
+                            break
+                    else:
+                        catalog_entry = {}
+                for e_type, endpoint in catalog_entry.items():
                     if str(e_type).lower() == str(endpoint_type).lower():
                         service_catalog_url = endpoint
                         break
