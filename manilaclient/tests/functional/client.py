@@ -218,8 +218,13 @@ class ManilaCLIClient(base.CLIClient):
             SHARE_TYPE, res_id=share_type, interval=2, timeout=6)
 
     def get_project_id(self, name_or_id):
-        project_id = self.openstack(
-            'project show -f value -c id %s' % name_or_id)
+        try:
+            # Temporary workaround for bug #1497162
+            project_id = self.openstack(
+                'project show -f value -c id %s' % name_or_id)
+        except Exception:
+            tenant = self.keystone("tenant-get %s" % name_or_id)
+            project_id = re.search("id(.*)\|(.*)\|", tenant).group(2).strip()
         return project_id.strip()
 
     @not_found_wrapper

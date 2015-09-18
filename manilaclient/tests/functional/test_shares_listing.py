@@ -180,7 +180,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self._list_shares({'status': 'available'})
 
     def test_list_shares_by_project_id(self):
-        project_id = self.user_client.get_project_id(
+        project_id = self.admin_client.get_project_id(
             self.admin_client.tenant_name)
         self._list_shares({'project_id': project_id})
 
