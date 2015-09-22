@@ -13,14 +13,23 @@
 import uuid
 
 from keystoneclient import session
+import mock
 
 from manilaclient.common import constants
 from manilaclient import exceptions
+from manilaclient import httpclient
 from manilaclient.tests.unit import utils
 from manilaclient.v1 import client
 
 
 class ClientTest(utils.TestCase):
+    def setUp(self):
+        super(ClientTest, self).setUp()
+        self.catalog = {
+            'share': [
+                {'region': 'TestRegion', 'publicURL': 'http://1.2.3.4'},
+            ],
+        }
 
     def test_adapter_properties(self):
         # sample of properties, there are many more
@@ -59,3 +68,65 @@ class ClientTest(utils.TestCase):
 
         self.assertIsNotNone(c.client)
         self.assertIsNone(c.keystone_client)
+
+    @mock.patch.object(httpclient, 'HTTPClient', mock.Mock())
+    @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
+    def test_valid_region_name(self):
+        kc = client.Client._get_keystone_client.return_value
+        kc.service_catalog = mock.Mock()
+        kc.service_catalog.get_endpoints = mock.Mock(return_value=self.catalog)
+        c = client.Client(api_version=constants.MAX_API_VERSION,
+                          region_name='TestRegion')
+        self.assertTrue(client.Client._get_keystone_client.called)
+        kc.service_catalog.get_endpoints.assert_called_once_with('share')
+        httpclient.HTTPClient.assert_called_once_with(
+            'http://1.2.3.4',
+            mock.ANY,
+            'python-manilaclient',
+            insecure=False,
+            cacert=None,
+            timeout=None,
+            retries=None,
+            http_log_debug=False,
+            api_version=constants.MAX_API_VERSION)
+        self.assertIsNotNone(c.client)
+
+    @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
+    def test_nonexistent_region_name(self):
+        kc = client.Client._get_keystone_client.return_value
+        kc.service_catalog = mock.Mock()
+        kc.service_catalog.get_endpoints = mock.Mock(return_value=self.catalog)
+        self.assertRaises(RuntimeError, client.Client,
+                          api_version=constants.MAX_API_VERSION,
+                          region_name='FakeRegion')
+        self.assertTrue(client.Client._get_keystone_client.called)
+        kc.service_catalog.get_endpoints.assert_called_once_with('share')
+
+    @mock.patch.object(httpclient, 'HTTPClient', mock.Mock())
+    @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
+    def test_regions_with_same_name(self):
+        catalog = {
+            'share': [
+                {'region': 'FirstRegion', 'publicURL': 'http://1.2.3.4'},
+                {'region': 'secondregion', 'publicURL': 'http://1.1.1.1'},
+                {'region': 'SecondRegion', 'publicURL': 'http://2.2.2.2'},
+            ],
+        }
+        kc = client.Client._get_keystone_client.return_value
+        kc.service_catalog = mock.Mock()
+        kc.service_catalog.get_endpoints = mock.Mock(return_value=catalog)
+        c = client.Client(api_version=constants.MAX_API_VERSION,
+                          region_name='SecondRegion')
+        self.assertTrue(client.Client._get_keystone_client.called)
+        kc.service_catalog.get_endpoints.assert_called_once_with('share')
+        httpclient.HTTPClient.assert_called_once_with(
+            'http://2.2.2.2',
+            mock.ANY,
+            'python-manilaclient',
+            insecure=False,
+            cacert=None,
+            timeout=None,
+            retries=None,
+            http_log_debug=False,
+            api_version=constants.MAX_API_VERSION)
+        self.assertIsNotNone(c.client)
