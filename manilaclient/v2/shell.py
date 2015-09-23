@@ -169,6 +169,17 @@ def _print_share_instance(cs, instance):
     cliutils.print_dict(info)
 
 
+def _find_share_replica(cs, replica):
+    """Get a replica by ID."""
+    return apiclient_utils.find_resource(cs.share_replicas, replica)
+
+
+def _print_share_replica(cs, replica):
+    info = replica._info.copy()
+    info.pop('links', None)
+    cliutils.print_dict(info)
+
+
 @api_versions.experimental_api
 @api_versions.wraps("2.4")
 def _find_consistency_group(cs, consistency_group):
@@ -210,12 +221,12 @@ def _print_share_snapshot(cs, snapshot):
 
 
 def _find_share_network(cs, share_network):
-    "Get a share network by ID or name."
+    """Get a share network by ID or name."""
     return apiclient_utils.find_resource(cs.share_networks, share_network)
 
 
 def _find_security_service(cs, security_service):
-    "Get a security service by ID or name."
+    """Get a security service by ID or name."""
     return apiclient_utils.find_resource(cs.security_services,
                                          security_service)
 
@@ -3061,3 +3072,181 @@ def do_cg_snapshot_delete(cs, args):
     if failure_count == len(args.cg_snapshot):
         raise exceptions.CommandError("Unable to delete any of the specified "
                                       "consistency group snapshots.")
+
+
+@cliutils.arg(
+    '--share-id',
+    '--share_id',
+    '--si',  # alias
+    metavar='<share_id>',
+    default=None,
+    action='single_alias',
+    help='List replicas belonging to share.')
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_list(cs, args):
+    """List share replicas."""
+    share = _find_share(cs, args.share_id) if args.share_id else None
+
+    list_of_keys = [
+        'ID',
+        'Status',
+        'Replica State',
+        'Share ID',
+        'Host',
+        'Availability Zone',
+        'Updated At',
+    ]
+    if share:
+        replicas = cs.share_replicas.list(share)
+    else:
+        replicas = cs.share_replicas.list()
+
+    cliutils.print_list(replicas, list_of_keys)
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to replicate.')
+@cliutils.arg(
+    '--availability-zone',
+    '--availability_zone',
+    '--az',
+    default=None,
+    action='single_alias',
+    metavar='<availability-zone>',
+    help='Optional Availability zone in which replica should be created.')
+@cliutils.arg(
+    '--share-network',
+    '--share_network',
+    metavar='<network-info>',
+    default=None,
+    help='Optional network info ID or name.')
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_create(cs, args):
+    """Create a share replica."""
+    share = _find_share(cs, args.share)
+
+    share_network = None
+    if args.share_network:
+        share_network = _find_share_network(cs, args.share_network)
+
+    replica = cs.share_replicas.create(share,
+                                       args.availability_zone,
+                                       share_network)
+    _print_share_replica(cs, replica)
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica.')
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_show(cs, args):
+    """Show details about a replica."""
+
+    replica = cs.share_replicas.get(args.replica)
+    _print_share_replica(cs, replica)
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    nargs='+',
+    help='ID of the share replica.')
+@cliutils.arg(
+    '--force',
+    action='store_true',
+    default=False,
+    help='Attempt to force deletion of a replica on its backend. Using '
+         'this option will purge the replica from Manila even if it '
+         'is not cleaned up on the backend. Defaults to False.')
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_delete(cs, args):
+    """Remove one or more share replicas."""
+    failure_count = 0
+    kwargs = {}
+
+    if args.force is not None:
+        kwargs['force'] = args.force
+
+    for replica in args.replica:
+        try:
+            replica_ref = _find_share_replica(cs, replica)
+            cs.share_replicas.delete(replica_ref, **kwargs)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share replica %s failed: %s" % (replica, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.replica):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "replicas.")
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica.')
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_promote(cs, args):
+    """Promote specified replica to 'active' replica_state."""
+    replica = _find_share_replica(cs, args.replica)
+    cs.share_replicas.promote(replica)
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica to modify.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the replica. Options include '
+          'available, error, creating, deleting, error_deleting. If no '
+          'state is provided, available will be used.'))
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_reset_state(cs, args):
+    """Explicitly update the 'status' of a share replica."""
+    replica = _find_share_replica(cs, args.replica)
+    cs.share_replicas.reset_state(replica, args.state)
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica to modify.')
+@cliutils.arg(
+    '--replica-state',
+    '--replica_state',
+    '--state',  # alias for user sanity
+    metavar='<replica_state>',
+    default='out_of_sync',
+    help=('Indicate which replica_state to assign the replica. Options '
+          'include in_sync, out_of_sync, active, error. If no '
+          'state is provided, out_of_sync will be used.'))
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_reset_replica_state(cs, args):
+    """Explicitly update the 'replica_state' of a share replica."""
+    replica = _find_share_replica(cs, args.replica)
+    cs.share_replicas.reset_replica_state(replica, args.replica_state)
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica to resync.')
+@api_versions.wraps("2.11")
+@api_versions.experimental_api
+def do_share_replica_resync(cs, args):
+    """Attempt to update the share replica with its 'active' mirror."""
+    replica = _find_share_replica(cs, args.replica)
+    cs.share_replicas.resync(replica)

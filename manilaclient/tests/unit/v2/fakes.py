@@ -578,6 +578,52 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             }
         })
 
+    fake_share_replica = {
+        "id": "5678",
+        "share_id": "1234",
+        "availability_zone": "nova",
+        "share_network_id": None,
+        "export_locations": [],
+        "share_server_id": None,
+        "host": "",
+        "status": "error",
+        "replica_state": "error",
+        "created_at": "2015-10-05T18:21:33.000000",
+        "export_location": None,
+    }
+
+    def delete_share_replicas_1234(self, **kw):
+        return (202, {}, None)
+
+    def get_share_replicas_detail(self, **kw):
+        replicas = {
+            'share_replicas': [
+                self.fake_share_replica,
+            ]
+        }
+        return (200, {}, replicas)
+
+    def get_share_replicas_5678(self, **kw):
+        replicas = {'share_replica': self.fake_share_replica}
+        return (200, {}, replicas)
+
+    def post_share_replicas(self, **kw):
+        return (202, {}, {'share_replica': self.fake_share_replica})
+
+    def post_share_replicas_1234_action(self, body, **kw):
+        _body = None
+        resp = 202
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action in ('reset_status', 'reset_replica_state'):
+            attr = action.split('reset_')[1]
+            assert attr in body.get(action)
+        elif action in ('force_delete', 'resync', 'promote'):
+            assert body[action] is None
+        else:
+            raise AssertionError("Unexpected share action: %s" % action)
+        return (resp, {}, _body)
+
     #
     # Set/Unset metadata
     #

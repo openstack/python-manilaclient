@@ -1674,3 +1674,98 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command(cmd)
         self.assert_called('PUT', '/quota-class-sets/test', body=expected)
+
+    @ddt.data(True, False)
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    def test_share_replica_delete(self, force):
+
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+
+        force = '--force' if force else ''
+
+        self.run_command('share-replica-delete fake-replica ' + force)
+
+        if force:
+            self.assert_called('POST', '/share-replicas/1234/action',
+                               body={'force_delete': None})
+        else:
+            self.assert_called('DELETE', '/share-replicas/1234')
+
+    def test_share_replica_list_all(self):
+
+        self.run_command('share-replica-list')
+
+        self.assert_called('GET', '/share-replicas/detail')
+
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    def test_share_replica_list_for_share(self):
+
+        fshare = type('FakeShare', (object,), {'id': 'fake-share-id'})
+        shell_v2._find_share.return_value = fshare
+        cmd = 'share-replica-list --share-id %s'
+        self.run_command(cmd % fshare.id)
+
+        self.assert_called(
+            'GET', '/share-replicas/detail?share_id=fake-share-id')
+
+    @ddt.data(
+        'fake-share-id --az fake-az',
+        'fake-share-id --availability-zone fake-az --share-network '
+        'fake-network',
+    )
+    @mock.patch.object(shell_v2, '_find_share_network', mock.Mock())
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    def test_share_replica_create(self, data):
+
+        fshare = type('FakeShare', (object,), {'id': 'fake-share-id'})
+        shell_v2._find_share.return_value = fshare
+
+        fnetwork = type('FakeShareNetwork', (object,), {'id': 'fake-network'})
+        shell_v2._find_share_network.return_value = fnetwork
+
+        cmd = 'share-replica-create' + ' ' + data
+
+        self.run_command(cmd)
+
+        shell_v2._find_share.assert_called_with(mock.ANY, fshare.id)
+        self.assert_called('POST', '/share-replicas')
+
+    def test_share_replica_show(self):
+
+        self.run_command('share-replica-show 5678')
+
+        self.assert_called('GET', '/share-replicas/5678')
+
+    @ddt.data('promote', 'resync')
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    def test_share_replica_actions(self, action):
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+        cmd = 'share-replica-' + action + ' ' + fake_replica.id
+
+        self.run_command(cmd)
+
+        self.assert_called(
+            'POST', '/share-replicas/1234/action',
+            body={action.replace('-', '_'): None})
+
+    @ddt.data('reset-state', 'reset-replica-state')
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    def test_share_replica_reset_state_cmds(self, action):
+        if action == 'reset-state':
+            attr = 'status'
+            action_name = 'reset_status'
+        else:
+            attr = 'replica_state'
+            action_name = action.replace('-', '_')
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+        cmd = 'share-replica-%(action)s %(resource)s --state %(state)s'
+
+        self.run_command(cmd % {
+            'action': action, 'resource': 1234, 'state': 'xyzzyspoon!'})
+
+        self.assert_called(
+            'POST', '/share-replicas/1234/action',
+            body={action_name: {attr: 'xyzzyspoon!'}})
