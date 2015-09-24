@@ -365,7 +365,7 @@ def do_quota_class_show(cs, args):
 
 
 @cliutils.arg(
-    'class-name',
+    'class_name',
     metavar='<class-name>',
     help='Name of quota class to set the quotas for.')
 @cliutils.arg(
@@ -396,9 +396,11 @@ def do_quota_class_show(cs, args):
     help='New value for the "snapshot_gigabytes" quota.')
 @cliutils.arg(
     '--share-networks',
+    '--share_networks',  # alias
     metavar='<share-networks>',
     type=int,
     default=None,
+    action='single_alias',
     help='New value for the "share_networks" quota.')
 @cliutils.service_type('sharev2')
 def do_quota_class_update(cs, args):

@@ -40,6 +40,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
                shares=None,
                gigabytes=None,
                snapshots=None,
+               snapshot_gigabytes=None,
                share_networks=None):
 
         body = {
@@ -48,6 +49,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
                 'shares': shares,
                 'snapshots': snapshots,
                 'gigabytes': gigabytes,
+                'snapshot_gigabytes': snapshot_gigabytes,
                 'share_networks': share_networks,
             }
         }
