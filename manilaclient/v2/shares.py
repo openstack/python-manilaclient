@@ -210,7 +210,7 @@ class ShareManager(base.ManagerWithFind):
 
     def _do_manage(self, service_host, protocol, export_path,
                    driver_options=None, share_type=None,
-                   name=None, description=None,
+                   name=None, description=None, is_public=None,
                    resource_path="/shares/manage"):
         """Manage some existing share.
 
@@ -221,6 +221,7 @@ class ShareManager(base.ManagerWithFind):
         :param share_type: text - share type that should be used for share
         :param name: text - name of new share
         :param description: - description for new share
+        :param is_public: - visibility for new share
         """
         driver_options = driver_options if driver_options else dict()
         body = {
@@ -230,23 +231,36 @@ class ShareManager(base.ManagerWithFind):
             'export_path': export_path,
             'driver_options': driver_options,
             'name': name,
-            'description': description
+            'description': description,
         }
+
+        if is_public is not None:
+            body['is_public'] = is_public
+
         return self._create(resource_path, {'share': body}, 'share')
 
     @api_versions.wraps("1.0", "2.6")
     def manage(self, service_host, protocol, export_path, driver_options=None,
                share_type=None, name=None, description=None):
+        is_public = None
         return self._do_manage(
             service_host, protocol, export_path, driver_options, share_type,
-            name, description, "/os-share-manage")
+            name, description, is_public, resource_path="/os-share-manage")
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.7")  # noqa
     def manage(self, service_host, protocol, export_path, driver_options=None,
                share_type=None, name=None, description=None):
+        is_public = None
         return self._do_manage(
             service_host, protocol, export_path, driver_options, share_type,
-            name, description, "/shares/manage")
+            name, description, is_public, resource_path="/shares/manage")
+
+    @api_versions.wraps("2.8")  # noqa
+    def manage(self, service_host, protocol, export_path, driver_options=None,
+               share_type=None, name=None, description=None, is_public=False):
+        return self._do_manage(
+            service_host, protocol, export_path, driver_options, share_type,
+            name, description, is_public, "/shares/manage")
 
     @api_versions.wraps("1.0", "2.6")
     def unmanage(self, share):

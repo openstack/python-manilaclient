@@ -422,11 +422,36 @@ class ShellTest(test_utils.TestCase):
                'valid_params': {
                    'driver_options': {},
                    'share_type': None,
-               }},)
+               }},
+              {'cmd_args': '--public',
+               'valid_params': {
+                   'driver_options': {},
+                   'share_type': None,
+               },
+               'is_public': True,
+               'version': '--os-share-api-version 2.8',
+               },
+              {'cmd_args': '',
+               'valid_params': {
+                   'driver_options': {},
+                   'share_type': None,
+               },
+               'is_public': False,
+               'version': '--os-share-api-version 2.8',
+               },
+              )
     @ddt.unpack
-    def test_manage(self, cmd_args, valid_params):
-        self.run_command('manage fake_service fake_protocol fake_export_path '
-                         + cmd_args)
+    def test_manage(self, cmd_args, valid_params, is_public=False,
+                    version=None):
+        if version is not None:
+            self.run_command(version
+                             + ' manage fake_service fake_protocol '
+                             + ' fake_export_path '
+                             + cmd_args)
+        else:
+            self.run_command(' manage fake_service fake_protocol '
+                             + ' fake_export_path '
+                             + cmd_args)
         expected = {
             'share': {
                 'service_host': 'fake_service',
@@ -434,10 +459,10 @@ class ShellTest(test_utils.TestCase):
                 'export_path': 'fake_export_path',
                 'name': None,
                 'description': None,
+                'is_public': is_public,
             }
         }
         expected['share'].update(valid_params)
-
         self.assert_called('POST', '/shares/manage', body=expected)
 
     def test_unmanage(self):

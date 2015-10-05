@@ -62,7 +62,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                         }
                     ],
                     "min_version": "2.0",
-                    "version": "2.5",
+                    "version": "2.8",
                     "id": "v2.0",
                 }
             ]

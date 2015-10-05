@@ -207,11 +207,13 @@ class SharesTest(utils.TestCase):
         cs.assert_called('DELETE', '/shares/1234')
 
     @ddt.data(
-        ("2.6", "/os-share-manage"),
-        ("2.7", "/shares/manage"),
+        ("2.6", "/os-share-manage", None),
+        ("2.7", "/shares/manage", None),
+        ("2.8", "/shares/manage", True),
+        ("2.8", "/shares/manage", False),
     )
     @ddt.unpack
-    def test_manage_share(self, microversion, resource_path):
+    def test_manage_share(self, microversion, resource_path, is_public=False):
         service_host = "fake_service_host"
         protocol = "fake_protocol"
         export_path = "fake_export_path"
@@ -228,16 +230,24 @@ class SharesTest(utils.TestCase):
             "name": name,
             "description": description,
         }
-
         version = api_versions.APIVersion(microversion)
+        if version >= api_versions.APIVersion('2.8'):
+            expected_body["is_public"] = is_public
+
         mock_microversion = mock.Mock(api_version=version)
         manager = shares.ShareManager(api=mock_microversion)
 
         with mock.patch.object(manager, "_create",
                                mock.Mock(return_value="fake")):
-            result = manager.manage(
-                service_host, protocol, export_path, driver_options,
-                share_type, name, description)
+
+            if version >= api_versions.APIVersion('2.8'):
+                result = manager.manage(
+                    service_host, protocol, export_path, driver_options,
+                    share_type, name, description, is_public)
+            else:
+                result = manager.manage(
+                    service_host, protocol, export_path, driver_options,
+                    share_type, name, description)
 
             self.assertEqual(manager._create.return_value, result)
             manager._create.assert_called_once_with(
