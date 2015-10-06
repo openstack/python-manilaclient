@@ -458,8 +458,7 @@ class ShellTest(test_utils.TestCase):
             'Share Proto',
             'Status',
             'Is Public',
-            'Share Type',
-            'Export location',
+            'Share Type Name',
             'Host',
             'Availability Zone'
         ]

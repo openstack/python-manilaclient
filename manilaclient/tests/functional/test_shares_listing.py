@@ -204,3 +204,9 @@ class SharesListReadWriteTest(base.BaseTestCase):
     def test_list_shares_with_limit(self, filters):
         shares = self.user_client.list_shares(filters=filters)
         self.assertEqual(filters['limit'], len(shares))
+
+    def test_list_share_select_column(self):
+        shares = self.user_client.list_shares(columns="Name,Size")
+        self.assertTrue(any(s['Name'] is not None for s in shares))
+        self.assertTrue(any(s['Size'] is not None for s in shares))
+        self.assertTrue(all('Description' not in s for s in shares))

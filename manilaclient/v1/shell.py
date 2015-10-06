@@ -925,15 +925,27 @@ def do_access_list(cs, args):
     default=None,
     action='single_alias',
     help='Filter results by consistency group name or ID.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "export_location,is public"')
 @cliutils.service_type('sharev2')
 def do_list(cs, args):
     """List NAS shares with filters."""
+
     list_of_keys = [
         'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
-        'Share Type', 'Export location', 'Host', 'Availability Zone'
+        'Share Type Name', 'Host', 'Availability Zone'
     ]
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
 
+    columns = args.columns
+    if columns is not None:
+        list_of_keys = map(lambda x: x.strip().title(), columns.split(","))
+
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     empty_obj = type('Empty', (object,), {'id': None})
     share_type = (_find_share_type(cs, args.share_type)
                   if args.share_type else empty_obj)

@@ -509,7 +509,7 @@ class ManilaCLIClient(base.CLIClient):
             cmd += '%s ' % share
         return self.manila(cmd)
 
-    def list_shares(self, all_tenants=False, filters=None):
+    def list_shares(self, all_tenants=False, filters=None, columns=None):
         """List shares.
 
         :param all_tenants: bool -- whether to list shares that belong
@@ -521,6 +521,8 @@ class ManilaCLIClient(base.CLIClient):
                 {--'project_id': 'foo'}
                 {'project-id': 'foo'}
             will be transformed to filter parameter "--project-id=foo"
+        :param columns: comma separated string of columns.
+            Example, "--columns Name,Size"
         """
         cmd = 'list '
         if all_tenants:
@@ -529,6 +531,8 @@ class ManilaCLIClient(base.CLIClient):
             for k, v in filters.items():
                 cmd += '%(k)s=%(v)s ' % {
                     'k': self._stranslate_to_cli_optional_param(k), 'v': v}
+        if columns is not None:
+            cmd += '--columns ' + columns
         shares_raw = self.manila(cmd)
         shares = utils.listing(shares_raw)
         return shares
