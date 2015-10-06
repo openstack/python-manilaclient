@@ -1440,3 +1440,29 @@ class ShellTest(test_utils.TestCase):
         self.run_command('cg-snapshot-delete --force fake-cg')
         self.assert_called('POST', '/cgsnapshots/1234/action',
                            {'os-force_delete': None})
+
+    @ddt.data(
+        {'--shares': 5},
+        {'--snapshots': 5},
+        {'--gigabytes': 5},
+        {'--snapshot-gigabytes': 5},
+        {'--snapshot_gigabytes': 5},
+        {'--share-networks': 5},
+        {'--share_networks': 5},
+        {'--shares': 5,
+         '--snapshots': 5,
+         '--gigabytes': 5,
+         '--snapshot-gigabytes': 5,
+         '--share-networks': 5})
+    def test_quota_class_update(self, data):
+        cmd = 'quota-class-update test'
+        expected = dict()
+        for k, v in data.items():
+            cmd += ' %(arg)s %(val)s' % {'arg': k, 'val': v}
+            expected[k[2:].replace('-', '_')] = v
+        expected['class_name'] = 'test'
+        expected = dict(quota_class_set=expected)
+
+        self.run_command(cmd)
+        self.assert_called('PUT', '/os-quota-class-sets/test',
+                           body=expected)
