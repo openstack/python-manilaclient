@@ -607,7 +607,7 @@ def do_metadata_update_all(cs, args):
     metavar='<export_path>',
     type=str,
     help='Share export path, NFS share such as: 10.0.0.1:/foo_path, '
-         'CIFS share such as: \\10.0.0.1\foo_name_of_cifs_share')
+         'CIFS share such as: \\\\10.0.0.1\\foo_name_of_cifs_share')
 @cliutils.arg(
     '--name',
     metavar='<name>',
