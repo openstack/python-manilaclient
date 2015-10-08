@@ -201,7 +201,7 @@ def do_api_version(cs, args):
 def do_endpoints(cs, args):
     """Discover endpoints that get returned from the authenticate services."""
     catalog = cs.keystone_client.service_catalog.catalog
-    for e in catalog['serviceCatalog']:
+    for e in catalog.get('serviceCatalog', catalog.get('catalog')):
         cliutils.print_dict(e['endpoints'][0], e['name'])
 
 
@@ -209,7 +209,17 @@ def do_credentials(cs, args):
     """Show user credentials returned from auth."""
     catalog = cs.keystone_client.service_catalog.catalog
     cliutils.print_dict(catalog['user'], "User Credentials")
-    cliutils.print_dict(catalog['token'], "Token")
+    if not catalog['version'] == 'v3':
+        data = catalog['token']
+    else:
+        data = {
+            'issued_at': catalog['issued_at'],
+            'expires': catalog['expires_at'],
+            'id': catalog['auth_token'],
+            'audit_ids': catalog['audit_ids'],
+            'tenant': catalog['project'],
+        }
+    cliutils.print_dict(data, "Token")
 
 _quota_resources = [
     'shares',

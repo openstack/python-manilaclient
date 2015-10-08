@@ -139,6 +139,13 @@ class OpenStackManilaShell(object):
                             action='store_true',
                             help='Delete cached password and auth token.')
 
+        parser.add_argument('--os-user-id',
+                            metavar='<auth-user-id>',
+                            default=cliutils.env('OS_USER_ID'),
+                            help=('Defaults to env [OS_USER_ID].'))
+        parser.add_argument('--os_user_id',
+                            help=argparse.SUPPRESS)
+
         parser.add_argument('--os-username',
                             metavar='<auth-user-name>',
                             default=cliutils.env('OS_USERNAME',
@@ -163,12 +170,62 @@ class OpenStackManilaShell(object):
         parser.add_argument('--os_tenant_name',
                             help=argparse.SUPPRESS)
 
+        parser.add_argument('--os-project-name',
+                            metavar='<auth-project-name>',
+                            default=cliutils.env('OS_PROJECT_NAME'),
+                            help=('Another way to specify tenant name. '
+                                  'This option is mutually exclusive with '
+                                  '--os-tenant-name. '
+                                  'Defaults to env[OS_PROJECT_NAME].'))
+        parser.add_argument('--os_project_name',
+                            help=argparse.SUPPRESS)
+
         parser.add_argument('--os-tenant-id',
                             metavar='<auth-tenant-id>',
                             default=cliutils.env('OS_TENANT_ID',
                                                  'MANILA_TENANT_ID'),
                             help='Defaults to env[OS_TENANT_ID].')
         parser.add_argument('--os_tenant_id',
+                            help=argparse.SUPPRESS)
+
+        parser.add_argument('--os-project-id',
+                            metavar='<auth-project-id>',
+                            default=cliutils.env('OS_PROJECT_ID'),
+                            help=('Another way to specify tenant ID. '
+                                  'This option is mutually exclusive with '
+                                  '--os-tenant-id. '
+                                  'Defaults to env[OS_PROJECT_ID].'))
+        parser.add_argument('--os_project_id',
+                            help=argparse.SUPPRESS)
+
+        parser.add_argument('--os-user-domain-id',
+                            metavar='<auth-user-domain-id>',
+                            default=cliutils.env('OS_USER_DOMAIN_ID'),
+                            help=('OpenStack user domain ID. '
+                                  'Defaults to env[OS_USER_DOMAIN_ID].'))
+        parser.add_argument('--os_user_domain_id',
+                            help=argparse.SUPPRESS)
+
+        parser.add_argument('--os-user-domain-name',
+                            metavar='<auth-user-domain-name>',
+                            default=cliutils.env('OS_USER_DOMAIN_NAME'),
+                            help=('OpenStack user domain name. '
+                                  'Defaults to env[OS_USER_DOMAIN_NAME].'))
+        parser.add_argument('--os_user_domain_name',
+                            help=argparse.SUPPRESS)
+
+        parser.add_argument('--os-project-domain-id',
+                            metavar='<auth-project-domain-id>',
+                            default=cliutils.env('OS_PROJECT_DOMAIN_ID'),
+                            help='Defaults to env[OS_PROJECT_DOMAIN_ID].')
+        parser.add_argument('--os_project_domain_id',
+                            help=argparse.SUPPRESS)
+
+        parser.add_argument('--os-project-domain-name',
+                            metavar='<auth-project-domain-name>',
+                            default=cliutils.env('OS_PROJECT_DOMAIN_NAME'),
+                            help='Defaults to env[OS_PROJECT_DOMAIN_NAME].')
+        parser.add_argument('--os_project_domain_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--os-auth-url',
@@ -245,6 +302,13 @@ class OpenStackManilaShell(object):
                             type=int,
                             default=0,
                             help='Number of retries.')
+
+        parser.add_argument('--os-cert',
+                            metavar='<certificate>',
+                            default=cliutils.env('OS_CERT'),
+                            help='Defaults to env[OS_CERT].')
+        parser.add_argument('--os_cert',
+                            help=argparse.SUPPRESS)
 
         return parser
 
@@ -386,12 +450,18 @@ class OpenStackManilaShell(object):
         (os_username, os_password, os_tenant_name, os_auth_url,
          os_region_name, os_tenant_id, endpoint_type, insecure,
          service_type, service_name, share_service_name,
-         cacert, os_cache, os_reset_cache) = (
+         cacert, os_cache, os_reset_cache, os_user_id, os_user_domain_id,
+         os_user_domain_name, os_project_domain_id, os_project_domain_name,
+         os_project_name, os_project_id, os_cert) = (
              args.os_username, args.os_password, args.os_tenant_name,
              args.os_auth_url, args.os_region_name, args.os_tenant_id,
              args.endpoint_type, args.insecure, args.service_type,
              args.service_name, args.share_service_name,
-             args.os_cacert, args.os_cache, args.os_reset_cache)
+             args.os_cacert, args.os_cache, args.os_reset_cache,
+             args.os_user_id, args.os_user_domain_id, args.os_user_domain_name,
+             args.os_project_domain_id, args.os_project_domain_name,
+             args.os_project_name, args.os_project_id, args.os_cert,
+        )
 
         if share_service_name:
             service_name = share_service_name
@@ -403,29 +473,19 @@ class OpenStackManilaShell(object):
             service_type = DEFAULT_MANILA_SERVICE_TYPE
             service_type = cliutils.get_service_type(args.func) or service_type
 
-        # FIXME(usrleon): Here should be restrict for project id same as
-        # for os_username or os_password but for compatibility it is not.
-
-        if not cliutils.isunauthenticated(args.func):
-            if not os_username:
-                raise exc.CommandError(
-                    "You must provide a username "
-                    "via either --os-username or env[OS_USERNAME]")
-
-            if not (os_tenant_name or os_tenant_id):
-                raise exc.CommandError("You must provide a tenant_id "
-                                       "via either --os-tenant-id or "
-                                       "env[OS_TENANT_ID]")
-
-            if not os_auth_url:
-                raise exc.CommandError(
-                    "You must provide an auth url "
-                    "via either --os-auth-url or env[OS_AUTH_URL]")
-
-        if not (os_tenant_name or os_tenant_id):
+        if not (os_tenant_name or os_tenant_id or os_project_name or
+                os_project_id):
             raise exc.CommandError(
-                "You must provide a tenant_id "
-                "via either --os-tenant-id or env[OS_TENANT_ID]")
+                "You must provide a tenant_name, tenant_id, "
+                "project_id or project_name (with "
+                "project_domain_name or project_domain_id) via "
+                "--os-tenant-name (env[OS_TENANT_NAME]), "
+                "--os-tenant-id (env[OS_TENANT_ID]), "
+                "--os-project-id (env[OS_PROJECT_ID]), "
+                "--os-project-name (env[OS_PROJECT_NAME]), "
+                "--os-project-domain-id (env[OS_PROJECT_DOMAIN_ID]) and "
+                "--os-project-domain-name (env[OS_PROJECT_DOMAIN_NAME])."
+            )
 
         if not os_auth_url:
             raise exc.CommandError(
@@ -434,11 +494,12 @@ class OpenStackManilaShell(object):
 
         self.cs = client.Client(options.os_share_api_version,
                                 username=os_username,
-                                api_key=os_password,
-                                project_name=os_tenant_name,
+                                password=os_password,
+                                project_name=os_project_name or os_tenant_name,
                                 auth_url=os_auth_url,
-                                insecure=insecure, region_name=os_region_name,
-                                tenant_id=os_tenant_id,
+                                insecure=insecure,
+                                region_name=os_region_name,
+                                tenant_id=os_project_id or os_tenant_id,
                                 endpoint_type=endpoint_type,
                                 extensions=self.extensions,
                                 service_type=service_type,
@@ -448,7 +509,13 @@ class OpenStackManilaShell(object):
                                 cacert=cacert,
                                 use_keyring=os_cache,
                                 force_new_token=os_reset_cache,
-                                api_version=options.os_share_api_version)
+                                api_version=options.os_share_api_version,
+                                user_id=os_user_id,
+                                user_domain_id=os_user_domain_id,
+                                user_domain_name=os_user_domain_name,
+                                project_domain_id=os_project_domain_id,
+                                project_domain_name=os_project_domain_name,
+                                cert=os_cert)
 
         args.func(self.cs, args)
 

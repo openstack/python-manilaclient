@@ -13,16 +13,20 @@
 import re
 import sys
 
+import ddt
 import fixtures
+import mock
 from six import moves
 from testtools import matchers
 
+from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient import shell
 from manilaclient.tests.unit import utils
 
 
-class ShellTest(utils.TestCase):
+@ddt.ddt
+class OpenstackManilaShellTest(utils.TestCase):
 
     FAKE_ENV = {
         'OS_USERNAME': 'username',
@@ -32,11 +36,9 @@ class ShellTest(utils.TestCase):
     }
 
     # Patch os.environ to avoid required auth info.
-    def setUp(self):
-        super(ShellTest, self).setUp()
-        for var in self.FAKE_ENV:
-            self.useFixture(fixtures.EnvironmentVariable(var,
-                                                         self.FAKE_ENV[var]))
+    def set_env_vars(self, env_vars):
+        for k, v in env_vars.items():
+            self.useFixture(fixtures.EnvironmentVariable(k, v))
 
     def shell(self, argstr):
         orig = sys.stdout
@@ -53,6 +55,70 @@ class ShellTest(utils.TestCase):
             sys.stdout = orig
 
         return out
+
+    @ddt.data(
+        {},
+        {'OS_AUTH_URL': 'http://foo.bar'},
+        {'OS_AUTH_URL': 'http://foo.bar', 'OS_USERNAME': 'foo'},
+        {'OS_AUTH_URL': 'http://foo.bar', 'OS_USERNAME': 'foo_user',
+         'OS_PASSWORD': 'foo_password'},
+        {'OS_TENANT_NAME': 'foo_tenant', 'OS_USERNAME': 'foo_user',
+         'OS_PASSWORD': 'foo_password'},
+    )
+    def test_main_failure(self, env_vars):
+        self.set_env_vars(env_vars)
+        with mock.patch.object(shell, 'client') as mock_client:
+            self.assertRaises(exceptions.CommandError, self.shell, 'list')
+            self.assertFalse(mock_client.Client.called)
+
+    def test_main_success(self):
+        env_vars = {
+            'OS_AUTH_URL': 'http://foo.bar',
+            'OS_USERNAME': 'foo_username',
+            'OS_USER_ID': 'foo_user_id',
+            'OS_PASSWORD': 'foo_password',
+            'OS_TENANT_NAME': 'foo_tenant',
+            'OS_TENANT_ID': 'foo_tenant_id',
+            'OS_PROJECT_NAME': 'foo_project',
+            'OS_PROJECT_ID': 'foo_project_id',
+            'OS_PROJECT_DOMAIN_ID': 'foo_project_domain_id',
+            'OS_PROJECT_DOMAIN_NAME': 'foo_project_domain_name',
+            'OS_PROJECT_DOMAIN_ID': 'foo_project_domain_id',
+            'OS_USER_DOMAIN_NAME': 'foo_user_domain_name',
+            'OS_USER_DOMAIN_ID': 'foo_user_domain_id',
+            'OS_CERT': 'foo_cert',
+        }
+        self.set_env_vars(env_vars)
+        with mock.patch.object(shell, 'client') as mock_client:
+
+            self.shell('list')
+
+            mock_client.Client.assert_called_once_with(
+                constants.MAX_API_VERSION,
+                username=env_vars['OS_USERNAME'],
+                password=env_vars['OS_PASSWORD'],
+                project_name=env_vars['OS_PROJECT_NAME'],
+                auth_url=env_vars['OS_AUTH_URL'],
+                insecure=False,
+                region_name='',
+                tenant_id=env_vars['OS_PROJECT_ID'],
+                endpoint_type='publicURL',
+                extensions=mock.ANY,
+                service_type='sharev2',
+                service_name='',
+                retries=0,
+                http_log_debug=False,
+                cacert=None,
+                use_keyring=False,
+                force_new_token=False,
+                api_version=constants.MAX_API_VERSION,
+                user_id=env_vars['OS_USER_ID'],
+                user_domain_id=env_vars['OS_USER_DOMAIN_ID'],
+                user_domain_name=env_vars['OS_USER_DOMAIN_NAME'],
+                project_domain_id=env_vars['OS_PROJECT_DOMAIN_ID'],
+                project_domain_name=env_vars['OS_PROJECT_DOMAIN_NAME'],
+                cert=env_vars['OS_CERT'],
+            )
 
     def test_help_unknown_command(self):
         self.assertRaises(exceptions.CommandError, self.shell, 'help foofoo')
@@ -79,3 +145,20 @@ class ShellTest(utils.TestCase):
         for r in required:
             self.assertThat(help_text,
                             matchers.MatchesRegex(r, re.DOTALL | re.MULTILINE))
+
+    def test_common_args_in_help_message(self):
+        expected_args = (
+            '--version', '', '--debug', '--os-cache', '--os-reset-cache',
+            '--os-user-id', '--os-username', '--os-password',
+            '--os-tenant-name', '--os-project-name', '--os-tenant-id',
+            '--os-project-id', '--os-user-domain-id', '--os-user-domain-name',
+            '--os-project-domain-id', '--os-project-domain-name',
+            '--os-auth-url', '--os-region-name', '--service-type',
+            '--service-name', '--share-service-name', '--endpoint-type',
+            '--os-share-api-version', '--os-cacert', '--retries', '--os-cert',
+        )
+
+        help_text = self.shell('help')
+
+        for expected_arg in expected_args:
+            self.assertIn(expected_arg, help_text)

@@ -13,8 +13,9 @@
 import warnings
 
 from keystoneclient import adapter
-from keystoneclient.v2_0 import client as keystone_client_v2
-from keystoneclient.v3 import client as keystone_client_v3
+from keystoneclient import client as ks_client
+from keystoneclient import discover
+from keystoneclient import session
 import six
 
 from manilaclient.common import constants
@@ -72,7 +73,41 @@ class Client(object):
                  service_catalog_url=None, user_agent='python-manilaclient',
                  use_keyring=False, force_new_token=False,
                  cached_token_lifetime=300,
-                 api_version=constants.V1_API_VERSION, **kwargs):
+                 api_version=constants.V1_API_VERSION,
+                 user_id=None,
+                 user_domain_id=None,
+                 user_domain_name=None,
+                 project_domain_id=None,
+                 project_domain_name=None,
+                 cert=None,
+                 password=None,
+                 **kwargs):
+
+        self.username = username
+        self.password = password or api_key
+        self.tenant_id = tenant_id or project_id
+        self.tenant_name = project_name
+
+        self.user_id = user_id
+        self.project_id = project_id or tenant_id
+        self.project_name = project_name
+        self.user_domain_id = user_domain_id
+        self.user_domain_name = user_domain_name
+        self.project_domain_id = project_domain_id
+        self.project_domain_name = project_domain_name
+
+        self.endpoint_type = endpoint_type
+        self.auth_url = auth_url
+        self.region_name = region_name
+
+        self.cacert = cacert
+        self.cert = cert
+        self.insecure = insecure
+
+        self.use_keyring = use_keyring
+        self.force_new_token = force_new_token
+        self.cached_token_lifetime = cached_token_lifetime
+
         service_name = kwargs.get("share_service_name", service_name)
 
         def check_deprecated_arguments():
@@ -80,7 +115,8 @@ class Client(object):
                 'share_service_name': 'service_name',
                 'proxy_tenant_id': None,
                 'proxy_token': None,
-                'os_cache': 'use_keyring'
+                'os_cache': 'use_keyring',
+                'api_key': 'password',
             }
 
             for arg, replacement in six.iteritems(deprecated):
@@ -124,15 +160,7 @@ class Client(object):
                 input_auth_token = self.keystone_client.session.get_token(auth)
 
             else:
-                self.keystone_client = self._get_keystone_client(
-                    username=username,
-                    api_key=api_key,
-                    auth_url=auth_url,
-                    project_id=self.project_id,
-                    project_name=project_name,
-                    use_keyring=use_keyring,
-                    force_new_token=force_new_token,
-                    stale_duration=cached_token_lifetime)
+                self.keystone_client = self._get_keystone_client()
                 input_auth_token = self.keystone_client.auth_token
 
         if not input_auth_token:
@@ -145,19 +173,18 @@ class Client(object):
         elif not service_catalog_url:
             catalog = self.keystone_client.service_catalog.get_endpoints(
                 service_type)
-            if service_type in catalog:
-                if not region_name:
-                    catalog_entry = catalog.get(service_type)[0]
-                else:
-                    for catalog_entry in catalog.get(service_type):
-                        if catalog_entry.get("region") == region_name:
-                            break
-                    else:
-                        catalog_entry = {}
-                for e_type, endpoint in catalog_entry.items():
-                    if str(e_type).lower() == str(endpoint_type).lower():
-                        service_catalog_url = endpoint
-                        break
+            for catalog_entry in catalog.get(service_type, []):
+                if (catalog_entry.get("interface") == (
+                        endpoint_type.lower().split("url")[0]) or
+                        catalog_entry.get(endpoint_type)):
+                    if (region_name and not region_name == (
+                            catalog_entry.get(
+                                "region",
+                                catalog_entry.get("region_id")))):
+                        continue
+                    service_catalog_url = catalog_entry.get(
+                        "url", catalog_entry.get(endpoint_type))
+                    break
 
         if not service_catalog_url:
             raise RuntimeError("Could not find Manila endpoint in catalog")
@@ -203,33 +230,6 @@ class Client(object):
             if extension.manager_class:
                 setattr(self, extension.name, extension.manager_class(self))
 
-    def _get_keystone_client(self, username=None, api_key=None, auth_url=None,
-                             token=None, project_id=None, project_name=None,
-                             use_keyring=False, force_new_token=False,
-                             stale_duration=0):
-        if not auth_url:
-            raise RuntimeError("No auth url specified")
-
-        if not getattr(self, "keystone_client", None):
-            imported_client = (keystone_client_v2 if "v2.0" in auth_url
-                               else keystone_client_v3)
-
-            self.keystone_client = imported_client.Client(
-                username=username,
-                password=api_key,
-                token=token,
-                tenant_id=project_id,
-                tenant_name=project_name,
-                auth_url=auth_url,
-                endpoint=auth_url,
-                use_keyring=use_keyring,
-                force_new_token=force_new_token,
-                stale_duration=stale_duration)
-
-        self.keystone_client.authenticate()
-
-        return self.keystone_client
-
     def authenticate(self):
         """Authenticate against the server.
 
@@ -242,3 +242,54 @@ class Client(object):
         warnings.warn("authenticate() method is deprecated. "
                       "Client automatically makes authentication call "
                       "in the constructor.")
+
+    def _get_keystone_client(self):
+        # First create a Keystone session
+        if self.insecure:
+            verify = False
+        else:
+            verify = self.cacert or True
+        ks_session = session.Session(verify=verify, cert=self.cert)
+
+        # Discover the supported keystone versions using the given url
+        ks_discover = discover.Discover(
+            session=ks_session, auth_url=self.auth_url)
+
+        # Inspect the auth_url to see the supported version. If both v3 and v2
+        # are supported, then use the highest version if possible.
+        v2_auth_url = ks_discover.url_for('v2.0')
+        v3_auth_url = ks_discover.url_for('v3.0')
+
+        if v3_auth_url:
+            keystone_client = ks_client.Client(
+                version=(3, 0),
+                auth_url=v3_auth_url,
+                username=self.username,
+                password=self.password,
+                user_id=self.user_id,
+                user_domain_name=self.user_domain_name,
+                user_domain_id=self.user_domain_id,
+                project_id=self.project_id or self.tenant_id,
+                project_name=self.project_name,
+                project_domain_name=self.project_domain_name,
+                project_domain_id=self.project_domain_id,
+                region_name=self.region_name)
+        elif v2_auth_url:
+            keystone_client = ks_client.Client(
+                version=(2, 0),
+                auth_url=v2_auth_url,
+                username=self.username,
+                password=self.password,
+                tenant_id=self.tenant_id,
+                tenant_name=self.tenant_name,
+                region_name=self.region_name,
+                cert=self.cert,
+                use_keyring=self.use_keyring,
+                force_new_token=self.force_new_token,
+                stale_duration=self.cached_token_lifetime)
+        else:
+            raise exceptions.CommandError(
+                'Unable to determine the Keystone version to authenticate '
+                'with using the given auth_url.')
+        keystone_client.authenticate()
+        return keystone_client

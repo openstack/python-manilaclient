@@ -13,6 +13,7 @@
 import os
 
 import fixtures
+import mock
 import requests
 import testtools
 
@@ -32,6 +33,20 @@ class TestCase(testtools.TestCase):
                 os.environ.get('OS_STDERR_CAPTURE') == '1'):
             stderr = self.useFixture(fixtures.StringStream('stderr')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
+
+    def mock_object(self, obj, attr_name, new_attr=None, **kwargs):
+        """Mock an object attribute.
+
+        Use python mock to mock an object attribute
+        Mocks the specified objects attribute with the given value.
+        Automatically performs 'addCleanup' for the mock.
+        """
+        if not new_attr:
+            new_attr = mock.Mock()
+        patcher = mock.patch.object(obj, attr_name, new_attr, **kwargs)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return new_attr
 
 
 class TestResponse(requests.Response):
