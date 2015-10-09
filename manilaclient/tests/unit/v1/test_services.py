@@ -56,3 +56,23 @@ class ServicesTest(utils.TestCase):
                 services.RESOURCES_PATH + query_string,
                 services.RESOURCES_NAME,
             )
+
+    def test_enable_service(self):
+        host = 'fake_host'
+        binary = 'fake_binary'
+        with mock.patch.object(self.manager, '_update'):
+            self.manager.enable(binary=binary, host=host)
+            self.manager._update.assert_called_once_with(
+                services.RESOURCES_PATH + '/enable',
+                {"host": host, "binary": binary},
+            )
+
+    def test_disable_service(self):
+        host = 'fake_host'
+        binary = 'fake_binary'
+        with mock.patch.object(self.manager, '_update'):
+            self.manager.disable(binary=binary, host=host)
+            self.manager._update.assert_called_once_with(
+                services.RESOURCES_PATH + '/disable',
+                {"host": host, "binary": binary},
+            )
