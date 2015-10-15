@@ -1,6 +1,14 @@
 Python bindings to the OpenStack Manila API
 ===========================================
 
+.. image:: https://img.shields.io/pypi/v/python-manilaclient.svg
+    :target: https://pypi.python.org/pypi/python-manilaclient/
+    :alt: Latest Version
+
+.. image:: https://img.shields.io/pypi/dm/python-manilaclient.svg
+    :target: https://pypi.python.org/pypi/python-manilaclient/
+    :alt: Downloads
+
 This is a client for the OpenStack Manila API. There's a Python API (the
 ``manilaclient`` module), and a command-line script (``manila``). Each
 implements 100% of the OpenStack Manila API.
@@ -73,6 +81,18 @@ Quick-start using keystone::
     [...]
 
 * License: Apache License, Version 2.0
-* Documentation: http://docs.openstack.org/developer/python-manilaclient
-* Source: http://git.openstack.org/cgit/openstack/python-manilaclient
-* Bugs: http://bugs.launchpad.net/python-manilaclient
+* `PyPi`_ - package installation
+* `Online Documentation`_
+* `Launchpad project`_ - release management
+* `Blueprints`_ - feature specifications
+* `Bugs`_ - issue tracking
+* `Source`_
+* `How to Contribute`_
+
+.. _PyPi: https://pypi.python.org/pypi/python-manilaclient
+.. _Online Documentation: http://docs.openstack.org/developer/python-manilaclient
+.. _Launchpad project: https://launchpad.net/python-manilaclient
+.. _Blueprints: https://blueprints.launchpad.net/python-manilaclient
+.. _Bugs: https://bugs.launchpad.net/python-manilaclient
+.. _Source: https://git.openstack.org/cgit/openstack/python-manilaclient
+.. _How to Contribute: http://docs.openstack.org/infra/manual/developers.html
