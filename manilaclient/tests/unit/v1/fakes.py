@@ -66,6 +66,35 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, body)
 
+    def get_os_services(self, **kw):
+        services = {
+            "services": [
+                {"status": "enabled",
+                 "binary": "manila-scheduler",
+                 "zone": "foozone",
+                 "state": "up",
+                 "updated_at": "2015-10-09T13:54:09.000000",
+                 "host": "lucky-star",
+                 "id": 1},
+                {"status": "enabled",
+                 "binary": "manila-share",
+                 "zone": "foozone",
+                 "state": "up",
+                 "updated_at": "2015-10-09T13:54:05.000000",
+                 "host": "lucky-star",
+                 "id": 2},
+            ]
+        }
+        return (200, {}, services)
+
+    def put_os_services_enable(self, **kw):
+        return (200, {}, {'host': 'foo', 'binary': 'manila-share',
+                          'disabled': False})
+
+    def put_os_services_disable(self, **kw):
+        return (200, {}, {'host': 'foo', 'binary': 'manila-share',
+                          'disabled': True})
+
     def get_shares_1234(self, **kw):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)

@@ -162,6 +162,24 @@ class ShellTest(test_utils.TestCase):
                 mock.call(expected_call_data, 'Token'),
             ])
 
+    def test_service_list(self):
+        self.run_command('service-list')
+        self.assert_called('GET', '/os-services')
+
+    def test_service_enable(self):
+        self.run_command('service-enable foo_host@bar_backend manila-share')
+        self.assert_called(
+            'PUT',
+            '/os-services/enable',
+            {'host': 'foo_host@bar_backend', 'binary': 'manila-share'})
+
+    def test_service_disable(self):
+        self.run_command('service-disable foo_host@bar_backend manila-share')
+        self.assert_called(
+            'PUT',
+            '/os-services/disable',
+            {'host': 'foo_host@bar_backend', 'binary': 'manila-share'})
+
     def test_list(self):
         self.run_command('list')
         # NOTE(jdg): we default to detail currently

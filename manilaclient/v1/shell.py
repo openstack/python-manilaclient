@@ -1951,6 +1951,38 @@ def do_service_list(cs, args):
     cliutils.print_list(services, fields=fields)
 
 
+@cliutils.arg(
+    'host',
+    metavar='<hostname>',
+    help="Host name as 'foo_host@bar_backend'.")
+@cliutils.arg(
+    'binary',
+    metavar='<binary>',
+    help="Service binary, could be 'manila-share' or 'manila-scheduler'.")
+def do_service_enable(cs, args):
+    """Enables 'manila-share' or 'manila-scheduler' services."""
+    columns = ("Host", "Binary", "Enabled")
+    result = cs.services.enable(args.host, args.binary)
+    result.enabled = not result.disabled
+    cliutils.print_list([result], columns)
+
+
+@cliutils.arg(
+    'host',
+    metavar='<hostname>',
+    help="Host name as 'foo_host@bar_backend'.")
+@cliutils.arg(
+    'binary',
+    metavar='<binary>',
+    help="Service binary, could be 'manila-share' or 'manila-scheduler'.")
+def do_service_disable(cs, args):
+    """Disables 'manila-share' or 'manila-scheduler' services."""
+    columns = ("Host", "Binary", "Enabled")
+    result = cs.services.disable(args.host, args.binary)
+    result.enabled = not result.disabled
+    cliutils.print_list([result], columns)
+
+
 def _print_dict(data_dict):
     formatted_data = []
 

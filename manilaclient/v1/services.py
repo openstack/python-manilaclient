@@ -53,6 +53,16 @@ class ServiceManager(base.Manager):
                 query_string = "?%s" % query_string
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)
 
+    def enable(self, host, binary):
+        """Enable the service specified by hostname and binary."""
+        body = {"host": host, "binary": binary}
+        return self._update("/os-services/enable", body)
+
+    def disable(self, host, binary):
+        """Disable the service specified by hostname and binary."""
+        body = {"host": host, "binary": binary}
+        return self._update("/os-services/disable", body)
+
     def api_version(self):
         """Get api version."""
         return self._get_with_base_url("", "versions")
