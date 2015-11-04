@@ -2500,7 +2500,7 @@ def do_cg_reset_state(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_create(cs, args):
-    """Creates a new consistency group."""
+    """Creates a new consistency group snapshot."""
 
     kwargs = {'name': args.name, 'description': args.description}
 
