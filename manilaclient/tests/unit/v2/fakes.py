@@ -90,13 +90,19 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, services)
 
+    get_services = get_os_services
+
     def put_os_services_enable(self, **kw):
         return (200, {}, {'host': 'foo', 'binary': 'manila-share',
                           'disabled': False})
 
+    put_services_enable = put_os_services_enable
+
     def put_os_services_disable(self, **kw):
         return (200, {}, {'host': 'foo', 'binary': 'manila-share',
                           'disabled': True})
+
+    put_services_disable = put_os_services_disable
 
     def get_v2(self, **kw):
         body = {
@@ -179,9 +185,10 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         resp = 202
         assert len(list(body)) == 1
         action = list(body)[0]
-        if action == 'os-reset_status':
-            assert 'status' in body['os-reset_status']
-        elif action == 'os-force_delete':
+        if action in ('reset_status', 'os-reset_status'):
+            assert 'status' in body.get(
+                'reset_status', body.get('os-reset_status'))
+        elif action in ('force_delete', 'os-force_delete'):
             assert body[action] is None
         else:
             raise AssertionError("Unexpected action: %s" % action)
@@ -212,8 +219,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         resp = 202
         assert len(list(body)) == 1
         action = list(body)[0]
-        if action == 'os-reset_status':
-            assert 'status' in body['os-reset_status']
+        if action in ('reset_status', 'os-reset_status'):
+            assert 'status' in body.get(
+                'reset_status', body.get('os-reset_status'))
         elif action == 'os-force_delete':
             assert body[action] is None
         else:
@@ -260,6 +268,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         result = (resp, {}, _body)
         return result
 
+    post_shares_manage = post_os_share_manage
+
     def post_os_share_unmanage_1234_unmanage(self, **kw):
         _body = None
         resp = 202
@@ -271,23 +281,26 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         resp = 202
         assert len(list(body)) == 1
         action = list(body)[0]
-        if action == 'os-allow_access':
+        if action in ('os-allow_access', 'allow_access'):
             expected = ['access_to', 'access_type']
             actual = sorted(list(body[action]))
             err_msg = "expected '%s', actual is '%s'" % (expected, actual)
             assert expected == actual, err_msg
             _body = {'access': {}}
-        elif action == 'os-deny_access':
+        elif action in ('os-deny_access', 'deny_access'):
             assert list(body[action]) == ['access_id']
-        elif action == 'os-access_list':
+        elif action in ('os-access_list', 'access_list'):
             assert body[action] is None
-        elif action == 'os-reset_status':
-            assert 'status' in body['os-reset_status']
-        elif action == 'os-force_delete':
+        elif action in ('os-reset_status', 'reset_status'):
+            assert 'status' in body.get(
+                'reset_status', body.get('os-reset_status'))
+        elif action in ('os-force_delete', 'force_delete'):
             assert body[action] is None
-        elif action in ('os-extend', 'os-shrink'):
+        elif action in ('os-extend', 'os-shrink', 'extend', 'shrink'):
             assert body[action] is not None
             assert body[action]['new_size'] is not None
+        elif action in ('unmanage', ):
+            assert body[action] is None
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
@@ -297,13 +310,13 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         resp = 202
         assert len(list(body)) == 1
         action = list(body)[0]
-        if action == 'os-allow_access':
+        if action in ('allow_access', 'os-allow_access'):
             expected = ['access_level', 'access_to', 'access_type']
             actual = sorted(list(body[action]))
             err_msg = "expected '%s', actual is '%s'" % (expected, actual)
             assert expected == actual, err_msg
             _body = {'access': {}}
-        elif action == 'os-access_list':
+        elif action in ('access_list', 'os-access_list'):
             assert body[action] is None
             _body = {
                 'access_list': [{
@@ -627,6 +640,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             {'share_type_id': '11111111-1111-1111-1111-111111111111',
              'project_id': '00000000-0000-0000-0000-000000000000'}
         ]})
+
+    get_types_3_share_type_access = get_types_3_os_share_type_access
 
 
 def fake_create(url, body, response_key):

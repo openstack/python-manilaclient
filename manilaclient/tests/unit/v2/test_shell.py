@@ -101,20 +101,20 @@ class ShellTest(test_utils.TestCase):
 
     def test_service_list(self):
         self.run_command('service-list')
-        self.assert_called('GET', '/os-services')
+        self.assert_called('GET', '/services')
 
     def test_service_enable(self):
         self.run_command('service-enable foo_host@bar_backend manila-share')
         self.assert_called(
             'PUT',
-            '/os-services/enable',
+            '/services/enable',
             {'host': 'foo_host@bar_backend', 'binary': 'manila-share'})
 
     def test_service_disable(self):
         self.run_command('service-disable foo_host@bar_backend manila-share')
         self.assert_called(
             'PUT',
-            '/os-services/disable',
+            '/services/disable',
             {'host': 'foo_host@bar_backend', 'binary': 'manila-share'})
 
     def test_list(self):
@@ -315,7 +315,7 @@ class ShellTest(test_utils.TestCase):
 
     def test_share_instance_reset_state(self):
         self.run_command('share-instance-reset-state 1234')
-        expected = {'os-reset_status': {'status': 'available'}}
+        expected = {'reset_status': {'status': 'available'}}
         self.assert_called('POST', '/share_instances/1234/action',
                            body=expected)
 
@@ -357,7 +357,7 @@ class ShellTest(test_utils.TestCase):
                     'driver_handles_share_servers': False,
                     'snapshot_support': True,
                 },
-                'os-share-type-access:is_public': public
+                'share_type_access:is_public': public
             }
         }
         self.run_command(
@@ -367,7 +367,7 @@ class ShellTest(test_utils.TestCase):
 
     def test_type_access_list(self):
         self.run_command('type-access-list 3')
-        self.assert_called('GET', '/types/3/os-share-type-access')
+        self.assert_called('GET', '/types/3/share_type_access')
 
     def test_type_access_add_project(self):
         expected = {'addProjectAccess': {'project': '101'}}
@@ -438,11 +438,11 @@ class ShellTest(test_utils.TestCase):
         }
         expected['share'].update(valid_params)
 
-        self.assert_called('POST', '/os-share-manage', body=expected)
+        self.assert_called('POST', '/shares/manage', body=expected)
 
     def test_unmanage(self):
         self.run_command('unmanage 1234')
-        self.assert_called('POST', '/os-share-unmanage/1234/unmanage')
+        self.assert_called('POST', '/shares/1234/action')
 
     def test_delete(self):
         self.run_command('delete 1234')
@@ -595,7 +595,7 @@ class ShellTest(test_utils.TestCase):
         expected = {
             "share_type": {
                 "name": "test",
-                "os-share-type-access:is_public": True,
+                "share_type_access:is_public": True,
                 "extra_specs": {
                     "driver_handles_share_servers": expected_bool,
                     "snapshot_support": True,
@@ -618,7 +618,7 @@ class ShellTest(test_utils.TestCase):
         expected = {
             "share_type": {
                 "name": "test",
-                "os-share-type-access:is_public": True,
+                "share_type_access:is_public": True,
                 "extra_specs": {
                     "driver_handles_share_servers": False,
                     "snapshot_support": expected_bool,
@@ -743,32 +743,32 @@ class ShellTest(test_utils.TestCase):
 
     def test_extend(self):
         self.run_command('extend 1234 77')
-        expected = {'os-extend': {'new_size': 77}}
+        expected = {'extend': {'new_size': 77}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
     def test_reset_state(self):
         self.run_command('reset-state 1234')
-        expected = {'os-reset_status': {'status': 'available'}}
+        expected = {'reset_status': {'status': 'available'}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
     def test_shrink(self):
         self.run_command('shrink 1234 77')
-        expected = {'os-shrink': {'new_size': 77}}
+        expected = {'shrink': {'new_size': 77}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
     def test_reset_state_with_flag(self):
         self.run_command('reset-state --state error 1234')
-        expected = {'os-reset_status': {'status': 'error'}}
+        expected = {'reset_status': {'status': 'error'}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
     def test_snapshot_reset_state(self):
         self.run_command('snapshot-reset-state 1234')
-        expected = {'os-reset_status': {'status': 'available'}}
+        expected = {'reset_status': {'status': 'available'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
 
     def test_snapshot_reset_state_with_flag(self):
         self.run_command('snapshot-reset-state --state error 1234')
-        expected = {'os-reset_status': {'status': 'error'}}
+        expected = {'reset_status': {'status': 'error'}}
         self.assert_called('POST', '/snapshots/1234/action', body=expected)
 
     @ddt.data(
@@ -1088,7 +1088,7 @@ class ShellTest(test_utils.TestCase):
         self.run_command("access-allow 1234 cert client.example.com")
 
         expected = {
-            "os-allow_access": {
+            "allow_access": {
                 "access_type": "cert",
                 "access_to": "client.example.com",
             }
@@ -1121,7 +1121,7 @@ class ShellTest(test_utils.TestCase):
     def test_allow_access_with_access_level(self):
         aliases = ['--access_level', '--access-level']
         expected = {
-            "os-allow_access": {
+            "allow_access": {
                 "access_type": "ip",
                 "access_to": "10.0.0.6",
                 "access_level": "ro",
@@ -1137,14 +1137,14 @@ class ShellTest(test_utils.TestCase):
 
     def test_allow_access_with_valid_access_levels(self):
         expected = {
-            "os-allow_access": {
+            "allow_access": {
                 "access_type": "ip",
                 "access_to": "10.0.0.6",
             }
         }
 
         for level in ['rw', 'ro']:
-            expected["os-allow_access"]['access_level'] = level
+            expected["allow_access"]['access_level'] = level
             self.run_command(
                 "access-allow --access-level " + level + " 1111 ip 10.0.0.6")
             self.assert_called("POST", "/shares/1111/action",
@@ -1359,7 +1359,7 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command('cg-delete --force fake-cg')
         self.assert_called('POST', '/consistency-groups/1234/action',
-                           {'os-force_delete': None})
+                           {'force_delete': None})
 
     @mock.patch.object(shell_v2, '_find_consistency_group', mock.Mock())
     def test_cg_reset_state_with_flag(self):
@@ -1368,7 +1368,7 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command('cg-reset-state --state error 1234')
         self.assert_called('POST', '/consistency-groups/1234/action',
-                           {'os-reset_status': {'status': 'error'}})
+                           {'reset_status': {'status': 'error'}})
 
     @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
     def test_cg_snapshot_reset_state(self):
@@ -1377,7 +1377,7 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command('cg-snapshot-reset-state 1234')
         self.assert_called('POST', '/cgsnapshots/1234/action',
-                           {'os-reset_status': {'status': 'available'}})
+                           {'reset_status': {'status': 'available'}})
 
     @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
     def test_cg_snapshot_reset_state_with_flag(self):
@@ -1386,7 +1386,7 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command('cg-snapshot-reset-state --state creating 1234')
         self.assert_called('POST', '/cgsnapshots/1234/action',
-                           {'os-reset_status': {'status': 'creating'}})
+                           {'reset_status': {'status': 'creating'}})
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_cg_snapshot_list(self):
@@ -1456,7 +1456,7 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command('cg-snapshot-delete --force fake-cg')
         self.assert_called('POST', '/cgsnapshots/1234/action',
-                           {'os-force_delete': None})
+                           {'force_delete': None})
 
     @ddt.data(
         {'--shares': 5},
@@ -1481,4 +1481,4 @@ class ShellTest(test_utils.TestCase):
         expected = dict(quota_class_set=expected)
 
         self.run_command(cmd)
-        self.assert_called('PUT', '/os-quota-class-sets/test', body=expected)
+        self.assert_called('PUT', '/quota-class-sets/test', body=expected)

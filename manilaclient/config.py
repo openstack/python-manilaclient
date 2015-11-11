@@ -19,6 +19,8 @@ import os
 from oslo_config import cfg
 import oslo_log._options as log_options
 
+from manilaclient import api_versions
+
 # 1. Define opts
 
 # "auth_opts" are used by functional tests that are located in
@@ -67,6 +69,17 @@ base_opts = [
 ]
 
 share_opts = [
+    cfg.StrOpt("min_api_microversion",
+               default="1.0",
+               help="The minimum API microversion is configured to be the "
+                    "value of the minimum microversion supported by "
+                    "Manilaclient functional tests. Defaults to 1.0."),
+    cfg.StrOpt("max_api_microversion",
+               default=api_versions.MAX_VERSION,
+               help="The maximum API microversion is configured to be the "
+                    "value of the latest microversion supported by "
+                    "Manilaclient functional tests. Defaults to "
+                    "manilaclient's max supported API microversion."),
     cfg.StrOpt("share_network",
                default=None,
                help="Share network Name or ID, that will be used for shares. "

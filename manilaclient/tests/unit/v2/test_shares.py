@@ -18,12 +18,12 @@
 import ddt
 import mock
 
+from manilaclient import api_versions
 from manilaclient import exceptions
 from manilaclient import extension
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import shares
-
 
 extensions = [
     extension.Extension('shares', shares),
@@ -206,20 +206,92 @@ class SharesTest(utils.TestCase):
         cs.shares.delete(share)
         cs.assert_called('DELETE', '/shares/1234')
 
-    def test_manage_share(self):
-        cs.shares.manage('fake_service', 'fake_proto', 'fake_export_path', {})
-        cs.assert_called('POST', '/os-share-manage')
+    @ddt.data(
+        ("2.6", "/os-share-manage"),
+        ("2.7", "/shares/manage"),
+    )
+    @ddt.unpack
+    def test_manage_share(self, microversion, resource_path):
+        service_host = "fake_service_host"
+        protocol = "fake_protocol"
+        export_path = "fake_export_path"
+        driver_options = "fake_driver_options"
+        share_type = "fake_share_type"
+        name = "foo_name"
+        description = "bar_description"
+        expected_body = {
+            "service_host": service_host,
+            "share_type": share_type,
+            "protocol": protocol,
+            "export_path": export_path,
+            "driver_options": driver_options,
+            "name": name,
+            "description": description,
+        }
 
-    def test_unmanage_share(self):
-        share = cs.shares.get('1234')
-        cs.shares.unmanage(share)
-        cs.assert_called('POST', '/os-share-unmanage/1234/unmanage')
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
 
-    def test_force_delete_share(self):
-        share = cs.shares.get('1234')
-        cs.shares.force_delete(share)
-        cs.assert_called('POST', '/shares/1234/action',
-                         {'os-force_delete': None})
+        with mock.patch.object(manager, "_create",
+                               mock.Mock(return_value="fake")):
+            result = manager.manage(
+                service_host, protocol, export_path, driver_options,
+                share_type, name, description)
+
+            self.assertEqual(manager._create.return_value, result)
+            manager._create.assert_called_once_with(
+                resource_path, {"share": expected_body}, "share")
+
+    @ddt.data(
+        type("ShareUUID", (object, ), {"uuid": "1234"}),
+        type("ShareID", (object, ), {"id": "1234"}),
+        "1234")
+    def test_unmanage_share_v2_6(self, share):
+        version = api_versions.APIVersion("2.6")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.unmanage(share)
+
+            self.assertFalse(manager._action.called)
+            self.assertNotEqual("fake", result)
+            self.assertEqual(manager.api.client.post.return_value, result)
+            manager.api.client.post.assert_called_once_with(
+                "/os-share-unmanage/1234/unmanage")
+
+    def test_unmanage_share_v2_7(self):
+        share = "fake_share"
+        version = api_versions.APIVersion("2.7")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.unmanage(share)
+
+            manager._action.assert_called_once_with("unmanage", share)
+            self.assertEqual("fake", result)
+
+    @ddt.data(
+        ("2.6", "os-force_delete"),
+        ("2.7", "force_delete"),
+    )
+    @ddt.unpack
+    def test_force_delete_share(self, microversion, action_name):
+        share = "fake_share"
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.force_delete(share)
+
+            manager._action.assert_called_once_with(action_name, share)
+            self.assertEqual("fake", result)
 
     def test_list_shares_index(self):
         cs.shares.list(detailed=False)
@@ -279,17 +351,50 @@ class SharesTest(utils.TestCase):
     def test_list_shares_by_improper_key(self):
         self.assertRaises(ValueError, cs.shares.list, sort_key='fake')
 
-    def test_allow_access_to_share(self):
-        share = cs.shares.get(1234)
-        ip = '192.168.0.1'
-        cs.shares.allow(share, 'ip', ip, None)
-        cs.assert_called('POST', '/shares/1234/action')
+    @ddt.data(
+        ("2.6", "os-allow_access"),
+        ("2.7", "allow_access"),
+    )
+    @ddt.unpack
+    def test_allow_access_to_share(self, microversion, action_name):
+        access_level = "fake_access_level"
+        access_to = "fake_access_to"
+        access_type = "fake_access_type"
+        share = "fake_share"
+        access = ("foo", {"access": "bar"})
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
 
-    def test_allow_access_to_share_with_cert(self):
-        share = cs.shares.get(1234)
-        common_name = 'test.example.com'
-        cs.shares.allow(share, 'cert', common_name, None)
-        cs.assert_called('POST', '/shares/1234/action')
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value=access)):
+            result = manager.allow(share, access_type, access_to, access_level)
+
+            manager._action.assert_called_once_with(
+                action_name, share, {"access_level": access_level,
+                                     "access_type": access_type,
+                                     "access_to": access_to})
+            self.assertEqual("bar", result)
+
+    @ddt.data(
+        ("2.6", "os-deny_access"),
+        ("2.7", "deny_access"),
+    )
+    @ddt.unpack
+    def test_deny_access_to_share(self, microversion, action_name):
+        access_id = "fake_access_id"
+        share = "fake_share"
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.deny(share, access_id)
+
+            manager._action.assert_called_once_with(
+                action_name, share, {"access_id": access_id})
+            self.assertEqual("fake", result)
 
     def test_get_metadata(self):
         cs.shares.get_metadata(1234)
@@ -319,41 +424,88 @@ class SharesTest(utils.TestCase):
                          {'metadata': {'k1': 'v1'}})
 
     @ddt.data(
-        type('ShareUUID', (object, ), {'uuid': '1234'}),
-        type('ShareID', (object, ), {'id': '1234'}),
-        '1234')
-    def test_reset_share_state(self, share):
-        state = 'available'
-        expected_body = {'os-reset_status': {'status': 'available'}}
-        cs.shares.reset_state(share, state)
-        cs.assert_called('POST', '/shares/1234/action', expected_body)
+        ("2.6", "os-reset_status"),
+        ("2.7", "reset_status"),
+    )
+    @ddt.unpack
+    def test_reset_share_state(self, microversion, action_name):
+        state = "available"
+        share = "fake_share"
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.reset_state(share, state)
+
+            manager._action.assert_called_once_with(
+                action_name, share, {"status": state})
+            self.assertEqual("fake", result)
 
     @ddt.data(
-        type('ShareUUID', (object, ), {'uuid': '1234'}),
-        type('ShareID', (object, ), {'id': '1234'}),
-        '1234')
-    def test_extend_share(self, share):
+        ("2.6", "os-extend"),
+        ("2.7", "extend"),
+    )
+    @ddt.unpack
+    def test_extend_share(self, microversion, action_name):
         size = 123
-        expected_body = {'os-extend': {'new_size': size}}
-        cs.shares.extend(share, size)
-        cs.assert_called('POST', '/shares/1234/action', expected_body)
+        share = "fake_share"
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.extend(share, size)
+
+            manager._action.assert_called_once_with(
+                action_name, share, {"new_size": size})
+            self.assertEqual("fake", result)
 
     @ddt.data(
-        type('ShareUUID', (object, ), {'uuid': '1234'}),
-        type('ShareID', (object, ), {'id': '1234'}),
-        '1234')
-    def test_shrink_share(self, share):
+        ("2.6", "os-shrink"),
+        ("2.7", "shrink"),
+    )
+    @ddt.unpack
+    def test_shrink_share(self, microversion, action_name):
         size = 123
-        expected_body = {'os-shrink': {'new_size': size}}
-        cs.shares.shrink(share, size)
-        cs.assert_called('POST', '/shares/1234/action', expected_body)
+        share = "fake_share"
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.shrink(share, size)
+
+            manager._action.assert_called_once_with(
+                action_name, share, {"new_size": size})
+            self.assertEqual("fake", result)
 
     def test_list_share_instances(self):
         share = type('ShareID', (object, ), {'id': '1234'})
         cs.shares.list_instances(share)
         cs.assert_called('GET', '/shares/1234/instances')
 
-    def test_migrate_share(self):
-        host = 'fake_host'
-        self.share.migrate_share(host, True)
-        self.assertTrue(self.share.manager.migrate_share.called)
+    @ddt.data(
+        ("2.6", "os-migrate_share"),
+        ("2.7", "migrate_share"),
+    )
+    @ddt.unpack
+    def test_migrate_share(self, microversion, action_name):
+        share = "fake_share"
+        host = "fake_host"
+        force_host_copy = "fake_force_host_copy"
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.migrate_share(share, host, force_host_copy)
+
+            manager._action.assert_called_once_with(
+                action_name, share,
+                {"host": host, "force_host_copy": force_host_copy})
+            self.assertEqual("fake", result)

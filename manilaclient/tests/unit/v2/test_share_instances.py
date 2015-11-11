@@ -14,7 +14,9 @@
 #    under the License.
 
 import ddt
+import mock
 
+from manilaclient import api_versions
 from manilaclient import extension
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
@@ -30,6 +32,11 @@ cs = fakes.FakeClient(extensions=extensions)
 @ddt.ddt
 class ShareInstancesTest(utils.TestCase):
 
+    def _get_manager(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        return share_instances.ShareInstanceManager(api=mock_microversion)
+
     def test_list(self):
         cs.share_instances.list()
         cs.assert_called('GET', '/share_instances')
@@ -39,15 +46,44 @@ class ShareInstancesTest(utils.TestCase):
         cs.share_instances.get(instance)
         cs.assert_called('GET', '/share_instances/1234')
 
-    def test_force_delete(self):
-        instance = cs.share_instances.get('1234')
-        cs.share_instances.force_delete(instance)
-        cs.assert_called('POST', '/share_instances/1234/action',
-                         {'os-force_delete': None})
-
-    def test_reset_state(self):
+    @ddt.data(
+        ("2.6", type("InstanceUUID", (object, ), {"uuid": "1234"})),
+        ("2.7", type("InstanceUUID", (object, ), {"uuid": "1234"})),
+        ("2.6", type("InstanceID", (object, ), {"id": "1234"})),
+        ("2.7", type("InstanceID", (object, ), {"id": "1234"})),
+        ("2.6", "1234"),
+        ("2.7", "1234"),
+    )
+    @ddt.unpack
+    def test_reset_instance_state(self, microversion, instance):
+        manager = self._get_manager(microversion)
         state = 'available'
-        expected_body = {'os-reset_status': {'status': 'available'}}
-        instance = cs.share_instances.get('1234')
-        cs.share_instances.reset_state(instance, state)
-        cs.assert_called('POST', '/share_instances/1234/action', expected_body)
+        if float(microversion) > 2.6:
+            action_name = "reset_status"
+        else:
+            action_name = "os-reset_status"
+
+        with mock.patch.object(manager, "_action", mock.Mock()):
+            manager.reset_state(instance, state)
+
+            manager._action.assert_called_once_with(
+                action_name, instance, {"status": state})
+
+    @ddt.data(
+        ("2.6", type('InstanceUUID', (object, ), {"uuid": "1234"})),
+        ("2.6", "1234"),
+        ("2.7", type('InstanceUUID', (object, ), {"uuid": "1234"})),
+        ("2.7", "1234"),
+    )
+    @ddt.unpack
+    def test_force_delete_share_snapshot(self, microversion, instance):
+        manager = self._get_manager(microversion)
+        if float(microversion) > 2.6:
+            action_name = "force_delete"
+        else:
+            action_name = "os-force_delete"
+
+        with mock.patch.object(manager, "_action", mock.Mock()):
+            manager.force_delete(instance)
+
+            manager._action.assert_called_once_with(action_name, "1234")

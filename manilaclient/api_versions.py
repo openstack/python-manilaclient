@@ -31,7 +31,7 @@ if not LOG.handlers:
     LOG.addHandler(logging.StreamHandler())
 
 
-MAX_VERSION = '2.6'
+MAX_VERSION = '2.7'
 MIN_VERSION = '2.0'
 DEPRECATED_VERSION = '1.0'
 _VERSIONED_METHOD_MAP = {}

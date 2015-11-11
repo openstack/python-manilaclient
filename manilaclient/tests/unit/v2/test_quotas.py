@@ -13,83 +13,143 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
+import mock
+
+from manilaclient import api_versions
 from manilaclient.tests.unit import utils
-from manilaclient.tests.unit.v2 import fakes
+from manilaclient.v2 import quotas
 
 
-cs = fakes.FakeClient()
-
-
+@ddt.ddt
 class QuotaSetsTest(utils.TestCase):
 
-    def test_tenant_quotas_get(self):
+    def _get_manager(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        return quotas.QuotaSetManager(api=mock_microversion)
+
+    def _get_resource_path(self, microversion):
+        if float(microversion) > 2.6:
+            return quotas.RESOURCE_PATH
+        return quotas.RESOURCE_PATH_LEGACY
+
+    @ddt.data("2.6", "2.7")
+    def test_tenant_quotas_get(self, microversion):
         tenant_id = 'test'
-        cs.quotas.get(tenant_id)
-        cs.assert_called('GET', '/os-quota-sets/%s' % tenant_id)
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test" % resource_path
+        with mock.patch.object(manager, '_get',
+                               mock.Mock(return_value='fake_get')):
+            manager.get(tenant_id)
 
-    def test_user_quotas_get(self):
-        tenant_id = 'test'
-        user_id = 'fake_user'
-        cs.quotas.get(tenant_id, user_id=user_id)
-        url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
-        cs.assert_called('GET', url)
+            manager._get.assert_called_once_with(expected_url, "quota_set")
 
-    def test_tenant_quotas_defaults(self):
-        tenant_id = 'test'
-        cs.quotas.defaults(tenant_id)
-        cs.assert_called('GET', '/os-quota-sets/%s/defaults' % tenant_id)
-
-    def test_update_quota(self):
-        q = cs.quotas.get('test')
-        q.update(shares=1)
-        q.update(snapshots=2)
-        q.update(gigabytes=3)
-        q.update(snapshot_gigabytes=4)
-        q.update(share_networks=5)
-        cs.assert_called('PUT', '/os-quota-sets/test')
-
-    def test_update_user_quota(self):
+    @ddt.data("2.6", "2.7")
+    def test_user_quotas_get(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
-        q = cs.quotas.get(tenant_id)
-        q.update(shares=1, user_id=user_id)
-        q.update(snapshots=2, user_id=user_id)
-        q.update(gigabytes=3, user_id=user_id)
-        q.update(snapshot_gigabytes=4, user_id=user_id)
-        q.update(share_networks=5, user_id=user_id)
-        url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
-        cs.assert_called('PUT', url)
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test?user_id=fake_user" % resource_path
+        with mock.patch.object(manager, '_get',
+                               mock.Mock(return_value='fake_get')):
+            manager.get(tenant_id, user_id=user_id)
 
-    def test_force_update_quota(self):
-        q = cs.quotas.get('test')
-        q.update(shares=2, force=True)
-        cs.assert_called(
-            'PUT', '/os-quota-sets/test',
-            {'quota_set': {'force': True,
-                           'shares': 2,
-                           'tenant_id': 'test'}})
+            manager._get.assert_called_once_with(expected_url, "quota_set")
 
-    def test_quotas_delete(self):
+    @ddt.data("2.6", "2.7")
+    def test_tenant_quotas_defaults(self, microversion):
         tenant_id = 'test'
-        cs.quotas.delete(tenant_id)
-        cs.assert_called('DELETE', '/os-quota-sets/%s' % tenant_id)
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test/defaults" % resource_path
+        with mock.patch.object(manager, '_get',
+                               mock.Mock(return_value='fake_get')):
+            manager.defaults(tenant_id)
 
-    def test_user_quotas_delete(self):
+            manager._get.assert_called_once_with(expected_url, "quota_set")
+
+    @ddt.data(
+        ("2.6", {}),
+        ("2.6", {"force": True}),
+        ("2.7", {}),
+        ("2.7", {"force": True}),
+    )
+    @ddt.unpack
+    def test_update_quota(self, microversion, extra_data):
+        tenant_id = 'test'
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test" % resource_path
+        expected_body = {
+            'quota_set': {
+                'tenant_id': tenant_id,
+                'shares': 1,
+                'snapshots': 2,
+                'gigabytes': 3,
+                'snapshot_gigabytes': 4,
+                'share_networks': 5,
+            },
+        }
+        expected_body['quota_set'].update(extra_data)
+        with mock.patch.object(manager, '_update',
+                               mock.Mock(return_value='fake_update')):
+            manager.update(
+                tenant_id, shares=1, snapshots=2, gigabytes=3,
+                snapshot_gigabytes=4, share_networks=5, **extra_data)
+
+            manager._update.assert_called_once_with(
+                expected_url, expected_body, "quota_set")
+
+    @ddt.data("2.6", "2.7")
+    def test_update_user_quota(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
-        cs.quotas.delete(tenant_id, user_id=user_id)
-        url = '/os-quota-sets/%s?user_id=%s' % (tenant_id, user_id)
-        cs.assert_called('DELETE', url)
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test?user_id=fake_user" % resource_path
+        expected_body = {
+            'quota_set': {
+                'tenant_id': tenant_id,
+                'shares': 1,
+                'snapshots': 2,
+                'gigabytes': 3,
+                'snapshot_gigabytes': 4,
+                'share_networks': 5,
+            },
+        }
+        with mock.patch.object(manager, '_update',
+                               mock.Mock(return_value='fake_update')):
+            manager.update(
+                tenant_id, shares=1, snapshots=2, gigabytes=3,
+                snapshot_gigabytes=4, share_networks=5, user_id=user_id)
 
-    def test_refresh_quota(self):
-        q = cs.quotas.get('test')
-        q2 = cs.quotas.get('test')
-        self.assertEqual(q.shares, q2.shares)
-        self.assertEqual(q.snapshots, q2.snapshots)
-        q2.shares = 0
-        self.assertNotEqual(q.shares, q2.shares)
-        q2.snapshots = 0
-        self.assertNotEqual(q.snapshots, q2.snapshots)
-        q2.get()
-        self.assertEqual(q.shares, q2.shares)
-        self.assertEqual(q.snapshots, q2.snapshots)
+            manager._update.assert_called_once_with(
+                expected_url, expected_body, "quota_set")
+
+    @ddt.data("2.6", "2.7")
+    def test_quotas_delete(self, microversion):
+        tenant_id = 'test'
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test" % resource_path
+        with mock.patch.object(manager, '_delete',
+                               mock.Mock(return_value='fake_delete')):
+            manager.delete(tenant_id)
+
+            manager._delete.assert_called_once_with(expected_url)
+
+    @ddt.data("2.6", "2.7")
+    def test_user_quotas_delete(self, microversion):
+        tenant_id = 'test'
+        user_id = 'fake_user'
+        manager = self._get_manager(microversion)
+        resource_path = self._get_resource_path(microversion)
+        expected_url = "%s/test?user_id=fake_user" % resource_path
+        with mock.patch.object(manager, '_delete',
+                               mock.Mock(return_value='fake_delete')):
+            manager.delete(tenant_id, user_id=user_id)
+
+            manager._delete.assert_called_once_with(expected_url)

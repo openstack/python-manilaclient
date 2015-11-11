@@ -16,7 +16,9 @@
 #    under the License.
 
 import ddt
+import mock
 
+from manilaclient import api_versions
 from manilaclient import extension
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
@@ -31,6 +33,11 @@ cs = fakes.FakeClient(extensions=extensions)
 
 @ddt.ddt
 class ShareSnapshotsTest(utils.TestCase):
+
+    def _get_manager(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        return share_snapshots.ShareSnapshotManager(api=mock_microversion)
 
     def test_create_share_snapshot(self):
         cs.share_snapshots.create(1234)
@@ -54,25 +61,51 @@ class ShareSnapshotsTest(utils.TestCase):
         cs.assert_called('PUT', '/snapshots/1234', {'snapshot': data})
 
     @ddt.data(
-        type('SnapshotUUID', (object, ), {'uuid': '1234'}),
-        type('SnapshotID', (object, ), {'id': '1234'}),
-        '1234')
-    def test_reset_snapshot_state(self, snapshot):
+        ("2.6", type('SnapshotUUID', (object, ), {'uuid': '1234'})),
+        ("2.7", type('SnapshotUUID', (object, ), {'uuid': '1234'})),
+        ("2.6", type('SnapshotID', (object, ), {'id': '1234'})),
+        ("2.7", type('SnapshotID', (object, ), {'id': '1234'})),
+        ("2.6", "1234"),
+        ("2.7", "1234"),
+    )
+    @ddt.unpack
+    def test_reset_snapshot_state(self, microversion, snapshot):
+        manager = self._get_manager(microversion)
         state = 'available'
-        expected_body = {'os-reset_status': {'status': 'available'}}
-        cs.share_snapshots.reset_state(snapshot, state)
-        cs.assert_called('POST', '/snapshots/1234/action', expected_body)
+        if float(microversion) > 2.6:
+            action_name = "reset_status"
+        else:
+            action_name = "os-reset_status"
+
+        with mock.patch.object(manager, "_action", mock.Mock()):
+            manager.reset_state(snapshot, state)
+
+            manager._action.assert_called_once_with(
+                action_name, snapshot, {"status": state})
 
     def test_delete_share_snapshot(self):
         snapshot = cs.share_snapshots.get(1234)
         cs.share_snapshots.delete(snapshot)
         cs.assert_called('DELETE', '/snapshots/1234')
 
-    def test_force_delete_share_snapshot(self):
-        snapshot = cs.share_snapshots.get(1234)
-        cs.share_snapshots.force_delete(snapshot)
-        cs.assert_called('POST', '/snapshots/1234/action',
-                         {'os-force_delete': None})
+    @ddt.data(
+        ("2.6", type('SnapshotUUID', (object, ), {"uuid": "1234"})),
+        ("2.6", "1234"),
+        ("2.7", type('SnapshotUUID', (object, ), {"uuid": "1234"})),
+        ("2.7", "1234"),
+    )
+    @ddt.unpack
+    def test_force_delete_share_snapshot(self, microversion, snapshot):
+        manager = self._get_manager(microversion)
+        if float(microversion) > 2.6:
+            action_name = "force_delete"
+        else:
+            action_name = "os-force_delete"
+
+        with mock.patch.object(manager, "_action", mock.Mock()):
+            manager.force_delete(snapshot)
+
+            manager._action.assert_called_once_with(action_name, "1234")
 
     def test_list_share_snapshots_index(self):
         cs.share_snapshots.list(detailed=False)

@@ -13,8 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
+
+RESOURCE_PATH_LEGACY = '/os-quota-class-sets'
+RESOURCE_PATH = '/quota-class-sets'
 
 
 class QuotaClassSet(common_base.Resource):
@@ -31,18 +35,24 @@ class QuotaClassSet(common_base.Resource):
 class QuotaClassSetManager(base.ManagerWithFind):
     resource_class = QuotaClassSet
 
+    @api_versions.wraps("1.0", "2.6")
     def get(self, class_name):
-        return self._get("/os-quota-class-sets/%s" % class_name,
-                         "quota_class_set")
+        return self._get(
+            "%(resource_path)s/%(class_name)s" % {
+                "resource_path": RESOURCE_PATH_LEGACY,
+                "class_name": class_name},
+            "quota_class_set")
 
-    def update(self,
-               class_name,
-               shares=None,
-               gigabytes=None,
-               snapshots=None,
-               snapshot_gigabytes=None,
-               share_networks=None):
+    @api_versions.wraps("2.7")  # noqa
+    def get(self, class_name):
+        return self._get(
+            "%(resource_path)s/%(class_name)s" % {
+                "resource_path": RESOURCE_PATH, "class_name": class_name},
+            "quota_class_set")
 
+    def _do_update(self, class_name, shares=None, gigabytes=None,
+                   snapshots=None, snapshot_gigabytes=None,
+                   share_networks=None, resource_path=RESOURCE_PATH):
         body = {
             'quota_class_set': {
                 'class_name': class_name,
@@ -58,4 +68,22 @@ class QuotaClassSetManager(base.ManagerWithFind):
             if body['quota_class_set'][key] is None:
                 body['quota_class_set'].pop(key)
 
-        self._update('/os-quota-class-sets/%s' % class_name, body)
+        self._update(
+            "%(resource_path)s/%(class_name)s" % {
+                "resource_path": resource_path,
+                "class_name": class_name},
+            body)
+
+    @api_versions.wraps("1.0", "2.6")
+    def update(self, class_name, shares=None, gigabytes=None,
+               snapshots=None, snapshot_gigabytes=None, share_networks=None):
+        return self._do_update(
+            class_name, shares, gigabytes, snapshots, snapshot_gigabytes,
+            share_networks, RESOURCE_PATH_LEGACY)
+
+    @api_versions.wraps("2.7")  # noqa
+    def update(self, class_name, shares=None, gigabytes=None,
+               snapshots=None, snapshot_gigabytes=None, share_networks=None):
+        return self._do_update(
+            class_name, shares, gigabytes, snapshots, snapshot_gigabytes,
+            share_networks, RESOURCE_PATH)

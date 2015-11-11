@@ -74,12 +74,14 @@ class ManilaCLIClient(base.CLIClient):
         self.build_timeout = CONF.build_timeout
 
     def manila(self, action, flags='', params='', fail_ok=False,
-               endpoint_type='publicURL', merge_stderr=False):
+               endpoint_type='publicURL', merge_stderr=False,
+               microversion=None):
         """Executes manila command for the given action.
 
         :param action: the cli command to run using manila
         :type action: string
-        :param flags: any optional cli flags to use
+        :param flags: any optional cli flags to use. For specifying
+                      microversion, please, use 'microversion' param
         :type flags: string
         :param params: any optional positional args to use
         :type params: string
@@ -90,13 +92,24 @@ class ManilaCLIClient(base.CLIClient):
         :type endpoint_type: string
         :param merge_stderr: if True the stderr buffer is merged into stdout
         :type merge_stderr: boolean
+        :param microversion: API microversion to be used for request
+        :type microversion: str
         """
         flags += ' --endpoint-type %s' % endpoint_type
+        if not microversion:
+            # NOTE(vponomaryov): use max API version from config
+            microversion = CONF.max_api_microversion
+
+        # NOTE(vponomaryov): it is possible that param 'flags' already
+        # can contain '--os-share-api-version' key. If it is so and we
+        # reached this part then value of 'microversion' param will be
+        # used and existing one in 'flags' param will be ignored.
+        flags += ' --os-share-api-version %s' % microversion
         return self.cmd_with_auth(
             'manila', action, flags, params, fail_ok, merge_stderr)
 
     def wait_for_resource_deletion(self, res_type, res_id, interval=3,
-                                   timeout=180):
+                                   timeout=180, microversion=None):
         """Resource deletion waiter.
 
         :param res_type: text -- type of resource. Supported only 'share_type'.
@@ -116,11 +129,11 @@ class ManilaCLIClient(base.CLIClient):
             raise exceptions.InvalidResource(message=res_type)
 
         end_loop_time = time.time() + timeout
-        deleted = func(res_id)
+        deleted = func(res_id, microversion=microversion)
 
         while not (deleted or time.time() > end_loop_time):
             time.sleep(interval)
-            deleted = func(res_id)
+            deleted = func(res_id, microversion=microversion)
 
         if not deleted:
             raise exceptions.ResourceReleaseFailed(
@@ -129,7 +142,8 @@ class ManilaCLIClient(base.CLIClient):
     # Share types
 
     def create_share_type(self, name=None, driver_handles_share_servers=True,
-                          snapshot_support=True, is_public=True):
+                          snapshot_support=True, is_public=True,
+                          microversion=None):
         """Creates share type.
 
         :param name: text -- name of share type to use, if not set then
@@ -154,7 +168,7 @@ class ManilaCLIClient(base.CLIClient):
                '--snapshot-support %(snapshot_support)s') % {
                    'name': name, 'dhss': dhss, 'is_public': is_public,
                    'snapshot_support': snapshot_support}
-        share_type_raw = self.manila(cmd)
+        share_type_raw = self.manila(cmd, microversion=microversion)
 
         # NOTE(vponomaryov): share type creation response is "list"-like with
         # only one element:
@@ -169,11 +183,12 @@ class ManilaCLIClient(base.CLIClient):
         return share_type
 
     @not_found_wrapper
-    def delete_share_type(self, share_type):
+    def delete_share_type(self, share_type, microversion=None):
         """Deletes share type by its Name or ID."""
-        return self.manila('type-delete %s' % share_type)
+        return self.manila(
+            'type-delete %s' % share_type, microversion=microversion)
 
-    def list_share_types(self, list_all=True):
+    def list_share_types(self, list_all=True, microversion=None):
         """List share types.
 
         :param list_all: bool -- whether to list all share types or only public
@@ -181,41 +196,43 @@ class ManilaCLIClient(base.CLIClient):
         cmd = 'type-list'
         if list_all:
             cmd += ' --all'
-        share_types_raw = self.manila(cmd)
+        share_types_raw = self.manila(cmd, microversion=microversion)
         share_types = output_parser.listing(share_types_raw)
         return share_types
 
-    def get_share_type(self, share_type):
+    def get_share_type(self, share_type, microversion=None):
         """Get share type.
 
         :param share_type: str -- Name or ID of share type
         """
-        share_types = self.list_share_types(True)
+        share_types = self.list_share_types(True, microversion=microversion)
         for st in share_types:
             if share_type in (st['ID'], st['Name']):
                 return st
         raise tempest_lib_exc.NotFound()
 
-    def is_share_type_deleted(self, share_type):
+    def is_share_type_deleted(self, share_type, microversion=None):
         """Says whether share type is deleted or not.
 
         :param share_type: text -- Name or ID of share type
         """
         # NOTE(vponomaryov): we use 'list' operation because there is no
         # 'get/show' operation for share-types available for CLI
-        share_types = self.list_share_types(list_all=True)
+        share_types = self.list_share_types(
+            list_all=True, microversion=microversion)
         for list_element in share_types:
             if share_type in (list_element['ID'], list_element['Name']):
                 return False
         return True
 
-    def wait_for_share_type_deletion(self, share_type):
+    def wait_for_share_type_deletion(self, share_type, microversion=None):
         """Wait for share type deletion by its Name or ID.
 
         :param share_type: text -- Name or ID of share type
         """
         self.wait_for_resource_deletion(
-            SHARE_TYPE, res_id=share_type, interval=2, timeout=6)
+            SHARE_TYPE, res_id=share_type, interval=2, timeout=6,
+            microversion=microversion)
 
     def get_project_id(self, name_or_id):
         try:
@@ -228,24 +245,30 @@ class ManilaCLIClient(base.CLIClient):
         return project_id.strip()
 
     @not_found_wrapper
-    def add_share_type_access(self, share_type_name_or_id, project_id):
+    def add_share_type_access(self, share_type_name_or_id, project_id,
+                              microversion=None):
         data = dict(st=share_type_name_or_id, project=project_id)
-        self.manila('type-access-add %(st)s %(project)s' % data)
+        self.manila('type-access-add %(st)s %(project)s' % data,
+                    microversion=microversion)
 
     @not_found_wrapper
-    def remove_share_type_access(self, share_type_name_or_id, project_id):
+    def remove_share_type_access(self, share_type_name_or_id, project_id,
+                                 microversion=None):
         data = dict(st=share_type_name_or_id, project=project_id)
-        self.manila('type-access-remove %(st)s %(project)s' % data)
+        self.manila('type-access-remove %(st)s %(project)s' % data,
+                    microversion=microversion)
 
     @not_found_wrapper
-    def list_share_type_access(self, share_type_id):
-        projects_raw = self.manila('type-access-list %s' % share_type_id)
+    def list_share_type_access(self, share_type_id, microversion=None):
+        projects_raw = self.manila(
+            'type-access-list %s' % share_type_id, microversion=microversion)
         projects = output_parser.listing(projects_raw)
         project_ids = [pr['Project_ID'] for pr in projects]
         return project_ids
 
     @not_found_wrapper
-    def set_share_type_extra_specs(self, share_type_name_or_id, extra_specs):
+    def set_share_type_extra_specs(self, share_type_name_or_id, extra_specs,
+                                   microversion=None):
         """Set key-value pair for share type."""
         if not (isinstance(extra_specs, dict) and extra_specs):
             raise exceptions.InvalidData(
@@ -253,29 +276,33 @@ class ManilaCLIClient(base.CLIClient):
         cmd = 'type-key %s set ' % share_type_name_or_id
         for key, value in extra_specs.items():
             cmd += '%(key)s=%(value)s ' % {'key': key, 'value': value}
-        return self.manila(cmd)
+        return self.manila(cmd, microversion=microversion)
 
     @not_found_wrapper
     def unset_share_type_extra_specs(self, share_type_name_or_id,
-                                     extra_specs_keys):
+                                     extra_specs_keys, microversion=None):
         """Unset key-value pair for share type."""
-        if not (isinstance(extra_specs_keys, list) and extra_specs_keys):
+        if not (isinstance(extra_specs_keys, (list, tuple, set)) and
+                extra_specs_keys):
             raise exceptions.InvalidData(
                 message='Provided invalid extra specs - %s' % extra_specs_keys)
         cmd = 'type-key %s unset ' % share_type_name_or_id
         for key in extra_specs_keys:
             cmd += '%s ' % key
-        return self.manila(cmd)
+        return self.manila(cmd, microversion=microversion)
 
-    def list_all_share_type_extra_specs(self):
+    def list_all_share_type_extra_specs(self, microversion=None):
         """List extra specs for all share types."""
-        extra_specs_raw = self.manila('extra-specs-list')
+        extra_specs_raw = self.manila(
+            'extra-specs-list', microversion=microversion)
         extra_specs = utils.listing(extra_specs_raw)
         return extra_specs
 
-    def list_share_type_extra_specs(self, share_type_name_or_id):
+    def list_share_type_extra_specs(self, share_type_name_or_id,
+                                    microversion=None):
         """List extra specs for specific share type by its Name or ID."""
-        all_share_types = self.list_all_share_type_extra_specs()
+        all_share_types = self.list_all_share_type_extra_specs(
+            microversion=microversion)
         for share_type in all_share_types:
             if share_type_name_or_id in (share_type['ID'], share_type['Name']):
                 return share_type['all_extra_specs']
@@ -285,7 +312,7 @@ class ManilaCLIClient(base.CLIClient):
 
     def create_share_network(self, name=None, description=None,
                              nova_net_id=None, neutron_net_id=None,
-                             neutron_subnet_id=None):
+                             neutron_subnet_id=None, microversion=None):
         """Creates share network.
 
         :param name: text -- desired name of new share network
@@ -303,7 +330,8 @@ class ManilaCLIClient(base.CLIClient):
             nova_net_id=nova_net_id,
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id)
-        share_network_raw = self.manila('share-network-create %s' % params)
+        share_network_raw = self.manila(
+            'share-network-create %s' % params, microversion=microversion)
         share_network = output_parser.details(share_network_raw)
         return share_network
 
@@ -331,17 +359,17 @@ class ManilaCLIClient(base.CLIClient):
         return cmd
 
     @not_found_wrapper
-    def get_share_network(self, share_network):
+    def get_share_network(self, share_network, microversion=None):
         """Returns share network by its Name or ID."""
         share_network_raw = self.manila(
-            'share-network-show %s' % share_network)
+            'share-network-show %s' % share_network, microversion=microversion)
         share_network = output_parser.details(share_network_raw)
         return share_network
 
     @not_found_wrapper
     def update_share_network(self, share_network, name=None, description=None,
                              nova_net_id=None, neutron_net_id=None,
-                             neutron_subnet_id=None):
+                             neutron_subnet_id=None, microversion=None):
         """Updates share-network by its name or ID.
 
         :param name: text -- new name for share network
@@ -361,14 +389,16 @@ class ManilaCLIClient(base.CLIClient):
             neutron_subnet_id=neutron_subnet_id)
         share_network_raw = self.manila(
             'share-network-update %(sn)s %(params)s' % dict(
-                sn=share_network, params=sn_params))
+                sn=share_network, params=sn_params),
+            microversion=microversion)
         share_network = output_parser.details(share_network_raw)
         return share_network
 
     @not_found_wrapper
-    def delete_share_network(self, share_network):
+    def delete_share_network(self, share_network, microversion=None):
         """Deletes share network by its Name or ID."""
-        return self.manila('share-network-delete %s' % share_network)
+        return self.manila('share-network-delete %s' % share_network,
+                           microversion=microversion)
 
     @staticmethod
     def _stranslate_to_cli_optional_param(param):
@@ -379,7 +409,8 @@ class ManilaCLIClient(base.CLIClient):
             param = '-' + param
         return param.replace('_', '-')
 
-    def list_share_networks(self, all_tenants=False, filters=None):
+    def list_share_networks(self, all_tenants=False, filters=None,
+                            microversion=None):
         """List share networks.
 
         :param all_tenants: bool -- whether to list share-networks that belong
@@ -399,34 +430,37 @@ class ManilaCLIClient(base.CLIClient):
             for k, v in filters.items():
                 cmd += '%(k)s=%(v)s ' % {
                     'k': self._stranslate_to_cli_optional_param(k), 'v': v}
-        share_networks_raw = self.manila(cmd)
+        share_networks_raw = self.manila(cmd, microversion=microversion)
         share_networks = utils.listing(share_networks_raw)
         return share_networks
 
-    def is_share_network_deleted(self, share_network):
+    def is_share_network_deleted(self, share_network, microversion=None):
         """Says whether share network is deleted or not.
 
         :param share_network: text -- Name or ID of share network
         """
-        share_types = self.list_share_networks(True)
+        share_types = self.list_share_networks(True, microversion=microversion)
         for list_element in share_types:
             if share_network in (list_element['id'], list_element['name']):
                 return False
         return True
 
-    def wait_for_share_network_deletion(self, share_network):
+    def wait_for_share_network_deletion(self, share_network,
+                                        microversion=None):
         """Wait for share network deletion by its Name or ID.
 
         :param share_network: text -- Name or ID of share network
         """
         self.wait_for_resource_deletion(
-            SHARE_NETWORK, res_id=share_network, interval=2, timeout=6)
+            SHARE_NETWORK, res_id=share_network, interval=2, timeout=6,
+            microversion=microversion)
 
     # Shares
 
     def create_share(self, share_protocol, size, share_network=None,
                      share_type=None, name=None, description=None,
-                     public=False, snapshot=None, metadata=None):
+                     public=False, snapshot=None, metadata=None,
+                     microversion=None):
         """Creates a share.
 
         :param share_protocol: str -- share protocol of a share.
@@ -439,6 +473,7 @@ class ManilaCLIClient(base.CLIClient):
             Default is False.
         :param snapshot: str -- Name or ID of a snapshot to use as source.
         :param metadata: dict -- key-value data to provide with share creation.
+        :param microversion: str -- API microversion that should be used.
         """
         cmd = 'create %(share_protocol)s %(size)s ' % {
             'share_protocol': share_protocol, 'size': size}
@@ -462,20 +497,20 @@ class ManilaCLIClient(base.CLIClient):
                 metadata_cli += '%(k)s=%(v)s ' % {'k': k, 'v': v}
             if metadata_cli:
                 cmd += '--metadata %s ' % metadata_cli
-        share_raw = self.manila(cmd)
+        share_raw = self.manila(cmd, microversion=microversion)
         share = output_parser.details(share_raw)
         return share
 
     @not_found_wrapper
-    def get_share(self, share):
+    def get_share(self, share, microversion=None):
         """Returns a share by its Name or ID."""
-        share_raw = self.manila('show %s' % share)
+        share_raw = self.manila('show %s' % share, microversion=microversion)
         share = output_parser.details(share_raw)
         return share
 
     @not_found_wrapper
     def update_share(self, share, name=None, description=None,
-                     is_public=False):
+                     is_public=False, microversion=None):
         """Updates a share.
 
         :param share: str -- name or ID of a share that should be updated.
@@ -492,11 +527,11 @@ class ManilaCLIClient(base.CLIClient):
         is_public = strutils.bool_from_string(is_public, strict=True)
         cmd += '--is-public %s ' % is_public
 
-        return self.manila(cmd)
+        return self.manila(cmd, microversion=microversion)
 
     @not_found_wrapper
     @forbidden_wrapper
-    def delete_share(self, shares):
+    def delete_share(self, shares, microversion=None):
         """Deletes share[s] by Names or IDs.
 
         :param shares: either str or list of str that can be either Name
@@ -507,9 +542,10 @@ class ManilaCLIClient(base.CLIClient):
         cmd = 'delete '
         for share in shares:
             cmd += '%s ' % share
-        return self.manila(cmd)
+        return self.manila(cmd, microversion=microversion)
 
-    def list_shares(self, all_tenants=False, filters=None, columns=None):
+    def list_shares(self, all_tenants=False, filters=None, columns=None,
+                    microversion=None):
         """List shares.
 
         :param all_tenants: bool -- whether to list shares that belong
@@ -533,39 +569,40 @@ class ManilaCLIClient(base.CLIClient):
                     'k': self._stranslate_to_cli_optional_param(k), 'v': v}
         if columns is not None:
             cmd += '--columns ' + columns
-        shares_raw = self.manila(cmd)
+        shares_raw = self.manila(cmd, microversion=microversion)
         shares = utils.listing(shares_raw)
         return shares
 
-    def is_share_deleted(self, share):
+    def is_share_deleted(self, share, microversion=None):
         """Says whether share is deleted or not.
 
         :param share: str -- Name or ID of share
         """
         try:
-            self.get_share(share)
+            self.get_share(share, microversion=microversion)
             return False
         except tempest_lib_exc.NotFound:
             return True
 
-    def wait_for_share_deletion(self, share):
+    def wait_for_share_deletion(self, share, microversion=None):
         """Wait for share deletion by its Name or ID.
 
         :param share: str -- Name or ID of share
         """
         self.wait_for_resource_deletion(
-            SHARE, res_id=share, interval=5, timeout=300)
+            SHARE, res_id=share, interval=5, timeout=300,
+            microversion=microversion)
 
-    def wait_for_share_status(self, share, status):
+    def wait_for_share_status(self, share, status, microversion=None):
         """Waits for a share to reach a given status."""
-        body = self.get_share(share)
+        body = self.get_share(share, microversion=microversion)
         share_name = body['name']
         share_status = body['status']
         start = int(time.time())
 
         while share_status != status:
             time.sleep(self.build_interval)
-            body = self.get_share(share)
+            body = self.get_share(share, microversion=microversion)
             share_status = body['status']
 
             if share_status == status:
@@ -582,7 +619,8 @@ class ManilaCLIClient(base.CLIClient):
                 raise tempest_lib_exc.TimeoutException(message)
 
     @not_found_wrapper
-    def _set_share_metadata(self, share, data, update_all=False):
+    def _set_share_metadata(self, share, data, update_all=False,
+                            microversion=None):
         """Sets a share metadata.
 
         :param share: str -- Name or ID of a share.
@@ -600,18 +638,20 @@ class ManilaCLIClient(base.CLIClient):
             cmd = 'metadata %s set ' % share
         for k, v in data.items():
             cmd += '%(k)s=%(v)s ' % {'k': k, 'v': v}
-        return self.manila(cmd)
+        return self.manila(cmd, microversion=microversion)
 
-    def update_all_share_metadata(self, share, data):
-        metadata_raw = self._set_share_metadata(share, data, True)
+    def update_all_share_metadata(self, share, data, microversion=None):
+        metadata_raw = self._set_share_metadata(
+            share, data, True, microversion=microversion)
         metadata = output_parser.details(metadata_raw)
         return metadata
 
-    def set_share_metadata(self, share, data):
-        return self._set_share_metadata(share, data, False)
+    def set_share_metadata(self, share, data, microversion=None):
+        return self._set_share_metadata(
+            share, data, False, microversion=microversion)
 
     @not_found_wrapper
-    def unset_share_metadata(self, share, keys):
+    def unset_share_metadata(self, share, keys, microversion=None):
         """Unsets some share metadata by keys.
 
         :param share: str -- Name or ID of a share
@@ -624,32 +664,35 @@ class ManilaCLIClient(base.CLIClient):
         cmd = 'metadata %s unset ' % share
         for key in keys:
             cmd += '%s ' % key
-        return self.manila(cmd)
+        return self.manila(cmd, microversion=microversion)
 
     @not_found_wrapper
-    def get_share_metadata(self, share):
+    def get_share_metadata(self, share, microversion=None):
         """Returns list of all share metadata.
 
         :param share: str -- Name or ID of a share.
         """
-        metadata_raw = self.manila('metadata-show %s' % share)
+        metadata_raw = self.manila(
+            'metadata-show %s' % share, microversion=microversion)
         metadata = output_parser.details(metadata_raw)
         return metadata
 
     @not_found_wrapper
-    def list_access(self, share_id):
-        access_list_raw = self.manila('access-list %s' % share_id)
+    def list_access(self, share_id, microversion=None):
+        access_list_raw = self.manila(
+            'access-list %s' % share_id, microversion=microversion)
         return output_parser.listing(access_list_raw)
 
     @not_found_wrapper
-    def get_access(self, share_id, access_id):
-        for access in self.list_access(share_id):
+    def get_access(self, share_id, access_id, microversion=None):
+        for access in self.list_access(share_id, microversion=microversion):
             if access['id'] == access_id:
                 return access
         raise tempest_lib_exc.NotFound()
 
     @not_found_wrapper
-    def access_allow(self, share_id, access_type, access_to, access_level):
+    def access_allow(self, share_id, access_type, access_to, access_level,
+                     microversion=None):
         raw_access = self.manila(
             'access-allow  --access-level %(level)s %(id)s %(type)s '
             '%(access_to)s' % {
@@ -657,23 +700,29 @@ class ManilaCLIClient(base.CLIClient):
                 'id': share_id,
                 'type': access_type,
                 'access_to': access_to,
-            })
+            },
+            microversion=microversion)
         return output_parser.details(raw_access)
 
     @not_found_wrapper
-    def access_deny(self, share_id, access_id):
-        self.manila('access-deny %(share_id)s %(access_id)s' % {
-            'share_id': share_id,
-            'access_id': access_id,
-        })
+    def access_deny(self, share_id, access_id, microversion=None):
+        return self.manila(
+            'access-deny %(share_id)s %(access_id)s' % {
+                'share_id': share_id,
+                'access_id': access_id,
+            },
+            microversion=microversion)
 
-    def wait_for_access_rule_status(self, share_id, access_id, state='active'):
-        access = self.get_access(share_id, access_id)
+    def wait_for_access_rule_status(self, share_id, access_id, state='active',
+                                    microversion=None):
+        access = self.get_access(
+            share_id, access_id, microversion=microversion)
 
         start = int(time.time())
         while access['state'] != state:
             time.sleep(self.build_interval)
-            access = self.get_access(share_id, access_id)
+            access = self.get_access(
+                share_id, access_id, microversion=microversion)
 
             if access['state'] == state:
                 return
@@ -689,9 +738,11 @@ class ManilaCLIClient(base.CLIClient):
                         "build_timeout": self.build_timeout})
                 raise tempest_lib_exc.TimeoutException(message)
 
-    def wait_for_access_rule_deletion(self, share_id, access_id):
+    def wait_for_access_rule_deletion(self, share_id, access_id,
+                                      microversion=None):
         try:
-            access = self.get_access(share_id, access_id)
+            access = self.get_access(
+                share_id, access_id, microversion=microversion)
         except tempest_lib_exc.NotFound:
             return
 
@@ -699,7 +750,8 @@ class ManilaCLIClient(base.CLIClient):
         while True:
             time.sleep(self.build_interval)
             try:
-                access = self.get_access(share_id, access_id)
+                access = self.get_access(
+                    share_id, access_id, microversion=microversion)
             except tempest_lib_exc.NotFound:
                 return
 
@@ -715,7 +767,7 @@ class ManilaCLIClient(base.CLIClient):
 
     def create_security_service(self, type='ldap', name=None, description=None,
                                 dns_ip=None, server=None, domain=None,
-                                user=None, password=None):
+                                user=None, password=None, microversion=None):
         """Creates security service.
 
         :param type: security service type (ldap, kerberos or active_directory)
@@ -738,14 +790,15 @@ class ManilaCLIClient(base.CLIClient):
             user=user,
             password=password)
 
-        ss_raw = self.manila(cmd)
+        ss_raw = self.manila(cmd, microversion=microversion)
         security_service = output_parser.details(ss_raw)
         return security_service
 
     @not_found_wrapper
     def update_security_service(self, security_service, name=None,
                                 description=None, dns_ip=None, server=None,
-                                domain=None, user=None, password=None):
+                                domain=None, user=None, password=None,
+                                microversion=None):
         cmd = 'security-service-update %s ' % security_service
         cmd += self. _combine_security_service_data(
             name=name,
@@ -755,7 +808,8 @@ class ManilaCLIClient(base.CLIClient):
             domain=domain,
             user=user,
             password=password)
-        return output_parser.details(self.manila(cmd))
+        return output_parser.details(
+            self.manila(cmd, microversion=microversion))
 
     def _combine_security_service_data(self, name=None, description=None,
                                        dns_ip=None, server=None, domain=None,

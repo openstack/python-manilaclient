@@ -14,6 +14,7 @@
 
 """Share type access interface."""
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
@@ -28,13 +29,23 @@ class ShareTypeAccessManager(base.ManagerWithFind):
 
     resource_class = ShareTypeAccess
 
-    def list(self, share_type):
+    def _do_list(self, share_type, action_name="share_type_access"):
         if share_type.is_public:
             return None
 
         return self._list(
-            '/types/%s/os-share-type-access' % common_base.getid(share_type),
-            'share_type_access')
+            "/types/%(st_id)s/%(action_name)s" % {
+                "st_id": common_base.getid(share_type),
+                "action_name": action_name},
+            "share_type_access")
+
+    @api_versions.wraps("1.0", "2.6")
+    def list(self, share_type):
+        return self._do_list(share_type, "os-share-type-access")
+
+    @api_versions.wraps("2.7")  # noqa
+    def list(self, share_type):
+        return self._do_list(share_type, "share_type_access")
 
     def add_project_access(self, share_type, project):
         """Add a project to the given share type access list."""

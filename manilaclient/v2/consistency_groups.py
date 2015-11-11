@@ -139,8 +139,8 @@ class ConsistencyGroupManager(base.ManagerWithFind):
 
         return self._list(path, RESOURCES_NAME)
 
-    @api_versions.wraps("2.4")
-    def delete(self, consistency_group, force=False):
+    def _do_delete(self, consistency_group, force=False,
+                   action_name='force_delete'):
         """Delete a consistency group.
 
         :param consistency_group: either consistency group object or text with
@@ -151,19 +151,35 @@ class ConsistencyGroupManager(base.ManagerWithFind):
         body = None
 
         if force:
-            body = {'os-force_delete': None}
+            body = {action_name: None}
 
         if body:
             self.api.client.post(url + '/action', body=body)
         else:
             self._delete(url)
 
-    @api_versions.wraps("2.4")
-    def reset_state(self, consistency_group, state):
+    @api_versions.wraps("2.4", "2.6")
+    def delete(self, consistency_group, force=False):
+        return self._do_delete(consistency_group, force, 'os-force_delete')
+
+    @api_versions.wraps("2.7")  # noqa
+    def delete(self, consistency_group, force=False):
+        return self._do_delete(consistency_group, force, 'force_delete')
+
+    def _do_reset_state(self, consistency_group, state, action_name):
         """Update the specified consistency group with the provided state."""
-        body = {'os-reset_status': {'status': state}}
+        body = {action_name: {'status': state}}
         url = RESOURCE_PATH_ACTION % common_base.getid(consistency_group)
         return self.api.client.post(url, body=body)
+
+    @api_versions.wraps("2.4", "2.6")
+    def reset_state(self, cg, state):
+        return self._do_reset_state(
+            consistency_group, state, 'os-reset_status')
+
+    @api_versions.wraps("2.7")  # noqa
+    def reset_state(self, consistency_group, state):
+        return self._do_reset_state(consistency_group, state, 'reset_status')
 
     def _query_string_helper(self, search_opts):
         q_string = parse.urlencode(

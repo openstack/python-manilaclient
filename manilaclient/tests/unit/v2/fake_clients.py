@@ -106,6 +106,8 @@ class FakeHTTPClient(httpclient.HTTPClient):
         }
         return (200, {}, quota_set)
 
+    get_quota_sets_test = get_os_quota_sets_test
+
     def get_os_quota_sets_test_defaults(self):
         quota_set = {
             'quota_set': {
@@ -119,6 +121,8 @@ class FakeHTTPClient(httpclient.HTTPClient):
             }
         }
         return (200, {}, quota_set)
+
+    get_quota_sets_test_defaults = get_os_quota_sets_test_defaults
 
     def put_os_quota_sets_test(self, body, **kw):
         assert list(body) == ['quota_set']
@@ -136,6 +140,8 @@ class FakeHTTPClient(httpclient.HTTPClient):
             }
         }
         return (200, {}, quota_set)
+
+    put_quota_sets_test = put_os_quota_sets_test
 
     #
     # Quota Classes
@@ -155,6 +161,8 @@ class FakeHTTPClient(httpclient.HTTPClient):
         }
         return (200, {}, quota_class_set)
 
+    get_quota_class_sets_test = get_os_quota_class_sets_test
+
     def put_os_quota_class_sets_test(self, body, **kw):
         assert list(body) == ['quota_class_set']
         fakes.assert_has_keys(body['quota_class_set'],
@@ -172,8 +180,13 @@ class FakeHTTPClient(httpclient.HTTPClient):
         }
         return (200, {}, quota_class_set)
 
+    put_quota_class_sets_test = put_os_quota_class_sets_test
+
     def delete_os_quota_sets_test(self, **kw):
         return (202, {}, {})
+
+    delete_quota_sets_test = delete_os_quota_sets_test
+
     #
     # List all extensions
     #
