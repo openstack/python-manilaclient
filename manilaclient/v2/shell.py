@@ -2007,6 +2007,10 @@ def _print_type_optional_extra_specs(share_type):
         return "N/A"
 
 
+def _is_share_type_public(share_type):
+    return 'public' if share_type.is_public else 'private'
+
+
 def _print_share_type_list(stypes, default_share_type=None):
 
     def _is_default(share_type):
@@ -2015,11 +2019,8 @@ def _print_share_type_list(stypes, default_share_type=None):
         else:
             return '-'
 
-    def is_public(share_type):
-        return 'public' if share_type.is_public else 'private'
-
     formatters = {
-        'Visibility': is_public,
+        'Visibility': _is_share_type_public,
         'is_default': _is_default,
         'required_extra_specs': _print_type_required_extra_specs,
         'optional_extra_specs': _print_type_optional_extra_specs,
@@ -2038,6 +2039,25 @@ def _print_share_type_list(stypes, default_share_type=None):
         'optional_extra_specs',
     ]
     cliutils.print_list(stypes, fields, formatters)
+
+
+def _print_share_type(stype, default_share_type=None):
+
+    def _is_default(share_type):
+        if share_type == default_share_type:
+            return 'YES'
+        else:
+            return '-'
+
+    stype_dict = {
+        'ID': stype.id,
+        'Name': stype.name,
+        'Visibility': _is_share_type_public(stype),
+        'is_default': _is_default(stype),
+        'required_extra_specs': _print_type_required_extra_specs(stype),
+        'optional_extra_specs': _print_type_optional_extra_specs(stype),
+    }
+    cliutils.print_dict(stype_dict)
 
 
 def _print_type_and_extra_specs_list(stypes):
@@ -2123,7 +2143,7 @@ def do_type_create(cs, args):
         raise exceptions.CommandError(msg)
 
     stype = cs.share_types.create(**kwargs)
-    _print_share_type_list([stype])
+    _print_share_type(stype)
 
 
 @cliutils.arg(

@@ -169,17 +169,7 @@ class ManilaCLIClient(base.CLIClient):
                    'name': name, 'dhss': dhss, 'is_public': is_public,
                    'snapshot_support': snapshot_support}
         share_type_raw = self.manila(cmd, microversion=microversion)
-
-        # NOTE(vponomaryov): share type creation response is "list"-like with
-        # only one element:
-        # [{
-        #   'ID': '%id%',
-        #   'Name': '%name%',
-        #   'Visibility': 'public',
-        #   'is_default': '-',
-        #   'required_extra_specs': 'driver_handles_share_servers : False',
-        # }]
-        share_type = output_parser.listing(share_type_raw)[0]
+        share_type = output_parser.details(share_type_raw)
         return share_type
 
     @not_found_wrapper
