@@ -10,11 +10,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import manilaclient.client
+import ddt
+import mock
+
+from manilaclient import api_versions
+from manilaclient import client
+from manilaclient import exceptions
 from manilaclient.tests.unit import utils
+import manilaclient.v1.client
 import manilaclient.v2.client
 
 
+@ddt.ddt
 class ClientTest(utils.TestCase):
 
     def test_get_client_class_v2(self):
@@ -24,3 +31,47 @@ class ClientTest(utils.TestCase):
     def test_get_client_class_unknown(self):
         self.assertRaises(manilaclient.exceptions.UnsupportedVersion,
                           manilaclient.client.get_client_class, '0')
+
+    @ddt.data('1', '1.0')
+    def test_init_client_with_string_v1_version(self, version):
+        with mock.patch.object(manilaclient.v1.client, 'Client'):
+            with mock.patch.object(api_versions, 'APIVersion'):
+                api_instance = api_versions.APIVersion.return_value
+                api_instance.get_major_version.return_value = '1'
+
+                manilaclient.client.Client(version, 'foo', bar='quuz')
+
+                manilaclient.v1.client.Client.assert_called_once_with(
+                    'foo', api_version=api_instance, bar='quuz')
+                api_versions.APIVersion.assert_called_once_with('1.0')
+
+    @ddt.data(
+        ('2', '2.0'),
+        ('2.0', '2.0'),
+        ('2.6', '2.6'),
+    )
+    @ddt.unpack
+    def test_init_client_with_string_v2_version(self, provided, expected):
+        with mock.patch.object(manilaclient.v2.client, 'Client'):
+            with mock.patch.object(api_versions, 'APIVersion'):
+                api_instance = api_versions.APIVersion.return_value
+                api_instance.get_major_version.return_value = '2'
+
+                manilaclient.client.Client(provided, 'foo', bar='quuz')
+
+                manilaclient.v2.client.Client.assert_called_once_with(
+                    'foo', api_version=api_instance, bar='quuz')
+                api_versions.APIVersion.assert_called_once_with(expected)
+
+    def test_init_client_with_api_version_instance(self):
+        version = manilaclient.API_MAX_VERSION
+        with mock.patch.object(manilaclient.v2.client, 'Client'):
+
+            manilaclient.client.Client(version, 'foo', bar='quuz')
+
+            manilaclient.v2.client.Client.assert_called_once_with(
+                'foo', api_version=version, bar='quuz')
+
+    @ddt.data(None, '', '3', 'v1', 'v2', 'v1.0', 'v2.0')
+    def test_init_client_with_unsupported_version(self, v):
+        self.assertRaises(exceptions.UnsupportedVersion, client.Client, v)

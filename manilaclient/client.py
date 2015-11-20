@@ -22,6 +22,7 @@ OpenStack Client interface. Handles the REST calls and responses.
 
 from oslo_utils import importutils
 
+from manilaclient import api_versions
 from manilaclient import exceptions
 
 
@@ -41,6 +42,14 @@ def get_client_class(version):
 
 
 def Client(api_version, *args, **kwargs):
+    if not hasattr(api_version, 'get_major_version'):
+        if api_version in ('1', '1.0'):
+            api_version = api_versions.APIVersion(
+                api_versions.DEPRECATED_VERSION)
+        elif api_version == '2':
+            api_version = api_versions.APIVersion(api_versions.MIN_VERSION)
+        else:
+            api_version = api_versions.APIVersion(api_version)
     client_class = get_client_class(api_version.get_major_version())
     kwargs['api_version'] = api_version
     return client_class(*args, **kwargs)
