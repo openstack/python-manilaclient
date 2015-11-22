@@ -542,6 +542,37 @@ class ShellTest(test_utils.TestCase):
         self.run_command('unmanage 1234')
         self.assert_called('POST', '/shares/1234/action')
 
+    @ddt.data({'cmd_args': '--driver_options opt1=opt1 opt2=opt2',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+               }},
+              {'cmd_args': '',
+               'valid_params': {
+                   'driver_options': {},
+               }},
+              )
+    @ddt.unpack
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    def test_snapshot_manage(self, cmd_args, valid_params):
+        shell_v2._find_share.return_value = 'fake_share'
+        self.run_command('snapshot-manage fake_share fake_provider_location '
+                         + cmd_args)
+        expected = {
+            'snapshot': {
+                'share_id': 'fake_share',
+                'provider_location': 'fake_provider_location',
+                'name': None,
+                'description': None,
+            }
+        }
+        expected['snapshot'].update(valid_params)
+        self.assert_called('POST', '/snapshots/manage', body=expected)
+
+    def test_snapshot_unmanage(self):
+        self.run_command('snapshot-unmanage 1234')
+        self.assert_called('POST', '/snapshots/1234/action',
+                           body={'unmanage': None})
+
     def test_delete(self):
         self.run_command('delete 1234')
         self.assert_called('DELETE', '/shares/1234')

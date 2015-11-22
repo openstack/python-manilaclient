@@ -788,6 +788,50 @@ def do_manage(cs, args):
     _print_share(cs, share)
 
 
+@api_versions.wraps("2.12")
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    type=str,
+    help='Name or ID of the share.')
+@cliutils.arg(
+    'provider_location',
+    metavar='<provider_location>',
+    type=str,
+    help='Provider location of the snapshot on the backend.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    help='Optional snapshot name (Default=None).',
+    default=None)
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    help='Optional snapshot description (Default=None).',
+    default=None)
+@cliutils.arg(
+    '--driver_options', '--driver-options',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    action='single_alias',
+    help='Optional driver options as key=value pairs (Default=None).',
+    default=None)
+def do_snapshot_manage(cs, args):
+    """Manage share snapshot not handled by Manila (Admin only)."""
+    share_ref = _find_share(cs, args.share)
+
+    driver_options = _extract_key_value_options(args, 'driver_options')
+
+    share_snapshot = cs.share_snapshots.manage(
+        share_ref, args.provider_location,
+        driver_options=driver_options,
+        name=args.name, description=args.description
+    )
+
+    _print_share_snapshot(cs, share_snapshot)
+
+
 @cliutils.arg(
     'share',
     metavar='<share>',
@@ -796,6 +840,29 @@ def do_unmanage(cs, args):
     """Unmanage share."""
     share_ref = _find_share(cs, args.share)
     share_ref.unmanage()
+
+
+@api_versions.wraps("2.12")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    nargs='+',
+    help='Name or ID of the snapshot(s).')
+def do_snapshot_unmanage(cs, args):
+    """Unmanage one or more share snapshots (Admin only)."""
+    failure_count = 0
+    for snapshot in args.snapshot:
+        try:
+            snapshot_ref = _find_share_snapshot(cs, snapshot)
+            snapshot_ref.unmanage_snapshot()
+        except Exception as e:
+            failure_count += 1
+            print("Unmanage for share snapshot %s failed: %s" % (snapshot, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.snapshot):
+        raise exceptions.CommandError("Unable to unmanage any of the "
+                                      "specified snapshots.")
 
 
 @cliutils.arg(

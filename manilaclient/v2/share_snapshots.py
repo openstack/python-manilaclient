@@ -47,6 +47,10 @@ class ShareSnapshot(common_base.Resource):
         """Delete the specified snapshot ignoring its current state."""
         self.manager.force_delete(self)
 
+    def unmanage_snapshot(self):
+        """Unmanage this snapshot."""
+        self.manager.unmanage(self)
+
 
 class ShareSnapshotManager(base.ManagerWithFind):
     """Manage :class:`ShareSnapshot` resources."""
@@ -67,6 +71,38 @@ class ShareSnapshotManager(base.ManagerWithFind):
                              'name': name,
                              'description': description}}
         return self._create('/snapshots', body, 'snapshot')
+
+    @api_versions.wraps("2.12")
+    def manage(self, share, provider_location,
+               driver_options=None,
+               name=None, description=None):
+        """Manage an existing share snapshot.
+
+        :param share: The share object.
+        :param provider_location: The provider location of
+                                  the snapshot on the backend.
+        :param driver_options: dict - custom set of key-values.
+        :param name: text - name of new snapshot
+        :param description: - description for new snapshot
+        """
+        driver_options = driver_options if driver_options else {}
+        body = {
+            'share_id': common_base.getid(share),
+            'provider_location': provider_location,
+            'driver_options': driver_options,
+            'name': name,
+            'description': description,
+        }
+        return self._create('/snapshots/manage', {'snapshot': body},
+                            'snapshot')
+
+    @api_versions.wraps("2.12")
+    def unmanage(self, snapshot):
+        """Unmanage a share snapshot.
+
+        :param snapshot: either snapshot object or text with its ID.
+        """
+        return self._action("unmanage", snapshot)
 
     def get(self, snapshot):
         """Get a snapshot.

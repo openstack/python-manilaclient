@@ -138,3 +138,44 @@ class ShareSnapshotsTest(utils.TestCase):
     def test_list_share_snapshots_detail(self):
         cs.share_snapshots.list(detailed=True)
         cs.assert_called('GET', '/snapshots/detail')
+
+    def test_manage_snapshot(self):
+        share_id = "1234"
+        provider_location = "fake_location"
+        driver_options = {}
+        name = "foo_name"
+        description = "bar_description"
+        expected_body = {
+            "share_id": share_id,
+            "provider_location": provider_location,
+            "driver_options": driver_options,
+            "name": name,
+            "description": description,
+        }
+        version = api_versions.APIVersion("2.12")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = share_snapshots.ShareSnapshotManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_create",
+                               mock.Mock(return_value="fake")):
+
+            result = manager.manage(share_id, provider_location,
+                                    driver_options=driver_options,
+                                    name=name, description=description)
+
+            self.assertEqual(manager._create.return_value, result)
+            manager._create.assert_called_once_with(
+                "/snapshots/manage", {"snapshot": expected_body}, "snapshot")
+
+    def test_unmanage_snapshot(self):
+        snapshot = "fake_snapshot"
+        version = api_versions.APIVersion("2.12")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = share_snapshots.ShareSnapshotManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value="fake")):
+            result = manager.unmanage(snapshot)
+
+            manager._action.assert_called_once_with("unmanage", snapshot)
+            self.assertEqual("fake", result)

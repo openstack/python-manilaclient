@@ -218,9 +218,23 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                 'reset_status', body.get('os-reset_status'))
         elif action in ('force_delete', 'os-force_delete'):
             assert body[action] is None
+        elif action in ('unmanage', ):
+            assert body[action] is None
         else:
             raise AssertionError("Unexpected action: %s" % action)
         return (resp, {}, _body)
+
+    def post_snapshots_manage(self, body, **kw):
+        _body = {'snapshot': {'id': 'fake'}}
+        resp = 202
+
+        if not ('share_id' in body['snapshot']
+                and 'provider_location' in body['snapshot']
+                and 'driver_options' in body['snapshot']):
+            resp = 422
+
+        result = (resp, {}, _body)
+        return result
 
     def _share_instances(self):
         instances = {
