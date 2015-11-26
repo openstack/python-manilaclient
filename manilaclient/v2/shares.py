@@ -42,9 +42,25 @@ class Share(common_base.Resource):
         """Unmanage this share."""
         self.manager.unmanage(self, **kwargs)
 
-    def migrate_share(self, host, force_host_copy):
+    def migration_start(self, host, force_host_copy, notify=True):
         """Migrate the share to a new host."""
-        self.manager.migrate_share(self, host, force_host_copy)
+        self.manager.migration_start(self, host, force_host_copy, notify)
+
+    def migration_complete(self):
+        """Complete migration of a share."""
+        self.manager.migration_complete(self)
+
+    def migration_cancel(self):
+        """Attempts to cancel migration of a share."""
+        self.manager.migration_cancel(self)
+
+    def migration_get_progress(self):
+        """Obtain progress of migration of a share."""
+        return self.manager.migration_get_progress(self)
+
+    def reset_task_state(self, task_state):
+        """Reset the task state of a given share."""
+        self.manager.reset_task_state(self, task_state)
 
     def delete(self, consistency_group_id=None):
         """Delete this share."""
@@ -186,27 +202,71 @@ class ShareManager(base.ManagerWithFind):
         }
         return self._create('/shares', {'share': body}, 'share')
 
-    def _do_migrate_share(self, share, host, force_host_copy, action_name):
+    def _do_migrate_start(self, share, host, force_host_copy, notify,
+                          action_name):
         """Migrate share to new host and pool.
 
         :param share: The :class:'share' to migrate
         :param host: The destination host and pool
         :param force_host_copy: Skip driver optimizations
+        :param notify: whether migration completion should be notified
+        :param action_name: action name to be used in request. Changes
+            according to desired microversion.
         """
 
         return self._action(
             action_name, share,
-            {"host": host, "force_host_copy": force_host_copy})
+            {"host": host, "force_host_copy": force_host_copy,
+             "notify": notify})
 
     @api_versions.wraps("2.5", "2.6")
-    def migrate_share(self, share, host, force_host_copy):
-        return self._do_migrate_share(
-            share, host, force_host_copy, "os-migrate_share")
+    def migration_start(self, share, host, force_host_copy):
+        return self._do_migrate_start(
+            share, host, force_host_copy, True, "os-migrate_share")
 
-    @api_versions.wraps("2.7")  # noqa
-    def migrate_share(self, share, host, force_host_copy):
-        return self._do_migrate_share(
-            share, host, force_host_copy, "migrate_share")
+    @api_versions.wraps("2.7", "2.14")  # noqa
+    def migration_start(self, share, host, force_host_copy):
+        return self._do_migrate_start(
+            share, host, force_host_copy, True, "migrate_share")
+
+    @api_versions.wraps("2.15")  # noqa
+    def migration_start(self, share, host, force_host_copy, notify):
+        return self._do_migrate_start(
+            share, host, force_host_copy, notify, "migration_start")
+
+    @api_versions.wraps("2.15")
+    def reset_task_state(self, share, task_state):
+        """Update the provided share with the provided task state.
+
+        :param share: either share object or text with its ID.
+        :param task_state: text with new task state to set for share.
+        """
+        return self._action('reset_task_state', share,
+                            {"task_state": task_state})
+
+    @api_versions.wraps("2.15")
+    def migration_complete(self, share):
+        """Completes migration for a given share.
+
+        :param share: The :class:'share' to complete migration
+        """
+        return self._action('migration_complete', share)
+
+    @api_versions.wraps("2.15")
+    def migration_cancel(self, share):
+        """Attempts to cancel migration for a given share.
+
+        :param share: The :class:'share' to cancel migration
+        """
+        return self._action('migration_cancel', share)
+
+    @api_versions.wraps("2.15")
+    def migration_get_progress(self, share):
+        """Obtains progress of share migration for a given share.
+
+        :param share: The :class:'share' to obtain migration progress
+        """
+        return self._action('migration_get_progress', share)
 
     def _do_manage(self, service_host, protocol, export_path,
                    driver_options=None, share_type=None,

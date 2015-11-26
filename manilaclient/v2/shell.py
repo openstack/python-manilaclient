@@ -611,20 +611,135 @@ def do_create(cs, args):
 
 
 @cliutils.arg(
-    'share', metavar='<share>', help='Name or ID of share to migrate.')
-@cliutils.arg('host', metavar='<host#pool>', help='Destination host and pool.')
-@cliutils.arg('--force-host-copy', metavar='<True|False>',
-              choices=['True', 'False'], required=False,
-              help='Enables or disables generic host-based '
-              'force-migration, which bypasses driver '
-              'optimizations. Default=False.',
-              default=False)
+    'share',
+    metavar='<share>',
+    help='Name or ID of share to migrate.')
+@cliutils.arg(
+    'host',
+    metavar='<host#pool>',
+    help='Destination host and pool.')
+@cliutils.arg(
+    '--force-host-copy',
+    '--force_host_copy',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    help='Enables or disables generic host-based force-migration, which '
+         'bypasses driver optimizations. Default=False.',
+    default=False)
 @api_versions.experimental_api
-@api_versions.wraps("2.5")
+@api_versions.wraps("2.5", "2.14")
 def do_migrate(cs, args):
+    """(Deprecated) Migrates share to a new host (Admin only, Experimental)."""
+    share = _find_share(cs, args.share)
+    share.migration_start(args.host, args.force_host_copy, True)
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of share to migrate.')
+@cliutils.arg(
+    'host',
+    metavar='<host#pool>',
+    help='Destination host and pool.')
+@cliutils.arg(
+    '--force-host-copy',
+    '--force_host_copy',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    help='Enables or disables generic host-based force-migration, which '
+         'bypasses driver optimizations. Default=False.',
+    default=False)
+@cliutils.arg(
+    '--notify',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    help='Enables or disables notification of data copying completed. '
+         'Default=True.',
+    default=True)
+@api_versions.experimental_api
+@api_versions.wraps("2.15")
+def do_migration_start(cs, args):
     """Migrates share to a new host (Admin only, Experimental)."""
     share = _find_share(cs, args.share)
-    share.migrate_share(args.host, args.force_host_copy)
+    share.migration_start(args.host, args.force_host_copy, args.notify)
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of share to complete migration.')
+@api_versions.experimental_api
+@api_versions.wraps("2.15")
+def do_migration_complete(cs, args):
+    """Completes migration for a given share (Admin only, Experimental)."""
+    share = _find_share(cs, args.share)
+    share.migration_complete()
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of share to cancel migration.')
+@api_versions.experimental_api
+@api_versions.wraps("2.15")
+def do_migration_cancel(cs, args):
+    """Cancels migration of a given share when copying
+
+    (Admin only, Experimental).
+    """
+    share = _find_share(cs, args.share)
+    share.migration_cancel()
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to modify.')
+@cliutils.arg(
+    '--task-state',
+    '--task_state',
+    '--state',
+    metavar='<task_state>',
+    default='migration_error',
+    help=('Indicate which task state to assign the share. Options include '
+          'migration_starting, migration_in_progress, migration_completing, '
+          'migration_success, migration_error, migration_cancelled, '
+          'migration_driver_in_progress, migration_driver_phase1_done, '
+          'data_copying_starting, data_copying_in_progress, '
+          'data_copying_completing, data_copying_completed, '
+          'data_copying_cancelled, data_copying_error. If no value is '
+          'provided, migration_error will be used.'))
+@api_versions.experimental_api
+@api_versions.wraps("2.15")
+def do_reset_task_state(cs, args):
+    """Explicitly update the task state of a share
+
+    (Admin only, Experimental).
+    """
+    share = _find_share(cs, args.share)
+    share.reset_task_state(args.task_state)
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to get share migration progress '
+         'information.')
+@api_versions.experimental_api
+@api_versions.wraps("2.15")
+def do_migration_get_progress(cs, args):
+    """Gets migration progress of a given share when copying
+
+    (Admin only, Experimental).
+    """
+    share = _find_share(cs, args.share)
+    result = share.migration_get_progress()
+    # NOTE(ganso): result[0] is response code, result[1] is dict body
+    cliutils.print_dict(result[1])
 
 
 @cliutils.arg(
