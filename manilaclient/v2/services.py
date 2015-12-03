@@ -19,11 +19,13 @@ try:
 except ImportError:
     from urllib.parse import urlencode  # noqa
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
-RESOURCES_PATH = '/os-services'
-RESOURCES_NAME = 'services'
+RESOURCE_PATH_LEGACY = '/os-services'
+RESOURCE_PATH = '/services'
+RESOURCE_NAME = 'services'
 
 
 class Service(common_base.Resource):
@@ -40,7 +42,7 @@ class ServiceManager(base.Manager):
     """Manage :class:`Service` resources."""
     resource_class = Service
 
-    def list(self, search_opts=None):
+    def _do_list(self, search_opts=None, resource_path=RESOURCE_PATH):
         """Get a list of all services.
 
         :rtype: list of :class:`Service`
@@ -51,17 +53,43 @@ class ServiceManager(base.Manager):
                 sorted([(k, v) for (k, v) in six.iteritems(search_opts) if v]))
             if query_string:
                 query_string = "?%s" % query_string
-        return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)
+        return self._list(resource_path + query_string, RESOURCE_NAME)
 
-    def enable(self, host, binary):
+    @api_versions.wraps("1.0", "2.6")
+    def list(self, search_opts=None):
+        return self._do_list(
+            search_opts=search_opts, resource_path=RESOURCE_PATH_LEGACY)
+
+    @api_versions.wraps("2.7")  # noqa
+    def list(self, search_opts=None):
+        return self._do_list(
+            search_opts=search_opts, resource_path=RESOURCE_PATH)
+
+    def _do_enable(self, host, binary, resource_path=RESOURCE_PATH):
         """Enable the service specified by hostname and binary."""
         body = {"host": host, "binary": binary}
-        return self._update("/os-services/enable", body)
+        return self._update("%s/enable" % resource_path, body)
 
-    def disable(self, host, binary):
+    @api_versions.wraps("1.0", "2.6")
+    def enable(self, host, binary):
+        return self._do_enable(host, binary, RESOURCE_PATH_LEGACY)
+
+    @api_versions.wraps("2.7")  # noqa
+    def enable(self, host, binary):
+        return self._do_enable(host, binary, RESOURCE_PATH)
+
+    def _do_disable(self, host, binary, resource_path=RESOURCE_PATH):
         """Disable the service specified by hostname and binary."""
         body = {"host": host, "binary": binary}
-        return self._update("/os-services/disable", body)
+        return self._update("%s/disable" % resource_path, body)
+
+    @api_versions.wraps("1.0", "2.6")
+    def disable(self, host, binary):
+        return self._do_disable(host, binary, RESOURCE_PATH_LEGACY)
+
+    @api_versions.wraps("2.7")  # noqa
+    def disable(self, host, binary):
+        return self._do_disable(host, binary, RESOURCE_PATH)
 
     def server_api_version(self, url_append=""):
         """Returns the API Version supported by the server.

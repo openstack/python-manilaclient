@@ -1,5 +1,5 @@
 # Copyright (c) 2013 OpenStack Foundation
-#
+# Copyright (c) 2015 Mirantis, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,41 +14,81 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
 import mock
 
+from manilaclient import api_versions
 from manilaclient.tests.unit import utils
-from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_type_access
-
-cs = fakes.FakeClient()
 
 PROJECT_UUID = '11111111-1111-1111-111111111111'
 
 
+@ddt.ddt
 class TypeAccessTest(utils.TestCase):
 
-    def test_list(self):
+    def _get_share_type_access_manager(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        return share_type_access.ShareTypeAccessManager(
+            api=mock_microversion)
+
+    @ddt.data(
+        ("1.0", "os-share-type-access"),
+        ("2.0", "os-share-type-access"),
+        ("2.6", "os-share-type-access"),
+        ("2.7", "share_type_access"),
+    )
+    @ddt.unpack
+    def test_list(self, microversion, action_name):
+        fake_access_list = ['foo', 'bar']
         share_type = mock.Mock()
         share_type.uuid = '3'
         share_type.is_public = False
-        access = cs.share_type_access.list(share_type=share_type)
-        cs.assert_called('GET', '/types/3/os-share-type-access')
-        for a in access:
-            self.assertTrue(isinstance(a, share_type_access.ShareTypeAccess))
+        manager = self._get_share_type_access_manager(microversion)
 
-    def test_list_public(self):
+        with mock.patch.object(manager, '_list',
+                               mock.Mock(return_value=fake_access_list)):
+            access = manager.list(share_type=share_type)
+
+            manager._list.assert_called_once_with(
+                "/types/3/%s" % action_name, "share_type_access")
+            self.assertEqual(fake_access_list, access)
+
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_list_public(self, microversion):
         share_type = mock.Mock()
         share_type.uuid = '4'
         share_type.is_public = True
-        actual_result = cs.share_type_access.list(share_type=share_type)
-        self.assertEqual(None, actual_result)
+        manager = self._get_share_type_access_manager(microversion)
 
-    def test_add_project_access(self):
-        cs.share_type_access.add_project_access('3', PROJECT_UUID)
-        cs.assert_called('POST', '/types/3/action',
-                         {'addProjectAccess': {'project': PROJECT_UUID}})
+        with mock.patch.object(manager, '_list',
+                               mock.Mock(return_value='fake')):
+            access = manager.list(share_type=share_type)
 
-    def test_remove_project_access(self):
-        cs.share_type_access.remove_project_access('3', PROJECT_UUID)
-        cs.assert_called('POST', '/types/3/action',
-                         {'removeProjectAccess': {'project': PROJECT_UUID}})
+            self.assertFalse(manager._list.called)
+            self.assertEqual(None, access)
+
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_add_project_access(self, microversion):
+        share_type = mock.Mock()
+        manager = self._get_share_type_access_manager(microversion)
+
+        with mock.patch.object(manager, '_action',
+                               mock.Mock(return_value='fake_action')):
+            manager.add_project_access(share_type, PROJECT_UUID)
+
+            manager._action.assert_called_once_with(
+                'addProjectAccess', share_type, {'project': PROJECT_UUID})
+
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_remove_project_access(self, microversion):
+        share_type = mock.Mock()
+        manager = self._get_share_type_access_manager(microversion)
+
+        with mock.patch.object(manager, '_action',
+                               mock.Mock(return_value='fake_action')):
+            manager.remove_project_access(share_type, PROJECT_UUID)
+
+            manager._action.assert_called_once_with(
+                'removeProjectAccess', share_type, {'project': PROJECT_UUID})

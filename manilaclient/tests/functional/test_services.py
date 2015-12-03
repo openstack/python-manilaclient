@@ -21,8 +21,10 @@ from manilaclient.tests.functional import base
 @ddt.ddt
 class ManilaClientTestServicesReadOnly(base.BaseTestCase):
 
-    def test_services_list(self):
-        self.clients['admin'].manila('service-list')
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_services_list(self, microversion):
+        self.skip_if_microversion_not_supported(microversion)
+        self.admin_client.manila('service-list', microversion=microversion)
 
     def test_list_with_debug_flag(self):
         self.clients['admin'].manila('service-list', flags='--debug')

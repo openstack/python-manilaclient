@@ -123,8 +123,7 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
 
         return self._list(path, RESOURCES_NAME)
 
-    @api_versions.wraps("2.4")
-    def delete(self, cg_snapshot, force=False):
+    def _do_delete(self, cg_snapshot, force=False, action_name='force_delete'):
         """Delete a consistency group snapshot.
 
         :param cg_snapshot: either a cg snapshot object or text wit its ID.
@@ -133,12 +132,20 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
         body = None
 
         if force:
-            body = {'os-force_delete': None}
+            body = {action_name: None}
 
         if body:
             self.api.client.post(RESOURCE_PATH_ACTION % cg_id, body=body)
         else:
             self._delete(RESOURCE_PATH % cg_id)
+
+    @api_versions.wraps("2.4", "2.6")
+    def delete(self, cg_snapshot, force=False):
+        return self._do_delete(cg_snapshot, force, 'os-force_delete')
+
+    @api_versions.wraps("2.7")  # noqa
+    def delete(self, cg_snapshot, force=False):
+        return self._do_delete(cg_snapshot, force, 'force_delete')
 
     @api_versions.wraps("2.4")
     def members(self, cg_snapshot, search_opts=None):
@@ -161,13 +168,20 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
 
         return self._list(path, MEMBERS_RESOURCE_NAME)
 
-    @api_versions.wraps("2.4")
-    def reset_state(self, cg_snapshot, state):
+    def _do_reset_state(self, cg_snapshot, state, action_name):
         """Update the specified consistency group with the provided state."""
-        body = {'os-reset_status': {'status': state}}
+        body = {action_name: {'status': state}}
         cg_id = common_base.getid(cg_snapshot)
         url = RESOURCE_PATH_ACTION % cg_id
         return self.api.client.post(url, body=body)
+
+    @api_versions.wraps("2.4", "2.6")
+    def reset_state(self, cg_snapshot, state):
+        return self._do_reset_state(cg_snapshot, state, 'os-reset_status')
+
+    @api_versions.wraps("2.7")  # noqa
+    def reset_state(self, cg_snapshot, state):
+        return self._do_reset_state(cg_snapshot, state, 'reset_status')
 
     def _query_string_helper(self, search_opts):
         q_string = parse.urlencode(

@@ -21,6 +21,7 @@ from tempest_lib import exceptions as lib_exc
 
 from manilaclient import config
 from manilaclient.tests.functional import client
+from manilaclient.tests.functional import utils
 
 CONF = config.CONF
 LOG = log.getLogger(__name__)
@@ -85,19 +86,25 @@ class BaseTestCase(base.ClientTestBase):
             if "client" not in res:
                 res["client"] = cls.get_cleanup_client()
             if not(res["deleted"]):
-                res_id = res['id']
+                res_id = res["id"]
                 client = res["client"]
                 with handle_cleanup_exceptions():
                     # TODO(vponomaryov): add support for other resources
                     if res["type"] is "share_type":
-                        client.delete_share_type(res_id)
-                        client.wait_for_share_type_deletion(res_id)
+                        client.delete_share_type(
+                            res_id, microversion=res["microversion"])
+                        client.wait_for_share_type_deletion(
+                            res_id, microversion=res["microversion"])
                     elif res["type"] is "share_network":
-                        client.delete_share_network(res_id)
-                        client.wait_for_share_network_deletion(res_id)
+                        client.delete_share_network(
+                            res_id, microversion=res["microversion"])
+                        client.wait_for_share_network_deletion(
+                            res_id, microversion=res["microversion"])
                     elif res["type"] is "share":
-                        client.delete_share(res_id)
-                        client.wait_for_share_deletion(res_id)
+                        client.delete_share(
+                            res_id, microversion=res["microversion"])
+                        client.wait_for_share_deletion(
+                            res_id, microversion=res["microversion"])
                     else:
                         LOG.warn("Provided unsupported resource type for "
                                  "cleanup '%s'. Skipping." % res["type"])
@@ -142,21 +149,29 @@ class BaseTestCase(base.ClientTestBase):
     def _get_clients(self):
         return {'admin': self.admin_client, 'user': self.user_client}
 
+    def skip_if_microversion_not_supported(self, microversion):
+        if not utils.is_microversion_supported(microversion):
+            raise self.skipException(
+                "Microversion '%s' is not supported." % microversion)
+
     @classmethod
     def create_share_type(cls, name=None, driver_handles_share_servers=True,
-                          snapshot_support=True,
-                          is_public=True, client=None, cleanup_in_class=True):
+                          snapshot_support=True, is_public=True, client=None,
+                          cleanup_in_class=True, microversion=None):
         if client is None:
             client = cls.get_admin_client()
         share_type = client.create_share_type(
             name=name,
             driver_handles_share_servers=driver_handles_share_servers,
             snapshot_support=snapshot_support,
-            is_public=is_public)
+            is_public=is_public,
+            microversion=microversion,
+        )
         resource = {
             "type": "share_type",
             "id": share_type["ID"],
             "client": client,
+            "microversion": microversion,
         }
         if cleanup_in_class:
             cls.class_resources.insert(0, resource)
@@ -168,7 +183,7 @@ class BaseTestCase(base.ClientTestBase):
     def create_share_network(cls, name=None, description=None,
                              nova_net_id=None, neutron_net_id=None,
                              neutron_subnet_id=None, client=None,
-                             cleanup_in_class=True):
+                             cleanup_in_class=True, microversion=None):
         if client is None:
             client = cls.get_admin_client()
         share_network = client.create_share_network(
@@ -176,11 +191,14 @@ class BaseTestCase(base.ClientTestBase):
             description=description,
             nova_net_id=nova_net_id,
             neutron_net_id=neutron_net_id,
-            neutron_subnet_id=neutron_subnet_id)
+            neutron_subnet_id=neutron_subnet_id,
+            microversion=microversion,
+        )
         resource = {
             "type": "share_network",
             "id": share_network["id"],
             "client": client,
+            "microversion": microversion,
         }
         if cleanup_in_class:
             cls.class_resources.insert(0, resource)
@@ -193,7 +211,7 @@ class BaseTestCase(base.ClientTestBase):
                      share_type=None, name=None, description=None,
                      public=False, snapshot=None, metadata=None,
                      client=None, cleanup_in_class=False,
-                     wait_for_creation=True):
+                     wait_for_creation=True, microversion=None):
         if client is None:
             client = cls.get_admin_client()
         data = {
@@ -204,6 +222,7 @@ class BaseTestCase(base.ClientTestBase):
             'public': public,
             'snapshot': snapshot,
             'metadata': metadata,
+            'microversion': microversion,
         }
         share_network = share_network or client.share_network
         share_type = share_type or CONF.share_type
@@ -216,6 +235,7 @@ class BaseTestCase(base.ClientTestBase):
             "type": "share",
             "id": share["id"],
             "client": client,
+            "microversion": microversion,
         }
         if cleanup_in_class:
             cls.class_resources.insert(0, resource)
@@ -229,7 +249,7 @@ class BaseTestCase(base.ClientTestBase):
     def create_security_service(cls, type='ldap', name=None, description=None,
                                 dns_ip=None, server=None, domain=None,
                                 user=None, password=None, client=None,
-                                cleanup_in_class=False):
+                                cleanup_in_class=False, microversion=None):
         if client is None:
             client = cls.get_admin_client()
         data = {
@@ -241,12 +261,14 @@ class BaseTestCase(base.ClientTestBase):
             'server': server,
             'domain': domain,
             'dns_ip': dns_ip,
+            'microversion': microversion,
         }
         ss = client.create_security_service(**data)
         resource = {
             "type": "share",
             "id": ss["id"],
             "client": client,
+            "microversion": microversion,
         }
         if cleanup_in_class:
             cls.class_resources.insert(0, resource)

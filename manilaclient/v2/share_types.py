@@ -18,6 +18,7 @@
 Share Type interface.
 """
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
@@ -38,8 +39,10 @@ class ShareType(common_base.Resource):
 
     @property
     def is_public(self):
-        """Provide a user-friendly accessor to os-share-type-access."""
-        return self._info.get("os-share-type-access:is_public", 'N/A')
+        """Provide a user-friendly accessor to [os-]share-type-access."""
+        return self._info.get(
+            "share_type_access:is_public",
+            self._info.get("os-share-type-access:is_public", "N/A"))
 
     def get_keys(self, prefer_resource_data=True):
         """Get extra specs from a share type.
@@ -130,8 +133,9 @@ class ShareTypeManager(base.ManagerWithFind):
         """
         self._delete("/types/%s" % common_base.getid(share_type))
 
-    def create(self, name, spec_driver_handles_share_servers,
-               spec_snapshot_support=True, is_public=True):
+    def _do_create(self, name, spec_driver_handles_share_servers,
+                   spec_snapshot_support=True, is_public=True,
+                   is_public_keyname="os-share-type-access:is_public"):
         """Create a share type.
 
         :param name: Descriptive name of the share type
@@ -141,7 +145,7 @@ class ShareTypeManager(base.ManagerWithFind):
         body = {
             "share_type": {
                 "name": name,
-                "os-share-type-access:is_public": is_public,
+                is_public_keyname: is_public,
                 "extra_specs": {
                     "driver_handles_share_servers":
                         spec_driver_handles_share_servers,
@@ -151,3 +155,23 @@ class ShareTypeManager(base.ManagerWithFind):
         }
 
         return self._create("/types", body, "share_type")
+
+    @api_versions.wraps("1.0", "2.6")
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=True, is_public=True):
+        return self._do_create(
+            name,
+            spec_driver_handles_share_servers,
+            spec_snapshot_support,
+            is_public,
+            "os-share-type-access:is_public")
+
+    @api_versions.wraps("2.7")  # noqa
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=True, is_public=True):
+        return self._do_create(
+            name,
+            spec_driver_handles_share_servers,
+            spec_snapshot_support,
+            is_public,
+            "share_type_access:is_public")

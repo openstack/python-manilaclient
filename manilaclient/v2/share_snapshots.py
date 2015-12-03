@@ -19,6 +19,7 @@ try:
 except ImportError:
     from urllib.parse import urlencode  # noqa
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common import constants
 from manilaclient.openstack.common.apiclient import base as common_base
@@ -127,9 +128,17 @@ class ShareSnapshotManager(base.ManagerWithFind):
         """
         self._delete("/snapshots/%s" % common_base.getid(snapshot))
 
-    def force_delete(self, snapshot):
+    def _do_force_delete(self, snapshot, action_name="force_delete"):
         """Delete the specified snapshot ignoring its current state."""
-        return self._action('os-force_delete', common_base.getid(snapshot))
+        return self._action(action_name, common_base.getid(snapshot))
+
+    @api_versions.wraps("1.0", "2.6")
+    def force_delete(self, snapshot):
+        return self._do_force_delete(snapshot, "os-force_delete")
+
+    @api_versions.wraps("2.7")  # noqa
+    def force_delete(self, snapshot):
+        return self._do_force_delete(snapshot, "force_delete")
 
     def update(self, snapshot, **kwargs):
         """Update a snapshot.
@@ -145,9 +154,17 @@ class ShareSnapshotManager(base.ManagerWithFind):
         snapshot_id = common_base.getid(snapshot)
         return self._update("/snapshots/%s" % snapshot_id, body)
 
-    def reset_state(self, snapshot, state):
+    def _do_reset_state(self, snapshot, state, action_name="reset_status"):
         """Update the specified share snapshot with the provided state."""
-        return self._action('os-reset_status', snapshot, {'status': state})
+        return self._action(action_name, snapshot, {"status": state})
+
+    @api_versions.wraps("1.0", "2.6")
+    def reset_state(self, snapshot, state):
+        return self._do_reset_state(snapshot, state, "os-reset_status")
+
+    @api_versions.wraps("2.7")  # noqa
+    def reset_state(self, snapshot, state):
+        return self._do_reset_state(snapshot, state, "reset_status")
 
     def _action(self, action, snapshot, info=None, **kwargs):
         """Perform a  snapshot 'action'."""

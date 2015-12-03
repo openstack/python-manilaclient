@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.openstack.common.apiclient import base as common_base
 
@@ -35,6 +36,7 @@ class ShareInstanceManager(base.ManagerWithFind):
     """Manage :class:`ShareInstances` resources."""
     resource_class = ShareInstance
 
+    @api_versions.wraps("2.3")
     def get(self, instance):
         """Get a share instance.
 
@@ -44,6 +46,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         share_id = common_base.getid(instance)
         return self._get("/share_instances/%s" % share_id, "share_instance")
 
+    @api_versions.wraps("2.3")
     def list(self):
         """List all share instances."""
         return self._list('/share_instances', 'share_instances')
@@ -61,17 +64,33 @@ class ShareInstanceManager(base.ManagerWithFind):
         url = '/share_instances/%s/action' % common_base.getid(instance)
         return self.api.client.post(url, body=body)
 
-    def force_delete(self, instance):
+    def _do_force_delete(self, instance, action_name="force_delete"):
         """Delete a share instance forcibly - share status will be avoided.
 
         :param instance: either share instance object or text with its ID.
         """
-        return self._action('os-force_delete', common_base.getid(instance))
+        return self._action(action_name, common_base.getid(instance))
 
-    def reset_state(self, instance, state):
+    @api_versions.wraps("2.3", "2.6")
+    def force_delete(self, instance):
+        return self._do_force_delete(instance, "os-force_delete")
+
+    @api_versions.wraps("2.7")  # noqa
+    def force_delete(self, instance):
+        return self._do_force_delete(instance, "force_delete")
+
+    def _do_reset_state(self, instance, state, action_name):
         """Update the provided share instance with the provided state.
 
         :param instance: either share object or text with its ID.
         :param state: text with new state to set for share.
         """
-        return self._action('os-reset_status', instance, {'status': state})
+        return self._action(action_name, instance, {"status": state})
+
+    @api_versions.wraps("2.3", "2.6")
+    def reset_state(self, instance, state):
+        return self._do_reset_state(instance, state, "os-reset_status")
+
+    @api_versions.wraps("2.7")  # noqa
+    def reset_state(self, instance, state):
+        return self._do_reset_state(instance, state, "reset_status")

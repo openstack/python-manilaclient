@@ -21,6 +21,7 @@ try:
 except ImportError:
     from urllib.parse import urlencode  # noqa
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common import constants
 from manilaclient import exceptions
@@ -185,7 +186,7 @@ class ShareManager(base.ManagerWithFind):
         }
         return self._create('/shares', {'share': body}, 'share')
 
-    def migrate_share(self, share, host, force_host_copy):
+    def _do_migrate_share(self, share, host, force_host_copy, action_name):
         """Migrate share to new host and pool.
 
         :param share: The :class:'share' to migrate
@@ -193,13 +194,24 @@ class ShareManager(base.ManagerWithFind):
         :param force_host_copy: Skip driver optimizations
         """
 
-        return self._action('os-migrate_share',
-                            share, {'host': host,
-                                    'force_host_copy': force_host_copy})
+        return self._action(
+            action_name, share,
+            {"host": host, "force_host_copy": force_host_copy})
 
-    def manage(self, service_host, protocol, export_path,
-               driver_options=None, share_type=None,
-               name=None, description=None):
+    @api_versions.wraps("2.5", "2.6")
+    def migrate_share(self, share, host, force_host_copy):
+        return self._do_migrate_share(
+            share, host, force_host_copy, "os-migrate_share")
+
+    @api_versions.wraps("2.7")  # noqa
+    def migrate_share(self, share, host, force_host_copy):
+        return self._do_migrate_share(
+            share, host, force_host_copy, "migrate_share")
+
+    def _do_manage(self, service_host, protocol, export_path,
+                   driver_options=None, share_type=None,
+                   name=None, description=None,
+                   resource_path="/shares/manage"):
         """Manage some existing share.
 
         :param service_host: text - host of share service where share is runing
@@ -220,8 +232,23 @@ class ShareManager(base.ManagerWithFind):
             'name': name,
             'description': description
         }
-        return self._create('/os-share-manage', {'share': body}, 'share')
+        return self._create(resource_path, {'share': body}, 'share')
 
+    @api_versions.wraps("1.0", "2.6")
+    def manage(self, service_host, protocol, export_path, driver_options=None,
+               share_type=None, name=None, description=None):
+        return self._do_manage(
+            service_host, protocol, export_path, driver_options, share_type,
+            name, description, "/os-share-manage")
+
+    @api_versions.wraps("2.7")  # noqa
+    def manage(self, service_host, protocol, export_path, driver_options=None,
+               share_type=None, name=None, description=None):
+        return self._do_manage(
+            service_host, protocol, export_path, driver_options, share_type,
+            name, description, "/shares/manage")
+
+    @api_versions.wraps("1.0", "2.6")
     def unmanage(self, share):
         """Unmanage a share.
 
@@ -229,6 +256,14 @@ class ShareManager(base.ManagerWithFind):
         """
         return self.api.client.post(
             "/os-share-unmanage/%s/unmanage" % common_base.getid(share))
+
+    @api_versions.wraps("2.7")  # noqa
+    def unmanage(self, share):
+        """Unmanage a share.
+
+        :param share: either share object or text with its ID.
+        """
+        return self._action("unmanage", share)
 
     def get(self, share):
         """Get a share.
@@ -334,14 +369,22 @@ class ShareManager(base.ManagerWithFind):
             url += "?consistency_group_id=%s" % consistency_group_id
         self._delete(url)
 
-    def force_delete(self, share):
+    def _do_force_delete(self, share, action_name):
         """Delete a share forcibly - share status will be avoided.
 
         :param share: either share object or text with its ID.
         """
-        return self._action('os-force_delete', common_base.getid(share))
+        return self._action(action_name, share)
 
-    def allow(self, share, access_type, access, access_level):
+    @api_versions.wraps("1.0", "2.6")
+    def force_delete(self, share):
+        return self._do_force_delete(share, "os-force_delete")
+
+    @api_versions.wraps("2.7")  # noqa
+    def force_delete(self, share):
+        return self._do_force_delete(share, "force_delete")
+
+    def _do_allow(self, share, access_type, access, access_level, action_name):
         """Allow access to a share.
 
         :param share: either share object or text with its ID.
@@ -355,30 +398,56 @@ class ShareManager(base.ManagerWithFind):
         }
         if access_level:
             access_params['access_level'] = access_level
-        access = self._action('os-allow_access', share,
+        access = self._action(action_name, share,
                               access_params)[1]["access"]
 
         return access
 
-    def deny(self, share, access_id):
+    @api_versions.wraps("1.0", "2.6")
+    def allow(self, share, access_type, access, access_level):
+        return self._do_allow(
+            share, access_type, access, access_level, "os-allow_access")
+
+    @api_versions.wraps("2.7")  # noqa
+    def allow(self, share, access_type, access, access_level):
+        return self._do_allow(
+            share, access_type, access, access_level, "allow_access")
+
+    def _do_deny(self, share, access_id, action_name):
         """Deny access to a share.
 
         :param share: either share object or text with its ID.
         :param access_id: ID of share access rule
         """
-        return self._action('os-deny_access', share, {'access_id': access_id})
+        return self._action(action_name, share, {"access_id": access_id})
 
-    def access_list(self, share):
+    @api_versions.wraps("1.0", "2.6")
+    def deny(self, share, access_id):
+        return self._do_deny(share, access_id, "os-deny_access")
+
+    @api_versions.wraps("2.7")  # noqa
+    def deny(self, share, access_id):
+        return self._do_deny(share, access_id, "deny_access")
+
+    def _do_access_list(self, share, action_name):
         """Get access list to a share.
 
         :param share: either share object or text with its ID.
         """
-        access_list = self._action("os-access_list", share)[1]["access_list"]
+        access_list = self._action(action_name, share)[1]["access_list"]
         if access_list:
             t = collections.namedtuple('Access', list(access_list[0]))
             return [t(*value.values()) for value in access_list]
         else:
             return []
+
+    @api_versions.wraps("1.0", "2.6")
+    def access_list(self, share):
+        return self._do_access_list(share, "os-access_list")
+
+    @api_versions.wraps("2.7")  # noqa
+    def access_list(self, share):
+        return self._do_access_list(share, "access_list")
 
     def get_metadata(self, share):
         """Get metadata of a share.
@@ -432,29 +501,53 @@ class ShareManager(base.ManagerWithFind):
         url = '/shares/%s/action' % common_base.getid(share)
         return self.api.client.post(url, body=body)
 
-    def reset_state(self, share, state):
+    def _do_reset_state(self, share, state, action_name):
         """Update the provided share with the provided state.
 
         :param share: either share object or text with its ID.
         :param state: text with new state to set for share.
         """
-        return self._action('os-reset_status', share, {'status': state})
+        return self._action(action_name, share, {"status": state})
 
-    def extend(self, share, new_size):
+    @api_versions.wraps("1.0", "2.6")
+    def reset_state(self, share, state):
+        return self._do_reset_state(share, state, "os-reset_status")
+
+    @api_versions.wraps("2.7")  # noqa
+    def reset_state(self, share, state):
+        return self._do_reset_state(share, state, "reset_status")
+
+    def _do_extend(self, share, new_size, action_name):
         """Extend the size of the specified share.
 
         :param share: either share object or text with its ID.
         :param new_size: The desired size to extend share to.
         """
-        return self._action('os-extend', share, {'new_size': new_size})
+        return self._action(action_name, share, {"new_size": new_size})
 
-    def shrink(self, share, new_size):
+    @api_versions.wraps("1.0", "2.6")
+    def extend(self, share, new_size):
+        return self._do_extend(share, new_size, "os-extend")
+
+    @api_versions.wraps("2.7")  # noqa
+    def extend(self, share, new_size):
+        return self._do_extend(share, new_size, "extend")
+
+    def _do_shrink(self, share, new_size, action_name):
         """Shrink the size of the specified share.
 
         :param share: either share object or text with its ID.
         :param new_size: The desired size to shrink share to.
         """
-        return self._action('os-shrink', share, {'new_size': new_size})
+        return self._action(action_name, share, {'new_size': new_size})
+
+    @api_versions.wraps("1.0", "2.6")
+    def shrink(self, share, new_size):
+        return self._do_shrink(share, new_size, "os-shrink")
+
+    @api_versions.wraps("2.7")  # noqa
+    def shrink(self, share, new_size):
+        return self._do_shrink(share, new_size, "shrink")
 
     def list_instances(self, share):
         """List instances of the specified share.

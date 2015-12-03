@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import ddt
 from tempest_lib import exceptions as tempest_lib_exc
 
 from manilaclient import config
@@ -21,6 +22,7 @@ from manilaclient.tests.functional import base
 CONF = config.CONF
 
 
+@ddt.ddt
 class ShareAccessReadWriteBase(base.BaseTestCase):
     protocol = None
     access_level = None
@@ -47,30 +49,51 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
         cls.share = cls.create_share(share_protocol=cls.protocol,
                                      public=True,
                                      cleanup_in_class=True)
+        cls.share_id = cls.share['id']
 
+        # NOTE(vponomaryov): increase following int range when significant
+        # amount of new tests is added.
+        int_range = range(20, 50)
         cls.access_to = {
-            'ip': '10.0.0.1',
-            'user': CONF.username_for_user_rules,
-            'cert': 'tenant.example.com',
+            # NOTE(vponomaryov): list of unique values is required for ability
+            # to create lots of access rules for one share using different
+            # API microversions.
+            'ip': ['99.88.77.%d' % i for i in int_range],
+            # NOTE(vponomaryov): following users are fakes and access rules
+            # that use it are expected to fail, but they are used only for
+            # API testing.
+            'user': ['foo_user_%d' % i for i in int_range],
+            'cert': ['tenant_%d.example.com' % i for i in int_range],
         }
 
-    def test_list_access_rule_for_share(self):
-        access_to = {
-            'ip': '10.0.0.1',
-            'user': CONF.username_for_user_rules,
-            'cert': 'tenant.example.com',
-        }
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_create_list_access_rule_for_share(self, microversion):
+        self.skip_if_microversion_not_supported(microversion)
+
         access_type = self.access_types[0]
-        access = self.user_client.access_allow(self.share['id'], access_type,
-                                               access_to[access_type],
-                                               self.access_level)
-        access_list = self.user_client.list_access(self.share['id'])
+
+        access = self.user_client.access_allow(
+            self.share['id'], access_type, self.access_to[access_type].pop(),
+            self.access_level, microversion=microversion)
+
+        access_list = self.user_client.list_access(
+            self.share['id'], microversion=microversion)
+
         self.assertTrue(any(
             [item for item in access_list if access['id'] == item['id']]))
 
-    def _create_delete_access_rule(self, share_id, access_type, access_to):
-        access = self.user_client.access_allow(share_id, access_type,
-                                               access_to, self.access_level)
+    def _create_delete_access_rule(self, share_id, access_type, access_to,
+                                   microversion=None):
+        self.skip_if_microversion_not_supported(microversion)
+        if access_type not in self.access_types:
+            raise self.skipException(
+                "'%(access_type)s' access rules is disabled for protocol "
+                "'%(protocol)s'." % {"access_type": access_type,
+                                     "protocol": self.protocol})
+
+        access = self.user_client.access_allow(
+            share_id, access_type, access_to, self.access_level,
+            microversion=microversion)
 
         self.assertEqual(share_id, access.get('share_id'))
         self.assertEqual(access_type, access.get('access_type'))
@@ -85,25 +108,20 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
         self.assertRaises(tempest_lib_exc.NotFound,
                           self.user_client.get_access, share_id, access['id'])
 
-    def test_create_delete_ip_access_rule(self):
-        if 'ip' not in self.access_types:
-            raise self.skipException("IP access rule is disabled for protocol "
-                                     "%s." % self.protocol)
-        self._create_delete_access_rule(self.share['id'], 'ip', '10.0.0.1')
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_create_delete_ip_access_rule(self, microversion):
+        self._create_delete_access_rule(
+            self.share_id, 'ip', self.access_to['ip'].pop(), microversion)
 
-    def test_create_delete_user_access_rule(self):
-        if 'user' not in self.access_types:
-            raise self.skipException("User access rule is disabled for "
-                                     "protocol %s." % self.protocol)
-        self._create_delete_access_rule(self.share['id'], 'user',
-                                        CONF.username_for_user_rules)
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_create_delete_user_access_rule(self, microversion):
+        self._create_delete_access_rule(
+            self.share_id, 'user', CONF.username_for_user_rules, microversion)
 
-    def test_create_delete_cert_access_rule(self):
-        if 'cert' not in self.access_types:
-            raise self.skipException("Cert access rule is disabled for "
-                                     "protocol %s." % self.protocol)
-        self._create_delete_access_rule(self.share['id'], 'cert',
-                                        'tenant.example.com')
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_create_delete_cert_access_rule(self, microversion):
+        self._create_delete_access_rule(
+            self.share_id, 'cert', self.access_to['cert'].pop(), microversion)
 
 
 class NFSShareRWAccessReadWriteTest(ShareAccessReadWriteBase):

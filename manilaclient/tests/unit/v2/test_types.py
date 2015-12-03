@@ -14,6 +14,7 @@
 import ddt
 import mock
 
+from manilaclient import api_versions
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_types
@@ -23,6 +24,11 @@ cs = fakes.FakeClient()
 
 @ddt.ddt
 class TypesTest(utils.TestCase):
+
+    def _get_share_types_manager(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        return share_types.ShareTypeManager(api=mock_microversion)
 
     @ddt.data(
         {'snapshot_support': 'False'},
@@ -67,10 +73,11 @@ class TypesTest(utils.TestCase):
     )
     @ddt.unpack
     def test_create(self, is_public, dhss, snapshot_support):
+        manager = self._get_share_types_manager("2.7")
         expected_body = {
             "share_type": {
                 "name": 'test-type-3',
-                'os-share-type-access:is_public': is_public,
+                'share_type_access:is_public': is_public,
                 "extra_specs": {
                     "driver_handles_share_servers": dhss,
                     "snapshot_support": snapshot_support,
@@ -78,17 +85,32 @@ class TypesTest(utils.TestCase):
             }
         }
 
-        result = cs.share_types.create(
-            'test-type-3', dhss, snapshot_support, is_public=is_public)
-        cs.assert_called('POST', '/types', expected_body)
-        self.assertIsInstance(result, share_types.ShareType)
+        with mock.patch.object(manager, '_create',
+                               mock.Mock(return_value="fake")):
+            result = manager.create(
+                'test-type-3', dhss, snapshot_support, is_public=is_public)
 
-    @ddt.data(True, False)
-    def test_create_with_default_values(self, dhss):
+            manager._create.assert_called_once_with(
+                "/types", expected_body, "share_type")
+            self.assertEqual("fake", result)
+
+    @ddt.data(
+        ("2.6", True),
+        ("2.7", True),
+        ("2.6", False),
+        ("2.7", False),
+    )
+    @ddt.unpack
+    def test_create_with_default_values(self, microversion, dhss):
+        manager = self._get_share_types_manager(microversion)
+        if float(microversion) > 2.6:
+            is_public_keyname = "share_type_access:is_public"
+        else:
+            is_public_keyname = "os-share-type-access:is_public"
         expected_body = {
             "share_type": {
                 "name": 'test-type-3',
-                'os-share-type-access:is_public': True,
+                is_public_keyname: True,
                 "extra_specs": {
                     "driver_handles_share_servers": dhss,
                     "snapshot_support": True,
@@ -96,9 +118,13 @@ class TypesTest(utils.TestCase):
             }
         }
 
-        result = cs.share_types.create('test-type-3', dhss)
-        cs.assert_called('POST', '/types', expected_body)
-        self.assertIsInstance(result, share_types.ShareType)
+        with mock.patch.object(manager, '_create',
+                               mock.Mock(return_value="fake")):
+            result = manager.create('test-type-3', dhss)
+
+            manager._create.assert_called_once_with(
+                "/types", expected_body, "share_type")
+            self.assertEqual("fake", result)
 
     def test_set_key(self):
         t = cs.share_types.get(1)
