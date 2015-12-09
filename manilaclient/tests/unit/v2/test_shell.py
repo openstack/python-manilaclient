@@ -103,6 +103,13 @@ class ShellTest(test_utils.TestCase):
         self.run_command('service-list')
         self.assert_called('GET', '/services')
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_service_list_select_column(self):
+        self.run_command('service-list --columns id,host')
+        self.assert_called('GET', '/services')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Host'])
+
     def test_service_enable(self):
         self.run_command('service-enable foo_host@bar_backend manila-share')
         self.assert_called(
@@ -121,6 +128,14 @@ class ShellTest(test_utils.TestCase):
         self.run_command('list')
         # NOTE(jdg): we default to detail currently
         self.assert_called('GET', '/shares/detail')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_select_column(self):
+        self.run_command('list --column id,name')
+        self.assert_called('GET', '/shares/detail')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['Id', 'Name'])
 
     def test_list_filter_status(self):
         for separator in self.separators:
@@ -296,6 +311,15 @@ class ShellTest(test_utils.TestCase):
             ['ID', 'Share ID', 'Host', 'Status', 'Availability Zone',
              'Share Network ID', 'Share Server ID'])
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_instance_list_select_column(self):
+        self.run_command('share-instance-list --column id,host,status')
+
+        self.assert_called('GET', '/share_instances')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['Id', 'Host', 'Status'])
+
     @mock.patch.object(apiclient_utils, 'find_resource',
                        mock.Mock(return_value='fake'))
     def test_share_instance_list_with_share(self):
@@ -336,8 +360,18 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/types')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs',
+            ['ID', 'Name', 'visibility', 'is_default', 'required_extra_specs',
              'optional_extra_specs'],
+            mock.ANY)
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_type_list_select_column(self):
+        self.run_command('type-list --columns id,name')
+
+        self.assert_called('GET', '/types')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['id', 'name'],
             mock.ANY)
 
     def test_type_list_default_volume_type(self):
@@ -497,6 +531,14 @@ class ShellTest(test_utils.TestCase):
         self.run_command('snapshot-list')
         self.assert_called('GET', '/snapshots/detail')
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_snapshot_list_select_column(self):
+        self.run_command('snapshot-list --columns id,name')
+        self.assert_called('GET', '/snapshots/detail')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['Id', 'Name'])
+
     def test_list_snapshots_all_tenants_only_key(self):
         self.run_command('snapshot-list --all-tenants')
         self.assert_called('GET', '/snapshots/detail?all_tenants=1')
@@ -602,6 +644,14 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/types?is_public=all')
         cliutils.print_list.assert_called_once_with(
             mock.ANY, ['ID', 'Name', 'all_extra_specs'], mock.ANY)
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_extra_specs_list_select_column(self):
+        self.run_command('extra-specs-list --columns id,name')
+
+        self.assert_called('GET', '/types?is_public=all')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, ['id', 'name'], mock.ANY)
 
     @ddt.data('fake', 'FFFalse', 'trueee')
     def test_type_create_invalid_dhss_value(self, value):
@@ -862,6 +912,17 @@ class ShellTest(test_utils.TestCase):
             fields=['id', 'name'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_network_list_select_column(self):
+        self.run_command('share-network-list --columns id')
+        self.assert_called(
+            'GET',
+            '/share-networks/detail',
+        )
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['Id'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_all_tenants(self):
         self.run_command('share-network-list --all-tenants')
         self.assert_called(
@@ -1048,6 +1109,18 @@ class ShellTest(test_utils.TestCase):
             '/share-networks/1234/action',
         )
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_network_security_service_list_select_column(self):
+        self.run_command('share-network-security-service-list '
+                         'fake_share_nw --column id,name')
+        self.assert_called(
+            'GET',
+            '/security-services/detail?share_network_id=1234',
+        )
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['Id', 'Name'])
+
     def test_share_network_security_service_list_by_name(self):
         self.run_command('share-network-security-service-list fake_share_nw')
         self.assert_called(
@@ -1075,6 +1148,14 @@ class ShellTest(test_utils.TestCase):
             'GET',
             '/security-services/detail?share_network_id=1111',
         )
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_server_list_select_column(self):
+        self.run_command('share-server-list --columns id,host,status')
+        self.assert_called('GET', '/share-servers')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['Id', 'Host', 'Status'])
 
     def test_share_server_delete(self):
         self.run_command('share-server-delete 1234')
@@ -1184,7 +1265,14 @@ class ShellTest(test_utils.TestCase):
         self.run_command("access-list 1111")
         cliutils.print_list.assert_called_with(
             mock.ANY,
-            ['id', 'access type', 'access to', 'access level', 'state'])
+            ['id', 'access_type', 'access_to', 'access_level', 'state'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_access_list_select_column(self):
+        self.run_command("access-list 1111 --columns id,access_type")
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            ['Id', 'Access_Type'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list(self):
@@ -1196,6 +1284,17 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_security_service_list_select_column(self):
+        self.run_command('security-service-list --columns name,type')
+        self.assert_called(
+            'GET',
+            '/security-services',
+        )
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['Name', 'Type'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     @mock.patch.object(shell_v2, '_find_share_network', mock.Mock())
@@ -1331,6 +1430,17 @@ class ShellTest(test_utils.TestCase):
             fields=["Name", "Host", "Backend", "Pool"])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_pool_list_select_column(self):
+        self.run_command('pool-list --columns name,host')
+        self.assert_called(
+            'GET',
+            '/scheduler-stats/pools?backend=.%2A&host=.%2A&pool=.%2A',
+        )
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            fields=["Name", "Host"])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list_with_filters(self):
         self.run_command(
             'pool-list --host host1 --backend backend1 --pool pool1')
@@ -1358,6 +1468,14 @@ class ShellTest(test_utils.TestCase):
 
         cliutils.print_list.assert_called_once_with(
             mock.ANY, fields=['id', 'name', 'description', 'status'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_cg_list_select_column(self):
+        self.run_command('cg-list --columns id,name,description')
+        self.assert_called('GET', '/consistency-groups/detail')
+
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Name', 'Description'])
 
     @ddt.data(
         '--source-cgsnapshot-id fake-cg-id',
@@ -1420,6 +1538,14 @@ class ShellTest(test_utils.TestCase):
 
         cliutils.print_list.assert_called_once_with(
             mock.ANY, fields=['id', 'name', 'description', 'status'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_cg_snapshot_list_select_column(self):
+        self.run_command('cg-snapshot-list --columns id,name')
+        self.assert_called('GET', '/cgsnapshots/detail')
+
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Name'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())

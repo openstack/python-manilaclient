@@ -180,6 +180,23 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         snapshot = {'snapshot': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, snapshot)
 
+    def get_share_servers(self, **kw):
+        share_servers = {
+            'share_servers': [
+                {
+                    'id': 1234,
+                    'host': 'fake_host',
+                    'status': 'fake_status',
+                    'share_network': 'fake_share_nw',
+                    'project_id': 'fake_project_id',
+                    'updated_at': 'fake_updated_at',
+                    'name': 'fake_name',
+                    'share_name': 'fake_share_name',
+                }
+            ]
+        }
+        return (200, {}, share_servers)
+
     def post_snapshots_1234_action(self, body, **kw):
         _body = None
         resp = 202

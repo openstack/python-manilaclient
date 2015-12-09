@@ -178,14 +178,18 @@ class ManilaCLIClient(base.CLIClient):
         return self.manila(
             'type-delete %s' % share_type, microversion=microversion)
 
-    def list_share_types(self, list_all=True, microversion=None):
+    def list_share_types(self, list_all=True, columns=None, microversion=None):
         """List share types.
 
         :param list_all: bool -- whether to list all share types or only public
+        :param columns: comma separated string of columns.
+            Example, "--columns id,name"
         """
         cmd = 'type-list'
         if list_all:
             cmd += ' --all'
+        if columns is not None:
+            cmd += ' --columns ' + columns
         share_types_raw = self.manila(cmd, microversion=microversion)
         share_types = output_parser.listing(share_types_raw)
         return share_types
@@ -400,7 +404,7 @@ class ManilaCLIClient(base.CLIClient):
         return param.replace('_', '-')
 
     def list_share_networks(self, all_tenants=False, filters=None,
-                            microversion=None):
+                            columns=None, microversion=None):
         """List share networks.
 
         :param all_tenants: bool -- whether to list share-networks that belong
@@ -412,10 +416,14 @@ class ManilaCLIClient(base.CLIClient):
                 {'--project_id': 'foo'}
                 {'project-id': 'foo'}
             will be transformed to filter parameter "--project-id=foo"
+         :param columns: comma separated string of columns.
+            Example, "--columns id"
         """
         cmd = 'share-network-list '
+        if columns is not None:
+            cmd += ' --columns ' + columns
         if all_tenants:
-            cmd += '--all-tenants '
+            cmd += ' --all-tenants '
         if filters and isinstance(filters, dict):
             for k, v in filters.items():
                 cmd += '%(k)s=%(v)s ' % {
@@ -668,9 +676,17 @@ class ManilaCLIClient(base.CLIClient):
         return metadata
 
     @not_found_wrapper
-    def list_access(self, share_id, microversion=None):
-        access_list_raw = self.manila(
-            'access-list %s' % share_id, microversion=microversion)
+    def list_access(self, share_id, columns=None, microversion=None):
+        """Returns list of access rules for a share.
+
+        :param share_id: str -- Name or ID of a share.
+        :param columns: comma separated string of columns.
+            Example, "--columns access_type,access_to"
+        """
+        cmd = 'access-list %s ' % share_id
+        if columns is not None:
+            cmd += ' --columns ' + columns
+        access_list_raw = self.manila(cmd, microversion=microversion)
         return output_parser.listing(access_list_raw)
 
     @not_found_wrapper

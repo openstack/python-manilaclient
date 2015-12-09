@@ -66,21 +66,46 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
             'cert': ['tenant_%d.example.com' % i for i in int_range],
         }
 
-    @ddt.data("1.0", "2.0", "2.6", "2.7")
-    def test_create_list_access_rule_for_share(self, microversion):
-        self.skip_if_microversion_not_supported(microversion)
-
+    def _test_create_list_access_rule_for_share(self, microversion):
         access_type = self.access_types[0]
 
         access = self.user_client.access_allow(
             self.share['id'], access_type, self.access_to[access_type].pop(),
             self.access_level, microversion=microversion)
+        return access
 
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_create_list_access_rule_for_share(self, microversion):
+        self.skip_if_microversion_not_supported(microversion)
+        access = self._test_create_list_access_rule_for_share(
+            microversion=microversion)
         access_list = self.user_client.list_access(
-            self.share['id'], microversion=microversion)
-
+            self.share['id'],
+            microversion=microversion
+        )
         self.assertTrue(any(
             [item for item in access_list if access['id'] == item['id']]))
+        self.assertTrue(any(a['access_type'] is not None for a in access_list))
+        self.assertTrue(any(a['access_to'] is not None for a in access_list))
+        self.assertTrue(any(a['access_level'] is not None
+                        for a in access_list))
+
+    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    def test_create_list_access_rule_for_share_select_column(
+            self,
+            microversion):
+        self.skip_if_microversion_not_supported(microversion)
+        self._test_create_list_access_rule_for_share(
+            microversion=microversion)
+        access_list = self.user_client.list_access(
+            self.share['id'],
+            columns="access_type,access_to",
+            microversion=microversion
+        )
+        self.assertTrue(any(a['Access_Type'] is not None for a in access_list))
+        self.assertTrue(any(a['Access_To'] is not None for a in access_list))
+        self.assertTrue(all('Access_Level' not in a for a in access_list))
+        self.assertTrue(all('access_level' not in a for a in access_list))
 
     def _create_delete_access_rule(self, share_id, access_type, access_to,
                                    microversion=None):

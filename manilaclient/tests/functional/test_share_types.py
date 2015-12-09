@@ -198,6 +198,40 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
             st_id, microversion=microversion)
         self.assertNotIn(user_project_id, st_access_list)
 
+    @ddt.data("2.6", "2.7")
+    def test_list_share_type(self, microversion):
+        share_type_name = data_utils.rand_name('manilaclient_functional_test')
+
+        # Create share type
+        self.create_share_type(
+            name=share_type_name,
+            driver_handles_share_servers='False')
+        share_types = self.admin_client.list_share_types(
+            list_all=True,
+            microversion=microversion
+        )
+        self.assertTrue(any(s['ID'] is not None for s in share_types))
+        self.assertTrue(any(s['Name'] is not None for s in share_types))
+        self.assertTrue(any(s['visibility'] is not None for s in share_types))
+
+    @ddt.data("2.6", "2.7")
+    def test_list_share_type_select_column(self, microversion):
+        share_type_name = data_utils.rand_name('manilaclient_functional_test')
+
+        # Create share type
+        self.create_share_type(
+            name=share_type_name,
+            driver_handles_share_servers='False')
+        share_types = self.admin_client.list_share_types(
+            list_all=True,
+            columns="id,name",
+            microversion=microversion
+        )
+        self.assertTrue(any(s['id'] is not None for s in share_types))
+        self.assertTrue(any(s['name'] is not None for s in share_types))
+        self.assertTrue(all('visibility' not in s for s in share_types))
+        self.assertTrue(all('Visibility' not in s for s in share_types))
+
 
 @ddt.ddt
 class ShareTypeExtraSpecsReadWriteTest(base.BaseTestCase):

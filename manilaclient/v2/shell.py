@@ -426,10 +426,21 @@ def do_absolute_limits(cs, args):
     cliutils.print_list(limits, columns)
 
 
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "verb,uri,value"')
 def do_rate_limits(cs, args):
     """Print a list of rate limits for a user."""
     limits = cs.limits.get().rate
     columns = ['Verb', 'URI', 'Value', 'Remain', 'Unit', 'Next_Available']
+
+    if args.columns is not None:
+        columns = _split_columns(columns=args.columns)
+
     cliutils.print_list(limits, columns)
 
 
@@ -784,13 +795,25 @@ def do_access_deny(cs, args):
     'share',
     metavar='<share>',
     help='Name or ID of the share.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "access_type,access_to"')
 def do_access_list(cs, args):
     """Show access list for share."""
+    list_of_keys = [
+        'id', 'access_type', 'access_to', 'access_level', 'state'
+    ]
+
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+
     share = _find_share(cs, args.share)
     access_list = share.access_list()
-    cliutils.print_list(
-        access_list,
-        ['id', 'access type', 'access to', 'access level', 'state'])
+    cliutils.print_list(access_list, list_of_keys)
 
 
 @cliutils.arg(
@@ -939,9 +962,8 @@ def do_list(cs, args):
         'Share Type Name', 'Host', 'Availability Zone'
     ]
 
-    columns = args.columns
-    if columns is not None:
-        list_of_keys = map(lambda x: x.strip().title(), columns.split(","))
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
 
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     empty_obj = type('Empty', (object,), {'id': None})
@@ -993,6 +1015,13 @@ def do_list(cs, args):
     default=None,
     action='single_alias',
     help='Filter results by share ID.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,host,status"')
 @api_versions.wraps("2.3")
 def do_share_instance_list(cs, args):
     """List share instances."""
@@ -1002,6 +1031,10 @@ def do_share_instance_list(cs, args):
         'ID', 'Share ID', 'Host', 'Status', 'Availability Zone',
         'Share Network ID', 'Share Server ID'
     ]
+
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+
     if share:
         instances = cs.shares.list_instances(share)
     else:
@@ -1128,11 +1161,22 @@ def do_share_instance_reset_state(cs, args):
     action='single_alias',
     help='Sort direction, available values are %(values)s. '
          'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES})
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
     list_of_keys = [
         'ID', 'Share ID', 'Status', 'Name', 'Share Size',
     ]
+
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     empty_obj = type('Empty', (object,), {'id': None})
     share = _find_share(cs, args.share_id) if args.share_id else empty_obj
@@ -1528,6 +1572,13 @@ def do_share_network_show(cs, args):
     type=int,
     default=None,
     help='Number of share networks to return per request.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id"')
 def do_share_network_list(cs, args):
     """Get a list of network info."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -1552,6 +1603,10 @@ def do_share_network_list(cs, args):
             cs, args.security_service).id
     share_networks = cs.share_networks.list(search_opts=search_opts)
     fields = ['id', 'name']
+
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
     cliutils.print_list(share_networks, fields=fields)
 
 
@@ -1589,6 +1644,13 @@ def do_share_network_security_service_remove(cs, args):
     'share_network',
     metavar='<share-network>',
     help='Share network name or ID.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
 def do_share_network_security_service_list(cs, args):
     """Get list of security services associated with a given share network."""
     share_network = _find_share_network(cs, args.share_network)
@@ -1597,6 +1659,10 @@ def do_share_network_security_service_list(cs, args):
     }
     security_services = cs.security_services.list(search_opts=search_opts)
     fields = ['id', 'name', 'status', 'type', ]
+
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
     cliutils.print_list(security_services, fields=fields)
 
 
@@ -1802,6 +1868,13 @@ def do_security_service_show(cs, args):
     metavar="<limit>",
     default=None,
     help='Number of security services to return per request.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "name,type"')
 def do_security_service_list(cs, args):
     """Get a list of security services."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -1823,6 +1896,9 @@ def do_security_service_list(cs, args):
     security_services = cs.security_services.list(search_opts=search_opts,
                                                   detailed=args.detailed)
     fields = ['id', 'name', 'status', 'type', ]
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
     if args.detailed:
         fields.append('share_networks')
     cliutils.print_list(security_services, fields=fields)
@@ -1858,6 +1934,13 @@ def do_security_service_delete(cs, args):
     metavar='<project_id>',
     default=None,
     help='Filter results by project ID.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,host,status"')
 def do_share_server_list(cs, args):
     """List all share servers."""
     search_opts = {
@@ -1874,6 +1957,10 @@ def do_share_server_list(cs, args):
         "Project Id",
         "Updated_at",
     ]
+
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
     share_servers = cs.share_servers.list(search_opts=search_opts)
     cliutils.print_list(share_servers, fields=fields)
 
@@ -1939,6 +2026,13 @@ def do_share_server_delete(cs, args):
     metavar='<zone>',
     default=None,
     help='Availability zone.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,host"')
 def do_service_list(cs, args):
     """List all services."""
     search_opts = {
@@ -1949,6 +2043,10 @@ def do_service_list(cs, args):
         'state': args.state,
     }
     fields = ["Id", "Binary", "Host", "Zone", "Status", "State", "Updated_at"]
+
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
     services = cs.services.list(search_opts=search_opts)
     cliutils.print_list(services, fields=fields)
 
@@ -2019,7 +2117,7 @@ def _is_share_type_public(share_type):
     return 'public' if share_type.is_public else 'private'
 
 
-def _print_share_type_list(stypes, default_share_type=None):
+def _print_share_type_list(stypes, default_share_type=None, columns=None):
 
     def _is_default(share_type):
         if share_type == default_share_type:
@@ -2028,7 +2126,7 @@ def _print_share_type_list(stypes, default_share_type=None):
             return '-'
 
     formatters = {
-        'Visibility': _is_share_type_public,
+        'visibility': _is_share_type_public,
         'is_default': _is_default,
         'required_extra_specs': _print_type_required_extra_specs,
         'optional_extra_specs': _print_type_optional_extra_specs,
@@ -2036,16 +2134,19 @@ def _print_share_type_list(stypes, default_share_type=None):
 
     for stype in stypes:
         stype = stype.to_dict()
-        stype['Visibility'] = stype.pop('is_public', 'unknown')
+        stype['visibility'] = stype.pop('is_public', 'unknown')
 
     fields = [
         'ID',
         'Name',
-        'Visibility',
+        'visibility',
         'is_default',
         'required_extra_specs',
         'optional_extra_specs',
     ]
+    if columns is not None:
+        fields = _split_columns(columns=columns, title=False)
+
     cliutils.print_list(stypes, fields, formatters)
 
 
@@ -2068,11 +2169,15 @@ def _print_share_type(stype, default_share_type=None):
     cliutils.print_dict(stype_dict)
 
 
-def _print_type_and_extra_specs_list(stypes):
+def _print_type_and_extra_specs_list(stypes, columns=None):
     formatters = {
         'all_extra_specs': _print_type_extra_specs,
     }
     fields = ['ID', 'Name', 'all_extra_specs']
+
+    if columns is not None:
+        fields = _split_columns(columns=columns, title=False)
+
     cliutils.print_list(stypes, fields, formatters)
 
 
@@ -2087,6 +2192,13 @@ def _find_share_type(cs, stype):
     action='store_true',
     default=False,
     help='Display all share types (Admin only).')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
 def do_type_list(cs, args):
     """Print a list of available 'share types'."""
     try:
@@ -2095,13 +2207,21 @@ def do_type_list(cs, args):
         default = None
 
     stypes = cs.share_types.list(show_all=args.all)
-    _print_share_type_list(stypes, default_share_type=default)
+    _print_share_type_list(stypes, default_share_type=default,
+                           columns=args.columns)
 
 
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
 def do_extra_specs_list(cs, args):
     """Print a list of current 'share types and extra specs' (Admin Only)."""
     stypes = cs.share_types.list()
-    _print_type_and_extra_specs_list(stypes)
+    _print_type_and_extra_specs_list(stypes, columns=args.columns)
 
 
 @cliutils.arg(
@@ -2210,6 +2330,13 @@ def do_type_key(cs, args):
     type=str,
     default='.*',
     help='Filter results by pool name.  Regular expressions are supported.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "name,host"')
 def do_pool_list(cs, args):
     """List all backend storage pools known to the scheduler (Admin only)."""
 
@@ -2219,6 +2346,9 @@ def do_pool_list(cs, args):
         'pool': args.pool,
     }
     fields = ["Name", "Host", "Backend", "Pool"]
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
     pools = cs.pools.list(detailed=False, search_opts=search_opts)
     cliutils.print_list(pools, fields=fields)
 
@@ -2377,6 +2507,13 @@ def do_cg_create(cs, args):
     metavar="<offset>",
     default=None,
     help='Start position of consistency group listing.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_list(cs, args):
@@ -2384,6 +2521,10 @@ def do_cg_list(cs, args):
     list_of_keys = [
         'id', 'name', 'description', 'status',
     ]
+
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
 
     search_opts = {
@@ -2521,6 +2662,16 @@ def do_cg_snapshot_create(cs, args):
     _print_consistency_group(cs, cg_snapshot)
 
 
+def _split_columns(columns, title=True):
+    if title:
+        list_of_keys = list(map(lambda x: x.strip().title(),
+                                columns.split(",")))
+    else:
+        list_of_keys = list(map(lambda x: x.strip().lower(),
+                                columns.split(",")))
+    return list_of_keys
+
+
 @cliutils.arg(
     '--all-tenants',
     dest='all_tenants',
@@ -2547,6 +2698,13 @@ def do_cg_snapshot_create(cs, args):
     dest='detailed',
     default=True,
     help='Show detailed information about snapshots.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_list(cs, args):
@@ -2554,6 +2712,8 @@ def do_cg_snapshot_list(cs, args):
     list_of_keys = [
         'id', 'name', 'description', 'status',
     ]
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
 
     search_opts = {

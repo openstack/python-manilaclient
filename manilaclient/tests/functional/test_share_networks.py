@@ -141,6 +141,12 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
             self.assertIn('id', sn)
             self.assertIn('name', sn)
 
+    def test_list_share_networks_select_column(self):
+        share_networks = self.admin_client.list_share_networks(columns="id")
+        self.assertTrue(any(s['Id'] is not None for s in share_networks))
+        self.assertTrue(all('Name' not in s for s in share_networks))
+        self.assertTrue(all('name' not in s for s in share_networks))
+
     def _list_share_networks_with_filters(self, filters):
         share_networks = self.admin_client.list_share_networks(filters=filters)
 
