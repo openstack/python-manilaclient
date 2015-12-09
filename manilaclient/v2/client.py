@@ -30,6 +30,8 @@ from manilaclient.v2 import quotas
 from manilaclient.v2 import scheduler_stats
 from manilaclient.v2 import security_services
 from manilaclient.v2 import services
+from manilaclient.v2 import share_export_locations
+from manilaclient.v2 import share_instance_export_locations
 from manilaclient.v2 import share_instances
 from manilaclient.v2 import share_networks
 from manilaclient.v2 import share_servers
@@ -210,7 +212,12 @@ class Client(object):
         self.quotas = quotas.QuotaSetManager(self)
 
         self.shares = shares.ShareManager(self)
+        self.share_export_locations = (
+            share_export_locations.ShareExportLocationManager(self))
         self.share_instances = share_instances.ShareInstanceManager(self)
+        self.share_instance_export_locations = (
+            share_instance_export_locations.ShareInstanceExportLocationManager(
+                self))
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
 
         self.share_types = share_types.ShareTypeManager(self)

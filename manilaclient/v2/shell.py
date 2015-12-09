@@ -66,6 +66,20 @@ def _find_share(cs, share):
     return apiclient_utils.find_resource(cs.shares, share)
 
 
+def _transform_export_locations_to_string_view(export_locations):
+    export_locations_string_view = ''
+    for el in export_locations:
+        if hasattr(el, '_info'):
+            export_locations_dict = el._info
+        else:
+            export_locations_dict = el
+        for k, v in export_locations_dict.items():
+            export_locations_string_view += '\n%(k)s = %(v)s' % {
+                'k': k, 'v': v}
+    return export_locations_string_view
+
+
+@api_versions.wraps("1.0", "2.8")
 def _print_share(cs, share):
     info = share._info.copy()
     info.pop('links', None)
@@ -96,14 +110,62 @@ def _print_share(cs, share):
     cliutils.print_dict(info)
 
 
+@api_versions.wraps("2.9")  # noqa
+def _print_share(cs, share):
+    info = share._info.copy()
+    info.pop('links', None)
+
+    # NOTE(vponomaryov): remove deprecated single field 'export_location' and
+    # leave only list field 'export_locations'. Also, transform the latter to
+    # text with new line separators to make it pretty in CLI.
+    # It will look like following:
+    # +-------------------+--------------------------------------------+
+    # | Property          | Value                                      |
+    # +-------------------+--------------------------------------------+
+    # | status            | available                                  |
+    # | export_locations  |                                            |
+    # |                   | uuid = FOO-UUID                            |
+    # |                   | path = 5.6.7.8:/foo/export/location/path   |
+    # |                   |                                            |
+    # |                   | uuid = BAR-UUID                            |
+    # |                   | path = 5.6.7.8:/bar/export/location/path   |
+    # |                   |                                            |
+    # | id                | d778d2ee-b6bb-4c5f-9f5d-6f3057d549b1       |
+    # | size              | 1                                          |
+    # | share_proto       | NFS                                        |
+    # +-------------------+--------------------------------------------+
+    if info.get('export_locations'):
+        info['export_locations'] = (
+            _transform_export_locations_to_string_view(
+                info['export_locations']))
+
+    # No need to print both volume_type and share_type to CLI
+    if 'volume_type' in info and 'share_type' in info:
+        info.pop('volume_type', None)
+
+    cliutils.print_dict(info)
+
+
 def _find_share_instance(cs, instance):
     """Get a share instance by ID."""
     return apiclient_utils.find_resource(cs.share_instances, instance)
 
 
+@api_versions.wraps("1.0", "2.8")
 def _print_share_instance(cs, instance):
     info = instance._info.copy()
     info.pop('links', None)
+    cliutils.print_dict(info)
+
+
+@api_versions.wraps("2.9")  # noqa
+def _print_share_instance(cs, instance):
+    info = instance._info.copy()
+    info.pop('links', None)
+    if info.get('export_locations'):
+        info['export_locations'] = (
+            _transform_export_locations_to_string_view(
+                info['export_locations']))
     cliutils.print_dict(info)
 
 
@@ -609,6 +671,52 @@ def do_metadata_update_all(cs, args):
     cliutils.print_dict(metadata, 'Property')
 
 
+@api_versions.wraps("2.9")
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,host,status"')
+def do_share_export_location_list(cs, args):
+    """List export locations of a given share."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'UUID',
+            'Created At',
+            'Updated At',
+            'Path',
+        ]
+    share = _find_share(cs, args.share)
+    export_locations = cs.share_export_locations.list(share)
+    cliutils.print_list(export_locations, list_of_keys)
+
+
+@api_versions.wraps("2.9")
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share.')
+@cliutils.arg(
+    'export_location',
+    metavar='<export_location>',
+    help='ID of the share export location.')
+def do_share_export_location_show(cs, args):
+    """Show export location of the share."""
+    share = _find_share(cs, args.share)
+    export_location = cs.share_export_locations.get(
+        share, args.export_location)
+    view_data = export_location._info.copy()
+    cliutils.print_dict(view_data)
+
+
 @cliutils.arg(
     'service_host',
     metavar='<service_host>',
@@ -738,6 +846,7 @@ def do_force_delete(cs, args):
                                       "specified shares.")
 
 
+@api_versions.wraps("1.0", "2.8")
 @cliutils.arg(
     'share',
     metavar='<share>',
@@ -745,6 +854,19 @@ def do_force_delete(cs, args):
 def do_show(cs, args):
     """Show details about a NAS share."""
     share = _find_share(cs, args.share)
+    _print_share(cs, share)
+
+
+@api_versions.wraps("2.9")  # noqa
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the NAS share.')
+def do_show(cs, args):
+    """Show details about a NAS share."""
+    share = _find_share(cs, args.share)
+    export_locations = cs.share_export_locations.list(share)
+    share._info['export_locations'] = export_locations
     _print_share(cs, share)
 
 
@@ -962,8 +1084,9 @@ def do_list(cs, args):
         'Share Type Name', 'Host', 'Availability Zone'
     ]
 
-    if args.columns is not None:
-        list_of_keys = _split_columns(columns=args.columns)
+    columns = args.columns
+    if columns is not None:
+        list_of_keys = _split_columns(columns=columns)
 
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     empty_obj = type('Empty', (object,), {'id': None})
@@ -1005,6 +1128,17 @@ def do_list(cs, args):
         sort_key=args.sort_key,
         sort_dir=args.sort_dir,
     )
+    # NOTE(vponomaryov): usage of 'export_location' and
+    # 'export_locations' columns may cause scaling issue using API 2.9+ and
+    # when lots of shares are returned.
+    if (shares and columns is not None and 'export_location' in columns and
+            not hasattr(shares[0], 'export_location')):
+        # NOTE(vponomaryov): we will get here only using API 2.9+
+        for share in shares:
+            els_objs = cs.share_export_locations.list(share)
+            els = [el.to_dict()['path'] for el in els_objs]
+            setattr(share, 'export_locations', els)
+            setattr(share, 'export_location', els[0] if els else None)
     cliutils.print_list(shares, list_of_keys)
 
 
@@ -1043,14 +1177,27 @@ def do_share_instance_list(cs, args):
     cliutils.print_list(instances, list_of_keys)
 
 
+@api_versions.wraps("2.3", "2.8")
 @cliutils.arg(
     'instance',
     metavar='<instance>',
     help='Name or ID of the share instance.')
-@api_versions.wraps("2.3")
 def do_share_instance_show(cs, args):
     """Show details about a share instance."""
     instance = _find_share_instance(cs, args.instance)
+    _print_share_instance(cs, instance)
+
+
+@api_versions.wraps("2.9")  # noqa
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    help='Name or ID of the share instance.')
+def do_share_instance_show(cs, args):
+    """Show details about a share instance."""
+    instance = _find_share_instance(cs, args.instance)
+    export_locations = cs.share_instance_export_locations.list(instance)
+    instance._info['export_locations'] = export_locations
     _print_share_instance(cs, instance)
 
 
@@ -1091,6 +1238,53 @@ def do_share_instance_reset_state(cs, args):
     """Explicitly update the state of a share instance."""
     instance = _find_share_instance(cs, args.instance)
     instance.reset_state(args.state)
+
+
+@api_versions.wraps("2.9")
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    help='Name or ID of the share instance.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,host,status"')
+def do_share_instance_export_location_list(cs, args):
+    """List export locations of a given share instance."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'UUID',
+            'Created At',
+            'Updated At',
+            'Path',
+            'Is Admin only',
+        ]
+    instance = _find_share_instance(cs, args.instance)
+    export_locations = cs.share_instance_export_locations.list(instance)
+    cliutils.print_list(export_locations, list_of_keys)
+
+
+@api_versions.wraps("2.9")
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    help='Name or ID of the share instance.')
+@cliutils.arg(
+    'export_location',
+    metavar='<export_location>',
+    help='ID of the share instance export location.')
+def do_share_instance_export_location_show(cs, args):
+    """Show export location for the share instance."""
+    instance = _find_share_instance(cs, args.instance)
+    export_location = cs.share_instance_export_locations.get(
+        instance, args.export_location)
+    view_data = export_location._info.copy()
+    cliutils.print_dict(view_data)
 
 
 @cliutils.arg(

@@ -42,6 +42,17 @@ fake_share_instance = {
 }
 
 
+def get_fake_export_location():
+    return {
+        'uuid': 'foo_el_uuid',
+        'path': '/foo/el/path',
+        'share_instance_id': 'foo_share_instance_id',
+        'is_admin_only': False,
+        'created_at': '2015-12-17T13:14:15Z',
+        'updated_at': '2015-12-17T14:15:16Z',
+    }
+
+
 class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_(self, **kw):
@@ -221,6 +232,24 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_share_instances(self, **kw):
         return self._share_instances()
+
+    def get_share_instances_1234_export_locations(self, **kw):
+        export_locations = {
+            'export_locations': [
+                get_fake_export_location(),
+            ]
+        }
+        return (200, {}, export_locations)
+
+    get_shares_1234_export_locations = (
+        get_share_instances_1234_export_locations)
+
+    def get_share_instances_1234_export_locations_fake_el_uuid(self, **kw):
+        export_location = {'export_location': get_fake_export_location()}
+        return (200, {}, export_location)
+
+    get_shares_1234_export_locations_fake_el_uuid = (
+        get_share_instances_1234_export_locations_fake_el_uuid)
 
     def get_shares_fake_instances(self, **kw):
         return self._share_instances()

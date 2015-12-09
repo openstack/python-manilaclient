@@ -571,6 +571,19 @@ class ManilaCLIClient(base.CLIClient):
         shares = utils.listing(shares_raw)
         return shares
 
+    def list_share_instances(self, share_id=None, microversion=None):
+        """List share instances.
+
+        :param share_id: ID of a share to filter by.
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = 'share-instance-list '
+        if share_id:
+            cmd += '--share-id %s' % share_id
+        share_instances_raw = self.manila(cmd, microversion=microversion)
+        share_instances = utils.listing(share_instances_raw)
+        return share_instances
+
     def is_share_deleted(self, share, microversion=None):
         """Says whether share is deleted or not.
 
@@ -836,3 +849,77 @@ class ManilaCLIClient(base.CLIClient):
         if password is not None:
             data += '--password %s ' % password
         return data
+
+    @not_found_wrapper
+    def list_share_export_locations(self, share, columns=None,
+                                    microversion=None):
+        """List share export locations.
+
+        :param share: str -- Name or ID of a share.
+        :param columns: str -- comma separated string of columns.
+            Example, "--columns uuid,path".
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = "share-export-location-list %s" % share
+        if columns is not None:
+            cmd += " --columns " + columns
+        export_locations_raw = self.manila(cmd, microversion=microversion)
+        export_locations = utils.listing(export_locations_raw)
+        return export_locations
+
+    @not_found_wrapper
+    def get_share_export_location(self, share, export_location_uuid,
+                                  microversion=None):
+        """Returns an export location by share and its UUID.
+
+        :param share: str -- Name or ID of a share.
+        :param export_location_uuid: str -- UUID of an export location.
+        :param microversion: API microversion to be used for request.
+        """
+        share_raw = self.manila(
+            'share-export-location-show %(share)s %(el_uuid)s' % {
+                'share': share,
+                'el_uuid': export_location_uuid,
+            },
+            microversion=microversion)
+        share = output_parser.details(share_raw)
+        return share
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def list_share_instance_export_locations(self, share_instance,
+                                             columns=None, microversion=None):
+        """List share instance export locations.
+
+        :param share_instance: str -- Name or ID of a share instance.
+        :param columns: str -- comma separated string of columns.
+            Example, "--columns uuid,path".
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = "share-instance-export-location-list %s" % share_instance
+        if columns is not None:
+            cmd += " --columns " + columns
+        export_locations_raw = self.manila(cmd, microversion=microversion)
+        export_locations = utils.listing(export_locations_raw)
+        return export_locations
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def get_share_instance_export_location(self, share_instance,
+                                           export_location_uuid,
+                                           microversion=None):
+        """Returns an export location by share instance and its UUID.
+
+        :param share_instance: str -- Name or ID of a share instance.
+        :param export_location_uuid: str -- UUID of an export location.
+        :param microversion: API microversion to be used for request.
+        """
+        share_raw = self.manila(
+            'share-instance-export-location-show '
+            '%(share_instance)s %(el_uuid)s' % {
+                'share_instance': share_instance,
+                'el_uuid': export_location_uuid,
+            },
+            microversion=microversion)
+        share = output_parser.details(share_raw)
+        return share

@@ -335,7 +335,28 @@ class ShellTest(test_utils.TestCase):
 
     def test_share_instance_show(self):
         self.run_command('share-instance-show 1234')
-        self.assert_called('GET', '/share_instances/1234')
+        self.assert_called_anytime('GET', '/share_instances/1234')
+
+    def test_share_instance_export_location_list(self):
+        self.run_command('share-instance-export-location-list 1234')
+
+        self.assert_called_anytime(
+            'GET', '/share_instances/1234/export_locations')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_instance_export_location_list_with_columns(self):
+        self.run_command(
+            'share-instance-export-location-list 1234 --columns uuid,path')
+
+        self.assert_called_anytime(
+            'GET', '/share_instances/1234/export_locations')
+        cliutils.print_list.assert_called_once_with(mock.ANY, ['Uuid', 'Path'])
+
+    def test_share_instance_export_location_show(self):
+        self.run_command(
+            'share-instance-export-location-show 1234 fake_el_uuid')
+        self.assert_called_anytime(
+            'GET', '/share_instances/1234/export_locations/fake_el_uuid')
 
     def test_share_instance_reset_state(self):
         self.run_command('share-instance-reset-state 1234')
@@ -439,7 +460,25 @@ class ShellTest(test_utils.TestCase):
 
     def test_show(self):
         self.run_command('show 1234')
-        self.assert_called('GET', '/shares/1234')
+        self.assert_called_anytime('GET', '/shares/1234')
+
+    def test_share_export_location_list(self):
+        self.run_command('share-export-location-list 1234')
+        self.assert_called_anytime(
+            'GET', '/shares/1234/export_locations')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_export_location_list_with_columns(self):
+        self.run_command('share-export-location-list 1234 --columns uuid,path')
+
+        self.assert_called_anytime(
+            'GET', '/shares/1234/export_locations')
+        cliutils.print_list.assert_called_once_with(mock.ANY, ['Uuid', 'Path'])
+
+    def test_share_export_location_show(self):
+        self.run_command('share-export-location-show 1234 fake_el_uuid')
+        self.assert_called_anytime(
+            'GET', '/shares/1234/export_locations/fake_el_uuid')
 
     @ddt.data({'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
                            ' --share_type fake_share_type',
