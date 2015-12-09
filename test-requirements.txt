@@ -6,14 +6,14 @@
 hacking<0.10,>=0.9.2
 
 coverage>=3.6
-ddt>=0.7.0
+ddt>=1.0.1
 discover
 fixtures>=1.3.1
 mock>=1.2
 ordereddict
 oslosphinx!=3.4.0,>=2.5.0 # Apache-2.0
 sphinx!=1.2.0,!=1.3b1,<1.3,>=1.1.2
-tempest-lib>=0.10.0
+tempest-lib>=0.11.0
 testrepository>=0.0.18
 testtools>=1.4.0
 python-openstackclient>=1.5.0
