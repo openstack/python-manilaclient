@@ -638,6 +638,13 @@ def do_metadata_update_all(cs, args):
     action='single_alias',
     help='Driver option key=value pairs (Optional, Default=None).',
     default=None)
+@cliutils.arg(
+    '--public',
+    dest='public',
+    action='store_true',
+    default=False,
+    help="Level of visibility for share. Defines whether other tenants are "
+         "able to see it or not. Available only for microversion >= 2.8")
 def do_manage(cs, args):
     """Manage share not handled by Manila."""
     driver_options = _extract_key_value_options(args, 'driver_options')
@@ -645,7 +652,8 @@ def do_manage(cs, args):
     share = cs.shares.manage(
         args.service_host, args.protocol, args.export_path,
         driver_options=driver_options, share_type=args.share_type,
-        name=args.name, description=args.description
+        name=args.name, description=args.description,
+        is_public=args.public,
     )
 
     _print_share(cs, share)
