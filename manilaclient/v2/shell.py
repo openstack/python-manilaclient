@@ -442,7 +442,7 @@ def do_rate_limits(cs, args):
     'size',
     metavar='<size>',
     type=int,
-    help='Share size in GB.')
+    help='Share size in GiB.')
 @cliutils.arg(
     '--snapshot-id',
     metavar='<snapshot-id>',
@@ -2275,7 +2275,7 @@ def do_type_access_remove(cs, args):
 @cliutils.arg('new_size',
               metavar='<new_size>',
               type=int,
-              help='New size of share, in GBs.')
+              help='New size of share, in GiBs.')
 def do_extend(cs, args):
     """Increases the size of an existing share."""
     share = _find_share(cs, args.share)
@@ -2287,7 +2287,7 @@ def do_extend(cs, args):
 @cliutils.arg('new_size',
               metavar='<new_size>',
               type=int,
-              help='New size of share, in GBs.')
+              help='New size of share, in GiBs.')
 def do_shrink(cs, args):
     """Decreases the size of an existing share."""
     share = _find_share(cs, args.share)

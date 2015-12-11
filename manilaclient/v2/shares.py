@@ -158,7 +158,7 @@ class ShareManager(base.ManagerWithFind):
 
         :param share_proto: text - share protocol for new share
             available values are NFS, CIFS, GlusterFS and HDFS.
-        :param size: int - size in GB
+        :param size: int - size in GiB
         :param snapshot_id: text - ID of the snapshot
         :param name: text - name of new share
         :param description: text - description of a share
