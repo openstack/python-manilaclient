@@ -17,6 +17,7 @@ import six
 from tempest_lib.cli import output_parser
 import testtools
 
+from manilaclient import api_versions
 from manilaclient import config
 
 CONF = config.CONF
@@ -93,10 +94,11 @@ def listing(output_lines):
 
 
 def is_microversion_supported(microversion):
-    if (float(microversion) > float(CONF.max_api_microversion) or
-            float(microversion) < float(CONF.min_api_microversion)):
-        return False
-    return True
+    return (
+        api_versions.APIVersion(CONF.min_api_microversion) <=
+        api_versions.APIVersion(microversion) <=
+        api_versions.APIVersion(CONF.max_api_microversion)
+    )
 
 
 def skip_if_microversion_not_supported(microversion):

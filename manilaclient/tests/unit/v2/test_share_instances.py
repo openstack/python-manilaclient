@@ -58,7 +58,8 @@ class ShareInstancesTest(utils.TestCase):
     def test_reset_instance_state(self, microversion, instance):
         manager = self._get_manager(microversion)
         state = 'available'
-        if float(microversion) > 2.6:
+        if (api_versions.APIVersion(microversion) >
+                api_versions.APIVersion("2.6")):
             action_name = "reset_status"
         else:
             action_name = "os-reset_status"
@@ -78,7 +79,8 @@ class ShareInstancesTest(utils.TestCase):
     @ddt.unpack
     def test_force_delete_share_snapshot(self, microversion, instance):
         manager = self._get_manager(microversion)
-        if float(microversion) > 2.6:
+        if (api_versions.APIVersion(microversion) >
+                api_versions.APIVersion("2.6")):
             action_name = "force_delete"
         else:
             action_name = "os-force_delete"
