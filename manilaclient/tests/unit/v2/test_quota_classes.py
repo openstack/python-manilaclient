@@ -30,7 +30,8 @@ class QuotaClassSetsTest(utils.TestCase):
         return quota_classes.QuotaClassSetManager(api=mock_microversion)
 
     def _get_resource_path(self, microversion):
-        if float(microversion) > 2.6:
+        if (api_versions.APIVersion(microversion) >
+                api_versions.APIVersion("2.6")):
             return quota_classes.RESOURCE_PATH
         return quota_classes.RESOURCE_PATH_LEGACY
 

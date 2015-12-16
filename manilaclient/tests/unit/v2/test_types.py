@@ -103,7 +103,8 @@ class TypesTest(utils.TestCase):
     @ddt.unpack
     def test_create_with_default_values(self, microversion, dhss):
         manager = self._get_share_types_manager(microversion)
-        if float(microversion) > 2.6:
+        if (api_versions.APIVersion(microversion) >
+                api_versions.APIVersion("2.6")):
             is_public_keyname = "share_type_access:is_public"
         else:
             is_public_keyname = "os-share-type-access:is_public"
