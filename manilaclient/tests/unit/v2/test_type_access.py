@@ -67,7 +67,7 @@ class TypeAccessTest(utils.TestCase):
             access = manager.list(share_type=share_type)
 
             self.assertFalse(manager._list.called)
-            self.assertEqual(None, access)
+            self.assertIsNone(access)
 
     @ddt.data("1.0", "2.0", "2.6", "2.7")
     def test_add_project_access(self, microversion):
