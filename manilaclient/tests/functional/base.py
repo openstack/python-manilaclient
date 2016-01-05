@@ -106,8 +106,8 @@ class BaseTestCase(base.ClientTestBase):
                         client.wait_for_share_deletion(
                             res_id, microversion=res["microversion"])
                     else:
-                        LOG.warn("Provided unsupported resource type for "
-                                 "cleanup '%s'. Skipping." % res["type"])
+                        LOG.warning("Provided unsupported resource type for "
+                                    "cleanup '%s'. Skipping." % res["type"])
                 res["deleted"] = True
 
     @classmethod
