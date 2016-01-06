@@ -402,7 +402,7 @@ def do_quota_defaults(cs, args):
     help='Whether force update the quota even if the already used '
          'and reserved exceeds the new quota.')
 def do_quota_update(cs, args):
-    """Update the quotas for a tenant/user."""
+    """Update the quotas for a tenant/user (Admin only)."""
 
     _quota_update(cs.quotas, args.tenant, args)
 
@@ -418,7 +418,7 @@ def do_quota_update(cs, args):
 def do_quota_delete(cs, args):
     """Delete quota for a tenant/user.
 
-    The quota will revert to default.
+    The quota will revert back to default (Admin only).
     """
     if not args.tenant:
         project_id = cs.keystone_client.project_id
@@ -476,7 +476,7 @@ def do_quota_class_show(cs, args):
     action='single_alias',
     help='New value for the "share_networks" quota.')
 def do_quota_class_update(cs, args):
-    """Update the quotas for a quota class."""
+    """Update the quotas for a quota class (Admin only)."""
 
     _quota_update(cs.quota_classes, args.class_name, args)
 
@@ -611,7 +611,7 @@ def do_create(cs, args):
 @api_versions.experimental_api
 @api_versions.wraps("2.5")
 def do_migrate(cs, args):
-    """Migrates share to a new host."""
+    """Migrates share to a new host (Admin only)."""
     share = _find_share(cs, args.share)
     share.migrate_share(args.host, args.force_host_copy)
 
@@ -765,7 +765,7 @@ def do_share_export_location_show(cs, args):
     help="Level of visibility for share. Defines whether other tenants are "
          "able to see it or not. Available only for microversion >= 2.8")
 def do_manage(cs, args):
-    """Manage share not handled by Manila."""
+    """Manage share not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
 
     share = cs.shares.manage(
@@ -783,7 +783,7 @@ def do_manage(cs, args):
     metavar='<share>',
     help='Name or ID of the share(s).')
 def do_unmanage(cs, args):
-    """Unmanage share."""
+    """Unmanage share (Admin only)."""
     share_ref = _find_share(cs, args.share)
     share_ref.unmanage()
 
@@ -832,7 +832,7 @@ def do_delete(cs, args):
     nargs='+',
     help='Name or ID of the share(s) to force delete.')
 def do_force_delete(cs, args):
-    """Attempt force-delete of share, regardless of state."""
+    """Attempt force-delete of share, regardless of state (Admin only)."""
     failure_count = 0
     for share in args.share:
         try:
@@ -966,7 +966,7 @@ def do_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Filter results by share server ID.')
+    help='Filter results by share server ID (Admin only).')
 @cliutils.arg(
     '--metadata',
     type=str,
@@ -1158,7 +1158,7 @@ def do_list(cs, args):
          'e.g. --columns "id,host,status"')
 @api_versions.wraps("2.3")
 def do_share_instance_list(cs, args):
-    """List share instances."""
+    """List share instances (Admin only)."""
     share = _find_share(cs, args.share_id) if args.share_id else None
 
     list_of_keys = [
@@ -1194,7 +1194,7 @@ def do_share_instance_show(cs, args):
     metavar='<instance>',
     help='Name or ID of the share instance.')
 def do_share_instance_show(cs, args):
-    """Show details about a share instance."""
+    """Show details about a share instance (Admin only)."""
     instance = _find_share_instance(cs, args.instance)
     export_locations = cs.share_instance_export_locations.list(instance)
     instance._info['export_locations'] = export_locations
@@ -1208,7 +1208,7 @@ def do_share_instance_show(cs, args):
     help='Name or ID of the instance(s) to force delete.')
 @api_versions.wraps("2.3")
 def do_share_instance_force_delete(cs, args):
-    """Attempt force-delete of share instance, regardless of state."""
+    """Force-delete the share instance, regardless of state (Admin only)."""
     failure_count = 0
     for instance in args.instance:
         try:
@@ -1235,7 +1235,7 @@ def do_share_instance_force_delete(cs, args):
           'state is provided, available will be used.'))
 @api_versions.wraps("2.3")
 def do_share_instance_reset_state(cs, args):
-    """Explicitly update the state of a share instance."""
+    """Explicitly update the state of a share instance (Admin only)."""
     instance = _find_share_instance(cs, args.instance)
     instance.reset_state(args.state)
 
@@ -1514,7 +1514,7 @@ def do_snapshot_delete(cs, args):
     metavar='<snapshot>',
     help='Name or ID of the snapshot to force delete.')
 def do_snapshot_force_delete(cs, args):
-    """Attempt force-delete of snapshot, regardless of state."""
+    """Attempt force-delete of snapshot, regardless of state (Admin only)."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     snapshot.force_delete()
 
@@ -1532,7 +1532,7 @@ def do_snapshot_force_delete(cs, args):
           'error_deleting. If no state is provided, '
           'available will be used.'))
 def do_snapshot_reset_state(cs, args):
-    """Explicitly update the state of a snapshot."""
+    """Explicitly update the state of a snapshot (Admin only)."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     snapshot.reset_state(args.state)
 
@@ -1549,7 +1549,7 @@ def do_snapshot_reset_state(cs, args):
           'available, error, creating, deleting, error_deleting. If no '
           'state is provided, available will be used.'))
 def do_reset_state(cs, args):
-    """Explicitly update the state of a share."""
+    """Explicitly update the state of a share (Admin only)."""
     share = _find_share(cs, args.share)
     share.reset_state(args.state)
 
@@ -2136,7 +2136,7 @@ def do_security_service_delete(cs, args):
     help='Comma separated list of columns to be displayed '
          'e.g. --columns "id,host,status"')
 def do_share_server_list(cs, args):
-    """List all share servers."""
+    """List all share servers (Admin only)."""
     search_opts = {
         "host": args.host,
         "share_network": args.share_network,
@@ -2165,7 +2165,7 @@ def do_share_server_list(cs, args):
     type=str,
     help='ID of share server.')
 def do_share_server_show(cs, args):
-    """Show share server info."""
+    """Show share server info (Admin only)."""
     share_server = cs.share_servers.get(args.id)
     # All 'backend_details' data already present as separated strings,
     # so remove big dict from view.
@@ -2180,7 +2180,7 @@ def do_share_server_show(cs, args):
     type=str,
     help='ID of share server.')
 def do_share_server_details(cs, args):
-    """Show share server details."""
+    """Show share server details (Admin only)."""
     details = cs.share_servers.details(args.id)
     cliutils.print_dict(details._info)
 
@@ -2191,7 +2191,7 @@ def do_share_server_details(cs, args):
     type=str,
     help='ID of share server.')
 def do_share_server_delete(cs, args):
-    """Delete share server."""
+    """Delete share server (Admin only)."""
     cs.share_servers.delete(args.id)
 
 
@@ -2228,7 +2228,7 @@ def do_share_server_delete(cs, args):
     help='Comma separated list of columns to be displayed '
          'e.g. --columns "id,host"')
 def do_service_list(cs, args):
-    """List all services."""
+    """List all services (Admin only)."""
     search_opts = {
         'status': args.status,
         'host': args.host,
@@ -2254,7 +2254,7 @@ def do_service_list(cs, args):
     metavar='<binary>',
     help="Service binary, could be 'manila-share' or 'manila-scheduler'.")
 def do_service_enable(cs, args):
-    """Enables 'manila-share' or 'manila-scheduler' services."""
+    """Enables 'manila-share' or 'manila-scheduler' services (Admin only)."""
     columns = ("Host", "Binary", "Enabled")
     result = cs.services.enable(args.host, args.binary)
     result.enabled = not result.disabled
@@ -2270,7 +2270,7 @@ def do_service_enable(cs, args):
     metavar='<binary>',
     help="Service binary, could be 'manila-share' or 'manila-scheduler'.")
 def do_service_disable(cs, args):
-    """Disables 'manila-share' or 'manila-scheduler' services."""
+    """Disables 'manila-share' or 'manila-scheduler' services (Admin only)."""
     columns = ("Host", "Binary", "Enabled")
     result = cs.services.disable(args.host, args.binary)
     result.enabled = not result.disabled
@@ -2442,7 +2442,7 @@ def do_extra_specs_list(cs, args):
     action='single_alias',
     help="Make type accessible to the public (default true).")
 def do_type_create(cs, args):
-    """Create a new share type."""
+    """Create a new share type (Admin only)."""
     kwargs = {
         "name": args.name,
         "is_public": strutils.bool_from_string(args.is_public, default=True),
@@ -2473,7 +2473,7 @@ def do_type_create(cs, args):
     metavar='<id>',
     help="Name or ID of the share type to delete.")
 def do_type_delete(cs, args):
-    """Delete a specific share type."""
+    """Delete a specific share type (Admin only)."""
     share_type = _find_share_type(cs, args.id)
     cs.share_types.delete(share_type)
 
@@ -2494,7 +2494,7 @@ def do_type_delete(cs, args):
     default=None,
     help='Extra_specs to set or unset (key is only necessary on unset).')
 def do_type_key(cs, args):
-    """Set or unset extra_spec for a share type."""
+    """Set or unset extra_spec for a share type (Admin only)."""
     stype = _find_share_type(cs, args.stype)
 
     if args.metadata is not None:
@@ -2552,7 +2552,7 @@ def do_pool_list(cs, args):
     metavar='<share_type>',
     help="Filter results by share type name or ID.")
 def do_type_access_list(cs, args):
-    """Print access information about the given share type."""
+    """Print access information about the given share type (Admin only)."""
     share_type = _find_share_type(cs, args.share_type)
     if share_type.is_public:
         raise exceptions.CommandError("Forbidden to get access list "
@@ -2573,7 +2573,7 @@ def do_type_access_list(cs, args):
     metavar='<project_id>',
     help='Project ID to add share type access for.')
 def do_type_access_add(cs, args):
-    """Adds share type access for the given project."""
+    """Adds share type access for the given project (Admin only)."""
     vtype = _find_share_type(cs, args.share_type)
     cs.share_type_access.add_project_access(vtype, args.project_id)
 
@@ -2588,7 +2588,7 @@ def do_type_access_add(cs, args):
     metavar='<project_id>',
     help='Project ID to remove share type access for.')
 def do_type_access_remove(cs, args):
-    """Removes share type access for the given project."""
+    """Removes share type access for the given project (Admin only)."""
     vtype = _find_share_type(cs, args.share_type)
     cs.share_type_access.remove_project_access(
         vtype, args.project_id)
@@ -2784,7 +2784,8 @@ def do_cg_update(cs, args):
     '--force',
     action='store_true',
     default=False,
-    help='Attempt to force delete the consistency group (Default=False).')
+    help='Attempt to force delete the consistency group (Default=False)'
+         ' (Admin only).')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_delete(cs, args):
@@ -2824,7 +2825,7 @@ def do_cg_delete(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_reset_state(cs, args):
-    """Explicitly update the state of a consistency group."""
+    """Explicitly update the state of a consistency group (Admin only)."""
     cg = _find_consistency_group(cs, args.consistency_group)
     cs.consistency_groups.reset_state(cg, args.state)
 
@@ -2949,7 +2950,7 @@ def do_cg_snapshot_show(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_reset_state(cs, args):
-    """Explicitly update the state of a consistency group."""
+    """Explicitly update the state of a consistency group (Admin only)."""
     cg = _find_cg_snapshot(cs, args.cg_snapshot)
     cs.cg_snapshots.reset_state(cg, args.state)
 
@@ -3037,7 +3038,8 @@ def do_cg_snapshot_update(cs, args):
     '--force',
     action='store_true',
     default=False,
-    help='Attempt to force delete the cg snapshot(s) (Default=False).')
+    help='Attempt to force delete the cg snapshot(s) (Default=False)'
+         ' (Admin only).')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_delete(cs, args):
