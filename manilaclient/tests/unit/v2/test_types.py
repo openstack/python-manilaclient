@@ -41,8 +41,8 @@ class TypesTest(utils.TestCase):
 
         self.assertTrue(hasattr(share_type, '_required_extra_specs'))
         self.assertTrue(hasattr(share_type, '_optional_extra_specs'))
-        self.assertTrue(isinstance(share_type._required_extra_specs, dict))
-        self.assertTrue(isinstance(share_type._optional_extra_specs, dict))
+        self.assertIsInstance(share_type._required_extra_specs, dict)
+        self.assertIsInstance(share_type._optional_extra_specs, dict)
         self.assertEqual(
             {'snapshot_support': 'False'}, share_type.get_optional_keys())
 
