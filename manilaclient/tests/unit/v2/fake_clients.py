@@ -83,11 +83,6 @@ class FakeHTTPClient(httpclient.HTTPClient):
         })
         return r, body
 
-        if hasattr(status, 'items'):
-            return utils.TestResponse(status), body
-        else:
-            return utils.TestResponse({"status": status}), body
-
     #
     # Quotas
     #
