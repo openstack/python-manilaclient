@@ -256,9 +256,9 @@ def discover_version(client, requested_version):
 
     valid_version = requested_version
     if server_start_version.is_null() and server_end_version.is_null():
-        LOG.warn("Server does not support microversions. Changing server "
-                 "version to %(min_version)s" %
-                 {"min_version": DEPRECATED_VERSION})
+        LOG.warning("Server does not support microversions. Changing server "
+                    "version to %(min_version)s." %
+                    {"min_version": DEPRECATED_VERSION})
         valid_version = APIVersion(DEPRECATED_VERSION)
     else:
         _validate_requested_version(requested_version,
