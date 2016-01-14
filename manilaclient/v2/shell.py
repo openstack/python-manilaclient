@@ -741,8 +741,8 @@ def do_share_export_location_show(cs, args):
     'export_path',
     metavar='<export_path>',
     type=str,
-    help='Share export path, NFS share such as: 10.0.0.1:/foo_path, '
-         'CIFS share such as: \\\\10.0.0.1\\foo_name_of_cifs_share')
+    help='Share export path, NFS share such as: 10.0.0.1:/example_path, '
+         'CIFS share such as: \\\\10.0.0.1\\example_cifs_share')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -2325,7 +2325,7 @@ def do_service_list(cs, args):
 @cliutils.arg(
     'host',
     metavar='<hostname>',
-    help="Host name as 'foo_host@bar_backend'.")
+    help="Host name as 'example_host@example_backend'.")
 @cliutils.arg(
     'binary',
     metavar='<binary>',
@@ -2341,7 +2341,7 @@ def do_service_enable(cs, args):
 @cliutils.arg(
     'host',
     metavar='<hostname>',
-    help="Host name as 'foo_host@bar_backend'.")
+    help="Host name as 'example_host@example_backend'.")
 @cliutils.arg(
     'binary',
     metavar='<binary>',
