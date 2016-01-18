@@ -212,7 +212,7 @@ class ClientTest(utils.TestCase):
             api_version=manilaclient.API_MIN_VERSION)
 
         client.ks_client.Client.assert_called_with(
-            version=(3, 0), auth_url='url_v3.0',
+            session=mock.ANY, version=(3, 0), auth_url='url_v3.0',
             username=client_args['username'],
             password=client_args.get('password', client_args.get('api_key')),
             user_id=client_args['user_id'],
@@ -266,7 +266,7 @@ class ClientTest(utils.TestCase):
             cacert=None, timeout=None, retries=None, http_log_debug=False,
             api_version=manilaclient.API_MIN_VERSION)
         client.ks_client.Client.assert_called_with(
-            version=(2, 0), auth_url='url_v2.0',
+            session=mock.ANY, version=(2, 0), auth_url='url_v2.0',
             username=client_args['username'],
             password=client_args.get('password', client_args.get('api_key')),
             tenant_id=client_args.get('tenant_id',

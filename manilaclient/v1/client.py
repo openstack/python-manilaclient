@@ -256,6 +256,7 @@ class Client(object):
 
         if v3_auth_url:
             keystone_client = ks_client.Client(
+                session=ks_session,
                 version=(3, 0),
                 auth_url=v3_auth_url,
                 username=self.username,
@@ -270,6 +271,7 @@ class Client(object):
                 region_name=self.region_name)
         elif v2_auth_url:
             keystone_client = ks_client.Client(
+                session=ks_session,
                 version=(2, 0),
                 auth_url=v2_auth_url,
                 username=self.username,
