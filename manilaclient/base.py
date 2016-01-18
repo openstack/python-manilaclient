@@ -90,6 +90,7 @@ class Manager(utils.HookableMixin):
         often enough to keep the cache reasonably up-to-date.
         """
         base_dir = cliutils.env('manilaclient_UUID_CACHE_DIR',
+                                'MANILACLIENT_UUID_CACHE_DIR',
                                 default="~/.manilaclient")
 
         # NOTE(sirp): Keep separate UUID caches for each username + endpoint
