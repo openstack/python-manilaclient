@@ -33,4 +33,4 @@ class MovedModule(object):
         return getattr(self.new_module, attr)
 
 sys.modules[
-    "manilaclient.v2.security_services"] = MovedModule(security_services)
+    "manilaclient.v1.security_services"] = MovedModule(security_services)

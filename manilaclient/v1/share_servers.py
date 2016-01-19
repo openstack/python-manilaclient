@@ -32,4 +32,4 @@ class MovedModule(object):
     def __getattr__(self, attr):
         return getattr(self.new_module, attr)
 
-sys.modules["manilaclient.v2.share_servers"] = MovedModule(share_servers)
+sys.modules["manilaclient.v1.share_servers"] = MovedModule(share_servers)

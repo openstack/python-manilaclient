@@ -32,4 +32,4 @@ class MovedModule(object):
     def __getattr__(self, attr):
         return getattr(self.new_module, attr)
 
-sys.modules["manilaclient.v2.scheduler_stats"] = MovedModule(scheduler_stats)
+sys.modules["manilaclient.v1.scheduler_stats"] = MovedModule(scheduler_stats)

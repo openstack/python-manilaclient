@@ -33,4 +33,4 @@ class MovedModule(object):
         return getattr(self.new_module, attr)
 
 sys.modules[
-    "manilaclient.v2.share_type_access"] = MovedModule(share_type_access)
+    "manilaclient.v1.share_type_access"] = MovedModule(share_type_access)
