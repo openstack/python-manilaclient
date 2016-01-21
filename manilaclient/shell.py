@@ -128,6 +128,7 @@ class OpenStackManilaShell(object):
         parser.add_argument('-d', '--debug',
                             action='store_true',
                             default=cliutils.env('manilaclient_DEBUG',
+                                                 'MANILACLIENT_DEBUG',
                                                  default=False),
                             help="Print debugging output.")
 
@@ -296,6 +297,7 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--insecure',
                             default=cliutils.env('manilaclient_INSECURE',
+                                                 'MANILACLIENT_INSECURE',
                                                  default=False),
                             action='store_true',
                             help=argparse.SUPPRESS)
