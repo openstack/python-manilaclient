@@ -521,7 +521,7 @@ def do_rate_limits(cs, args):
     'share_protocol',
     metavar='<share_protocol>',
     type=str,
-    help='Share type (NFS, CIFS, GlusterFS or HDFS).')
+    help='Share type (NFS, CIFS, CephFS, GlusterFS or HDFS).')
 @cliutils.arg(
     'size',
     metavar='<size>',
@@ -585,7 +585,7 @@ def do_rate_limits(cs, args):
     default=None)
 @cliutils.service_type('sharev2')
 def do_create(cs, args):
-    """Creates a new share (NFS, CIFS, GlusterFS or HDFS)."""
+    """Creates a new share (NFS, CIFS, CephFS, GlusterFS or HDFS)."""
 
     share_metadata = None
     if args.metadata is not None:
@@ -954,8 +954,8 @@ def do_show(cs, args):
 @cliutils.arg(
     'access_type',
     metavar='<access_type>',
-    help='Access rule type (only "ip", "user"(user or group), and "cert" '
-         'are supported).')
+    help='Access rule type (only "ip", "user"(user or group), "cert" or '
+         '"cephx" are supported).')
 @cliutils.arg(
     'access_to',
     metavar='<access_to>',
