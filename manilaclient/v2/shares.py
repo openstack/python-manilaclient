@@ -73,7 +73,6 @@ class Share(common_base.Resource):
 
     def allow(self, access_type, access, access_level):
         """Allow access to a share."""
-        self._validate_access(access_type, access)
         return self.manager.allow(self, access_type, access, access_level)
 
     def deny(self, id):
@@ -84,89 +83,9 @@ class Share(common_base.Resource):
         """Deny access from IP to a share."""
         return self.manager.access_list(self)
 
-    def _validate_access(self, access_type, access):
-        if access_type == 'ip':
-            self._validate_ip_range(access)
-        elif access_type == 'user':
-            self._validate_username(access)
-        elif access_type == 'cert':
-            # 'access' is used as the certificate's CN (common name)
-            # to which access is allowed or denied by the backend.
-            # The standard allows for just about any string in the
-            # common name. The meaning of a string depends on its
-            # interpretation and is limited to 64 characters.
-            self._validate_common_name(access.strip())
-        elif access_type == 'cephx':
-            self._validate_cephx_id(access.strip())
-        else:
-            raise exceptions.CommandError(
-                'Only ip, user, cert or cephx types are supported')
-
     def update_all_metadata(self, metadata):
         """Update all metadata of this share."""
         return self.manager.update_all_metadata(self, metadata)
-
-    @staticmethod
-    def _validate_common_name(access):
-        if len(access) == 0 or len(access) > 64:
-            exc_str = ('Invalid CN (common name). Must be 1-64 chars long.')
-            raise exceptions.CommandError(exc_str)
-
-    @staticmethod
-    def _validate_username(access):
-        valid_username_re = '[\w\.\-_\`;\'\{\}\[\]\\\\]{4,32}$'
-        username = access
-        if not re.match(valid_username_re, username):
-            exc_str = ('Invalid user or group name. Must be 4-32 characters '
-                       'and consist of alphanumeric characters and '
-                       'special characters ]{.-_\'`;}[\\')
-            raise exceptions.CommandError(exc_str)
-
-    @staticmethod
-    def _validate_ip_range(ip_range):
-        ip_range = ip_range.split('/')
-        exc_str = ('Supported ip format examples:\n'
-                   '\t10.0.0.2, 10.0.0.0/24')
-        if len(ip_range) > 2:
-            raise exceptions.CommandError(exc_str)
-        if len(ip_range) == 2:
-            try:
-                prefix = int(ip_range[1])
-                if prefix < 0 or prefix > 32:
-                    raise ValueError()
-            except ValueError:
-                msg = 'IP prefix should be in range from 0 to 32'
-                raise exceptions.CommandError(msg)
-        ip_range = ip_range[0].split('.')
-        if len(ip_range) != 4:
-            raise exceptions.CommandError(exc_str)
-        for item in ip_range:
-            try:
-                if 0 <= int(item) <= 255:
-                    continue
-                raise ValueError()
-            except ValueError:
-                raise exceptions.CommandError(exc_str)
-
-    @staticmethod
-    def _validate_cephx_id(cephx_id):
-        if not cephx_id:
-            raise exceptions.CommandError(
-                'Ceph IDs may not be empty')
-
-        # This restriction may be lifted in Ceph in the future:
-        # http://tracker.ceph.com/issues/14626
-        if not set(cephx_id) <= set(string.printable):
-            raise exceptions.CommandError(
-                'Ceph IDs must consist of ASCII printable characters')
-
-        # Periods are technically permitted, but we restrict them here
-        # to avoid confusion where users are unsure whether they should
-        # include the "client." prefix: otherwise they could accidentally
-        # create "client.client.foobar".
-        if '.' in cephx_id:
-            raise exceptions.CommandError(
-                'Ceph IDs may not contain periods')
 
     def reset_state(self, state):
         """Update the share with the provided state."""
@@ -481,6 +400,91 @@ class ShareManager(base.ManagerWithFind):
     def force_delete(self, share):
         return self._do_force_delete(share, "force_delete")
 
+    @staticmethod
+    def _validate_common_name(access):
+        if len(access) == 0 or len(access) > 64:
+            exc_str = ('Invalid CN (common name). Must be 1-64 chars long.')
+            raise exceptions.CommandError(exc_str)
+
+    @staticmethod
+    def _validate_username(access):
+        valid_username_re = '[\w\.\-_\`;\'\{\}\[\]\\\\]{4,32}$'
+        username = access
+        if not re.match(valid_username_re, username):
+            exc_str = ('Invalid user or group name. Must be 4-32 characters '
+                       'and consist of alphanumeric characters and '
+                       'special characters ]{.-_\'`;}[\\')
+            raise exceptions.CommandError(exc_str)
+
+    @staticmethod
+    def _validate_ip_range(ip_range):
+        ip_range = ip_range.split('/')
+        exc_str = ('Supported ip format examples:\n'
+                   '\t10.0.0.2, 10.0.0.0/24')
+        if len(ip_range) > 2:
+            raise exceptions.CommandError(exc_str)
+        if len(ip_range) == 2:
+            try:
+                prefix = int(ip_range[1])
+                if prefix < 0 or prefix > 32:
+                    raise ValueError()
+            except ValueError:
+                msg = 'IP prefix should be in range from 0 to 32.'
+                raise exceptions.CommandError(msg)
+        ip_range = ip_range[0].split('.')
+        if len(ip_range) != 4:
+            raise exceptions.CommandError(exc_str)
+        for item in ip_range:
+            try:
+                if 0 <= int(item) <= 255:
+                    continue
+                raise ValueError()
+            except ValueError:
+                raise exceptions.CommandError(exc_str)
+
+    @staticmethod
+    def _validate_cephx_id(cephx_id):
+        if not cephx_id:
+            raise exceptions.CommandError(
+                'Ceph IDs may not be empty.')
+
+        # This restriction may be lifted in Ceph in the future:
+        # http://tracker.ceph.com/issues/14626
+        if not set(cephx_id) <= set(string.printable):
+            raise exceptions.CommandError(
+                'Ceph IDs must consist of ASCII printable characters.')
+
+        # Periods are technically permitted, but we restrict them here
+        # to avoid confusion where users are unsure whether they should
+        # include the "client." prefix: otherwise they could accidentally
+        # create "client.client.foobar".
+        if '.' in cephx_id:
+            raise exceptions.CommandError(
+                'Ceph IDs may not contain periods.')
+
+    def _validate_access(self, access_type, access, valid_access_types=None):
+        if not valid_access_types:
+            valid_access_types = ('ip', 'user', 'cert')
+
+        if access_type in valid_access_types:
+            if access_type == 'ip':
+                self._validate_ip_range(access)
+            elif access_type == 'user':
+                self._validate_username(access)
+            elif access_type == 'cert':
+                # 'access' is used as the certificate's CN (common name)
+                # to which access is allowed or denied by the backend.
+                # The standard allows for just about any string in the
+                # common name. The meaning of a string depends on its
+                # interpretation and is limited to 64 characters.
+                self._validate_common_name(access.strip())
+            elif access_type == 'cephx':
+                self._validate_cephx_id(access.strip())
+        else:
+            msg = ('Only following access types are supported: %s' %
+                   ', '.join(valid_access_types))
+            raise exceptions.CommandError(msg)
+
     def _do_allow(self, share, access_type, access, access_level, action_name):
         """Allow access to a share.
 
@@ -497,16 +501,24 @@ class ShareManager(base.ManagerWithFind):
             access_params['access_level'] = access_level
         access = self._action(action_name, share,
                               access_params)[1]["access"]
-
         return access
 
     @api_versions.wraps("1.0", "2.6")
     def allow(self, share, access_type, access, access_level):
+        self._validate_access(access_type, access)
         return self._do_allow(
             share, access_type, access, access_level, "os-allow_access")
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.12")  # noqa
     def allow(self, share, access_type, access, access_level):
+        self._validate_access(access_type, access)
+        return self._do_allow(
+            share, access_type, access, access_level, "allow_access")
+
+    @api_versions.wraps("2.13")  # noqa
+    def allow(self, share, access_type, access, access_level):
+        valid_access_types = ('ip', 'user', 'cert', 'cephx')
+        self._validate_access(access_type, access, valid_access_types)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
