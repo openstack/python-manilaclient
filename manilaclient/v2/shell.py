@@ -891,7 +891,7 @@ def do_show(cs, args):
     default=None,
     choices=['rw', 'ro'],
     help='Share access level ("rw" and "ro" access levels are supported). '
-         'Defaults to None.')
+         'Defaults to rw.')
 def do_access_allow(cs, args):
     """Allow access to the share."""
     share = _find_share(cs, args.share)
