@@ -47,7 +47,8 @@ class ShareTypesReadOnlyTest(base.BaseTestCase):
 class ShareTypesReadWriteTest(base.BaseTestCase):
 
     create_keys = (
-        'ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs')
+        'ID', 'Name', 'Visibility', 'is_default', 'required_extra_specs',
+        'optional_extra_specs')
 
     def _share_type_listed_by(self, share_type_id, by_admin=False,
                               list_all=False, microversion=None):
