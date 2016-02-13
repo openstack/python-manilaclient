@@ -21,7 +21,11 @@ places where actual behavior differs from the spec.
 from __future__ import print_function
 
 
-def assert_has_keys(dictonary, required=[], optional=[]):
+def assert_has_keys(dictonary, required=None, optional=None):
+    if required is None:
+        required = []
+    if optional is None:
+        optional = []
     for k in required:
         try:
             assert k in dictonary
