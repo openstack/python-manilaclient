@@ -418,7 +418,7 @@ def do_quota_update(cs, args):
 def do_quota_delete(cs, args):
     """Delete quota for a tenant/user.
 
-    The quota will revert back to default.
+    The quota will revert to default.
     """
     if not args.tenant:
         project_id = cs.keystone_client.project_id

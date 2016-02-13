@@ -214,10 +214,10 @@ class ShareManager(base.ManagerWithFind):
                    resource_path="/shares/manage"):
         """Manage some existing share.
 
-        :param service_host: text - host of share service where share is runing
+        :param service_host: text - host where manila share service is running
         :param protocol: text - share protocol that is used
         :param export_path: text - export path of share
-        :param driver_options: dict - custom set of key-values.
+        :param driver_options: dict - custom set of key-values
         :param share_type: text - share type that should be used for share
         :param name: text - name of new share
         :param description: - description for new share
