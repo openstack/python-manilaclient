@@ -54,6 +54,9 @@ auth_opts = [
                default=None,
                help="URL for where to find the OpenStack Identity admin "
                     "API endpoint."),
+    cfg.BoolOpt("insecure",
+                default=False,
+                help="Disable SSL certificate verification."),
 ]
 
 base_opts = [

@@ -117,6 +117,7 @@ class BaseTestCase(base.ClientTestBase):
             password=CONF.admin_password,
             tenant_name=CONF.admin_tenant_name,
             uri=CONF.admin_auth_url or CONF.auth_url,
+            insecure=CONF.insecure,
             cli_dir=CONF.manila_exec_dir)
         # Set specific for admin project share network
         manilaclient.share_network = CONF.admin_share_network
@@ -129,6 +130,7 @@ class BaseTestCase(base.ClientTestBase):
             password=CONF.password,
             tenant_name=CONF.tenant_name,
             uri=CONF.auth_url,
+            insecure=CONF.insecure,
             cli_dir=CONF.manila_exec_dir)
         # Set specific for user project share network
         manilaclient.share_network = CONF.share_network
