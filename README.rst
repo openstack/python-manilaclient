@@ -74,7 +74,7 @@ There's also a complete Python API, but it has not yet been documented.
 
 Quick-start using keystone::
 
-    # use v2.0 auth with http://example.com:5000/v2.0/")
+    # use v2.0 auth with http://example.com:5000/v2.0/
     >>> from manilaclient.v1 import client
     >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="share")
     >>> nt.shares.list()
