@@ -134,7 +134,7 @@ class TypesTest(utils.TestCase):
                          '/types/1/extra_specs',
                          {'extra_specs': {'k': 'v'}})
 
-    def test_unsset_keys(self):
+    def test_unset_keys(self):
         t = cs.share_types.get(1)
         t.unset_keys(['k'])
         cs.assert_called('DELETE', '/types/1/extra_specs/k')
