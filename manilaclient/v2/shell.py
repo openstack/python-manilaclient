@@ -700,10 +700,9 @@ def do_share_export_location_list(cs, args):
         list_of_keys = _split_columns(columns=args.columns)
     else:
         list_of_keys = [
-            'UUID',
-            'Created At',
-            'Updated At',
+            'ID',
             'Path',
+            'Preferred',
         ]
     share = _find_share(cs, args.share)
     export_locations = cs.share_export_locations.list(share)
@@ -1269,11 +1268,10 @@ def do_share_instance_export_location_list(cs, args):
         list_of_keys = _split_columns(columns=args.columns)
     else:
         list_of_keys = [
-            'UUID',
-            'Created At',
-            'Updated At',
+            'ID',
             'Path',
             'Is Admin only',
+            'Preferred',
         ]
     instance = _find_share_instance(cs, args.instance)
     export_locations = cs.share_instance_export_locations.list(instance)
