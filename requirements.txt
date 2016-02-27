@@ -6,10 +6,10 @@
 pbr>=1.6 # Apache-2.0
 
 iso8601>=0.1.9 # MIT
-oslo.config>=3.4.0 # Apache-2.0
+oslo.config>=3.7.0 # Apache-2.0
 oslo.log>=1.14.0 # Apache-2.0
 oslo.serialization>=1.10.0 # Apache-2.0
-oslo.utils>=3.4.0 # Apache-2.0
+oslo.utils>=3.5.0 # Apache-2.0
 PrettyTable<0.8,>=0.7 # BSD
 pycrypto>=2.6 # Public Domain
 requests!=2.9.0,>=2.8.1 # Apache-2.0
