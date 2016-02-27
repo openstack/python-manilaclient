@@ -29,15 +29,19 @@ touch $MANILACLIENT_CONF
 # Import functions from devstack
 source $BASE/new/devstack/functions
 
+env | grep OS_
+
 # Set options to config client.
-source $BASE/new/devstack/accrc/demo/demo
+source $BASE/new/devstack/openrc demo demo
+env | grep OS_
 export OS_TENANT_NAME=${OS_PROJECT_NAME:-$OS_TENANT_NAME}
 iniset $MANILACLIENT_CONF DEFAULT username $OS_USERNAME
 iniset $MANILACLIENT_CONF DEFAULT tenant_name $OS_TENANT_NAME
 iniset $MANILACLIENT_CONF DEFAULT password $OS_PASSWORD
 iniset $MANILACLIENT_CONF DEFAULT auth_url $OS_AUTH_URL
 
-source $BASE/new/devstack/accrc/demo/admin
+source $BASE/new/devstack/openrc admin demo
+env | grep OS_
 export OS_TENANT_NAME=${OS_PROJECT_NAME:-$OS_TENANT_NAME}
 iniset $MANILACLIENT_CONF DEFAULT admin_username $OS_USERNAME
 iniset $MANILACLIENT_CONF DEFAULT admin_tenant_name $OS_TENANT_NAME
