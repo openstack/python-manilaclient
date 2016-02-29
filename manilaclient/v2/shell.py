@@ -580,8 +580,8 @@ def do_rate_limits(cs, args):
     '--cg',
     metavar='<consistency-group>',
     action='single_alias',
-    help='Optional consistency group name or ID in which to create the share. '
-         '(Default=None)',
+    help='Optional consistency group name or ID in which to create the share '
+         '(Experimental, Default=None).',
     default=None)
 @cliutils.service_type('sharev2')
 def do_create(cs, args):
@@ -622,7 +622,7 @@ def do_create(cs, args):
 @api_versions.experimental_api
 @api_versions.wraps("2.5")
 def do_migrate(cs, args):
-    """Migrates share to a new host (Admin only)."""
+    """Migrates share to a new host (Admin only, Experimental)."""
     share = _find_share(cs, args.share)
     share.migrate_share(args.host, args.force_host_copy)
 
@@ -876,8 +876,8 @@ def do_snapshot_unmanage(cs, args):
     '--cg',
     metavar='<consistency-group>',
     action='single_alias',
-    help='Optional consistency group name or ID which contains the share. '
-         '(Default=None)',
+    help='Optional consistency group name or ID which contains the share '
+         '(Experimental, Default=None).',
     default=None)
 @cliutils.service_type('sharev2')
 def do_delete(cs, args):
@@ -1144,7 +1144,8 @@ def do_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Filter results by consistency group name or ID.')
+    help='Filter results by consistency group name or ID (Experimental, '
+         'Default=None).')
 @cliutils.arg(
     '--columns',
     metavar='<columns>',
@@ -2730,7 +2731,7 @@ def do_shrink(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_create(cs, args):
-    """Creates a new consistency group."""
+    """Creates a new consistency group (Experimental)."""
 
     share_types = []
     if args.share_types:
@@ -2787,7 +2788,7 @@ def do_cg_create(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_list(cs, args):
-    """List consistency groups with filters."""
+    """List consistency groups with filters (Experimental)."""
     list_of_keys = [
         'id', 'name', 'description', 'status',
     ]
@@ -2815,7 +2816,7 @@ def do_cg_list(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_show(cs, args):
-    """Show details about a consistency group."""
+    """Show details about a consistency group (Experimental)."""
     consistency_group = _find_consistency_group(cs, args.consistency_group)
     _print_consistency_group(cs, consistency_group)
 
@@ -2837,7 +2838,7 @@ def do_cg_show(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_update(cs, args):
-    """Update a consistency group."""
+    """Update a consistency group (Experimental)."""
     kwargs = {}
 
     if args.name is not None:
@@ -2865,7 +2866,7 @@ def do_cg_update(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_delete(cs, args):
-    """Remove one or more consistency groups."""
+    """Remove one or more consistency groups (Experimental)."""
     failure_count = 0
     kwargs = {}
 
@@ -2901,7 +2902,10 @@ def do_cg_delete(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_reset_state(cs, args):
-    """Explicitly update the state of a consistency group (Admin only)."""
+    """Explicitly update the state of a consistency group
+
+    (Admin only, Experimental).
+    """
     cg = _find_consistency_group(cs, args.consistency_group)
     cs.consistency_groups.reset_state(cg, args.state)
 
@@ -2923,7 +2927,7 @@ def do_cg_reset_state(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_create(cs, args):
-    """Creates a new consistency group snapshot."""
+    """Creates a new consistency group snapshot (Experimental)."""
 
     kwargs = {'name': args.name, 'description': args.description}
 
@@ -2979,7 +2983,7 @@ def _split_columns(columns, title=True):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_list(cs, args):
-    """List consistency group snapshots with filters."""
+    """List consistency group snapshots with filters (Experimental)."""
     list_of_keys = [
         'id', 'name', 'description', 'status',
     ]
@@ -3006,7 +3010,7 @@ def do_cg_snapshot_list(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_show(cs, args):
-    """Show details about a consistency group snapshot."""
+    """Show details about a consistency group snapshot (Experimental)."""
     cg_snapshot = _find_cg_snapshot(cs, args.cg_snapshot)
     _print_cg_snapshot(cs, cg_snapshot)
 
@@ -3026,7 +3030,10 @@ def do_cg_snapshot_show(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_reset_state(cs, args):
-    """Explicitly update the state of a consistency group (Admin only)."""
+    """Explicitly update the state of a consistency group
+
+    (Admin only, Experimental).
+    """
     cg = _find_cg_snapshot(cs, args.cg_snapshot)
     cs.cg_snapshots.reset_state(cg, args.state)
 
@@ -3049,7 +3056,7 @@ def do_cg_snapshot_reset_state(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_members(cs, args):
-    """Get member details for a consistency group snapshot."""
+    """Get member details for a consistency group snapshot (Experimental)."""
     cg_snapshot = _find_cg_snapshot(cs, args.cg_snapshot)
 
     search_opts = {
@@ -3091,7 +3098,7 @@ def do_cg_snapshot_members(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_update(cs, args):
-    """Update a consistency group snapshot."""
+    """Update a consistency group snapshot (Experimental)."""
     kwargs = {}
 
     if args.name is not None:
@@ -3119,7 +3126,7 @@ def do_cg_snapshot_update(cs, args):
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_cg_snapshot_delete(cs, args):
-    """Remove one or more consistency group snapshots."""
+    """Remove one or more consistency group snapshots (Experimental)."""
     failure_count = 0
     kwargs = {}
 
@@ -3152,7 +3159,7 @@ def do_cg_snapshot_delete(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_list(cs, args):
-    """List share replicas."""
+    """List share replicas (Experimental)."""
     share = _find_share(cs, args.share_id) if args.share_id else None
 
     list_of_keys = [
@@ -3193,7 +3200,7 @@ def do_share_replica_list(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_create(cs, args):
-    """Create a share replica."""
+    """Create a share replica (Experimental)."""
     share = _find_share(cs, args.share)
 
     share_network = None
@@ -3213,7 +3220,7 @@ def do_share_replica_create(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_show(cs, args):
-    """Show details about a replica."""
+    """Show details about a replica (Experimental)."""
 
     replica = cs.share_replicas.get(args.replica)
     _print_share_replica(cs, replica)
@@ -3234,7 +3241,7 @@ def do_share_replica_show(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_delete(cs, args):
-    """Remove one or more share replicas."""
+    """Remove one or more share replicas (Experimental)."""
     failure_count = 0
     kwargs = {}
 
@@ -3262,7 +3269,7 @@ def do_share_replica_delete(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_promote(cs, args):
-    """Promote specified replica to 'active' replica_state."""
+    """Promote specified replica to 'active' replica_state (Experimental)."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.promote(replica)
 
@@ -3281,7 +3288,7 @@ def do_share_replica_promote(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_reset_state(cs, args):
-    """Explicitly update the 'status' of a share replica."""
+    """Explicitly update the 'status' of a share replica (Experimental)."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.reset_state(replica, args.state)
 
@@ -3302,7 +3309,10 @@ def do_share_replica_reset_state(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_reset_replica_state(cs, args):
-    """Explicitly update the 'replica_state' of a share replica."""
+    """Explicitly update the 'replica_state' of a share replica
+
+    (Experimental).
+    """
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.reset_replica_state(replica, args.replica_state)
 
@@ -3314,6 +3324,9 @@ def do_share_replica_reset_replica_state(cs, args):
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
 def do_share_replica_resync(cs, args):
-    """Attempt to update the share replica with its 'active' mirror."""
+    """Attempt to update the share replica with its 'active' mirror
+
+     (Experimental).
+     """
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.resync(replica)
