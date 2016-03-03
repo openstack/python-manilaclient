@@ -16,6 +16,7 @@
 
 import collections
 import re
+import string
 try:
     from urllib import urlencode  # noqa
 except ImportError:
@@ -95,9 +96,11 @@ class Share(common_base.Resource):
             # common name. The meaning of a string depends on its
             # interpretation and is limited to 64 characters.
             self._validate_common_name(access.strip())
+        elif access_type == 'cephx':
+            self._validate_cephx_id(access.strip())
         else:
             raise exceptions.CommandError(
-                'Only ip, user, and cert types are supported')
+                'Only ip, user, cert or cephx types are supported')
 
     def update_all_metadata(self, metadata):
         """Update all metadata of this share."""
@@ -145,6 +148,26 @@ class Share(common_base.Resource):
             except ValueError:
                 raise exceptions.CommandError(exc_str)
 
+    @staticmethod
+    def _validate_cephx_id(cephx_id):
+        if not cephx_id:
+            raise exceptions.CommandError(
+                'Ceph IDs may not be empty')
+
+        # This restriction may be lifted in Ceph in the future:
+        # http://tracker.ceph.com/issues/14626
+        if not set(cephx_id) <= set(string.printable):
+            raise exceptions.CommandError(
+                'Ceph IDs must consist of ASCII printable characters')
+
+        # Periods are technically permitted, but we restrict them here
+        # to avoid confusion where users are unsure whether they should
+        # include the "client." prefix: otherwise they could accidentally
+        # create "client.client.foobar".
+        if '.' in cephx_id:
+            raise exceptions.CommandError(
+                'Ceph IDs may not contain periods')
+
     def reset_state(self, state):
         """Update the share with the provided state."""
         self.manager.reset_state(self, state)
@@ -173,7 +196,7 @@ class ShareManager(base.ManagerWithFind):
         """Create a share.
 
         :param share_proto: text - share protocol for new share
-            available values are NFS, CIFS, GlusterFS and HDFS.
+            available values are NFS, CIFS, CephFS, GlusterFS and HDFS.
         :param size: int - size in GiB
         :param snapshot_id: text - ID of the snapshot
         :param name: text - name of new share

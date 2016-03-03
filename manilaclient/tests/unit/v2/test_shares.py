@@ -40,6 +40,28 @@ class SharesTest(utils.TestCase):
         self.share = shares.Share(None, {'id': 1})
         self.share.manager = mock.Mock()
 
+    @ddt.data("alice", "alice_bob", "alice bob")
+    def test_share_allow_access_cephx_valid(self, cephx_id):
+        self.share.allow('cephx', cephx_id, None)
+        self.share.manager.allow.assert_called_once_with(
+            self.share, 'cephx', cephx_id, None)
+
+    @ddt.data('', 'client.manila')
+    def test_share_allow_access_cephx_invalid(self, cephx_id):
+        self.assertRaises(
+            exceptions.CommandError, self.share.allow, 'cephx', cephx_id,
+            None)
+        self.assertFalse(self.share.manager.allow.called)
+
+    # TODO(rraja): With py34, unable to run a unit test with a non-ascii test
+    # data using ddt. Separate this test for now, and find a better solution
+    # later.
+    def test_share_allow_access_cephx_invalid_with_non_ascii(self):
+        self.assertRaises(
+            exceptions.CommandError, self.share.allow, 'cephx',
+            u"bj\u00F6rn", None)
+        self.assertFalse(self.share.manager.allow.called)
+
     def test_share_allow_access_cert(self):
         access_type = 'cert'
         access_to = 'client.example.com'
@@ -98,7 +120,7 @@ class SharesTest(utils.TestCase):
 
     # Testcases for class ShareManager
 
-    @ddt.data('nfs', 'cifs', 'glusterfs', 'hdfs')
+    @ddt.data('nfs', 'cifs', 'cephfs', 'glusterfs', 'hdfs')
     def test_create_share_with_protocol(self, protocol):
         expected = {
             'size': 1,

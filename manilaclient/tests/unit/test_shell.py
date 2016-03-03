@@ -132,19 +132,6 @@ class OpenstackManilaShellTest(utils.TestCase):
     def test_help_unknown_command(self):
         self.assertRaises(exceptions.CommandError, self.shell, 'help foofoo')
 
-    def test_help(self):
-        required = [
-            '.*?^usage: ',
-            '.*?^\s+create\s+Creates a new share '
-            '\(NFS, CIFS, GlusterFS or HDFS\).',
-            '.*?(?m)^See "manila help COMMAND" for help '
-            'on a specific command.',
-        ]
-        help_text = self.shell('help')
-        for r in required:
-            self.assertThat(help_text,
-                            matchers.MatchesRegex(r, re.DOTALL | re.MULTILINE))
-
     def test_help_on_subcommand(self):
         required = [
             '.*?^usage: manila list',
