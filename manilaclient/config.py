@@ -38,7 +38,7 @@ auth_opts = [
                help="The non-administrative user's password."),
     cfg.StrOpt("auth_url",
                default=None,
-               help="URL for where to find the OpenStack Identity admin "
+               help="URL for where to find the OpenStack Identity public "
                     "API endpoint."),
     cfg.StrOpt("admin_username",
                default=None,
