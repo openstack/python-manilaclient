@@ -785,7 +785,7 @@ class ShellTest(test_utils.TestCase):
 
     @ddt.data('--is-public', '--is_public')
     def test_update(self, alias):
-        # basic rename with positional agruments
+        # basic rename with positional arguments
         self.run_command('update 1234 --name new-name')
         expected = {'share': {'display_name': 'new-name'}}
         self.assert_called('PUT', '/shares/1234', body=expected)
@@ -825,7 +825,7 @@ class ShellTest(test_utils.TestCase):
                           self.run_command, 'update 1234')
 
     def test_rename_snapshot(self):
-        # basic rename with positional agruments
+        # basic rename with positional arguments
         self.run_command('snapshot-rename 1234 new-name')
         expected = {'snapshot': {'display_name': 'new-name'}}
         self.assert_called('PUT', '/snapshots/1234', body=expected)
