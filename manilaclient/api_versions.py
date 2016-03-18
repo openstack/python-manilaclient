@@ -25,11 +25,7 @@ from manilaclient.openstack.common._i18n import _
 from manilaclient.openstack.common import cliutils
 from manilaclient import utils
 
-
 LOG = logging.getLogger(__name__)
-if not LOG.handlers:
-    LOG.addHandler(logging.StreamHandler())
-
 
 MAX_VERSION = '2.15'
 MIN_VERSION = '2.0'
@@ -245,7 +241,8 @@ def discover_version(client, requested_version):
     """Discovers the most recent version for client and API.
 
     Checks 'requested_version' and returns the most recent version
-    supported by both the API and the client.
+    supported by both the API and the client. If there is not a supported
+    version then an UnsupportedVersion exception is thrown.
 
     :param client: client object
     :param requested_version: requested version represented by APIVersion obj
@@ -256,14 +253,15 @@ def discover_version(client, requested_version):
 
     valid_version = requested_version
     if server_start_version.is_null() and server_end_version.is_null():
-        LOG.warning("Server does not support microversions. Changing server "
-                    "version to %(min_version)s." %
-                    {"min_version": DEPRECATED_VERSION})
+        msg = ("Server does not support microversions. Changing server "
+               "version to %(min_version)s.")
+        LOG.debug(msg, {"min_version": DEPRECATED_VERSION})
         valid_version = APIVersion(DEPRECATED_VERSION)
     else:
-        _validate_requested_version(requested_version,
-                                    server_start_version,
-                                    server_end_version)
+        valid_version = _validate_requested_version(
+            requested_version,
+            server_start_version,
+            server_end_version)
 
         _validate_server_version(server_start_version, server_end_version)
     return valid_version
@@ -275,18 +273,34 @@ def _validate_requested_version(requested_version,
     """Validates the requested version.
 
     Checks 'requested_version' is within the min/max range supported by the
-    server.
+    server. If 'requested_version' is not within range then attempts to
+    downgrade to 'server_end_version'. Otherwise an UnsupportedVersion
+    exception is thrown.
 
     :param requested_version: requestedversion represented by APIVersion obj
     :param server_start_version: APIVersion object representing server min
     :param server_end_version: APIVersion object representing server max
     """
+    valid_version = requested_version
     if not requested_version.matches(server_start_version, server_end_version):
-        raise exceptions.UnsupportedVersion(
-            _("The specified version isn't supported by server. The valid "
-              "version range is '%(min)s' to '%(max)s'") % {
-                "min": server_start_version.get_string(),
-                "max": server_end_version.get_string()})
+        if server_end_version <= requested_version:
+            if (manilaclient.API_MIN_VERSION <= server_end_version and
+                    server_end_version <= manilaclient.API_MAX_VERSION):
+                msg = _("Requested version %(requested_version)s is "
+                        "not supported. Downgrading requested version "
+                        "to %(server_end_version)s.")
+                LOG.debug(msg, {
+                    "requested_version": requested_version,
+                    "server_end_version": server_end_version})
+            valid_version = server_end_version
+        else:
+            raise exceptions.UnsupportedVersion(
+                _("The specified version isn't supported by server. The valid "
+                  "version range is '%(min)s' to '%(max)s'") % {
+                    "min": server_start_version.get_string(),
+                    "max": server_end_version.get_string()})
+
+    return valid_version
 
 
 def _validate_server_version(server_start_version, server_end_version):

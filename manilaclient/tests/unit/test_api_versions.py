@@ -88,8 +88,14 @@ class APIVersionTestCase(utils.TestCase):
         v8 = api_versions.APIVersion("4.0")
         v_null = api_versions.APIVersion()
 
+        v1_25 = api_versions.APIVersion("2.5")
+        v1_32 = api_versions.APIVersion("3.32")
+        v1_33 = api_versions.APIVersion("3.33")
         self.assertTrue(v2.matches(v1, v3))
         self.assertTrue(v2.matches(v1, v_null))
+
+        self.assertTrue(v1_32.matches(v1_25, v1_33))
+
         self.assertTrue(v1.matches(v6, v2))
         self.assertTrue(v4.matches(v2, v7))
         self.assertTrue(v4.matches(v_null, v7))
@@ -270,6 +276,25 @@ class DiscoverVersionTestCase(utils.TestCase):
                           self.fake_client,
                           api_versions.APIVersion("2.10"))
         self.assertTrue(self.fake_client.services.server_api_version.called)
+
+    def test_requested_version_is_less_than_server_max(self):
+        self._mock_returned_server_version('2.17', '2.14')
+        max_version = api_versions.APIVersion('2.15')
+        manilaclient.API_MAX_VERSION = max_version
+        manilaclient.API_MIN_VERSION = api_versions.APIVersion('2.12')
+        version = api_versions.discover_version(self.fake_client, max_version)
+
+        self.assertEqual(api_versions.APIVersion('2.15'), version)
+
+    def test_requested_version_is_downgraded(self):
+        server_end_version = '2.7'
+        self._mock_returned_server_version(server_end_version, '2.0')
+        max_version = api_versions.APIVersion("2.8")
+        manilaclient.API_MAX_VERSION = max_version
+        manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.5")
+        version = api_versions.discover_version(self.fake_client, max_version)
+
+        self.assertEqual(api_versions.APIVersion(server_end_version), version)
 
     def test_server_and_client_max_are_same(self):
         self._mock_returned_server_version('2.5', '2.0')

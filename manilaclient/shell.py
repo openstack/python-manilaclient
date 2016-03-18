@@ -414,11 +414,11 @@ class OpenStackManilaShell(object):
         if not debug:
             return
 
-        streamhandler = logging.StreamHandler()
         streamformat = "%(levelname)s (%(module)s:%(lineno)d) %(message)s"
-        streamhandler.setFormatter(logging.Formatter(streamformat))
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(streamhandler)
+        logging.basicConfig(level=logging.DEBUG, format=streamformat)
+        logging.getLogger('requests.packages.urllib3.connectionpool'
+                          ).setLevel(logging.WARNING)
+        logging.getLogger('keystoneclient.session').setLevel(logging.WARNING)
 
     def _build_subcommands_and_extensions(self,
                                           os_api_version,
