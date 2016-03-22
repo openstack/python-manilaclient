@@ -52,7 +52,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         return self._list('/share_instances', 'share_instances')
 
     def _action(self, action, instance, info=None, **kwargs):
-        """Perform a share instnace 'action'.
+        """Perform a share instance 'action'.
 
         :param action: text with action name.
         :param instance: either share object or text with its ID.
