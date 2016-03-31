@@ -36,7 +36,7 @@ class ShareSnapshot(common_base.Resource):
         self.manager.update(self, **kwargs)
 
     def reset_state(self, state):
-        """Update the snapshot with the privided state."""
+        """Update the snapshot with the provided state."""
         self.manager.reset_state(self, state)
 
     def delete(self):

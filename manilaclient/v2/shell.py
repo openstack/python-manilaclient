@@ -321,7 +321,7 @@ def _quota_update(manager, identifier, args):
 
     if updates:
         # default value of force is None to make sure this client
-        # will be compatibile with old nova server
+        # will be compatible with old nova server
         force_update = getattr(args, 'force', None)
         user_id = getattr(args, 'user', None)
         if isinstance(manager, quotas.QuotaSetManager):
