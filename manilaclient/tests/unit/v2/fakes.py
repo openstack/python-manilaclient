@@ -749,6 +749,53 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     get_types_3_share_type_access = get_types_3_os_share_type_access
 
+    fake_snapshot_instance = {
+        "id": "1234",
+        "snapshot_id": "5678",
+        "status": "error",
+    }
+
+    def get_snapshot_instances(self, **kw):
+        instances = {
+            'snapshot_instances': [
+                self.fake_snapshot_instance,
+            ]
+        }
+        return (200, {}, instances)
+
+    def get_snapshot_instances_detail(self, **kw):
+        instances = {
+            'snapshot_instances': [
+                {
+                    'id': '1234',
+                    'snapshot_id': '5679',
+                    'created_at': 'fake',
+                    'updated_at': 'fake',
+                    'status': 'fake',
+                    'share_id': 'fake',
+                    'share_instance_id': 'fake',
+                    'progress': 'fake',
+                    'provider_location': 'fake',
+                }
+            ]
+        }
+        return (200, {}, instances)
+
+    def get_snapshot_instances_1234(self, **kw):
+        instances = {'snapshot_instance': self.fake_snapshot_instance}
+        return (200, {}, instances)
+
+    def post_snapshot_instances_1234_action(self, body, **kw):
+        _body = None
+        resp = 202
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action == 'reset_status':
+            assert 'status' in body.get(action)
+        else:
+            raise AssertionError("Unexpected share action: %s" % action)
+        return (resp, {}, _body)
+
 
 def fake_create(url, body, response_key):
     return {'url': url, 'body': body, 'resp_key': response_key}

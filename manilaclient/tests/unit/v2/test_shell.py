@@ -1826,3 +1826,39 @@ class ShellTest(test_utils.TestCase):
         self.assert_called(
             'POST', '/share-replicas/1234/action',
             body={action_name: {attr: 'xyzzyspoon!'}})
+
+    def test_snapshot_instance_list_all(self):
+        self.run_command('snapshot-instance-list')
+        self.assert_called('GET', '/snapshot-instances')
+
+    def test_snapshot_instance_list_all_detail(self):
+        self.run_command('snapshot-instance-list --detail True')
+        self.assert_called('GET', '/snapshot-instances/detail')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_snapshot_instance_list_select_column(self):
+        self.run_command('snapshot-instance-list --columns id,status')
+        self.assert_called('GET', '/snapshot-instances')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, ['Id', 'Status'])
+
+    @mock.patch.object(shell_v2, '_find_share_snapshot', mock.Mock())
+    def test_snapshot_instance_list_for_snapshot(self):
+        fsnapshot = type('FakeSansphot', (object,),
+                         {'id': 'fake-snapshot-id'})
+        shell_v2._find_share_snapshot.return_value = fsnapshot
+        cmd = 'snapshot-instance-list --snapshot %s'
+        self.run_command(cmd % fsnapshot.id)
+
+        self.assert_called(
+            'GET', '/snapshot-instances?snapshot_id=fake-snapshot-id')
+
+    def test_snapshot_instance_show(self):
+        self.run_command('snapshot-instance-show 1234')
+        self.assert_called('GET', '/snapshot-instances/1234')
+
+    def test_snapshot_instance_reset_state(self):
+        self.run_command('snapshot-instance-reset-state 1234')
+        expected = {'reset_status': {'status': 'available'}}
+        self.assert_called('POST', '/snapshot-instances/1234/action',
+                           body=expected)

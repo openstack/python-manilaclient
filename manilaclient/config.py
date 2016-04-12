@@ -125,6 +125,11 @@ share_opts = [
                default="TESTDOMAIN\\Administrator",
                help="Username, that will be used in share access tests for "
                     "user type of access."),
+    cfg.BoolOpt("run_snapshot_tests",
+                default=True,
+                help="Defines whether to run tests that use share snapshots "
+                     "or not. Disable this feature if used driver doesn't "
+                     "support it."),
 ]
 
 # 2. Generate config
