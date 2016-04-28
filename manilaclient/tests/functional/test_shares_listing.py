@@ -14,8 +14,8 @@
 #    under the License.
 
 import ddt
-from tempest_lib.common.utils import data_utils
-from tempest_lib import exceptions
+from tempest.lib.common.utils import data_utils
+from tempest.lib import exceptions
 import testtools
 
 from manilaclient import config

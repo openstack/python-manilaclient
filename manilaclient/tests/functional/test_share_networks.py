@@ -15,8 +15,8 @@
 
 import ddt
 import six
-from tempest_lib.common.utils import data_utils
-from tempest_lib import exceptions as tempest_lib_exc
+from tempest.lib.common.utils import data_utils
+from tempest.lib import exceptions as tempest_lib_exc
 
 from manilaclient.tests.functional import base
 

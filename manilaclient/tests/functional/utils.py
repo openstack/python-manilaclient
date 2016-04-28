@@ -14,7 +14,7 @@
 #    under the License.
 
 import six
-from tempest_lib.cli import output_parser
+from tempest.lib.cli import output_parser
 import testtools
 
 from manilaclient import api_versions

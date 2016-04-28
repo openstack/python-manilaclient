@@ -16,8 +16,8 @@
 import traceback
 
 from oslo_log import log
-from tempest_lib.cli import base
-from tempest_lib import exceptions as lib_exc
+from tempest.lib.cli import base
+from tempest.lib import exceptions as lib_exc
 
 from manilaclient import config
 from manilaclient.tests.functional import client

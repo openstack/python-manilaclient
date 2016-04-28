@@ -14,7 +14,7 @@
 # under the License.
 
 import ddt
-from tempest_lib import exceptions as tempest_lib_exc
+from tempest.lib import exceptions as tempest_lib_exc
 
 from manilaclient import config
 from manilaclient.tests.functional import base

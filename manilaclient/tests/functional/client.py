@@ -18,10 +18,10 @@ import time
 
 from oslo_utils import strutils
 import six
-from tempest_lib.cli import base
-from tempest_lib.cli import output_parser
-from tempest_lib.common.utils import data_utils
-from tempest_lib import exceptions as tempest_lib_exc
+from tempest.lib.cli import base
+from tempest.lib.cli import output_parser
+from tempest.lib.common.utils import data_utils
+from tempest.lib import exceptions as tempest_lib_exc
 
 from manilaclient import config
 from manilaclient.tests.functional import exceptions
