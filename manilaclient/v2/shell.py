@@ -1281,16 +1281,18 @@ def do_access_list(cs, args):
 def do_list(cs, args):
     """List NAS shares with filters."""
 
-    list_of_keys = [
-        'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
-        'Share Type Name', 'Host', 'Availability Zone'
-    ]
-
     columns = args.columns
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     if columns is not None:
         list_of_keys = _split_columns(columns=columns)
+    else:
+        list_of_keys = [
+            'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
+            'Share Type Name', 'Host', 'Availability Zone'
+        ]
+        if all_tenants or args.public:
+            list_of_keys.append('Project ID')
 
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     empty_obj = type('Empty', (object,), {'id': None})
     share_type = (_find_share_type(cs, args.share_type)
                   if args.share_type else empty_obj)
@@ -1565,14 +1567,16 @@ def do_share_instance_export_location_show(cs, args):
          'e.g. --columns "id,name"')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
-    list_of_keys = [
-        'ID', 'Share ID', 'Status', 'Name', 'Share Size',
-    ]
-
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'ID', 'Share ID', 'Status', 'Name', 'Share Size',
+        ]
+        if all_tenants:
+            list_of_keys.append('Project ID')
 
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
     empty_obj = type('Empty', (object,), {'id': None})
     share = _find_share(cs, args.share_id) if args.share_id else empty_obj
     search_opts = {

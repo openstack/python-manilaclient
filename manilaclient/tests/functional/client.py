@@ -543,7 +543,7 @@ class ManilaCLIClient(base.CLIClient):
         return self.manila(cmd, microversion=microversion)
 
     def list_shares(self, all_tenants=False, filters=None, columns=None,
-                    microversion=None):
+                    is_public=False, microversion=None):
         """List shares.
 
         :param all_tenants: bool -- whether to list shares that belong
@@ -557,10 +557,14 @@ class ManilaCLIClient(base.CLIClient):
             will be transformed to filter parameter "--project-id=foo"
         :param columns: comma separated string of columns.
             Example, "--columns Name,Size"
+        :param is_public: bool -- should list public shares or not.
+            Default is False.
         """
         cmd = 'list '
         if all_tenants:
             cmd += '--all-tenants '
+        if is_public:
+            cmd += '--public '
         if filters and isinstance(filters, dict):
             for k, v in filters.items():
                 cmd += '%(k)s=%(v)s ' % {

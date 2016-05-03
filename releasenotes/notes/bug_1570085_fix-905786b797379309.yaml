@@ -1,0 +1,5 @@
+---
+fixes:
+  - Both 'manila list --all-tenants' and 'manila list --public'
+    will show column Project ID. Same is the change in behavior
+    of snapshot-list --all-tenants.

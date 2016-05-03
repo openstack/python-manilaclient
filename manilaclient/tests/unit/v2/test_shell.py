@@ -147,9 +147,30 @@ class ShellTest(test_utils.TestCase):
             self.run_command('list --name' + separator + '1234')
             self.assert_called('GET', '/shares/detail?name=1234')
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_list_all_tenants_only_key(self):
         self.run_command('list --all-tenants')
         self.assert_called('GET', '/shares/detail?all_tenants=1')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
+             'Share Type Name', 'Host', 'Availability Zone', 'Project ID'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_select_column_and_all_tenants(self):
+        self.run_command('list --columns ID,Name --all-tenants')
+        self.assert_called('GET', '/shares/detail?all_tenants=1')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['Id', 'Name'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_select_column_and_public(self):
+        self.run_command('list --columns ID,Name --public')
+        self.assert_called('GET', '/shares/detail?is_public=True')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['Id', 'Name'])
 
     def test_list_all_tenants_key_and_value_1(self):
         for separator in self.separators:
@@ -452,7 +473,8 @@ class ShellTest(test_utils.TestCase):
             'Is Public',
             'Share Type Name',
             'Host',
-            'Availability Zone'
+            'Availability Zone',
+            'Project ID'
         ]
         self.run_command('list --public')
         self.assert_called('GET', '/shares/detail?is_public=True')
@@ -609,9 +631,13 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             ['Id', 'Name'])
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_list_snapshots_all_tenants_only_key(self):
         self.run_command('snapshot-list --all-tenants')
         self.assert_called('GET', '/snapshots/detail?all_tenants=1')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            ['ID', 'Share ID', 'Status', 'Name', 'Share Size', 'Project ID'])
 
     def test_list_snapshots_all_tenants_key_and_value_1(self):
         for separator in self.separators:

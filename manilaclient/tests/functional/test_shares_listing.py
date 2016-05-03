@@ -109,6 +109,19 @@ class SharesListReadWriteTest(base.BaseTestCase):
         cls.public_description = data_utils.rand_name(
             'autotest_public_share_description')
 
+        cls.admin_private_name = data_utils.rand_name(
+            'autotest_admin_private_share_name')
+        cls.admin_private_description = data_utils.rand_name(
+            'autotest_admin_private_share_description')
+
+        cls.admin_private_share = cls.create_share(
+            name=cls.admin_private_name,
+            description=cls.admin_private_description,
+            public=False,
+            cleanup_in_class=True,
+            client=None,
+            wait_for_creation=False)
+
         cls.private_share = cls.create_share(
             name=cls.private_name,
             description=cls.private_description,
@@ -124,7 +137,8 @@ class SharesListReadWriteTest(base.BaseTestCase):
             client=cls.get_user_client(),
             cleanup_in_class=True)
 
-        for share_id in (cls.private_share['id'], cls.public_share['id']):
+        for share_id in (cls.private_share['id'], cls.public_share['id'],
+                         cls.admin_private_share['id']):
             cls.get_admin_client().wait_for_share_status(share_id, 'available')
 
     def _list_shares(self, filters=None):
@@ -153,11 +167,34 @@ class SharesListReadWriteTest(base.BaseTestCase):
     def test_list_shares(self):
         self._list_shares()
 
-    def test_list_shares_for_all_tenants(self):
-        shares = self.user_client.list_shares(True)
+    @ddt.data(1, 0)
+    def test_list_shares_for_all_tenants(self, all_tenants):
+        shares = self.admin_client.list_shares(all_tenants=all_tenants)
+        self.assertTrue(len(shares) >= 1)
+
+        if all_tenants:
+            self.assertTrue(all('Project ID' in s for s in shares))
+            for s_id in (self.private_share['id'], self.public_share['id'],
+                         self.admin_private_share['id']):
+                self.assertTrue(any(s_id == s['ID'] for s in shares))
+        else:
+            self.assertTrue(all('Project ID' not in s for s in shares))
+            self.assertTrue(any(self.admin_private_share['id'] == s['ID']
+                                for s in shares))
+            if self.private_share['project_id'] != (
+                    self.admin_private_share['project_id']):
+                for s_id in (
+                        self.private_share['id'], self.public_share['id']):
+                    self.assertFalse(any(s_id == s['ID'] for s in shares))
+
+    @ddt.data(True, False)
+    def test_list_shares_with_public(self, public):
+        shares = self.user_client.list_shares(is_public=public)
         self.assertTrue(len(shares) > 1)
-        for s_id in (self.private_share['id'], self.public_share['id']):
-            self.assertTrue(any(s_id == s['ID'] for s in shares))
+        if public:
+            self.assertTrue(all('Project ID' in s for s in shares))
+        else:
+            self.assertTrue(all('Project ID' not in s for s in shares))
 
     def test_list_shares_by_name(self):
         shares = self.user_client.list_shares(
@@ -180,8 +217,8 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self._list_shares({'status': 'available'})
 
     def test_list_shares_by_project_id(self):
-        project_id = self.admin_client.get_project_id(
-            self.admin_client.tenant_name)
+        project_id = self.user_client.get_project_id(
+            self.user_client.tenant_name)
         self._list_shares({'project_id': project_id})
 
     @testtools.skipUnless(
