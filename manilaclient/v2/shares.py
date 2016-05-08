@@ -80,7 +80,7 @@ class Share(common_base.Resource):
         return self.manager.deny(self, id)
 
     def access_list(self):
-        """Deny access from IP to a share."""
+        """Get access list from a share."""
         return self.manager.access_list(self)
 
     def update_all_metadata(self, metadata):
