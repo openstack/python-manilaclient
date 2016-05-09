@@ -869,7 +869,7 @@ class ShellTest(test_utils.TestCase):
 
     def test_extract_metadata(self):
         # mimic the result of argparse's parse_args() method
-        class Arguments:
+        class Arguments(object):
             def __init__(self, metadata=None):
                 if metadata is None:
                     metadata = []
@@ -1371,7 +1371,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     @mock.patch.object(shell_v2, '_find_share_network', mock.Mock())
     def test_security_service_list_filter_share_network(self):
-        class FakeShareNetwork:
+        class FakeShareNetwork(object):
             id = 'fake-sn-id'
         sn = FakeShareNetwork()
         shell_v2._find_share_network.return_value = sn
