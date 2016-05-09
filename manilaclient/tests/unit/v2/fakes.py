@@ -672,11 +672,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, {
             'share_types': [{'id': 1,
                              'name': 'test-type-1',
-                             'extra_specs': {'test': 'test'},
+                             'extra_specs': {'test1': 'test1'},
                              'required_extra_specs': {'test': 'test'}},
                             {'id': 2,
                              'name': 'test-type-2',
-                             'extra_specs': {'test': 'test'},
+                             'extra_specs': {'test1': 'test1'},
                              'required_extra_specs': {'test': 'test'}}]})
 
     def get_types_1(self, **kw):
@@ -715,12 +715,16 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def post_types(self, body, **kw):
         share_type = body['share_type']
+        required_extra_specs = {
+            "driver_handles_share_servers": share_type[
+                'extra_specs']['driver_handles_share_servers'],
+        }
         return (202, {}, {
             'share_type': {
                 'id': 3,
                 'name': 'test-type-3',
                 'extra_specs': share_type['extra_specs'],
-                'required_extra_specs': share_type['extra_specs'],
+                'required_extra_specs': required_extra_specs,
             }
         })
 

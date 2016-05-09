@@ -93,6 +93,15 @@ def listing(output_lines):
     return items
 
 
+def details(output_lines):
+    """Returns dict parsed from CLI output."""
+    result = listing(output_lines)
+    d = {}
+    for item in result:
+        d.update({item['Property']: item['Value']})
+    return d
+
+
 def is_microversion_supported(microversion):
     return (
         api_versions.APIVersion(CONF.min_api_microversion) <=

@@ -81,42 +81,76 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
                 microversion=microversion))
 
     @ddt.data(
-        (True, False),
-        (True, True),
-        (False, True),
-        (False, False),
-        (False, True, False, "2.6"),
-        (False, False, True, "2.7"),
+        (True, False, None),
+        (True, True, None),
+        (False, True, None),
+        (False, False, None),
+
+        (False, True, None, {'snapshot_support': False,
+                             'replication_type': 'fake_repl_type1'}, "2.6"),
+        (False, False, None, {'snapshot_support': True,
+                              'replication_type': 'fake_repl_type2'}, "2.7"),
+        (False, False, None, {'snapshot_support': False,
+                              'replication_type': 'fake_repl_type3',
+                              'foo': 'bar'}),
+        (False, False, None, {'replication_type': 'fake_repl_type4',
+                              'foo': 'bar',
+                              'foo2': 'abcd'}),
+        (False, True, True, {'foo2': 'abcd'}),
+        (False, True, False, {'foo2': 'abcd'}),
+        (False, True, False, {'capabilities:dedupe': '<is> True'}),
     )
     @ddt.unpack
     def test_create_delete_share_type(self, is_public, dhss,
-                                      snapshot_support=True,
-                                      microversion=None):
+                                      spec_snapshot_support=None,
+                                      extra_specs=None, microversion=None):
         if microversion:
             self.skip_if_microversion_not_supported(microversion)
 
         share_type_name = data_utils.rand_name('manilaclient_functional_test')
         dhss_expected = 'driver_handles_share_servers : %s' % dhss
-        snapshot_support_expected = 'snapshot_support : %s' % snapshot_support
+
+        if extra_specs is None:
+            extra_specs = {}
+
+        expected_extra_specs = []
+        for key, val in extra_specs.items():
+            expected_extra_specs.append(('{} : {}'.format(key, val)).strip())
+
+        if 'snapshot_support' not in extra_specs:
+            if spec_snapshot_support is None:
+                expected_extra_specs.append(
+                    ('{} : {}'.format('snapshot_support', True)).strip())
+            else:
+                expected_extra_specs.append(
+                    ('{} : {}'.format(
+                        'snapshot_support',
+                        spec_snapshot_support)).strip())
 
         # Create share type
         share_type = self.create_share_type(
             name=share_type_name,
             driver_handles_share_servers=dhss,
-            snapshot_support=snapshot_support,
+            snapshot_support=spec_snapshot_support,
             is_public=is_public,
             microversion=microversion,
+            extra_specs=extra_specs,
         )
-
         st_id = share_type['ID']
-
+        optional_extra_specs = share_type['optional_extra_specs']
         # Verify response body
         for key in self.create_keys:
             self.assertIn(key, share_type)
+
         self.assertEqual(share_type_name, share_type['Name'])
         self.assertEqual(dhss_expected, share_type['required_extra_specs'])
-        self.assertEqual(
-            snapshot_support_expected, share_type['optional_extra_specs'])
+        if not isinstance(optional_extra_specs, list):
+            optional_extra_specs = [optional_extra_specs]
+        self.assertEqual(len(expected_extra_specs),
+                         len(optional_extra_specs))
+        for e in optional_extra_specs:
+            self.assertIn(e.strip(), expected_extra_specs)
+
         self.assertEqual('public' if is_public else 'private',
                          share_type['Visibility'].lower())
         self.assertEqual('-', share_type['is_default'])

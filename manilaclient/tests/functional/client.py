@@ -142,8 +142,8 @@ class ManilaCLIClient(base.CLIClient):
     # Share types
 
     def create_share_type(self, name=None, driver_handles_share_servers=True,
-                          snapshot_support=True, is_public=True,
-                          microversion=None):
+                          snapshot_support=None, is_public=True,
+                          microversion=None, extra_specs=None):
         """Creates share type.
 
         :param name: text -- name of share type to use, if not set then
@@ -154,22 +154,34 @@ class ManilaCLIClient(base.CLIClient):
             string alias. Default is True.
         :param is_public: bool/str -- boolean or its string alias. Default is
             True.
+        :param extra_specs: -- dictionary of extra specs Default is None.
         """
         if name is None:
             name = data_utils.rand_name('manilaclient_functional_test')
         dhss = driver_handles_share_servers
         if not isinstance(dhss, six.string_types):
             dhss = six.text_type(dhss)
-        if not isinstance(snapshot_support, six.string_types):
-            snapshot_support = six.text_type(snapshot_support)
         if not isinstance(is_public, six.string_types):
             is_public = six.text_type(is_public)
-        cmd = ('type-create %(name)s %(dhss)s --is-public %(is_public)s '
-               '--snapshot-support %(snapshot_support)s') % {
-                   'name': name, 'dhss': dhss, 'is_public': is_public,
-                   'snapshot_support': snapshot_support}
+
+        cmd = ('type-create %(name)s %(dhss)s --is-public %(is_public)s ') % {
+            'name': name, 'dhss': dhss, 'is_public': is_public}
+
+        if snapshot_support is not None:
+            if not isinstance(snapshot_support, six.string_types):
+                snapshot_support = six.text_type(snapshot_support)
+                cmd += " --snapshot-support " + snapshot_support
+
+        if extra_specs is not None:
+            extra_spec_str = ''
+            for k, v in extra_specs.items():
+                if not isinstance(v, six.string_types):
+                    extra_specs[k] = six.text_type(v)
+                extra_spec_str += "{}='{}' ".format(k, v)
+            cmd += " --extra_specs " + extra_spec_str
+
         share_type_raw = self.manila(cmd, microversion=microversion)
-        share_type = output_parser.details(share_type_raw)
+        share_type = utils.details(share_type_raw)
         return share_type
 
     @not_found_wrapper
