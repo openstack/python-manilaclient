@@ -55,10 +55,21 @@ class AllowOnlyOneAliasAtATimeAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         # NOTE(vponomaryov): this method is redefinition of
         # argparse.Action.__call__ interface
-        if getattr(namespace, self.dest) is not None:
+
+        if not hasattr(self, 'calls'):
+            self.calls = {}
+
+        if self.dest not in self.calls:
+            self.calls[self.dest] = set()
+
+        local_values = sorted(values) if isinstance(values, list) else values
+        self.calls[self.dest].add(six.text_type(local_values))
+
+        if len(self.calls[self.dest]) == 1:
+            setattr(namespace, self.dest, local_values)
+        else:
             msg = "Only one alias is allowed at a time."
             raise argparse.ArgumentError(self, msg)
-        setattr(namespace, self.dest, values)
 
 
 class ManilaClientArgumentParser(argparse.ArgumentParser):

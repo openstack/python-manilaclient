@@ -401,9 +401,11 @@ def do_quota_defaults(cs, args):
     help='New value for the "snapshot_gigabytes" quota.')
 @cliutils.arg(
     '--share-networks',
+    '--share_networks',
     metavar='<share-networks>',
     type=int,
     default=None,
+    action='single_alias',
     help='New value for the "share_networks" quota.')
 @cliutils.arg(
     '--force',
@@ -529,7 +531,9 @@ def do_rate_limits(cs, args):
     help='Share size in GiB.')
 @cliutils.arg(
     '--snapshot-id',
+    '--snapshot_id',
     metavar='<snapshot-id>',
+    action='single_alias',
     help='Optional snapshot ID to create the share from. (Default=None)',
     default=None)
 @cliutils.arg(
@@ -546,7 +550,9 @@ def do_rate_limits(cs, args):
     default=None)
 @cliutils.arg(
     '--share-network',
+    '--share_network',
     metavar='<network-info>',
+    action='single_alias',
     help='Optional network info ID or name.',
     default=None)
 @cliutils.arg(
@@ -624,6 +630,7 @@ def do_create(cs, args):
     metavar='<True|False>',
     choices=['True', 'False'],
     required=False,
+    action='single_alias',
     help='Enables or disables generic host-based force-migration, which '
          'bypasses driver optimizations. Default=False.',
     default=False)
@@ -705,6 +712,7 @@ def do_migration_cancel(cs, args):
     '--state',
     metavar='<task_state>',
     default='migration_error',
+    action='single_alias',
     help=('Indicate which task state to assign the share. Options include '
           'migration_starting, migration_in_progress, migration_completing, '
           'migration_success, migration_error, migration_cancelled, '
@@ -1082,6 +1090,7 @@ def do_show(cs, args):
     type=str,
     default=None,
     choices=['rw', 'ro'],
+    action='single_alias',
     help='Share access level ("rw" and "ro" access levels are supported). '
          'Defaults to rw.')
 def do_access_allow(cs, args):
@@ -1177,7 +1186,7 @@ def do_access_list(cs, args):
          'was used for share creation. OPTIONAL: Default=None',
     default=None)
 @cliutils.arg(
-    '--share-type', '--volume-type'
+    '--share-type', '--volume-type',
     '--share_type', '--share-type-id', '--volume-type-id',  # aliases
     '--share-type_id', '--share_type-id', '--share_type_id',  # aliases
     '--volume_type', '--volume_type_id',
@@ -3311,6 +3320,7 @@ def do_share_replica_list(cs, args):
     '--share_network',
     metavar='<network-info>',
     default=None,
+    action='single_alias',
     help='Optional network info ID or name.')
 @api_versions.wraps("2.11")
 @api_versions.experimental_api
@@ -3418,6 +3428,7 @@ def do_share_replica_reset_state(cs, args):
     '--state',  # alias for user sanity
     metavar='<replica_state>',
     default='out_of_sync',
+    action='single_alias',
     help=('Indicate which replica_state to assign the replica. Options '
           'include in_sync, out_of_sync, active, error. If no '
           'state is provided, out_of_sync will be used.'))
