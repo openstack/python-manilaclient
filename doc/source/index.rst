@@ -43,18 +43,26 @@ Functional tests
 ----------------
 
 Functional CLI tests require several things to be able to run:
-- Deployed and working manila service.
-- Configured config file.
+
+* Deployed and working manila service.
+* Configured config file.
 
 Config file is used to get information like 'auth_url', 'username',
 'tenant_name' and 'password'.
 To get config sample need to run following 'tox' job:
-$ tox -e genconfig
+
+.. code-block:: console
+
+  $ tox -e genconfig
+
 This will create file 'etc/manilaclient/manilaclient.conf.sample' with all
 available config opts.
 Then rename it removing ".sample" and set values for opts there. After it,
 tests can be run using following tox job:
-$ tox -e functional
+
+.. code-block:: console
+
+  $ tox -e functional
 
 Indices and tables
 ==================
