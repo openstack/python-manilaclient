@@ -23,8 +23,6 @@ from manilaclient.common import constants
 from manilaclient.common import httpclient
 from manilaclient import exceptions
 from manilaclient.v2 import availability_zones
-from manilaclient.v2 import consistency_group_snapshots as cg_snapshots
-from manilaclient.v2 import consistency_groups
 from manilaclient.v2 import limits
 from manilaclient.v2 import quota_classes
 from manilaclient.v2 import quotas
@@ -32,6 +30,10 @@ from manilaclient.v2 import scheduler_stats
 from manilaclient.v2 import security_services
 from manilaclient.v2 import services
 from manilaclient.v2 import share_export_locations
+from manilaclient.v2 import share_group_snapshots
+from manilaclient.v2 import share_group_type_access
+from manilaclient.v2 import share_group_types
+from manilaclient.v2 import share_groups
 from manilaclient.v2 import share_instance_export_locations
 from manilaclient.v2 import share_instances
 from manilaclient.v2 import share_networks
@@ -219,6 +221,12 @@ class Client(object):
         self.shares = shares.ShareManager(self)
         self.share_export_locations = (
             share_export_locations.ShareExportLocationManager(self))
+        self.share_groups = share_groups.ShareGroupManager(self)
+        self.share_group_snapshots = (
+            share_group_snapshots.ShareGroupSnapshotManager(self))
+        self.share_group_type_access = (
+            share_group_type_access.ShareGroupTypeAccessManager(self))
+        self.share_group_types = share_group_types.ShareGroupTypeManager(self)
         self.share_instances = share_instances.ShareInstanceManager(self)
         self.share_instance_export_locations = (
             share_instance_export_locations.ShareInstanceExportLocationManager(
@@ -232,10 +240,6 @@ class Client(object):
         self.share_servers = share_servers.ShareServerManager(self)
         self.share_replicas = share_replicas.ShareReplicaManager(self)
         self.pools = scheduler_stats.PoolManager(self)
-        self.consistency_groups = (
-            consistency_groups.ConsistencyGroupManager(self))
-        self.cg_snapshots = (
-            cg_snapshots.ConsistencyGroupSnapshotManager(self))
 
         self._load_extensions(extensions)
 

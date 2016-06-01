@@ -654,96 +654,85 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, pools)
 
-    def get_consistency_groups_detail(self, **kw):
-        consistency_groups = {
-            'consistency_groups': [
-                {
-                    'id': 1234,
-                    'status': 'available',
-                    'name': 'cgname',
-                    'description': 'my cg'
-                }
-            ]
-        }
-        return (200, {}, consistency_groups)
+    fake_share_group = {
+        'id': '1234',
+        'availability_zone': 'nova',
+        'share_network_id': None,
+        'status': 'available',
+        'name': 'share group name',
+        'description': 'my share group',
+    }
 
-    def delete_consistency_groups_1234(self, **kw):
-        return (202, {}, None)
+    def get_share_groups_detail(self, **kw):
+        share_groups = {'share_groups': [self.fake_share_group]}
+        return 200, {}, share_groups
 
-    def post_consistency_groups_1234_action(self, **kw):
-        return (202, {}, None)
+    def get_share_groups_1234(self, **kw):
+        share_group = {'share_group': self.fake_share_group}
+        return 200, {}, share_group
 
-    def post_consistency_groups(self, body, **kw):
-        return (202, {}, {
-            'consistency_group': {
-                'id': 'fake-cg-id',
-                'name': 'fake_name'
+    def put_share_groups_1234(self, **kwargs):
+        share_group = {'share_group': self.fake_share_group}
+        return 200, {}, share_group
+
+    def delete_share_groups_1234(self, **kw):
+        return 202, {}, None
+
+    def post_share_groups_1234_action(self, **kw):
+        return 202, {}, None
+
+    def post_share_groups(self, body, **kw):
+        share_group = {
+            'share_group': {
+                'id': 'fake-sg-id',
+                'name': 'fake_name',
             }
-        })
-
-    def get_cgsnapshots_fake_cg_id_members(self, **kw):
-        members = {
-            'cgsnapshot_members': [
-                {
-                    'id': 1234,
-                    'name': 'fake name',
-                    'created_at': '05050505',
-                    'size': '50PB',
-                    'share_protocol': 'NFS',
-                    'project_id': '2221234',
-                    'share_type_id': '3331234',
-                },
-                {
-                    'id': 4321,
-                    'name': 'fake name 2',
-                    'created_at': '03030303',
-                    'size': '50PB',
-                    'share_protocol': 'NFS',
-                    'project_id': '2224321',
-                    'share_type_id': '3334321',
-                }
-            ]
         }
-        return(200, {}, members)
+        return 202, {}, share_group
 
-    def get_cgsnapshots(self, **kw):
-        cg_snapshots = {
-            'cgsnapshots': [
-                {
-                    'id': 1234,
-                    'status': 'available',
-                    'name': 'cgsnapshotname',
-                }
-            ]
+    fake_share_group_snapshot = {
+        'id': '1234',
+        'status': 'available',
+        'name': 'share group name',
+        'description': 'my share group',
+    }
+
+    def get_share_group_snapshots(self, **kw):
+        sg_snapshots = {
+            'share_group_snapshots': [self.fake_share_group_snapshot],
         }
-        return (200, {}, cg_snapshots)
+        return 200, {}, sg_snapshots
 
-    def get_cgsnapshots_detail(self, **kw):
-        cg_snapshots = {
-            'cgsnapshots': [
-                {
-                    'id': 1234,
-                    'status': 'available',
-                    'name': 'cgsnapshotname',
-                    'description': 'my cgsnapshot'
-                }
-            ]
+    def get_share_group_snapshots_detail(self, **kw):
+        sg_snapshots = {
+            'share_group_snapshots': [self.fake_share_group_snapshot],
         }
-        return (200, {}, cg_snapshots)
+        return 200, {}, sg_snapshots
 
-    def delete_cgsnapshots_1234(self, **kw):
-        return (202, {}, None)
+    def get_share_group_snapshots_1234(self, **kw):
+        sg_snapshot = {'share_group_snapshot': self.fake_share_group_snapshot}
+        return 200, {}, sg_snapshot
 
-    def post_cgsnapshots_1234_action(self, **kw):
-        return (202, {}, None)
+    def put_share_group_snapshots_1234(self, **kwargs):
+        sg_snapshot = {
+            'share_group_snapshot': self.fake_share_group_snapshot,
+        }
+        return 200, {}, sg_snapshot
 
-    def post_cgsnapshots(self, body, **kw):
-        return (202, {}, {
-            'cgsnapshot': {
+    def delete_share_group_snapshots_1234(self, **kw):
+        return 202, {}, None
+
+    def post_share_group_snapshots_1234_action(self, **kw):
+        return 202, {}, None
+
+    def post_share_group_snapshots(self, body, **kw):
+        sg_snapshot = {
+            'share_group_snapshot': {
                 'id': 3,
                 'name': 'cust_snapshot',
             }
-        })
+        }
+        return 202, {}, sg_snapshot
 
     fake_share_replica = {
         "id": "5678",
@@ -953,6 +942,114 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
 
+    def get_share_group_types_default(self, **kw):
+        return self.get_share_group_types_1(**kw)
+
+    def get_share_group_types(self, **kw):
+        share_group_types = {
+            'share_group_types': [
+                {
+                    'id': 1,
+                    'name': 'test-group-type-1',
+                    'group_specs': {
+                        'key1': 'value1',
+                    },
+                    'share_types': [
+                        'type1',
+                        'type2',
+                    ],
+                    'is_public': True,
+                }, {
+                    'id': 2,
+                    'name': 'test-type-2',
+                    'group_specs': {
+                        'key2': 'value2',
+                    },
+                    'share_types': [
+                        'type3',
+                        'type4',
+                    ],
+                    'is_public': False,
+                },
+            ],
+        }
+        return 200, {}, share_group_types
+
+    def get_share_group_types_1(self, **kw):
+        share_group_type = {
+            'share_group_type': {
+                'id': 1,
+                'name': 'test-group-type-1',
+                'group_specs': {
+                    'key1': 'value1',
+                },
+                'share_types': [
+                    'type1',
+                    'type2',
+                ],
+                'is_public': True,
+            },
+        }
+        return 200, {}, share_group_type
+
+    def get_share_group_types_2(self, **kw):
+        share_group_type = {
+            'share_type': {
+                'id': 2,
+                'name': 'test-group-type-2',
+                'group_specs': {
+                    'key2': 'value2',
+                },
+                'share_types': [
+                    'type3',
+                    'type4',
+                ],
+                'is_public': True,
+            },
+        }
+        return 200, {}, share_group_type
+
+    def post_share_group_types(self, body, **kw):
+        share_group_type = {
+            'share_group_type': {
+                'id': 1,
+                'name': 'test-group-type-1',
+                'share_types': body['share_group_type']['share_types'],
+                'is_public': True,
+            },
+        }
+        return 202, {}, share_group_type
+
+    def post_share_group_types_1234_action(self, body, **kw):
+        assert len(list(body)) == 1
+        action = list(body)[0]
+        if action == 'addProjectAccess':
+            assert 'project' in body['addProjectAccess']
+        elif action == 'removeProjectAccess':
+            assert 'project' in body['removeProjectAccess']
+        else:
+            raise AssertionError('Unexpected action: %s' % action)
+        return 202, {}, None
+
+    def post_share_group_types_1_specs(self, body, **kw):
+        assert list(body) == ['group_specs']
+        return 200, {}, {'group_specs': {'k': 'v'}}
+
+    def delete_share_group_types_1_specs_k(self, **kw):
+        return 204, {}, None
+
+    def delete_share_group_types_1234(self, **kw):
+        return 202, {}, None
+
+    def get_share_group_types_1234_access(self, **kw):
+        sg_type_access = {
+            'share_group_type_access': [{
+                'group_type_id': '11111111-1111-1111-1111-111111111111',
+                'project_id': '00000000-0000-0000-0000-000000000000',
+            }],
+        }
+        return 200, {}, sg_type_access
+
 
 def fake_create(url, body, response_key):
     return {'url': url, 'body': body, 'resp_key': response_key}
@@ -969,3 +1066,43 @@ class FakeQuotaSet(object):
 
     def to_dict(self):
         return self.dictionary
+
+
+class ShareNetwork(object):
+    id = 'fake share network id'
+    name = 'fake share network name'
+
+
+class ShareType(object):
+    id = 'fake share type id'
+    name = 'fake share type name'
+
+
+class ShareGroupType(object):
+    id = 'fake group type id'
+    name = 'fake group type name'
+    share_types = [ShareType().id]
+    is_public = False
+
+
+class ShareGroupTypeAccess(object):
+    id = 'fake group type access id'
+    name = 'fake group type access name'
+
+
+class ShareGroup(object):
+    id = 'fake group id'
+    share_types = [ShareType().id]
+    group_type_id = ShareGroupType().id
+    share_network_id = ShareNetwork().id
+    name = 'fake name'
+    description = 'fake description'
+    availability_zone = 'fake az'
+
+
+class ShareGroupSnapshot(object):
+    id = 'fake group snapshot id'
+    share_group_id = ShareGroup().id,
+    share_network_id = ShareNetwork().id
+    name = 'fake name'
+    description = 'fake description'

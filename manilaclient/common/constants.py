@@ -41,7 +41,7 @@ SNAPSHOT_SORT_KEY_VALUES = (
     'display_name',
 )
 
-CONSISTENCY_GROUP_SORT_KEY_VALUES = (
+SHARE_GROUP_SORT_KEY_VALUES = (
     'id',
     'name',
     'status',
@@ -49,10 +49,15 @@ CONSISTENCY_GROUP_SORT_KEY_VALUES = (
     'user_id',
     'project_id',
     'created_at',
-    'source_cgsnapshot_id',
+    'availability_zone',
+    'share_network',
+    'share_network_id',
+    'share_group_type',
+    'share_group_type_id',
+    'source_share_group_snapshot_id',
 )
 
-CG_SNAPSHOT_SORT_KEY_VALUES = (
+SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES = (
     'id',
     'name',
     'status',
@@ -60,17 +65,7 @@ CG_SNAPSHOT_SORT_KEY_VALUES = (
     'user_id',
     'project_id',
     'created_at',
-)
-
-CG_SNAPSHOT_MEMBERS_SORT_KEY_VALUES = (
-    'id',
-    'name',
-    'created_at',
-    'size',
-    'share_protocol',
-    'project_id',
-    'share_type_id',
-    'cgsnapshot_id',
+    'share_group_id',
 )
 
 TASK_STATE_MIGRATION_SUCCESS = 'migration_success'

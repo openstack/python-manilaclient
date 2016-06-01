@@ -22,6 +22,7 @@ Base utilities to build API operation managers and objects on top of.
 import contextlib
 import hashlib
 import os
+from six.moves.urllib import parse
 
 from manilaclient.common import cliutils
 from manilaclient import exceptions
@@ -173,6 +174,11 @@ class Manager(utils.HookableMixin):
                 return self.resource_class(self, body[response_key])
             else:
                 return self.resource_class(self, body)
+
+    def _build_query_string(self, search_opts):
+        q_string = parse.urlencode(
+            sorted([(k, v) for (k, v) in search_opts.items() if v]))
+        return "?%s" % q_string if q_string else q_string
 
 
 class ManagerWithFind(Manager):

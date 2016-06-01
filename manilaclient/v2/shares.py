@@ -69,9 +69,9 @@ class Share(common_base.Resource):
         """Reset the task state of a given share."""
         self.manager.reset_task_state(self, task_state)
 
-    def delete(self, consistency_group_id=None):
+    def delete(self, share_group_id=None):
         """Delete this share."""
-        self.manager.delete(self, consistency_group_id=consistency_group_id)
+        self.manager.delete(self, share_group_id=share_group_id)
 
     def force_delete(self):
         """Delete the specified share ignoring its current state."""
@@ -121,7 +121,7 @@ class ShareManager(base.ManagerWithFind):
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False, availability_zone=None,
-               consistency_group_id=None):
+               share_group_id=None):
         """Create a share.
 
         :param share_proto: text - share protocol for new share
@@ -134,8 +134,8 @@ class ShareManager(base.ManagerWithFind):
         :param share_network: either instance of ShareNetwork or text with ID
         :param share_type: either instance of ShareType or text with ID
         :param is_public: bool, whether to set share as public or not.
-        :param consistency_group_id: text - ID of the consistency group to
-            which the share should belong
+        :param share_group_id: text - ID of the share group to which the share
+            should belong
         :rtype: :class:`Share`
         """
         share_metadata = metadata if metadata is not None else dict()
@@ -150,8 +150,10 @@ class ShareManager(base.ManagerWithFind):
             'share_type': common_base.getid(share_type),
             'is_public': is_public,
             'availability_zone': availability_zone,
-            'consistency_group_id': consistency_group_id,
         }
+        if share_group_id:
+            body['share_group_id'] = share_group_id
+
         return self._create('/shares', {'share': body}, 'share')
 
     @api_versions.wraps("2.29")
@@ -386,16 +388,16 @@ class ShareManager(base.ManagerWithFind):
 
         return self._list(path, 'shares')
 
-    def delete(self, share, consistency_group_id=None):
+    def delete(self, share, share_group_id=None):
         """Delete a share.
 
         :param share: either share object or text with its ID.
-        :param consistency_group_id: text - ID of the consistency group to
-            which the share belongs to.
+        :param share_group_id: text - ID of the share group to which the share
+            belongs
         """
         url = "/shares/%s" % common_base.getid(share)
-        if consistency_group_id:
-            url += "?consistency_group_id=%s" % consistency_group_id
+        if share_group_id:
+            url += "?share_group_id=%s" % share_group_id
         self._delete(url)
 
     def _do_force_delete(self, share, action_name):

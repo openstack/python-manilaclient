@@ -68,7 +68,6 @@ class ShellTest(test_utils.TestCase):
         self.separators = [' ', '=']
         self.create_share_body = {
             "share": {
-                "consistency_group_id": None,
                 "share_type": None,
                 "name": None,
                 "snapshot_id": None,
@@ -637,17 +636,16 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('DELETE', '/shares/1234')
 
     @ddt.data(
-        '--cg 1234', '--consistency-group 1234', '--consistency_group 1234')
-    @mock.patch.object(shell_v2, '_find_consistency_group', mock.Mock())
-    def test_delete_with_cg(self, cg_cmd):
-        fcg = type(
-            'FakeConsistencyGroup', (object,), {'id': cg_cmd.split()[-1]})
-        shell_v2._find_consistency_group.return_value = fcg
+        '--group sg1313', '--share-group sg1313', '--share_group sg1313')
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    def test_delete_with_share_group(self, sg_cmd):
+        fake_sg = type('FakeShareGroup', (object,), {'id': sg_cmd.split()[-1]})
+        shell_v2._find_share_group.return_value = fake_sg
 
-        self.run_command('delete 1234 %s' % cg_cmd)
+        self.run_command('delete 1234 %s' % sg_cmd)
 
-        self.assert_called('DELETE', '/shares/1234?consistency_group_id=1234')
-        self.assertTrue(shell_v2._find_consistency_group.called)
+        self.assert_called('DELETE', '/shares/1234?share_group_id=sg1313')
+        self.assertTrue(shell_v2._find_share_group.called)
 
     def test_delete_not_found(self):
         self.assertRaises(
@@ -1763,152 +1761,448 @@ class ShellTest(test_utils.TestCase):
             field_labels=['ID', 'Status', 'Version', 'Minimum Version'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_cg_list(self):
-        self.run_command('cg-list')
-        self.assert_called('GET', '/consistency-groups/detail')
+    def test_share_group_list(self):
+        self.run_command('share-group-list')
 
+        self.assert_called('GET', '/share-groups/detail')
         cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=['id', 'name', 'description', 'status'])
+            mock.ANY, fields=('ID', 'Name', 'Status', 'Description'))
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_cg_list_select_column(self):
-        self.run_command('cg-list --columns id,name,description')
-        self.assert_called('GET', '/consistency-groups/detail')
+    def test_share_group_list_select_column(self):
+        self.run_command('share-group-list --columns id,name,description')
 
+        self.assert_called('GET', '/share-groups/detail')
         cliutils.print_list.assert_called_once_with(
             mock.ANY, fields=['Id', 'Name', 'Description'])
 
+    def test_share_group_show(self):
+        self.run_command('share-group-show 1234')
+
+        self.assert_called('GET', '/share-groups/1234')
+
+    def test_share_group_create(self):
+        fake_share_type_1 = type('FakeShareType1', (object,), {'id': '1234'})
+        fake_share_type_2 = type('FakeShareType2', (object,), {'id': '5678'})
+        self.mock_object(
+            shell_v2, '_find_share_type',
+            mock.Mock(side_effect=[fake_share_type_1, fake_share_type_2]))
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,), {'id': '2345'})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+        fake_share_network = type(
+            'FakeShareNetwork', (object,), {'id': '3456'})
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(return_value=fake_share_network))
+
+        self.run_command(
+            'share-group-create --name fake_sg '
+            '--description my_group --share-types 1234,5678 '
+            '--share-group-type fake_sg_type '
+            '--share-network fake_share_network '
+            '--availability-zone fake_az')
+
+        expected = {
+            'share_group': {
+                'name': 'fake_sg',
+                'description': 'my_sg',
+                'availability_zone': 'fake_az',
+                'share_group_type_id': '2345',
+                'share_network_id': '3456',
+                'share_types': ['1234', '5678'],
+            },
+        }
+        self.assert_called('POST', '/share-groups', body=expected)
+
     @ddt.data(
-        '--source-cgsnapshot-id fake-cg-id',
-        '--name fake_name --source-cgsnapshot-id fake-cg-id',
+        '--name fake_name --availability-zone fake_az',
         '--description my_fake_description --name fake_name',
+        '--availability-zone fake_az',
     )
-    def test_cg_create(self, data):
-        cmd = 'cg-create' + ' ' + data
+    def test_share_group_create_no_share_types(self, data):
+        cmd = 'share-group-create' + ' ' + data
+
         self.run_command(cmd)
-        self.assert_called('POST', '/consistency-groups')
 
-    @mock.patch.object(shell_v2, '_find_consistency_group', mock.Mock())
-    def test_cg_delete(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_consistency_group.return_value = fcg
+        self.assert_called('POST', '/share-groups')
 
-        self.run_command('cg-delete fake-cg')
-        self.assert_called('DELETE', '/consistency-groups/1234')
+    def test_share_group_create_invalid_args(self):
+        fake_share_type_1 = type('FakeShareType1', (object,), {'id': '1234'})
+        fake_share_type_2 = type('FakeShareType2', (object,), {'id': '5678'})
+        self.mock_object(
+            shell_v2, '_find_share_type',
+            mock.Mock(side_effect=[fake_share_type_1, fake_share_type_2]))
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,), {'id': '2345'})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+        fake_share_group_snapshot = type(
+            'FakeShareGroupSnapshot', (object,), {'id': '3456'})
+        self.mock_object(
+            shell_v2, '_find_share_group_snapshot',
+            mock.Mock(return_value=fake_share_group_snapshot))
 
-    @mock.patch.object(shell_v2, '_find_consistency_group', mock.Mock())
-    def test_cg_delete_force(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_consistency_group.return_value = fcg
+        self.assertRaises(
+            ValueError,
+            self.run_command,
+            'share-group-create --name fake_sg '
+            '--description my_group --share-types 1234,5678 '
+            '--share-group-type fake_sg_type '
+            '--source-share-group-snapshot fake_share_group_snapshot '
+            '--availability-zone fake_az')
 
-        self.run_command('cg-delete --force fake-cg')
-        self.assert_called('POST', '/consistency-groups/1234/action',
-                           {'force_delete': None})
+    @ddt.data(
+        ('--name new-name', {'name': 'new-name'}),
+        ('--description new-description', {'description': 'new-description'}),
+        ('--name new-name --description new-description',
+         {'name': 'new-name', 'description': 'new-description'}),
+    )
+    @ddt.unpack
+    def test_share_group_update(self, cmd, expected_body):
+        self.run_command('share-group-update 1234 %s' % cmd)
 
-    @mock.patch.object(shell_v2, '_find_consistency_group', mock.Mock())
-    def test_cg_reset_state_with_flag(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_consistency_group.return_value = fcg
+        expected = {'share_group': expected_body}
+        self.assert_called('PUT', '/share-groups/1234', body=expected)
 
-        self.run_command('cg-reset-state --state error 1234')
-        self.assert_called('POST', '/consistency-groups/1234/action',
-                           {'reset_status': {'status': 'error'}})
+    def test_try_update_share_group_without_data(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command, 'share-group-update 1234')
 
-    @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
-    def test_cg_snapshot_reset_state(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_cg_snapshot.return_value = fcg
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    def test_share_group_delete(self):
+        fake_group = type('FakeShareGroup', (object,), {'id': '1234'})
+        shell_v2._find_share_group.return_value = fake_group
 
-        self.run_command('cg-snapshot-reset-state 1234')
-        self.assert_called('POST', '/cgsnapshots/1234/action',
-                           {'reset_status': {'status': 'available'}})
+        self.run_command('share-group-delete fake-sg')
 
-    @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
-    def test_cg_snapshot_reset_state_with_flag(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_cg_snapshot.return_value = fcg
+        self.assert_called('DELETE', '/share-groups/1234')
 
-        self.run_command('cg-snapshot-reset-state --state creating 1234')
-        self.assert_called('POST', '/cgsnapshots/1234/action',
-                           {'reset_status': {'status': 'creating'}})
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    def test_share_group_delete_force(self):
+        fake_group = type('FakeShareGroup', (object,), {'id': '1234'})
+        shell_v2._find_share_group.return_value = fake_group
+
+        self.run_command('share-group-delete --force fake-group')
+
+        self.assert_called(
+            'POST', '/share-groups/1234/action', {'force_delete': None})
+
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    def test_share_group_delete_all_fail(self):
+        shell_v2._find_share_group.side_effect = Exception
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command, 'share-group-delete fake-group')
+
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    def test_share_group_reset_state_with_flag(self):
+        fake_group = type('FakeShareGroup', (object,), {'id': '1234'})
+        shell_v2._find_share_group.return_value = fake_group
+
+        self.run_command('share-group-reset-state --state error 1234')
+
+        self.assert_called(
+            'POST', '/share-groups/1234/action',
+            {'reset_status': {'status': 'error'}})
+
+    @ddt.data(
+        'fake-sg-id',
+        '--name fake_name fake-sg-id',
+        '--description my_fake_description --name fake_name  fake-sg-id',
+    )
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    def test_share_group_snapshot_create(self, data):
+        fake_sg = type('FakeShareGroup', (object,), {'id': '1234'})
+        shell_v2._find_share_group.return_value = fake_sg
+
+        self.run_command('share-group-snapshot-create ' + data)
+
+        shell_v2._find_share_group.assert_called_with(mock.ANY, 'fake-sg-id')
+        self.assert_called('POST', '/share-group-snapshots')
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_cg_snapshot_list(self):
-        self.run_command('cg-snapshot-list')
-        self.assert_called('GET', '/cgsnapshots/detail')
+    def test_share_group_snapshot_list(self):
+        self.run_command('share-group-snapshot-list')
 
+        self.assert_called('GET', '/share-group-snapshots/detail')
         cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=['id', 'name', 'description', 'status'])
+            mock.ANY, fields=('id', 'name', 'status', 'description'))
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_cg_snapshot_list_select_column(self):
-        self.run_command('cg-snapshot-list --columns id,name')
-        self.assert_called('GET', '/cgsnapshots/detail')
+    def test_share_group_snapshot_list_select_column(self):
+        self.run_command('share-group-snapshot-list --columns id,name')
 
+        self.assert_called('GET', '/share-group-snapshots/detail')
         cliutils.print_list.assert_called_once_with(
             mock.ANY, fields=['Id', 'Name'])
 
-    @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
-    def test_cg_snapshot_members(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': 'fake-cg-id'})
-        shell_v2._find_cg_snapshot.return_value = fcg
+    def test_share_group_snapshot_list_all_tenants_only_key(self):
+        self.run_command('share-group-snapshot-list --all-tenants')
 
-        self.run_command('cg-snapshot-members fake-cg-id')
-        self.assert_called('GET', '/cgsnapshots/fake-cg-id/members')
-        shell_v2._find_cg_snapshot.assert_called_with(mock.ANY, fcg.id)
+        self.assert_called(
+            'GET', '/share-group-snapshots/detail?all_tenants=1')
 
-        cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=['Id', 'Size', 'Created_at',
-                              'Share_protocol', 'Share_id', 'Share_type_id'])
-
-    def test_cg_snapshot_list_all_tenants_only_key(self):
-        self.run_command('cg-snapshot-list --all-tenants')
-        self.assert_called('GET', '/cgsnapshots/detail?all_tenants=1')
-
-    def test_cg_snapshot_list_all_tenants_key_and_value_1(self):
+    def test_share_group_snapshot_list_all_tenants_key_and_value_1(self):
         for separator in self.separators:
             self.run_command(
-                'cg-snapshot-list --all-tenants' + separator + '1')
-            self.assert_called('GET', '/cgsnapshots/detail?all_tenants=1')
+                'share-group-snapshot-list --all-tenants' + separator + '1')
 
-    def test_cg_snapshot_list_with_filters(self):
-        self.run_command('cg-snapshot-list --limit 10 --offset 0')
-        self.assert_called('GET', '/cgsnapshots/detail?limit=10&offset=0')
+            self.assert_called(
+                'GET', '/share-group-snapshots/detail?all_tenants=1')
+
+    def test_share_group_snapshot_list_with_filters(self):
+        self.run_command('share-group-snapshot-list --limit 10 --offset 0')
+
+        self.assert_called(
+            'GET', '/share-group-snapshots/detail?limit=10&offset=0')
+
+    def test_share_group_snapshot_show(self):
+        self.run_command('share-group-snapshot-show 1234')
+
+        self.assert_called('GET', '/share-group-snapshots/1234')
+
+    def test_share_group_snapshot_list_members(self):
+        self.run_command('share-group-snapshot-list-members 1234')
+
+        self.assert_called('GET', '/share-group-snapshots/1234')
+
+    def test_share_group_snapshot_list_members_select_column(self):
+        self.mock_object(cliutils, 'print_list')
+
+        self.run_command(
+            'share-group-snapshot-list-members 1234 --columns id,size')
+
+        self.assert_called('GET', '/share-group-snapshots/1234')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Size'])
+
+    @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
+    def test_share_group_snapshot_reset_state(self):
+        fake_sg_snapshot = type(
+            'FakeShareGroupSnapshot', (object,), {'id': '1234'})
+        shell_v2._find_share_group_snapshot.return_value = fake_sg_snapshot
+
+        self.run_command('share-group-snapshot-reset-state 1234')
+
+        self.assert_called(
+            'POST', '/share-group-snapshots/1234/action',
+            {'reset_status': {'status': 'available'}})
+
+    @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
+    def test_share_group_snapshot_reset_state_with_flag(self):
+        fake_sg_snapshot = type('FakeSGSnapshot', (object,), {'id': '1234'})
+        shell_v2._find_share_group_snapshot.return_value = fake_sg_snapshot
+
+        self.run_command(
+            'share-group-snapshot-reset-state --state creating 1234')
+
+        self.assert_called(
+            'POST', '/share-group-snapshots/1234/action',
+            {'reset_status': {'status': 'creating'}})
 
     @ddt.data(
-        'fake-cg-id',
-        '--name fake_name fake-cg-id',
-        "--description my_fake_description --name fake_name  fake-cg-id",
+        ('--name new-name', {'name': 'new-name'}),
+        ('--description new-description', {'description': 'new-description'}),
+        ('--name new-name --description new-description',
+         {'name': 'new-name', 'description': 'new-description'}),
     )
-    @mock.patch.object(shell_v2, '_find_consistency_group', mock.Mock())
-    def test_cg_snapshot_create(self, data):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': 'fake-cg-id'})
-        shell_v2._find_consistency_group.return_value = fcg
+    @ddt.unpack
+    def test_share_group_snapshot_update(self, cmd, expected_body):
+        self.run_command('share-group-snapshot-update 1234 %s' % cmd)
 
-        cmd = 'cg-snapshot-create' + ' ' + data
+        expected = {'share_group_snapshot': expected_body}
+        self.assert_called('PUT', '/share-group-snapshots/1234', body=expected)
 
-        self.run_command(cmd)
+    def test_try_update_share_group_snapshot_without_data(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command, 'share-group-snapshot-update 1234')
 
-        shell_v2._find_consistency_group.assert_called_with(mock.ANY, fcg.id)
-        self.assert_called('POST', '/cgsnapshots')
+    @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
+    def test_share_group_snapshot_delete(self):
+        fake_sg_snapshot = type('FakeSGSnapshot', (object,), {'id': '1234'})
+        shell_v2._find_share_group_snapshot.return_value = fake_sg_snapshot
 
-    @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
-    def test_cg_snapshot_delete(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_cg_snapshot.return_value = fcg
+        self.run_command('share-group-snapshot-delete fake-group-snapshot')
 
-        self.run_command('cg-snapshot-delete fake-cg')
-        self.assert_called('DELETE', '/cgsnapshots/1234')
+        self.assert_called('DELETE', '/share-group-snapshots/1234')
 
-    @mock.patch.object(shell_v2, '_find_cg_snapshot', mock.Mock())
-    def test_cg_snapshot_delete_force(self):
-        fcg = type('FakeConsistencyGroup', (object,), {'id': '1234'})
-        shell_v2._find_cg_snapshot.return_value = fcg
+    @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
+    def test_share_group_snapshot_delete_force(self):
+        fake_sg_snapshot = type('FakeSGSnapshot', (object,), {'id': '1234'})
+        shell_v2._find_share_group_snapshot.return_value = fake_sg_snapshot
 
-        self.run_command('cg-snapshot-delete --force fake-cg')
-        self.assert_called('POST', '/cgsnapshots/1234/action',
-                           {'force_delete': None})
+        self.run_command(
+            'share-group-snapshot-delete --force fake-sg-snapshot')
+
+        self.assert_called(
+            'POST', '/share-group-snapshots/1234/action',
+            {'force_delete': None})
+
+    def test_share_group_snapshot_delete_all_fail(self):
+        self.mock_object(
+            shell_v2, '_find_share_group_snapshot',
+            mock.Mock(side_effect=Exception))
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command, 'share-group-snapshot-delete fake-sg-snapshot')
+
+    def test_share_group_type_list(self):
+        self.mock_object(shell_v2, '_print_share_group_type_list')
+
+        self.run_command('share-group-type-list')
+
+        self.assert_called('GET', '/share-group-types')
+        shell_v2._print_share_group_type_list.assert_called_once_with(
+            mock.ANY, default_share_group_type=mock.ANY, columns=mock.ANY)
+
+    def test_share_group_type_list_select_column(self):
+        self.mock_object(shell_v2, '_print_share_group_type_list')
+
+        self.run_command('share-group-type-list --columns id,name')
+
+        self.assert_called('GET', '/share-group-types')
+        shell_v2._print_share_group_type_list.assert_called_once_with(
+            mock.ANY, default_share_group_type=mock.ANY, columns='id,name')
+
+    def test_share_group_type_list_default_share_type(self):
+        self.run_command('share-group-type-list')
+
+        self.assert_called_anytime('GET', '/share-group-types/default')
+
+    def test_share_group_type_list_all(self):
+        self.run_command('share-group-type-list --all')
+
+        self.assert_called_anytime('GET', '/share-group-types?is_public=all')
+
+    @ddt.data(('', mock.ANY), (' --columns id,name', 'id,name'))
+    @ddt.unpack
+    def test_share_group_specs_list(self, args_cmd, expected_columns):
+        self.mock_object(shell_v2, '_print_type_and_extra_specs_list')
+
+        self.run_command('share-group-type-specs-list')
+
+        self.assert_called('GET', '/share-group-types?is_public=all')
+        shell_v2._print_type_and_extra_specs_list.assert_called_once_with(
+            mock.ANY, columns=mock.ANY)
+
+    @ddt.data(True, False)
+    def test_share_group_type_create_with_access(self, public):
+        fake_share_type_1 = type('FakeShareType', (object,), {'id': '1234'})
+        fake_share_type_2 = type('FakeShareType', (object,), {'id': '5678'})
+        self.mock_object(
+            shell_v2, '_find_share_type',
+            mock.Mock(side_effect=[fake_share_type_1, fake_share_type_2]))
+        expected = {
+            'share_group_type': {
+                'name': 'test-group-type-1',
+                'share_types': ['1234', '5678'],
+                'group_specs': {},
+                'is_public': public,
+            }
+        }
+
+        self.run_command(
+            'share-group-type-create test-group-type-1 type1,type2 '
+            '--is-public %s' % six.text_type(public))
+
+        self.assert_called('POST', '/share-group-types', body=expected)
+
+    def test_share_group_type_delete(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,), {'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+
+        self.run_command('share-group-type-delete test-group-type-1')
+
+        self.assert_called('DELETE', '/share-group-types/1234')
+
+    def test_share_group_type_key_set(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,),
+            {'id': '1234', 'is_public': False, 'set_keys': mock.Mock(),
+             'unset_keys': mock.Mock()})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+
+        self.run_command('share-group-type-key fake_sg_type set key1=value1')
+
+        fake_share_group_type.set_keys.assert_called_with({'key1': 'value1'})
+
+    def test_share_group_type_key_unset(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,),
+            {'id': '1234', 'is_public': False, 'set_keys': mock.Mock(),
+             'unset_keys': mock.Mock()})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+
+        self.run_command('share-group-type-key fake_group_type unset key1')
+
+        fake_share_group_type.unset_keys.assert_called_with(['key1'])
+
+    def test_share_group_type_access_list(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,),
+            {'id': '1234', 'is_public': False})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+
+        self.run_command('share-group-type-access-list 1234')
+
+        self.assert_called('GET', '/share-group-types/1234/access')
+
+    def test_share_group_type_access_list_public(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,),
+            {'id': '1234', 'is_public': True})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command, 'share-group-type-access-list 1234')
+
+    def test_share_group_type_access_add_project(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,),
+            {'id': '1234', 'is_public': False})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+        expected = {'addProjectAccess': {'project': '101'}}
+
+        self.run_command('share-group-type-access-add 1234 101')
+
+        self.assert_called(
+            'POST', '/share-group-types/1234/action', body=expected)
+
+    def test_share_group_type_access_remove_project(self):
+        fake_share_group_type = type(
+            'FakeShareGroupType', (object,),
+            {'id': '1234', 'is_public': False})
+        self.mock_object(
+            shell_v2, '_find_share_group_type',
+            mock.Mock(return_value=fake_share_group_type))
+        expected = {'removeProjectAccess': {'project': '101'}}
+
+        self.run_command('share-group-type-access-remove 1234 101')
+
+        self.assert_called(
+            'POST', '/share-group-types/1234/action', body=expected)
 
     @ddt.data(
         {'--shares': 5},

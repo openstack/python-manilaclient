@@ -1,0 +1,6 @@
+---
+features:
+  - Added share group support (replacing CG support).
+upgrade:
+  - By adding share group support, the earlier support for CGs was removed.
+    Preexisting CGs should be managed as share groups instead.
