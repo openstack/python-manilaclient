@@ -49,7 +49,7 @@ class APIVersion(object):
         self.ver_minor = 0
 
         if version_str is not None:
-            match = re.match(r"^([1-9]\d*)\.([1-9]\d*|0|)$", version_str)
+            match = re.match(r"^([1-9]\d*)\.([1-9]\d*|0)$", version_str)
             if match:
                 self.ver_major = int(match.group(1))
                 self.ver_minor = int(match.group(2))

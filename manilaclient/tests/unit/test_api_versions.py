@@ -54,6 +54,7 @@ class APIVersionTestCase(utils.TestCase):
         "",
         " 2.1",
         "2.1 ",
+        "2.",
     )
     def test_invalid_version_strings(self, version):
         self.assertRaises(exceptions.UnsupportedVersion,
