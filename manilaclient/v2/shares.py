@@ -109,6 +109,10 @@ class Share(common_base.Resource):
         """List instances of the specified share."""
         self.manager.list_instances(self)
 
+    def revert_to_snapshot(self, snapshot):
+        """Reverts a share (in place) to a snapshot."""
+        self.manager.revert_to_snapshot(self, snapshot)
+
 
 class ShareManager(base.ManagerWithFind):
     """Manage :class:`Share` resources."""
@@ -275,6 +279,19 @@ class ShareManager(base.ManagerWithFind):
         :param share: either share object or text with its ID.
         """
         return self._action("unmanage", share)
+
+    @api_versions.wraps("2.27")
+    def revert_to_snapshot(self, share, snapshot):
+        """Reverts a share (in place) to a snapshot.
+
+        The snapshot must be the most recent one known to manila.
+        :param share: either share object or text with its ID.
+        :param snapshot: either snapshot object or text with its ID.
+        """
+
+        snapshot_id = common_base.getid(snapshot)
+        info = {'snapshot_id': snapshot_id}
+        return self._action('revert', share, info=info)
 
     def get(self, share):
         """Get a share.

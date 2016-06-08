@@ -72,6 +72,47 @@ def get_valid_type_create_data_2_24():
     return snapshot_none_combos + snapshot_true_combos + snapshot_false_combos
 
 
+def get_valid_type_create_data_2_27():
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [None]
+    create_from_snapshot = [None]
+    revert_to_snapshot = [None]
+    extra_specs = [None, {'replication_type': 'writable', 'foo': 'bar'}]
+
+    snapshot_none_combos = list(itertools.product(public, dhss, snapshot,
+                                                  create_from_snapshot,
+                                                  revert_to_snapshot,
+                                                  extra_specs))
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [True]
+    create_from_snapshot = [True, False, None]
+    revert_to_snapshot = [True, False, None]
+    extra_specs = [None, {'replication_type': 'readable', 'foo': 'bar'}]
+
+    snapshot_true_combos = list(itertools.product(public, dhss, snapshot,
+                                                  create_from_snapshot,
+                                                  revert_to_snapshot,
+                                                  extra_specs))
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [False]
+    create_from_snapshot = [False, None]
+    revert_to_snapshot = [False, None]
+    extra_specs = [None, {'replication_type': 'dr', 'foo': 'bar'}]
+
+    snapshot_false_combos = list(itertools.product(public, dhss, snapshot,
+                                                   create_from_snapshot,
+                                                   revert_to_snapshot,
+                                                   extra_specs))
+
+    return snapshot_none_combos + snapshot_true_combos + snapshot_false_combos
+
+
 @ddt.ddt
 class TypesTest(utils.TestCase):
 
@@ -146,9 +187,12 @@ class TypesTest(utils.TestCase):
         self.assertEqual("fake", result)
 
     def _add_standard_extra_specs_to_dict(self, extra_specs,
-                                          create_from_snapshot=None):
+                                          create_from_snapshot=None,
+                                          revert_to_snapshot=None):
 
-        if all(spec is None for spec in [create_from_snapshot]):
+        # Short-circuit checks to allow for extra specs to be (and remain) None
+        if all(spec is None for spec in [
+                create_from_snapshot, revert_to_snapshot]):
             return extra_specs
 
         extra_specs = extra_specs or {}
@@ -156,6 +200,9 @@ class TypesTest(utils.TestCase):
         if create_from_snapshot is not None:
             extra_specs['create_share_from_snapshot_support'] = (
                 create_from_snapshot)
+        if revert_to_snapshot is not None:
+            extra_specs['revert_to_snapshot_support'] = (
+                revert_to_snapshot)
 
         return extra_specs
 
@@ -190,6 +237,57 @@ class TypesTest(utils.TestCase):
         else:
             expected_extra_specs["create_share_from_snapshot_support"] = (
                 create_from_snapshot)
+
+        expected_body = {
+            "share_type": {
+                "name": 'test-type-3',
+                'share_type_access:is_public': is_public,
+                "extra_specs": expected_extra_specs,
+            }
+        }
+
+        manager._create.assert_called_once_with(
+            "/types", expected_body, "share_type")
+        self.assertEqual("fake", result)
+
+    @ddt.data(*get_valid_type_create_data_2_27())
+    @ddt.unpack
+    def test_create_2_27(self, is_public, dhss, snapshot, create_from_snapshot,
+                         revert_to_snapshot, extra_specs):
+
+        extra_specs = copy.copy(extra_specs)
+        extra_specs = self._add_standard_extra_specs_to_dict(
+            extra_specs, create_from_snapshot=create_from_snapshot,
+            revert_to_snapshot=revert_to_snapshot)
+
+        manager = self._get_share_types_manager("2.27")
+        self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
+
+        result = manager.create(
+            'test-type-3', spec_driver_handles_share_servers=dhss,
+            spec_snapshot_support=snapshot,
+            extra_specs=extra_specs, is_public=is_public)
+
+        expected_extra_specs = dict(extra_specs or {})
+        expected_extra_specs["driver_handles_share_servers"] = dhss
+
+        if snapshot is None:
+            expected_extra_specs.pop("snapshot_support", None)
+        else:
+            expected_extra_specs["snapshot_support"] = snapshot
+
+        if create_from_snapshot is None:
+            expected_extra_specs.pop("create_share_from_snapshot_support",
+                                     None)
+        else:
+            expected_extra_specs["create_share_from_snapshot_support"] = (
+                create_from_snapshot)
+
+        if revert_to_snapshot is None:
+            expected_extra_specs.pop("revert_to_snapshot_support", None)
+        else:
+            expected_extra_specs["revert_to_snapshot_support"] = (
+                revert_to_snapshot)
 
         expected_body = {
             "share_type": {

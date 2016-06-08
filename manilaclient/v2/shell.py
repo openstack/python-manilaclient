@@ -1034,6 +1034,19 @@ def do_snapshot_unmanage(cs, args):
                                       "specified snapshots.")
 
 
+@api_versions.wraps("2.27")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot to restore. The snapshot must be the '
+         'most recent one known to manila.')
+def do_revert_to_snapshot(cs, args):
+    """Revert a share to the specified snapshot."""
+    snapshot = _find_share_snapshot(cs, args.snapshot)
+    share = _find_share(cs, snapshot.share_id)
+    share.revert_to_snapshot(snapshot)
+
+
 @cliutils.arg(
     'share',
     metavar='<share>',
@@ -3118,6 +3131,13 @@ def do_extra_specs_list(cs, args):
     help="Boolean extra spec used for filtering of back ends by their "
          "capability to create shares from snapshots.")
 @cliutils.arg(
+    '--revert_to_snapshot_support',
+    '--revert-to-snapshot-support',
+    metavar='<revert_to_snapshot_support>',
+    action='single_alias',
+    help="Boolean extra spec used for filtering of back ends by their "
+         "capability to revert shares to snapshots. (Default is False).")
+@cliutils.arg(
     '--extra-specs',
     '--extra_specs',  # alias
     type=str,
@@ -3157,7 +3177,11 @@ def do_type_create(cs, args):
                "set via positional argument.")
         raise exceptions.CommandError(msg)
 
-    boolean_keys = ('snapshot_support', 'create_share_from_snapshot_support')
+    boolean_keys = (
+        'snapshot_support',
+        'create_share_from_snapshot_support',
+        'revert_to_snapshot_support',
+    )
     for key in boolean_keys:
         value = getattr(args, key)
 
