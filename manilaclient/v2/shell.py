@@ -621,68 +621,82 @@ def do_create(cs, args):
     _print_share(cs, share)
 
 
+@api_versions.wraps("2.22")
 @cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of share to migrate.')
 @cliutils.arg(
     'host',
-    metavar='<host#pool>',
-    help='Destination host and pool.')
+    metavar='<host@backend#pool>',
+    help="Destination host, backend and pool in format 'host@backend#pool'.")
 @cliutils.arg(
-    '--force-host-copy',
-    '--force_host_copy',
+    '--force_host_assisted_migration',
+    '--force-host-assisted-migration',
     metavar='<True|False>',
     choices=['True', 'False'],
     required=False,
     action='single_alias',
     help='Enables or disables generic host-based force-migration, which '
-         'bypasses driver optimizations. Default=False.',
+         'bypasses driver optimizations. Default=False. '
+         'Renamed from "force_host_copy" in version 2.22.',
     default=False)
-@api_versions.wraps("2.5", "2.14")
-def do_migrate(cs, args):
-    """(Deprecated) Migrates share to a new host (Admin only, Experimental)."""
-    share = _find_share(cs, args.share)
-    share.migration_start(args.host, args.force_host_copy, True)
-
-
 @cliutils.arg(
-    'share',
-    metavar='<share>',
-    help='Name or ID of share to migrate.')
-@cliutils.arg(
-    'host',
-    metavar='<host#pool>',
-    help='Destination host and pool.')
-@cliutils.arg(
-    '--force-host-copy',
-    '--force_host_copy',
+    '--preserve-metadata',
+    '--preserve_metadata',
+    action='single_alias',
     metavar='<True|False>',
     choices=['True', 'False'],
     required=False,
-    help='Enables or disables generic host-based force-migration, which '
-         'bypasses driver optimizations. Default=False.',
-    default=False)
-@cliutils.arg(
-    '--notify',
-    metavar='<True|False>',
-    choices=['True', 'False'],
-    required=False,
-    help='Enables or disables notification of data copying completed. '
-         'Default=True.',
+    help='Chooses whether migration should be forced to preserve all file '
+         'metadata when moving its contents. Default=True. '
+         'Introduced in version 2.22.',
     default=True)
-@api_versions.wraps("2.15")
+@cliutils.arg(
+    '--writable',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    help='Chooses whether migration should be forced to remain writable '
+         'while contents are being moved. Default=True. '
+         'Introduced in version 2.22.',
+    default=True)
+@cliutils.arg(
+    '--non-disruptive',
+    '--non_disruptive',
+    action='single_alias',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    help='Chooses whether migration should only be performed if it is not '
+         'disruptive. Default=False. Introduced in version 2.22.',
+    default=False)
+@cliutils.arg(
+    '--new_share_network',
+    '--new-share-network',
+    metavar='<new_share_network>',
+    action='single_alias',
+    required=False,
+    help='Specifies a new share network if desired to change. Default=None. '
+         'Introduced in version 2.22.',
+    default=None)
 def do_migration_start(cs, args):
     """Migrates share to a new host (Admin only, Experimental)."""
     share = _find_share(cs, args.share)
-    share.migration_start(args.host, args.force_host_copy, args.notify)
+    new_share_net_id = None
+    if args.new_share_network:
+        share_net = _find_share_network(cs, args.new_share_network)
+        new_share_net_id = share_net.id if share_net else None
+    share.migration_start(args.host, args.force_host_assisted_migration,
+                          args.preserve_metadata, args.writable,
+                          args.non_disruptive, new_share_net_id)
 
 
 @cliutils.arg(
     'share',
     metavar='<share>',
     help='Name or ID of share to complete migration.')
-@api_versions.wraps("2.15")
+@api_versions.wraps("2.22")
 def do_migration_complete(cs, args):
     """Completes migration for a given share (Admin only, Experimental)."""
     share = _find_share(cs, args.share)
@@ -693,7 +707,7 @@ def do_migration_complete(cs, args):
     'share',
     metavar='<share>',
     help='Name or ID of share to cancel migration.')
-@api_versions.wraps("2.15")
+@api_versions.wraps("2.22")
 def do_migration_cancel(cs, args):
     """Cancels migration of a given share when copying
 
@@ -712,8 +726,9 @@ def do_migration_cancel(cs, args):
     '--task_state',
     '--state',
     metavar='<task_state>',
-    default='migration_error',
+    default='None',
     action='single_alias',
+    required=False,
     help=('Indicate which task state to assign the share. Options include '
           'migration_starting, migration_in_progress, migration_completing, '
           'migration_success, migration_error, migration_cancelled, '
@@ -721,15 +736,18 @@ def do_migration_cancel(cs, args):
           'data_copying_starting, data_copying_in_progress, '
           'data_copying_completing, data_copying_completed, '
           'data_copying_cancelled, data_copying_error. If no value is '
-          'provided, migration_error will be used.'))
-@api_versions.wraps("2.15")
+          'provided, None will be used.'))
+@api_versions.wraps("2.22")
 def do_reset_task_state(cs, args):
     """Explicitly update the task state of a share
 
     (Admin only, Experimental).
     """
+    state = args.task_state
+    if args.task_state == 'None':
+        state = None
     share = _find_share(cs, args.share)
-    share.reset_task_state(args.task_state)
+    share.reset_task_state(state)
 
 
 @cliutils.arg(
@@ -737,7 +755,7 @@ def do_reset_task_state(cs, args):
     metavar='<share>',
     help='Name or ID of the share to get share migration progress '
          'information.')
-@api_versions.wraps("2.15")
+@api_versions.wraps("2.22")
 def do_migration_get_progress(cs, args):
     """Gets migration progress of a given share when copying
 

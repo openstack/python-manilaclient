@@ -13,10 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
+
 from tempest.lib.common.utils import data_utils
 
 from manilaclient import config
 from manilaclient.tests.functional import base
+from manilaclient.tests.functional import utils
 
 CONF = config.CONF
 
@@ -87,6 +90,28 @@ class SharesReadWriteBase(base.BaseTestCase):
         self.assertEqual('1', get['size'])
         self.assertEqual(self.protocol.upper(), get['share_proto'])
         self.assertTrue(get.get('export_locations', []) > 0)
+
+
+@ddt.ddt
+class SharesTestMigration(base.BaseTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(SharesTestMigration, cls).setUpClass()
+
+        cls.share = cls.create_share(
+            share_protocol='nfs',
+            size=1,
+            name=data_utils.rand_name('autotest_share_name'),
+            client=cls.get_user_client(),
+            cleanup_in_class=True)
+
+    @utils.skip_if_microversion_not_supported('2.22')
+    @ddt.data('migration_error', 'migration_success', 'None')
+    def test_reset_task_state(self, state):
+        self.admin_client.reset_task_state(self.share['id'], state)
+        share = self.admin_client.get_share(self.share['id'])
+        self.assertEqual(state, share['task_state'])
 
 
 class NFSSharesReadWriteTest(SharesReadWriteBase):

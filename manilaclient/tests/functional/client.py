@@ -896,6 +896,13 @@ class ManilaCLIClient(base.CLIClient):
                     "within the required time (%s s)." % self.build_timeout)
                 raise tempest_lib_exc.TimeoutException(message)
 
+    def reset_task_state(self, share_id, state, version=None):
+        state = '--task_state %s' % state if state else ''
+        return self.manila('reset-task-state %(state)s %(share)s' % {
+            'state': state,
+            'share': share_id,
+        }, microversion=version)
+
     def create_security_service(self, type='ldap', name=None, description=None,
                                 dns_ip=None, server=None, domain=None,
                                 user=None, password=None, microversion=None):

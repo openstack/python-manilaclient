@@ -1871,3 +1871,35 @@ class ShellTest(test_utils.TestCase):
         expected = {'reset_status': {'status': 'available'}}
         self.assert_called('POST', '/snapshot-instances/1234/action',
                            body=expected)
+
+    def test_migration_start(self):
+        command = ("migration-start --preserve-metadata False --writable False"
+                   " --force-host-assisted-migration True "
+                   "--non-disruptive True --new-share-network 1111 "
+                   "1234 host@backend#pool")
+        self.run_command(command)
+        expected = {'migration_start': {
+            'host': 'host@backend#pool',
+            'force_host_assisted_migration': 'True',
+            'preserve-metadata': 'False',
+            'writable': 'False',
+            'nondisruptive': 'True',
+            'new_share_network_id': '1111',
+        }}
+        self.assert_called('POST', '/shares/1234/action', body=expected)
+
+    @ddt.data('migration-complete', 'migration-get-progress',
+              'migration-cancel')
+    def test_migration_others(self, method):
+        command = ' '.join((method, '1234'))
+        self.run_command(command)
+        expected = {method.replace('-', '_'): None}
+        self.assert_called('POST', '/shares/1234/action', body=expected)
+
+    @ddt.data('migration_error', 'migration_success', None)
+    def test_reset_task_state(self, param):
+        command = ' '.join(('reset-task-state --state', six.text_type(param),
+                            '1234'))
+        self.run_command(command)
+        expected = {'reset_task_state': {'task_state': param}}
+        self.assert_called('POST', '/shares/1234/action', body=expected)

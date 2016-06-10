@@ -521,33 +521,26 @@ class SharesTest(utils.TestCase):
         cs.shares.list_instances(share)
         cs.assert_called('GET', '/shares/1234/instances')
 
-    @ddt.data(
-        ("2.6", "os-migrate_share"),
-        ("2.7", "migrate_share"),
-        ("2.14", "migrate_share"),
-        ("2.15", "migration_start"),
-    )
-    @ddt.unpack
-    def test_migration_start(self, microversion, action_name):
+    def test_migration_start(self):
         share = "fake_share"
         host = "fake_host"
-        force_host_copy = "fake_force_host_copy"
-        version = api_versions.APIVersion(microversion)
+        version = api_versions.APIVersion('2.22')
         manager = shares.ShareManager(
             api=fakes.FakeClient(api_version=version))
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):
-            if version < api_versions.APIVersion('2.15'):
-                result = manager.migration_start(share, host, force_host_copy)
-            else:
-                result = manager.migration_start(share, host, force_host_copy,
-                                                 True)
-
+            result = manager.migration_start(share, host, True)
             manager._action.assert_called_once_with(
-                action_name, share,
-                {"host": host, "force_host_copy": force_host_copy,
-                 "notify": True})
+                'migration_start', share, {
+                    "host": host,
+                    "force_host_assisted_migration": True,
+                    "preserve_metadata": True,
+                    "writable": True,
+                    "nondisruptive": False,
+                    "new_share_network_id": None,
+                })
+
             self.assertEqual("fake", result)
 
     def test_migration_complete(self):

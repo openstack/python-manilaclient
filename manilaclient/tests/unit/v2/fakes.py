@@ -367,6 +367,19 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action]['new_size'] is not None
         elif action in ('unmanage', ):
             assert body[action] is None
+        elif action in (
+                'migration_cancel', 'migration_complete',
+                'migration_get_progress'):
+            assert body[action] is None
+            if 'migration_get_progress' == action:
+                _body = {'total_progress': 50}
+                return 200, {}, _body
+        elif action in (
+                'os-migrate_share', 'migrate_share',
+                'migration_start'):
+            assert 'host' in body[action]
+        elif action == 'reset_task_state':
+            assert 'task_state' in body[action]
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
