@@ -1,0 +1,5 @@
+---
+features:
+  - IPv6 ACL support has been added in manila. access-allow
+    command now validates and allows access control
+    to IPv6 clients.

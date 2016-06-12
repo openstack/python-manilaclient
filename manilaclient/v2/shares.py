@@ -15,8 +15,10 @@
 """Interface for shares extension."""
 
 import collections
+import ipaddress
 from oslo_utils import uuidutils
 import re
+import six
 import string
 try:
     from urllib import urlencode  # noqa
@@ -455,32 +457,6 @@ class ShareManager(base.ManagerWithFind):
             raise exceptions.CommandError(exc_str)
 
     @staticmethod
-    def _validate_ip_range(ip_range):
-        ip_range = ip_range.split('/')
-        exc_str = ('Supported ip format examples:\n'
-                   '\t10.0.0.2, 10.0.0.0/24')
-        if len(ip_range) > 2:
-            raise exceptions.CommandError(exc_str)
-        if len(ip_range) == 2:
-            try:
-                prefix = int(ip_range[1])
-                if prefix < 0 or prefix > 32:
-                    raise ValueError()
-            except ValueError:
-                msg = 'IP prefix should be in range from 0 to 32.'
-                raise exceptions.CommandError(msg)
-        ip_range = ip_range[0].split('.')
-        if len(ip_range) != 4:
-            raise exceptions.CommandError(exc_str)
-        for item in ip_range:
-            try:
-                if 0 <= int(item) <= 255:
-                    continue
-                raise ValueError()
-            except ValueError:
-                raise exceptions.CommandError(exc_str)
-
-    @staticmethod
     def _validate_cephx_id(cephx_id):
         if not cephx_id:
             raise exceptions.CommandError(
@@ -500,13 +476,20 @@ class ShareManager(base.ManagerWithFind):
             raise exceptions.CommandError(
                 'Ceph IDs may not contain periods.')
 
-    def _validate_access(self, access_type, access, valid_access_types=None):
+    def _validate_access(self, access_type, access, valid_access_types=None,
+                         enable_ipv6=False):
         if not valid_access_types:
             valid_access_types = ('ip', 'user', 'cert')
 
         if access_type in valid_access_types:
             if access_type == 'ip':
-                self._validate_ip_range(access)
+                try:
+                    if enable_ipv6:
+                        ipaddress.ip_network(six.text_type(access))
+                    else:
+                        ipaddress.IPv4Network(six.text_type(access))
+                except ValueError as error:
+                    raise exceptions.CommandError(six.text_type(error))
             elif access_type == 'user':
                 self._validate_username(access)
             elif access_type == 'cert':
@@ -553,10 +536,18 @@ class ShareManager(base.ManagerWithFind):
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
-    @api_versions.wraps("2.13")  # noqa
+    @api_versions.wraps("2.13", "2.37")  # noqa
     def allow(self, share, access_type, access, access_level):
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types)
+        return self._do_allow(
+            share, access_type, access, access_level, "allow_access")
+
+    @api_versions.wraps("2.38")  # noqa
+    def allow(self, share, access_type, access, access_level):
+        valid_access_types = ('ip', 'user', 'cert', 'cephx')
+        self._validate_access(access_type, access, valid_access_types,
+                              enable_ipv6=True)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 

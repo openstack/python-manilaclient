@@ -15,6 +15,7 @@
 
 import ddt
 from tempest.lib import exceptions as tempest_lib_exc
+import testtools
 
 from manilaclient import api_versions
 from manilaclient import config
@@ -65,6 +66,7 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
             # API testing.
             'user': ['foo_user_%d' % i for i in int_range],
             'cert': ['tenant_%d.example.com' % i for i in int_range],
+            'ipv6': ['2001:db8::%d' % i for i in int_range],
         }
 
     def _test_create_list_access_rule_for_share(self, microversion):
@@ -169,6 +171,12 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
     def test_create_delete_cert_access_rule(self, microversion):
         self._create_delete_access_rule(
             self.share_id, 'cert', self.access_to['cert'].pop(), microversion)
+
+    @ddt.data("2.38", api_versions.MAX_VERSION)
+    @testtools.skip("BUG: https://bugs.launchpad.net/manila/+bug/1707066")
+    def test_create_delete_ipv6_access_rule(self, microversion):
+        self._create_delete_access_rule(
+            self.share_id, 'ip', self.access_to['ipv6'].pop(), microversion)
 
 
 class NFSShareRWAccessReadWriteTest(ShareAccessReadWriteBase):
