@@ -136,7 +136,7 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
         get = self.user_client.get_share_metadata(self.share["id"])
 
         # Verify share metadata
-        key = metadata.keys()[0]
+        key = list(metadata.keys())[0]
         self.assertIn(key, get)
         self.assertEqual(metadata[key], get[key])
 
