@@ -57,22 +57,16 @@ USE_SHARE_NETWORK=$(trueorfalse True USE_SHARE_NETWORK)
 if [[ ${USE_SHARE_NETWORK} = True ]]; then
     SHARE_NETWORK_NAME=${SHARE_NETWORK_NAME:-ci}
 
-    if [[ "$JOB_NAME" =~ "neutron" ]]; then
-        DEFAULT_NEUTRON_NET=$(neutron net-show private -c id -f value)
-        DEFAULT_NEUTRON_SUBNET=$(neutron subnet-show private-subnet -c id -f value)
-        NEUTRON_NET=${NEUTRON_NET:-$DEFAULT_NEUTRON_NET}
-        NEUTRON_SUBNET=${NEUTRON_SUBNET:-$DEFAULT_NEUTRON_SUBNET}
-        manila share-network-create \
-            --name $SHARE_NETWORK_NAME \
-            --neutron-net $NEUTRON_NET \
-            --neutron-subnet $NEUTRON_SUBNET
-    else
-        DEFAULT_NOVA_NET=$(nova net-list | grep private | awk '{print $2}')
-        NOVA_NET=${NOVA_NET:-$DEFAULT_NOVA_NET}
-        manila share-network-create \
-            --name $SHARE_NETWORK_NAME \
-            --nova-net $NOVA_NET
-    fi
+    DEFAULT_NEUTRON_NET=$(neutron net-show private -c id -f value)
+    DEFAULT_NEUTRON_SUBNET=$(neutron subnet-show private-subnet -c id -f value)
+    NEUTRON_NET=${NEUTRON_NET:-$DEFAULT_NEUTRON_NET}
+    NEUTRON_SUBNET=${NEUTRON_SUBNET:-$DEFAULT_NEUTRON_SUBNET}
+
+    manila share-network-create \
+        --name $SHARE_NETWORK_NAME \
+        --neutron-net $NEUTRON_NET \
+        --neutron-subnet $NEUTRON_SUBNET
+
     iniset $MANILACLIENT_CONF DEFAULT share_network $SHARE_NETWORK_NAME
     iniset $MANILACLIENT_CONF DEFAULT admin_share_network $SHARE_NETWORK_NAME
 fi
