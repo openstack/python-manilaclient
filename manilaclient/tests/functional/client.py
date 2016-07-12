@@ -261,13 +261,41 @@ class ManilaCLIClient(base.CLIClient):
             microversion=microversion)
 
     def get_project_id(self, name_or_id):
-        try:
-            # Temporary workaround for bug #1497162
-            project_id = self.openstack(
-                'project show -f value -c id %s' % name_or_id)
-        except Exception:
-            tenant = self.keystone("tenant-get %s" % name_or_id)
-            project_id = re.search("id(.*)\|(.*)\|", tenant).group(2).strip()
+        identity_api_version = (
+            "3" if "/v3" in (CONF.admin_auth_url or CONF.auth_url) else "2.0")
+        flags = (
+            "--os-username %(username)s "
+            "--os-project-name %(project_name)s "
+            "--os-password %(password)s "
+            "--os-identity-api-version %(identity_api_version)s "
+        ) % {
+            "username": CONF.admin_username,
+            "project_name": CONF.admin_tenant_name,
+            "password": CONF.admin_password,
+            "identity_api_version": identity_api_version,
+        }
+
+        if identity_api_version == "3":
+            if CONF.admin_project_domain_name:
+                flags += (
+                    "--os-project-domain-name %s " %
+                    CONF.admin_project_domain_name)
+            elif CONF.admin_project_domain_id:
+                flags += (
+                    "--os-project-domain-id %s " %
+                    CONF.admin_project_domain_id)
+
+            if CONF.admin_user_domain_name:
+                flags += (
+                    "--os-user-domain-name %s " %
+                    CONF.admin_user_domain_name)
+            elif CONF.admin_user_domain_id:
+                flags += (
+                    "--os-user-domain-id %s " %
+                    CONF.admin_user_domain_id)
+
+        project_id = self.openstack(
+            'project show -f value -c id %s' % name_or_id, flags=flags)
         return project_id.strip()
 
     @not_found_wrapper

@@ -22,5 +22,6 @@ localrc_path=$BASE/new/devstack/localrc
 # Set big quota for share networks to avoid limit exceedances
 echo "MANILA_OPTGROUP_DEFAULT_quota_share_networks=50" >> $localrc_path
 
-# Set following to '3' when manilaclient functional tests support it.
-echo "IDENTITY_API_VERSION=2.0" >> $localrc_path
+# Enable and use only v3 of Identity API
+echo "IDENTITY_API_VERSION=3" >> $localrc_path
+echo "ENABLE_IDENTITY_V2=False" >> $localrc_path

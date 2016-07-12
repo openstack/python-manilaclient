@@ -39,6 +39,10 @@ iniset $MANILACLIENT_CONF DEFAULT username $OS_USERNAME
 iniset $MANILACLIENT_CONF DEFAULT tenant_name $OS_TENANT_NAME
 iniset $MANILACLIENT_CONF DEFAULT password $OS_PASSWORD
 iniset $MANILACLIENT_CONF DEFAULT auth_url $OS_AUTH_URL
+iniset $MANILACLIENT_CONF DEFAULT project_domain_name $OS_PROJECT_DOMAIN_NAME
+iniset $MANILACLIENT_CONF DEFAULT user_domain_name $OS_USER_DOMAIN_NAME
+iniset $MANILACLIENT_CONF DEFAULT project_domain_id $OS_PROJECT_DOMAIN_ID
+iniset $MANILACLIENT_CONF DEFAULT user_domain_id $OS_USER_DOMAIN_ID
 
 source $BASE/new/devstack/openrc admin demo
 env | grep OS_
@@ -47,6 +51,10 @@ iniset $MANILACLIENT_CONF DEFAULT admin_username $OS_USERNAME
 iniset $MANILACLIENT_CONF DEFAULT admin_tenant_name $OS_TENANT_NAME
 iniset $MANILACLIENT_CONF DEFAULT admin_password $OS_PASSWORD
 iniset $MANILACLIENT_CONF DEFAULT admin_auth_url $OS_AUTH_URL
+iniset $MANILACLIENT_CONF DEFAULT admin_project_domain_name $OS_PROJECT_DOMAIN_NAME
+iniset $MANILACLIENT_CONF DEFAULT admin_user_domain_name $OS_USER_DOMAIN_NAME
+iniset $MANILACLIENT_CONF DEFAULT admin_project_domain_id $OS_PROJECT_DOMAIN_ID
+iniset $MANILACLIENT_CONF DEFAULT admin_user_domain_id $OS_USER_DOMAIN_ID
 
 # Suppress errors in cleanup of resources
 SUPPRESS_ERRORS=${SUPPRESS_ERRORS_IN_CLEANUP:-True}

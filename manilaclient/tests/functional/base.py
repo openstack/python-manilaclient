@@ -121,6 +121,10 @@ class BaseTestCase(base.ClientTestBase):
             username=CONF.admin_username,
             password=CONF.admin_password,
             tenant_name=CONF.admin_tenant_name,
+            project_domain_name=CONF.admin_project_domain_name,
+            project_domain_id=CONF.admin_project_domain_id,
+            user_domain_name=CONF.admin_user_domain_name,
+            user_domain_id=CONF.admin_user_domain_id,
             uri=CONF.admin_auth_url or CONF.auth_url,
             insecure=CONF.insecure,
             cli_dir=CONF.manila_exec_dir)
@@ -134,6 +138,10 @@ class BaseTestCase(base.ClientTestBase):
             username=CONF.username,
             password=CONF.password,
             tenant_name=CONF.tenant_name,
+            project_domain_name=CONF.project_domain_name,
+            project_domain_id=CONF.project_domain_id,
+            user_domain_name=CONF.user_domain_name,
+            user_domain_id=CONF.user_domain_id,
             uri=CONF.auth_url,
             insecure=CONF.insecure,
             cli_dir=CONF.manila_exec_dir)
