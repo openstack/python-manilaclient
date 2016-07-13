@@ -32,9 +32,8 @@ class ShareReplicasTest(utils.TestCase):
     def setUp(self):
         super(ShareReplicasTest, self).setUp()
         microversion = api_versions.APIVersion("2.11")
-        mock_microversion = mock.Mock(api_version=microversion)
         self.manager = share_replicas.ShareReplicaManager(
-            api=mock_microversion)
+            fakes.FakeClient(api_version=microversion))
 
     def test_create(self):
         values = {

@@ -23,13 +23,18 @@ from manilaclient.v2 import client
 class FakeClient(fakes.FakeClient):
 
     def __init__(self, *args, **kwargs):
-        client.Client.__init__(self, manilaclient.API_MAX_VERSION,
-                               'username', 'password',
-                               'project_id', 'auth_url',
-                               input_auth_token='token',
-                               extensions=kwargs.get('extensions'),
-                               service_catalog_url='http://localhost:8786',
-                               api_version=manilaclient.API_MAX_VERSION)
+        client.Client.__init__(
+            self,
+            manilaclient.API_MAX_VERSION,
+            'username',
+            'password',
+            'project_id',
+            'auth_url',
+            input_auth_token='token',
+            extensions=kwargs.get('extensions'),
+            service_catalog_url='http://localhost:8786',
+            api_version=kwargs.get("api_version", manilaclient.API_MAX_VERSION)
+        )
         self.client = FakeHTTPClient(**kwargs)
 
 fake_share_instance = {
@@ -73,7 +78,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                         }
                     ],
                     "min_version": "2.0",
-                    "version": "2.8",
+                    "version": self.default_headers[
+                        "X-Openstack-Manila-Api-Version"],
                     "id": "v2.0",
                 }
             ]

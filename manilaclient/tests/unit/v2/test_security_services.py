@@ -27,7 +27,8 @@ class SecurityServiceTest(utils.TestCase):
 
     def setUp(self):
         super(SecurityServiceTest, self).setUp()
-        self.manager = security_services.SecurityServiceManager(api=None)
+        self.manager = security_services.SecurityServiceManager(
+            fakes.FakeClient())
 
     def test_create_all_fields(self):
         values = {

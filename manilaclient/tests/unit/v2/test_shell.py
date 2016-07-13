@@ -40,7 +40,6 @@ class ShellTest(test_utils.TestCase):
         'MANILA_USERNAME': 'username',
         'MANILA_PASSWORD': 'password',
         'MANILA_PROJECT_ID': 'project_id',
-        'OS_SHARE_API_VERSION': '2.5',
         'MANILA_URL': 'http://no.where',
     }
 

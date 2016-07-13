@@ -30,7 +30,7 @@ class ShareNetworkTest(utils.TestCase):
 
     def setUp(self):
         super(ShareNetworkTest, self).setUp()
-        self.manager = share_networks.ShareNetworkManager(api=None)
+        self.manager = share_networks.ShareNetworkManager(fakes.FakeClient())
         self.values = {
             'nova_net_id': 'fake_nova_net_id',
             'neutron_net_id': 'fake net id',

@@ -353,7 +353,8 @@ def experimental_api(f):
     @functools.wraps(f)
     def _wrapper(*args, **kwargs):
         client = args[0]
-        if isinstance(client, manilaclient.v2.client.Client):
+        if (isinstance(client, manilaclient.v2.client.Client) or
+                hasattr(client, 'client')):
             dh = client.client.default_headers
             dh[constants.EXPERIMENTAL_HTTP_HEADER] = 'true'
         return f(*args, **kwargs)

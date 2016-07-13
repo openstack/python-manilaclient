@@ -51,6 +51,7 @@ class ConsistencyGroupManager(base.ManagerWithFind):
     resource_class = ConsistencyGroup
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def create(self, share_network=None, name=None, description=None,
                source_cgsnapshot_id=None, share_types=None):
         """Create a Consistency Group.
@@ -87,6 +88,7 @@ class ConsistencyGroupManager(base.ManagerWithFind):
                             {RESOURCE_NAME: body}, RESOURCE_NAME)
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def get(self, consistency_group):
         """Get a consistency group.
 
@@ -99,6 +101,7 @@ class ConsistencyGroupManager(base.ManagerWithFind):
                          RESOURCE_NAME)
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def update(self, consistency_group, **kwargs):
         """Updates a consistency group.
 
@@ -116,6 +119,7 @@ class ConsistencyGroupManager(base.ManagerWithFind):
                             RESOURCE_NAME)
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def list(self, detailed=True, search_opts=None,
              sort_key=None, sort_dir=None):
         """Get a list of all shares.
@@ -159,10 +163,12 @@ class ConsistencyGroupManager(base.ManagerWithFind):
             self._delete(url)
 
     @api_versions.wraps("2.4", "2.6")
+    @api_versions.experimental_api
     def delete(self, consistency_group, force=False):
         return self._do_delete(consistency_group, force, 'os-force_delete')
 
     @api_versions.wraps("2.7")  # noqa
+    @api_versions.experimental_api
     def delete(self, consistency_group, force=False):
         return self._do_delete(consistency_group, force, 'force_delete')
 
@@ -173,11 +179,13 @@ class ConsistencyGroupManager(base.ManagerWithFind):
         return self.api.client.post(url, body=body)
 
     @api_versions.wraps("2.4", "2.6")
+    @api_versions.experimental_api
     def reset_state(self, cg, state):
         return self._do_reset_state(
             consistency_group, state, 'os-reset_status')
 
     @api_versions.wraps("2.7")  # noqa
+    @api_versions.experimental_api
     def reset_state(self, consistency_group, state):
         return self._do_reset_state(consistency_group, state, 'reset_status')
 

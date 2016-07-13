@@ -533,8 +533,8 @@ class SharesTest(utils.TestCase):
         host = "fake_host"
         force_host_copy = "fake_force_host_copy"
         version = api_versions.APIVersion(microversion)
-        mock_microversion = mock.Mock(api_version=version)
-        manager = shares.ShareManager(api=mock_microversion)
+        manager = shares.ShareManager(
+            api=fakes.FakeClient(api_version=version))
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):
@@ -552,9 +552,7 @@ class SharesTest(utils.TestCase):
 
     def test_migration_complete(self):
         share = "fake_share"
-        version = api_versions.APIVersion("2.15")
-        mock_microversion = mock.Mock(api_version=version)
-        manager = shares.ShareManager(api=mock_microversion)
+        manager = shares.ShareManager(api=fakes.FakeClient())
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):
@@ -566,9 +564,7 @@ class SharesTest(utils.TestCase):
 
     def test_migration_get_progress(self):
         share = "fake_share"
-        version = api_versions.APIVersion("2.15")
-        mock_microversion = mock.Mock(api_version=version)
-        manager = shares.ShareManager(api=mock_microversion)
+        manager = shares.ShareManager(api=fakes.FakeClient())
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):
@@ -581,9 +577,7 @@ class SharesTest(utils.TestCase):
     def test_reset_task_state(self):
         share = "fake_share"
         state = "fake_state"
-        version = api_versions.APIVersion("2.15")
-        mock_microversion = mock.Mock(api_version=version)
-        manager = shares.ShareManager(api=mock_microversion)
+        manager = shares.ShareManager(api=fakes.FakeClient())
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):
@@ -595,9 +589,7 @@ class SharesTest(utils.TestCase):
 
     def test_migration_cancel(self):
         share = "fake_share"
-        version = api_versions.APIVersion("2.15")
-        mock_microversion = mock.Mock(api_version=version)
-        manager = shares.ShareManager(api=mock_microversion)
+        manager = shares.ShareManager(api=fakes.FakeClient())
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):

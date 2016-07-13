@@ -16,6 +16,7 @@
 import mock
 
 from manilaclient.tests.unit import utils
+from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_servers
 
 
@@ -68,7 +69,7 @@ class ShareServerManagerTest(utils.TestCase):
 
     def setUp(self):
         super(ShareServerManagerTest, self).setUp()
-        self.manager = share_servers.ShareServerManager(api=None)
+        self.manager = share_servers.ShareServerManager(api=fakes.FakeClient())
 
     def test_list(self):
         with mock.patch.object(self.manager, '_list',

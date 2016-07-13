@@ -15,6 +15,7 @@
 import mock
 
 from manilaclient.tests.unit import utils
+from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import scheduler_stats
 
 
@@ -40,7 +41,7 @@ class PoolManagerTest(utils.TestCase):
 
     def setUp(self):
         super(PoolManagerTest, self).setUp()
-        self.manager = scheduler_stats.PoolManager(api=None)
+        self.manager = scheduler_stats.PoolManager(fakes.FakeClient())
 
     @mock.patch.object(scheduler_stats.PoolManager, '_list', mock.Mock())
     def test_list(self):

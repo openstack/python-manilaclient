@@ -162,21 +162,25 @@ class ShareManager(base.ManagerWithFind):
              "notify": notify})
 
     @api_versions.wraps("2.5", "2.6")
+    @api_versions.experimental_api
     def migration_start(self, share, host, force_host_copy):
         return self._do_migrate_start(
             share, host, force_host_copy, True, "os-migrate_share")
 
     @api_versions.wraps("2.7", "2.14")  # noqa
+    @api_versions.experimental_api
     def migration_start(self, share, host, force_host_copy):
         return self._do_migrate_start(
             share, host, force_host_copy, True, "migrate_share")
 
     @api_versions.wraps("2.15")  # noqa
+    @api_versions.experimental_api
     def migration_start(self, share, host, force_host_copy, notify):
         return self._do_migrate_start(
             share, host, force_host_copy, notify, "migration_start")
 
     @api_versions.wraps("2.15")
+    @api_versions.experimental_api
     def reset_task_state(self, share, task_state):
         """Update the provided share with the provided task state.
 
@@ -187,6 +191,7 @@ class ShareManager(base.ManagerWithFind):
                             {"task_state": task_state})
 
     @api_versions.wraps("2.15")
+    @api_versions.experimental_api
     def migration_complete(self, share):
         """Completes migration for a given share.
 
@@ -195,6 +200,7 @@ class ShareManager(base.ManagerWithFind):
         return self._action('migration_complete', share)
 
     @api_versions.wraps("2.15")
+    @api_versions.experimental_api
     def migration_cancel(self, share):
         """Attempts to cancel migration for a given share.
 
@@ -203,6 +209,7 @@ class ShareManager(base.ManagerWithFind):
         return self._action('migration_cancel', share)
 
     @api_versions.wraps("2.15")
+    @api_versions.experimental_api
     def migration_get_progress(self, share):
         """Obtains progress of share migration for a given share.
 

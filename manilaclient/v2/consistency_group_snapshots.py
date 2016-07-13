@@ -51,6 +51,7 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
     resource_class = ConsistencyGroupSnapshot
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def create(self, consistency_group_id, name=None, description=None):
         """Create a consistency group snapshot.
 
@@ -68,6 +69,7 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
                             RESOURCE_NAME)
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def get(self, cg_snapshot):
         """Get a consistency group snapshot.
 
@@ -80,6 +82,7 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
                          RESOURCE_NAME)
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def update(self, cg_snapshot, **kwargs):
         """Updates a consistency group snapshot.
 
@@ -97,6 +100,7 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
                             RESOURCE_NAME)
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def list(self, detailed=True, search_opts=None):
         """Get a list of all consistency group snapshots.
 
@@ -140,14 +144,17 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
             self._delete(RESOURCE_PATH % cg_id)
 
     @api_versions.wraps("2.4", "2.6")
+    @api_versions.experimental_api
     def delete(self, cg_snapshot, force=False):
         return self._do_delete(cg_snapshot, force, 'os-force_delete')
 
     @api_versions.wraps("2.7")  # noqa
+    @api_versions.experimental_api
     def delete(self, cg_snapshot, force=False):
         return self._do_delete(cg_snapshot, force, 'force_delete')
 
     @api_versions.wraps("2.4")
+    @api_versions.experimental_api
     def members(self, cg_snapshot, search_opts=None):
         """Get a list of consistency group snapshot members.
 
@@ -176,10 +183,12 @@ class ConsistencyGroupSnapshotManager(base.ManagerWithFind):
         return self.api.client.post(url, body=body)
 
     @api_versions.wraps("2.4", "2.6")
+    @api_versions.experimental_api
     def reset_state(self, cg_snapshot, state):
         return self._do_reset_state(cg_snapshot, state, 'os-reset_status')
 
     @api_versions.wraps("2.7")  # noqa
+    @api_versions.experimental_api
     def reset_state(self, cg_snapshot, state):
         return self._do_reset_state(cg_snapshot, state, 'reset_status')
 

@@ -29,13 +29,10 @@ class ConsistencyGroupSnapshotsTest(utils.TestCase):
     class _FakeConsistencyGroupSnapshot(object):
         id = 'fake_cg_snapshot_id'
 
-    class _FakeClient(object):
-        api_version = manilaclient.API_MAX_VERSION
-
     def setUp(self):
         super(ConsistencyGroupSnapshotsTest, self).setUp()
         self.manager = cg_snapshots.ConsistencyGroupSnapshotManager(
-            api=self._FakeClient())
+            api=fakes.FakeClient())
         self.values = {
             'consistency_group_id': 'fake_cg_id',
             'name': 'fake snapshot name',

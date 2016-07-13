@@ -51,6 +51,7 @@ class ShareReplicaManager(base.ManagerWithFind):
     resource_class = ShareReplica
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def get(self, replica):
         """Get a share replica.
 
@@ -61,6 +62,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._get(RESOURCE_PATH % replica_id, RESOURCE_NAME)
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def list(self, share=None):
         """List all share replicas or list replicas belonging to a share.
 
@@ -76,6 +78,7 @@ class ShareReplicaManager(base.ManagerWithFind):
             return self._list(RESOURCES_PATH + '/detail', RESOURCES_NAME)
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def promote(self, replica):
         """Promote the provided replica.
 
@@ -84,6 +87,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._action('promote', replica)
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def create(self, share, availability_zone=None, share_network=None):
         """Create a replica for a share.
 
@@ -107,6 +111,7 @@ class ShareReplicaManager(base.ManagerWithFind):
                             RESOURCE_NAME)
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def delete(self, replica, force=False):
         """Delete a replica.
 
@@ -116,6 +121,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         self._do_delete(replica, force=force)
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def reset_state(self, replica, state):
         """Reset the 'status' attr of the replica.
 
@@ -125,6 +131,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._do_reset_state(replica, state, "reset_status")
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def reset_replica_state(self, replica, state):
         """Reset the 'replica_state' attr of the replica.
 
@@ -134,6 +141,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._do_reset_state(replica, state, "reset_replica_state")
 
     @api_versions.wraps("2.11")
+    @api_versions.experimental_api
     def resync(self, replica):
         """Re-sync the provided replica.
 

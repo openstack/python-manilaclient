@@ -46,6 +46,7 @@ class Manager(utils.HookableMixin):
 
     def __init__(self, api):
         self.api = api
+        self.client = api.client
 
     @property
     def api_version(self):
