@@ -160,6 +160,11 @@ share_opts = [
                      "Disable this feature if there is no more than one "
                      "storage pool being tested or if used driver does not "
                      "support it."),
+    cfg.BoolOpt("run_mount_snapshot_tests",
+                default=False,
+                help="Defines whether to run mountable snapshots tests or "
+                     "not. Disable this feature if used driver doesn't "
+                     "support it."),
 ]
 
 # 2. Generate config

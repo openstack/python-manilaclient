@@ -58,6 +58,17 @@ def get_fake_export_location():
     }
 
 
+def get_fake_snapshot_export_location():
+    return {
+        'uuid': 'foo_el_uuid',
+        'path': '/foo/el/path',
+        'share_snapshot_instance_id': 'foo_share_instance_id',
+        'is_admin_only': False,
+        'created_at': '2017-01-17T13:14:15Z',
+        'updated_at': '2017-01-17T14:15:16Z',
+    }
+
+
 class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_(self, **kw):
@@ -259,6 +270,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action] is None
         elif action in ('unmanage', ):
             assert body[action] is None
+        elif action in 'allow_access':
+            assert 'access_type' in body['allow_access']
+            assert 'access_to' in body['allow_access']
+            _body = {'snapshot_access': body['allow_access']}
+        elif action in 'deny_access':
+            assert 'access_id' in body['deny_access']
         else:
             raise AssertionError("Unexpected action: %s" % action)
         return (resp, {}, _body)
@@ -930,6 +947,34 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_snapshot_instances_1234(self, **kw):
         instances = {'snapshot_instance': self.fake_snapshot_instance}
         return (200, {}, instances)
+
+    def get_snapshot_instances_1234_export_locations_fake_el_id(self, **kw):
+        return (200, {}, {'share_snapshot_export_location': {
+            'id': 'fake_id', 'path': '/fake_path'}})
+
+    def get_snapshots_1234_export_locations_fake_el_id(self, **kw):
+        return (200, {}, {'share_snapshot_export_location': {
+            'id': 'fake_id', 'path': '/fake_path'}})
+
+    def get_snapshot_instances_1234_export_locations(
+            self, **kw):
+        snapshot_export_location = {'share_snapshot_export_locations':
+                                    [get_fake_export_location()]}
+        return (200, {}, snapshot_export_location)
+
+    def get_snapshots_1234_export_locations(self):
+        snapshot_export_location = {'share_snapshot_export_locations':
+                                    [get_fake_export_location()]}
+        return (200, {}, snapshot_export_location)
+
+    def get_snapshots_1234_access_list(self, **kw):
+        access_list = {'snapshot_access_list': [{
+            'state': 'active',
+            'id': '1234',
+            'access_type': 'ip',
+            'access_to': '6.6.6.6'
+        }]}
+        return (200, {}, access_list)
 
     def post_snapshot_instances_1234_action(self, body, **kw):
         _body = None

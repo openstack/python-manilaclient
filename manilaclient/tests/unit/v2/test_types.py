@@ -188,11 +188,12 @@ class TypesTest(utils.TestCase):
 
     def _add_standard_extra_specs_to_dict(self, extra_specs,
                                           create_from_snapshot=None,
-                                          revert_to_snapshot=None):
+                                          revert_to_snapshot=None,
+                                          mount_snapshot=None):
 
         # Short-circuit checks to allow for extra specs to be (and remain) None
         if all(spec is None for spec in [
-                create_from_snapshot, revert_to_snapshot]):
+                create_from_snapshot, revert_to_snapshot, mount_snapshot]):
             return extra_specs
 
         extra_specs = extra_specs or {}
@@ -203,6 +204,9 @@ class TypesTest(utils.TestCase):
         if revert_to_snapshot is not None:
             extra_specs['revert_to_snapshot_support'] = (
                 revert_to_snapshot)
+        if mount_snapshot is not None:
+            extra_specs['mount_snapshot_support'] = (
+                mount_snapshot)
 
         return extra_specs
 

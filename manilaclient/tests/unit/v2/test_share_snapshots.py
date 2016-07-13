@@ -179,3 +179,38 @@ class ShareSnapshotsTest(utils.TestCase):
 
             manager._action.assert_called_once_with("unmanage", snapshot)
             self.assertEqual("fake", result)
+
+    def test_allow_access(self):
+        snapshot = "fake_snapshot"
+        access_type = "fake_type"
+        access_to = "fake_to"
+
+        access = ("foo", {"snapshot_access": "fake"})
+        version = api_versions.APIVersion("2.32")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = share_snapshots.ShareSnapshotManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action",
+                               mock.Mock(return_value=access)):
+            result = manager.allow(snapshot, access_type, access_to)
+            self.assertEqual("fake", result)
+            manager._action.assert_called_once_with(
+                "allow_access", snapshot,
+                {'access_type': access_type, 'access_to': access_to})
+
+    def test_deny_access(self):
+        snapshot = "fake_snapshot"
+        access_id = "fake_id"
+
+        version = api_versions.APIVersion("2.32")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = share_snapshots.ShareSnapshotManager(api=mock_microversion)
+
+        with mock.patch.object(manager, "_action"):
+            manager.deny(snapshot, access_id)
+            manager._action.assert_called_once_with(
+                "deny_access", snapshot, {'access_id': access_id})
+
+    def test_access_list(self):
+        cs.share_snapshots.access_list(1234)
+        cs.assert_called('GET', '/snapshots/1234/access-list')

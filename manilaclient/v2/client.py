@@ -39,6 +39,8 @@ from manilaclient.v2 import share_instances
 from manilaclient.v2 import share_networks
 from manilaclient.v2 import share_replicas
 from manilaclient.v2 import share_servers
+from manilaclient.v2 import share_snapshot_export_locations
+from manilaclient.v2 import share_snapshot_instance_export_locations
 from manilaclient.v2 import share_snapshot_instances
 from manilaclient.v2 import share_snapshots
 from manilaclient.v2 import share_type_access
@@ -234,6 +236,12 @@ class Client(object):
         self.share_snapshots = share_snapshots.ShareSnapshotManager(self)
         self.share_snapshot_instances = (
             share_snapshot_instances.ShareSnapshotInstanceManager(self))
+        self.share_snapshot_export_locations = (
+            share_snapshot_export_locations.ShareSnapshotExportLocationManager(
+                self))
+        self.share_snapshot_instance_export_locations = (
+            share_snapshot_instance_export_locations.
+            ShareSnapshotInstanceExportLocationManager(self))
 
         self.share_types = share_types.ShareTypeManager(self)
         self.share_type_access = share_type_access.ShareTypeAccessManager(self)

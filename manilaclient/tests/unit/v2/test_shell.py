@@ -455,6 +455,7 @@ class ShellTest(test_utils.TestCase):
                     'snapshot_support': True,
                     'create_share_from_snapshot_support': True,
                     'revert_to_snapshot_support': False,
+                    'mount_snapshot_support': False,
                 },
                 'share_type_access:is_public': public
             }
@@ -836,6 +837,7 @@ class ShellTest(test_utils.TestCase):
                     "snapshot_support": True,
                     "create_share_from_snapshot_support": True,
                     "revert_to_snapshot_support": False,
+                    "mount_snapshot_support": False,
                 }
             }
         }
@@ -884,6 +886,7 @@ class ShellTest(test_utils.TestCase):
                     "snapshot_support": expected_bool,
                     "create_share_from_snapshot_support": True,
                     "revert_to_snapshot_support": False,
+                    "mount_snapshot_support": False,
                     "replication_type": replication_type,
                 }
             }
@@ -913,6 +916,7 @@ class ShellTest(test_utils.TestCase):
                     "snapshot_support": True,
                     "create_share_from_snapshot_support": expected_bool,
                     "revert_to_snapshot_support": False,
+                    "mount_snapshot_support": False,
                 }
             }
         }
@@ -971,6 +975,43 @@ class ShellTest(test_utils.TestCase):
             exceptions.CommandError,
             self.run_command,
             'type-create test false --revert-to-snapshot-support ' + value,
+        )
+
+    @ddt.unpack
+    @ddt.data(
+        *([{'expected_bool': True, 'text': v}
+           for v in ('true', 'True', '1', 'TRUE', 'tRuE')] +
+          [{'expected_bool': False, 'text': v}
+           for v in ('false', 'False', '0', 'FALSE', 'fAlSe')])
+    )
+    def test_type_create_with_mount_snapshot_support(
+            self, expected_bool, text):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "share_type_access:is_public": True,
+                "extra_specs": {
+                    "driver_handles_share_servers": False,
+                    "snapshot_support": True,
+                    "create_share_from_snapshot_support": True,
+                    "revert_to_snapshot_support": False,
+                    "mount_snapshot_support": expected_bool,
+                }
+            }
+        }
+
+        self.run_command('type-create test false --snapshot-support true '
+                         '--revert-to-snapshot-support false '
+                         '--mount-snapshot-support ' + text)
+
+        self.assert_called('POST', '/types', body=expected)
+
+    @ddt.data('fake', 'FFFalse', 'trueee')
+    def test_type_create_invalid_mount_snapshot_support_value(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test false --mount-snapshot-support ' + value,
         )
 
     @ddt.data('--is-public', '--is_public')
@@ -1513,6 +1554,60 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_with(
             mock.ANY,
             ['Id', 'Access_Type'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_snapshot_access_list(self):
+        self.run_command("snapshot-access-list 1234")
+
+        self.assert_called('GET', '/snapshots/1234/access-list')
+        cliutils.print_list.assert_called_with(
+            mock.ANY, ['id', 'access_type', 'access_to', 'state'])
+
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_snapshot_access_allow(self):
+        self.run_command("snapshot-access-allow 1234 ip 1.1.1.1")
+
+        self.assert_called('POST', '/snapshots/1234/action')
+        cliutils.print_dict.assert_called_with(
+            {'access_type': 'ip', 'access_to': '1.1.1.1'})
+
+    def test_snapshot_access_deny(self):
+        self.run_command("snapshot-access-deny 1234 fake_id")
+
+        self.assert_called('POST', '/snapshots/1234/action')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_snapshot_export_location_list(self):
+        self.run_command('snapshot-export-location-list 1234')
+
+        self.assert_called(
+            'GET', '/snapshots/1234/export-locations')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_snapshot_instance_export_location_list(self):
+        self.run_command('snapshot-instance-export-location-list 1234')
+
+        self.assert_called(
+            'GET', '/snapshot-instances/1234/export-locations')
+
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_snapshot_instance_export_location_show(self):
+        self.run_command('snapshot-instance-export-location-show 1234 '
+                         'fake_el_id')
+
+        self.assert_called(
+            'GET', '/snapshot-instances/1234/export-locations/fake_el_id')
+        cliutils.print_dict.assert_called_once_with(
+            {'path': '/fake_path', 'id': 'fake_id'})
+
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_snapshot_export_location_show(self):
+        self.run_command('snapshot-export-location-show 1234 fake_el_id')
+
+        self.assert_called('GET',
+                           '/snapshots/1234/export-locations/fake_el_id')
+        cliutils.print_dict.assert_called_once_with(
+            {'path': '/fake_path', 'id': 'fake_id'})
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_security_service_list(self):
@@ -2350,7 +2445,7 @@ class ShellTest(test_utils.TestCase):
 
     @mock.patch.object(shell_v2, '_find_share_snapshot', mock.Mock())
     def test_snapshot_instance_list_for_snapshot(self):
-        fsnapshot = type('FakeSansphot', (object,),
+        fsnapshot = type('FakeSnapshot', (object,),
                          {'id': 'fake-snapshot-id'})
         shell_v2._find_share_snapshot.return_value = fsnapshot
         cmd = 'snapshot-instance-list --snapshot %s'
@@ -2361,7 +2456,10 @@ class ShellTest(test_utils.TestCase):
 
     def test_snapshot_instance_show(self):
         self.run_command('snapshot-instance-show 1234')
-        self.assert_called('GET', '/snapshot-instances/1234')
+        self.assert_called_anytime('GET', '/snapshot-instances/1234',
+                                   clear_callstack=False)
+        self.assert_called_anytime('GET',
+                                   '/snapshot-instances/1234/export-locations')
 
     def test_snapshot_instance_reset_state(self):
         self.run_command('snapshot-instance-reset-state 1234')

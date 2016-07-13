@@ -90,7 +90,7 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
         self.skip_if_microversion_not_supported('2.0')
         self._test_create_delete_share_type(
             '2.0', is_public, dhss, spec_snapshot_support,
-            None, None, extra_specs)
+            None, None, None, extra_specs)
 
     @ddt.data(*unit_test_types.get_valid_type_create_data_2_24())
     @ddt.unpack
@@ -101,7 +101,7 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
         self.skip_if_microversion_not_supported('2.24')
         self._test_create_delete_share_type(
             '2.24', is_public, dhss, spec_snapshot_support,
-            spec_create_share_from_snapshot, None, extra_specs)
+            spec_create_share_from_snapshot, None, None, extra_specs)
 
     @ddt.data(*unit_test_types.get_valid_type_create_data_2_27())
     @ddt.unpack
@@ -114,12 +114,13 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
         self._test_create_delete_share_type(
             '2.27', is_public, dhss, spec_snapshot_support,
             spec_create_share_from_snapshot, spec_revert_to_snapshot_support,
-            extra_specs)
+            None, extra_specs)
 
     def _test_create_delete_share_type(self, microversion, is_public, dhss,
                                        spec_snapshot_support,
                                        spec_create_share_from_snapshot,
                                        spec_revert_to_snapshot_support,
+                                       spec_mount_snapshot_support,
                                        extra_specs):
 
         share_type_name = data_utils.rand_name('manilaclient_functional_test')
@@ -134,6 +135,7 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
             snapshot_support=spec_snapshot_support,
             create_share_from_snapshot=spec_create_share_from_snapshot,
             revert_to_snapshot=spec_revert_to_snapshot_support,
+            mount_snapshot=spec_mount_snapshot_support,
             is_public=is_public,
             microversion=microversion,
             extra_specs=extra_specs)
@@ -183,6 +185,11 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
                 ('{} : {}'.format(
                     'revert_to_snapshot_support',
                     spec_revert_to_snapshot_support)).strip())
+        if spec_mount_snapshot_support is not None:
+            expected_extra_specs.append(
+                ('{} : {}'.format(
+                    'mount_snapshot_support',
+                    spec_mount_snapshot_support)).strip())
 
         # Verify optional extra specs
         optional_extra_specs = share_type['optional_extra_specs']

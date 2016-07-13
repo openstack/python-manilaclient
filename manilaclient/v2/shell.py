@@ -225,6 +225,12 @@ def _find_share_snapshot(cs, snapshot):
 def _print_share_snapshot(cs, snapshot):
     info = snapshot._info.copy()
     info.pop('links', None)
+
+    if info.get('export_locations'):
+        info['export_locations'] = (
+            _transform_export_locations_to_string_view(
+                info['export_locations']))
+
     cliutils.print_dict(info)
 
 
@@ -1198,6 +1204,27 @@ def do_access_allow(cs, args):
     cliutils.print_dict(access)
 
 
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the share snapshot to allow access to.')
+@cliutils.arg(
+    'access_type',
+    metavar='<access_type>',
+    help='Access rule type (only "ip", "user"(user or group), "cert" or '
+         '"cephx" are supported).')
+@cliutils.arg(
+    'access_to',
+    metavar='<access_to>',
+    help='Value that defines access.')
+def do_snapshot_access_allow(cs, args):
+    """Allow read only access to a snapshot."""
+    share_snapshot = _find_share_snapshot(cs, args.snapshot)
+    access = share_snapshot.allow(args.access_type, args.access_to)
+    cliutils.print_dict(access)
+
+
 @cliutils.arg(
     'share',
     metavar='<share>',
@@ -1210,6 +1237,34 @@ def do_access_deny(cs, args):
     """Deny access to a share."""
     share = _find_share(cs, args.share)
     share.deny(args.id)
+
+
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the share snapshot to deny access to.')
+@cliutils.arg(
+    'id',
+    metavar='<id>',
+    nargs='+',
+    help='ID(s) of the access rule(s) to be deleted.')
+def do_snapshot_access_deny(cs, args):
+    """Deny access to a snapshot."""
+    failure_count = 0
+    snapshot = _find_share_snapshot(cs, args.snapshot)
+    for access_id in args.id:
+        try:
+            snapshot.deny(access_id)
+        except Exception as e:
+            failure_count += 1
+            print("Failed to remove rule %(access)s: %(reason)s."
+                  % {'access': access_id, 'reason': e},
+                  file=sys.stderr)
+
+    if failure_count == len(args.id):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "snapshot rules.")
 
 
 @api_versions.wraps("1.0", "2.20")
@@ -1262,6 +1317,30 @@ def do_access_list(cs, args):
 
     share = _find_share(cs, args.share)
     access_list = share.access_list()
+    cliutils.print_list(access_list, list_of_keys)
+
+
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the share snapshot to list access of.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "access_type,access_to"')
+def do_snapshot_access_list(cs, args):
+    """Show access list for a snapshot."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = ['id', 'access_type', 'access_to', 'state']
+
+    snapshot = _find_share_snapshot(cs, args.snapshot)
+    access_list = snapshot.access_list()
     cliutils.print_list(access_list, list_of_keys)
 
 
@@ -1727,7 +1806,103 @@ def do_snapshot_list(cs, args):
 def do_snapshot_show(cs, args):
     """Show details about a snapshot."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
+    export_locations = cs.share_snapshot_export_locations.list(
+        snapshot=snapshot)
+    snapshot._info['export_locations'] = export_locations
     _print_share_snapshot(cs, snapshot)
+
+
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,path"')
+def do_snapshot_export_location_list(cs, args):
+    """List export locations of a given snapshot."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'ID',
+            'Path',
+        ]
+    snapshot = _find_share_snapshot(cs, args.snapshot)
+    export_locations = cs.share_snapshot_export_locations.list(
+        snapshot)
+    cliutils.print_list(export_locations, list_of_keys)
+
+
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'instance',
+    metavar='<instance>',
+    help='Name or ID of the snapshot instance.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,path,is_admin_only"')
+def do_snapshot_instance_export_location_list(cs, args):
+    """List export locations of a given snapshot instance."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'ID',
+            'Path',
+            'Is Admin only',
+        ]
+    instance = _find_share_snapshot_instance(cs, args.instance)
+    export_locations = cs.share_snapshot_instance_export_locations.list(
+        instance)
+    cliutils.print_list(export_locations, list_of_keys)
+
+
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'snapshot',
+    metavar='<snapshot>',
+    help='Name or ID of the snapshot.')
+@cliutils.arg(
+    'export_location',
+    metavar='<export_location>',
+    help='ID of the share snapshot export location.')
+def do_snapshot_export_location_show(cs, args):
+    """Show export location of the share snapshot."""
+    snapshot = _find_share_snapshot(cs, args.snapshot)
+    export_location = cs.share_snapshot_export_locations.get(
+        args.export_location, snapshot)
+    view_data = export_location._info.copy()
+    cliutils.print_dict(view_data)
+
+
+@api_versions.wraps("2.32")
+@cliutils.arg(
+    'snapshot_instance',
+    metavar='<snapshot_instance>',
+    help='ID of the share snapshot instance.')
+@cliutils.arg(
+    'export_location',
+    metavar='<export_location>',
+    help='ID of the share snapshot instance export location.')
+def do_snapshot_instance_export_location_show(cs, args):
+    """Show export location of the share instance snapshot."""
+    snapshot_instance = _find_share_snapshot_instance(cs,
+                                                      args.snapshot_instance)
+    export_location = cs.share_snapshot_instance_export_locations.get(
+        args.export_location, snapshot_instance)
+
+    view_data = export_location._info.copy()
+    cliutils.print_dict(view_data)
 
 
 @cliutils.arg(
@@ -1944,7 +2119,10 @@ def do_snapshot_instance_show(cs, args):
     """Show details about a share snapshot instance."""
     snapshot_instance = _find_share_snapshot_instance(
         cs, args.snapshot_instance)
-    cliutils.print_dict(snapshot_instance._info)
+    export_locations = (
+        cs.share_snapshot_instance_export_locations.list(snapshot_instance))
+    snapshot_instance._info['export_locations'] = export_locations
+    _print_share_snapshot(cs, snapshot_instance)
 
 
 @cliutils.arg(
@@ -3269,6 +3447,13 @@ def do_extra_specs_list(cs, args):
     help="Boolean extra spec used for filtering of back ends by their "
          "capability to revert shares to snapshots. (Default is False).")
 @cliutils.arg(
+    '--mount_snapshot_support',
+    '--mount-snapshot-support',
+    metavar='<mount_snapshot_support>',
+    action='single_alias',
+    help="Boolean extra spec used for filtering of back ends by their "
+         "capability to mount share snapshots. (Default is False).")
+@cliutils.arg(
     '--extra-specs',
     '--extra_specs',  # alias
     type=str,
@@ -3312,6 +3497,7 @@ def do_type_create(cs, args):
         'snapshot_support',
         'create_share_from_snapshot_support',
         'revert_to_snapshot_support',
+        'mount_snapshot_support'
     )
     for key in boolean_keys:
         value = getattr(args, key)

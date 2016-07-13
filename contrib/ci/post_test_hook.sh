@@ -65,6 +65,8 @@ iniset $MANILACLIENT_CONF DEFAULT access_types_mapping "nfs:ip,cifs:user"
 
 # Dummy driver is capable of running share migration tests
 iniset $MANILACLIENT_CONF DEFAULT run_migration_tests "True"
+# Running mountable snapshot tests in dummy driver
+iniset $MANILACLIENT_CONF DEFAULT run_mount_snapshot_tests "True"
 
 # Create share network and use it for functional tests if required
 USE_SHARE_NETWORK=$(trueorfalse True USE_SHARE_NETWORK)

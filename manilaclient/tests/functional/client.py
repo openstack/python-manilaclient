@@ -166,8 +166,8 @@ class ManilaCLIClient(base.CLIClient):
     def create_share_type(self, name=None, driver_handles_share_servers=True,
                           snapshot_support=None,
                           create_share_from_snapshot=None,
-                          revert_to_snapshot=None, is_public=True,
-                          microversion=None, extra_specs=None):
+                          revert_to_snapshot=None, mount_snapshot=None,
+                          is_public=True, microversion=None, extra_specs=None):
         """Creates share type.
 
         :param name: text -- name of share type to use, if not set then
@@ -183,6 +183,7 @@ class ManilaCLIClient(base.CLIClient):
             alias. Default is None.
         :param revert_to_snapshot: -- boolean or its string alias. Default is
             None.
+        :param mount_snapshot: -- boolean or its string alias. Default is None.
         """
         if name is None:
             name = data_utils.rand_name('manilaclient_functional_test')
@@ -212,6 +213,12 @@ class ManilaCLIClient(base.CLIClient):
                 revert_to_snapshot = six.text_type(
                     revert_to_snapshot)
             cmd += (" --revert-to-snapshot-support " + revert_to_snapshot)
+
+        if mount_snapshot is not None:
+            if not isinstance(mount_snapshot, six.string_types):
+                mount_snapshot = six.text_type(
+                    mount_snapshot)
+            cmd += (" --mount-snapshot-support " + mount_snapshot)
 
         if extra_specs is not None:
             extra_spec_str = ''
@@ -828,6 +835,42 @@ class ManilaCLIClient(base.CLIClient):
         return snapshot
 
     @not_found_wrapper
+    def list_snapshot_export_locations(self, snapshot, columns=None,
+                                       microversion=None):
+        """List snapshot export locations.
+
+        :param snapshot: str -- Name or ID of a snapshot.
+        :param columns: str -- comma separated string of columns.
+            Example, "--columns uuid,path".
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = "snapshot-export-location-list %s" % snapshot
+        if columns is not None:
+            cmd += " --columns " + columns
+        export_locations_raw = self.manila(cmd, microversion=microversion)
+        export_locations = utils.listing(export_locations_raw)
+        return export_locations
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def list_snapshot_instance_export_locations(self, snapshot_instance,
+                                                columns=None,
+                                                microversion=None):
+        """List snapshot instance export locations.
+
+        :param snapshot_instance: str -- Name or ID of a snapshot instance.
+        :param columns: str -- comma separated string of columns.
+            Example, "--columns uuid,path".
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = "snapshot-instance-export-location-list %s" % snapshot_instance
+        if columns is not None:
+            cmd += " --columns " + columns
+        export_locations_raw = self.manila(cmd, microversion=microversion)
+        export_locations = utils.listing(export_locations_raw)
+        return export_locations
+
+    @not_found_wrapper
     @forbidden_wrapper
     def delete_snapshot(self, snapshot, microversion=None):
         """Deletes snapshot by Names or IDs."""
@@ -910,25 +953,54 @@ class ManilaCLIClient(base.CLIClient):
                 raise tempest_lib_exc.TimeoutException(message)
 
     @not_found_wrapper
-    def list_access(self, share_id, columns=None, microversion=None):
+    def list_access(self, entity_id, columns=None, microversion=None,
+                    is_snapshot=False):
         """Returns list of access rules for a share.
 
-        :param share_id: str -- Name or ID of a share.
+        :param entity_id: str -- Name or ID of a share or snapshot.
         :param columns: comma separated string of columns.
             Example, "--columns access_type,access_to"
+        :param is_snapshot: Boolean value to determine if should list
+            access of a share or snapshot.
         """
-        cmd = 'access-list %s ' % share_id
+        if is_snapshot:
+            cmd = 'snapshot-access-list %s ' % entity_id
+        else:
+            cmd = 'access-list %s ' % entity_id
         if columns is not None:
             cmd += ' --columns ' + columns
         access_list_raw = self.manila(cmd, microversion=microversion)
         return output_parser.listing(access_list_raw)
 
     @not_found_wrapper
-    def get_access(self, share_id, access_id, microversion=None):
-        for access in self.list_access(share_id, microversion=microversion):
+    def get_access(self, share_id, access_id, microversion=None,
+                   is_snapshot=False):
+        for access in self.list_access(share_id, microversion=microversion,
+                                       is_snapshot=is_snapshot):
             if access['id'] == access_id:
                 return access
         raise tempest_lib_exc.NotFound()
+
+    @not_found_wrapper
+    def snapshot_access_allow(self, snapshot_id, access_type, access_to,
+                              microversion=None):
+        raw_access = self.manila(
+            'snapshot-access-allow %(id)s %(type)s %(access_to)s' % {
+                'id': snapshot_id,
+                'type': access_type,
+                'access_to': access_to,
+            },
+            microversion=microversion)
+        return output_parser.details(raw_access)
+
+    @not_found_wrapper
+    def snapshot_access_deny(self, snapshot_id, access_id, microversion=None):
+        return self.manila(
+            'snapshot-access-deny %(share_id)s %(access_id)s' % {
+                'share_id': snapshot_id,
+                'access_id': access_id,
+            },
+            microversion=microversion)
 
     @not_found_wrapper
     def access_allow(self, share_id, access_type, access_to, access_level,
@@ -954,15 +1026,17 @@ class ManilaCLIClient(base.CLIClient):
             microversion=microversion)
 
     def wait_for_access_rule_status(self, share_id, access_id, state='active',
-                                    microversion=None):
+                                    microversion=None, is_snapshot=False):
         access = self.get_access(
-            share_id, access_id, microversion=microversion)
+            share_id, access_id, microversion=microversion,
+            is_snapshot=is_snapshot)
 
         start = int(time.time())
         while access['state'] != state:
             time.sleep(self.build_interval)
             access = self.get_access(
-                share_id, access_id, microversion=microversion)
+                share_id, access_id, microversion=microversion,
+                is_snapshot=is_snapshot)
 
             if access['state'] == state:
                 return
@@ -979,10 +1053,11 @@ class ManilaCLIClient(base.CLIClient):
                 raise tempest_lib_exc.TimeoutException(message)
 
     def wait_for_access_rule_deletion(self, share_id, access_id,
-                                      microversion=None):
+                                      microversion=None, is_snapshot=False):
         try:
             access = self.get_access(
-                share_id, access_id, microversion=microversion)
+                share_id, access_id, microversion=microversion,
+                is_snapshot=is_snapshot)
         except tempest_lib_exc.NotFound:
             return
 
@@ -991,7 +1066,8 @@ class ManilaCLIClient(base.CLIClient):
             time.sleep(self.build_interval)
             try:
                 access = self.get_access(
-                    share_id, access_id, microversion=microversion)
+                    share_id, access_id, microversion=microversion,
+                    is_snapshot=is_snapshot)
             except tempest_lib_exc.NotFound:
                 return
 
@@ -1002,7 +1078,8 @@ class ManilaCLIClient(base.CLIClient):
             if int(time.time()) - start >= self.build_timeout:
                 message = (
                     "Access rule %(access)s failed to reach deleted state "
-                    "within the required time (%s s)." % self.build_timeout)
+                    "within the required time (%(timeout)s s)." %
+                    {"access": access_id, "timeout": self.build_timeout})
                 raise tempest_lib_exc.TimeoutException(message)
 
     def reset_task_state(self, share_id, state, version=None):
@@ -1135,6 +1212,40 @@ class ManilaCLIClient(base.CLIClient):
         export_locations_raw = self.manila(cmd, microversion=microversion)
         export_locations = utils.listing(export_locations_raw)
         return export_locations
+
+    @not_found_wrapper
+    def get_snapshot_export_location(self, snapshot, export_location_uuid,
+                                     microversion=None):
+        """Returns an export location by snapshot and its UUID.
+
+        :param snapshot: str -- Name or ID of a snapshot.
+        :param export_location_uuid: str -- UUID of an export location.
+        :param microversion: API microversion to be used for request.
+        """
+        snapshot_raw = self.manila(
+            'snapshot-export-location-show %(snapshot)s %(el_uuid)s' % {
+                'snapshot': snapshot,
+                'el_uuid': export_location_uuid,
+            },
+            microversion=microversion)
+        snapshot = output_parser.details(snapshot_raw)
+        return snapshot
+
+    @not_found_wrapper
+    def get_snapshot_instance_export_location(
+            self, snapshot, export_location_uuid, microversion=None):
+        """Returns an export location by snapshot instance and its UUID.
+
+        :param snapshot: str -- Name or ID of a snapshot instance.
+        :param export_location_uuid: str -- UUID of an export location.
+        :param microversion: API microversion to be used for request.
+        """
+        snapshot_raw = self.manila(
+            'snapshot-instance-export-location-show %(snapshot)s %(el_uuid)s'
+            % {'snapshot': snapshot, 'el_uuid': export_location_uuid},
+            microversion=microversion)
+        snapshot = output_parser.details(snapshot_raw)
+        return snapshot
 
     @not_found_wrapper
     def get_share_export_location(self, share, export_location_uuid,

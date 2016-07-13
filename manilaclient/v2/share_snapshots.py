@@ -51,6 +51,17 @@ class ShareSnapshot(common_base.Resource):
         """Unmanage this snapshot."""
         self.manager.unmanage(self)
 
+    def allow(self, access_type, access_to):
+        """Allow access to a share snapshot."""
+        return self.manager.allow(self, access_type, access_to)
+
+    def deny(self, id):
+        """Denies access to a share snapshot."""
+        return self.manager.deny(self, id)
+
+    def access_list(self):
+        return self.manager.access_list(self)
+
 
 class ShareSnapshotManager(base.ManagerWithFind):
     """Manage :class:`ShareSnapshot` resources."""
@@ -202,8 +213,38 @@ class ShareSnapshotManager(base.ManagerWithFind):
     def reset_state(self, snapshot, state):
         return self._do_reset_state(snapshot, state, "reset_status")
 
+    def _do_allow(self, snapshot, access_type, access_to):
+        access_params = {
+            'access_type': access_type,
+            'access_to': access_to,
+        }
+
+        return self._action('allow_access', snapshot,
+                            access_params)[1]['snapshot_access']
+
+    @api_versions.wraps("2.32")
+    def allow(self, snapshot, access_type, access_to):
+        return self._do_allow(snapshot, access_type, access_to)
+
+    def _do_deny(self, snapshot, id):
+        return self._action('deny_access', snapshot, {'access_id': id})
+
+    @api_versions.wraps("2.32")
+    def deny(self, snapshot, id):
+        return self._do_deny(snapshot, id)
+
+    def _do_access_list(self, snapshot):
+        snapshot_id = common_base.getid(snapshot)
+        access_list = self._list("/snapshots/%s/access-list" % snapshot_id,
+                                 'snapshot_access_list')
+        return access_list
+
+    @api_versions.wraps("2.32")
+    def access_list(self, snapshot):
+        return self._do_access_list(snapshot)
+
     def _action(self, action, snapshot, info=None, **kwargs):
-        """Perform a  snapshot 'action'."""
+        """Perform a snapshot 'action'."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
         url = '/snapshots/%s/action' % common_base.getid(snapshot)
