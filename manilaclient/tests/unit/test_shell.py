@@ -135,12 +135,17 @@ class OpenstackManilaShellTest(utils.TestCase):
             )
 
     @ddt.data(
-        {"env_vars": {"MANILACLIENT_BYPASS_URL": "http://foo.url",
+        {"env_vars": {"OS_MANILA_BYPASS_URL": "http://foo.url",
                       "OS_TOKEN": "foo_token"},
          "kwargs": {"--os-token": "bar_token",
                     "--bypass-url": "http://bar.url"},
          "expected": {"input_auth_token": "bar_token",
                       "service_catalog_url": "http://bar.url"}},
+        {"env_vars": {"OS_MANILA_BYPASS_URL": "http://foo.url",
+                      "OS_TOKEN": "foo_token"},
+         "kwargs": {},
+         "expected": {"input_auth_token": "foo_token",
+                      "service_catalog_url": "http://foo.url"}},
         {"env_vars": {},
          "kwargs": {"--os-token": "bar_token",
                     "--bypass-url": "http://bar.url"},
@@ -154,6 +159,12 @@ class OpenstackManilaShellTest(utils.TestCase):
         {"env_vars": {"OS_TOKEN": "foo_token"},
          "kwargs": {"--bypass-url": "http://bar.url"},
          "expected": {"input_auth_token": "foo_token",
+                      "service_catalog_url": "http://bar.url"}},
+        {"env_vars": {"MANILACLIENT_BYPASS_URL": "http://foo.url",
+                      "OS_MANILA_BYPASS_URL": "http://bar.url",
+                      "OS_TOKEN": "foo_token"},
+         "kwargs": {"--os-token": "bar_token"},
+         "expected": {"input_auth_token": "bar_token",
                       "service_catalog_url": "http://bar.url"}},
     )
     @ddt.unpack

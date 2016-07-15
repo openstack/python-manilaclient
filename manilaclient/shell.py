@@ -268,10 +268,11 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--bypass-url',
                             metavar='<bypass-url>',
-                            default=cliutils.env('MANILACLIENT_BYPASS_URL'),
+                            default=cliutils.env('OS_MANILA_BYPASS_URL',
+                                                 'MANILACLIENT_BYPASS_URL'),
                             help=("Use this API endpoint instead of the "
                                   "Service Catalog. Defaults to "
-                                  "env[MANILACLIENT_BYPASS_URL]."))
+                                  "env[OS_MANILA_BYPASS_URL]."))
         parser.add_argument('--bypass_url',
                             help=argparse.SUPPRESS)
 
@@ -283,24 +284,29 @@ class OpenStackManilaShell(object):
 
         parser.add_argument('--service-name',
                             metavar='<service-name>',
-                            default=cliutils.env('MANILA_SERVICE_NAME'),
-                            help='Defaults to env[MANILA_SERVICE_NAME].')
+                            default=cliutils.env('OS_MANILA_SERVICE_NAME',
+                                                 'MANILA_SERVICE_NAME'),
+                            help='Defaults to env[OS_MANILA_SERVICE_NAME].')
         parser.add_argument('--service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--share-service-name',
                             metavar='<share-service-name>',
-                            default=cliutils.env('MANILA_share_service_name'),
-                            help='Defaults to env[MANILA_share_service_name].')
+                            default=cliutils.env(
+                                    'OS_MANILA_SHARE_SERVICE_NAME',
+                                    'MANILA_share_service_name'),
+                            help='Defaults to env'
+                                 '[OS_MANILA_SHARE_SERVICE_NAME].')
         parser.add_argument('--share_service_name',
                             help=argparse.SUPPRESS)
 
         parser.add_argument('--endpoint-type',
                             metavar='<endpoint-type>',
                             default=cliutils.env(
+                                'OS_MANILA_ENDPOINT_TYPE',
                                 'MANILA_ENDPOINT_TYPE',
                                 default=DEFAULT_MANILA_ENDPOINT_TYPE),
-                            help='Defaults to env[MANILA_ENDPOINT_TYPE] or '
+                            help='Defaults to env[OS_MANILA_ENDPOINT_TYPE] or '
                             + DEFAULT_MANILA_ENDPOINT_TYPE + '.')
         parser.add_argument('--endpoint_type',
                             help=argparse.SUPPRESS)
