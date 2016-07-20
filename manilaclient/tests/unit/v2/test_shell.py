@@ -1362,7 +1362,8 @@ class ShellTest(test_utils.TestCase):
         self.run_command("access-list 1111")
         cliutils.print_list.assert_called_with(
             mock.ANY,
-            ['id', 'access_type', 'access_to', 'access_level', 'state'])
+            ['id', 'access_type', 'access_to', 'access_level', 'state',
+             'access_key'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_access_list_select_column(self):
