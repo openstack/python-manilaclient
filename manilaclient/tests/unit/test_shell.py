@@ -77,6 +77,8 @@ class OpenstackManilaShellTest(utils.TestCase):
          'OS_PASSWORD': 'foo_password'},
         {'OS_TENANT_NAME': 'foo_tenant', 'OS_USERNAME': 'foo_user',
          'OS_PASSWORD': 'foo_password'},
+        {'OS_TOKEN': 'foo_token'},
+        {'OS_MANILA_BYPASS_URL': 'http://foo.foo'},
     )
     def test_main_failure(self, env_vars):
         self.set_env_vars(env_vars)
