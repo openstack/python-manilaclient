@@ -1,4 +1,4 @@
-# Copyright 2013 OpenStack LLC.
+# Copyright 2013 OpenStack Foundation
 # Copyright 2014 Mirantis, Inc.
 # All Rights Reserved.
 #

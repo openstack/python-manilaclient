@@ -1,4 +1,4 @@
-# Copyright 2014 OpenStack LLC.
+# Copyright 2014 OpenStack Foundation
 # Copyright 2015 Chuck Fouts
 # All Rights Reserved.
 #
