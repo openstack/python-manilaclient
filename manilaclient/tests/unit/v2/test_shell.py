@@ -1765,6 +1765,15 @@ class ShellTest(test_utils.TestCase):
         self.assert_called(
             'GET', '/share-replicas/detail?share_id=fake-share-id')
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_replica_list_select_column(self):
+        self.run_command('share-replica-list --columns id,status')
+
+        self.assert_called('GET', '/share-replicas/detail')
+
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, ['Id', 'Status'])
+
     @ddt.data(
         'fake-share-id --az fake-az',
         'fake-share-id --availability-zone fake-az --share-network '
