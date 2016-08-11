@@ -539,6 +539,7 @@ class SharesTest(utils.TestCase):
                     "writable": True,
                     "nondisruptive": False,
                     "new_share_network_id": None,
+                    "new_share_type_id": None,
                 })
 
             self.assertEqual("fake", result)

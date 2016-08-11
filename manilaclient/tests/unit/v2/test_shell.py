@@ -329,7 +329,7 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
             ['ID', 'Share ID', 'Host', 'Status', 'Availability Zone',
-             'Share Network ID', 'Share Server ID'])
+             'Share Network ID', 'Share Server ID', 'Share Type ID'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_instance_list_select_column(self):
@@ -1876,7 +1876,7 @@ class ShellTest(test_utils.TestCase):
         command = ("migration-start --preserve-metadata False --writable False"
                    " --force-host-assisted-migration True "
                    "--non-disruptive True --new-share-network 1111 "
-                   "1234 host@backend#pool")
+                   "--new-share-type 1 1234 host@backend#pool")
         self.run_command(command)
         expected = {'migration_start': {
             'host': 'host@backend#pool',
@@ -1885,6 +1885,7 @@ class ShellTest(test_utils.TestCase):
             'writable': 'False',
             'nondisruptive': 'True',
             'new_share_network_id': '1111',
+            'new_share_type_id': '1'
         }}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 

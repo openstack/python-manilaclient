@@ -45,11 +45,13 @@ class Share(common_base.Resource):
 
     def migration_start(self, host, force_host_assisted_migration,
                         preserve_metadata=True, writable=True,
-                        nondisruptive=False, new_share_network_id=None):
+                        nondisruptive=False, new_share_network_id=None,
+                        new_share_type_id=None):
         """Migrate the share to a new host."""
         self.manager.migration_start(self, host, force_host_assisted_migration,
                                      preserve_metadata, writable,
-                                     nondisruptive, new_share_network_id)
+                                     nondisruptive, new_share_network_id,
+                                     new_share_type_id)
 
     def migration_complete(self):
         """Complete migration of a share."""
@@ -152,7 +154,8 @@ class ShareManager(base.ManagerWithFind):
     @api_versions.experimental_api
     def migration_start(self, share, host, force_host_assisted_migration,
                         preserve_metadata=True, writable=True,
-                        nondisruptive=False, new_share_network_id=None):
+                        nondisruptive=False, new_share_network_id=None,
+                        new_share_type_id=None):
         return self._action(
             "migration_start", share, {
                 "host": host,
@@ -161,6 +164,7 @@ class ShareManager(base.ManagerWithFind):
                 "writable": writable,
                 "nondisruptive": nondisruptive,
                 "new_share_network_id": new_share_network_id,
+                "new_share_type_id": new_share_type_id,
             })
 
     @api_versions.wraps("2.22")
