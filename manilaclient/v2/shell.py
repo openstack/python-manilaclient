@@ -3340,20 +3340,31 @@ def do_cg_snapshot_delete(cs, args):
     default=None,
     action='single_alias',
     help='List replicas belonging to share.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "replica_state,id"')
 @api_versions.wraps("2.11")
 def do_share_replica_list(cs, args):
     """List share replicas (Experimental)."""
     share = _find_share(cs, args.share_id) if args.share_id else None
 
-    list_of_keys = [
-        'ID',
-        'Status',
-        'Replica State',
-        'Share ID',
-        'Host',
-        'Availability Zone',
-        'Updated At',
-    ]
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'ID',
+            'Status',
+            'Replica State',
+            'Share ID',
+            'Host',
+            'Availability Zone',
+            'Updated At',
+        ]
+
     if share:
         replicas = cs.share_replicas.list(share)
     else:
