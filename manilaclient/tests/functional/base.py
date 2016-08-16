@@ -105,6 +105,11 @@ class BaseTestCase(base.ClientTestBase):
                             res_id, microversion=res["microversion"])
                         client.wait_for_share_deletion(
                             res_id, microversion=res["microversion"])
+                    elif res["type"] is "snapshot":
+                        client.delete_snapshot(
+                            res_id, microversion=res["microversion"])
+                        client.wait_for_snapshot_deletion(
+                            res_id, microversion=res["microversion"])
                     else:
                         LOG.warning("Provided unsupported resource type for "
                                     "cleanup '%s'. Skipping." % res["type"])
@@ -277,3 +282,31 @@ class BaseTestCase(base.ClientTestBase):
         else:
             cls.method_resources.insert(0, resource)
         return ss
+
+    @classmethod
+    def create_snapshot(cls, share, name=None, description=None,
+                        force=False, client=None, wait_for_creation=True,
+                        cleanup_in_class=False, microversion=None):
+        if client is None:
+            client = cls.get_admin_client()
+        data = {
+            'share': share,
+            'name': name,
+            'description': description,
+            'force': force,
+            'microversion': microversion,
+        }
+        snapshot = client.create_snapshot(**data)
+        resource = {
+            "type": "snapshot",
+            "id": snapshot["id"],
+            "client": client,
+            "microversion": microversion,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        if wait_for_creation:
+            client.wait_for_snapshot_status(snapshot['id'], 'available')
+        return snapshot

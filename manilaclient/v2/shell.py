@@ -219,6 +219,12 @@ def _print_share_snapshot(cs, snapshot):
     cliutils.print_dict(info)
 
 
+def _find_share_snapshot_instance(cs, snapshot_instance):
+    """Get a share snapshot instance by ID."""
+    return apiclient_utils.find_resource(
+        cs.share_snapshot_instances, snapshot_instance)
+
+
 def _find_share_network(cs, share_network):
     """Get a share network by ID or name."""
     return apiclient_utils.find_resource(cs.share_networks, share_network)
@@ -1733,6 +1739,76 @@ def do_snapshot_reset_state(cs, args):
     """Explicitly update the state of a snapshot (Admin only)."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     snapshot.reset_state(args.state)
+
+
+@api_versions.wraps("2.19")
+@cliutils.arg(
+    '--snapshot',
+    metavar='<snapshot>',
+    default=None,
+    help='Filter results by share snapshot ID.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id"')
+@cliutils.arg(
+    '--detailed',
+    metavar='<detailed>',
+    default=False,
+    help='Show detailed information about snapshot instances.'
+         ' (Default=False)')
+def do_snapshot_instance_list(cs, args):
+    """List share snapshot instances."""
+    snapshot = (_find_share_snapshot(cs, args.snapshot)
+                if args.snapshot else None)
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    elif args.detailed:
+        list_of_keys = ['ID', 'Snapshot ID', 'Status', 'Created_at',
+                        'Updated_at', 'Share_id', 'Share_instance_id',
+                        'Progress', 'Provider_location']
+    else:
+        list_of_keys = ['ID', 'Snapshot ID', 'Status']
+
+    instances = cs.share_snapshot_instances.list(
+        detailed=args.detailed, snapshot=snapshot)
+
+    cliutils.print_list(instances, list_of_keys)
+
+
+@api_versions.wraps("2.19")
+@cliutils.arg(
+    'snapshot_instance',
+    metavar='<snapshot_instance>',
+    help='ID of the share snapshot instance.')
+def do_snapshot_instance_show(cs, args):
+    """Show details about a share snapshot instance."""
+    snapshot_instance = _find_share_snapshot_instance(
+        cs, args.snapshot_instance)
+    cliutils.print_dict(snapshot_instance._info)
+
+
+@cliutils.arg(
+    'snapshot_instance',
+    metavar='<snapshot_instance>',
+    help='ID of the snapshot instance to modify.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default='available',
+    help=('Indicate which state to assign the snapshot instance. '
+          'Options include available, error, creating, deleting, '
+          'error_deleting. If no state is provided, available '
+          'will be used.'))
+@api_versions.wraps("2.19")
+def do_snapshot_instance_reset_state(cs, args):
+    """Explicitly update the state of a share snapshot instance."""
+    snapshot_instance = _find_share_snapshot_instance(
+        cs, args.snapshot_instance)
+    snapshot_instance.reset_state(args.state)
 
 
 @cliutils.arg(

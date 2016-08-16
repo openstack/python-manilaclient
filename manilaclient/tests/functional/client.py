@@ -125,6 +125,8 @@ class ManilaCLIClient(base.CLIClient):
             func = self.is_share_network_deleted
         elif res_type == SHARE:
             func = self.is_share_deleted
+        elif res_type == SNAPSHOT:
+            func = self.is_snapshot_deleted
         else:
             raise exceptions.InvalidResource(message=res_type)
 
@@ -691,6 +693,112 @@ class ManilaCLIClient(base.CLIClient):
             'metadata-show %s' % share, microversion=microversion)
         metadata = output_parser.details(metadata_raw)
         return metadata
+
+    def create_snapshot(self, share, name=None, description=None,
+                        force=False, microversion=None):
+        """Creates a snapshot."""
+        cmd = 'snapshot-create %(share)s ' % {'share': share}
+        if name is None:
+            name = data_utils.rand_name('autotest_snapshot_name')
+        cmd += '--name %s ' % name
+        if description is None:
+            description = data_utils.rand_name('autotest_snapshot_description')
+        cmd += '--description %s ' % description
+        if force:
+            cmd += '--force %s' % force
+        snapshot_raw = self.manila(cmd, microversion=microversion)
+        snapshot = output_parser.details(snapshot_raw)
+        return snapshot
+
+    @not_found_wrapper
+    def get_snapshot(self, snapshot, microversion=None):
+        """Retrieves a snapshot by its Name or ID."""
+        snapshot_raw = self.manila('snapshot-show %s' % snapshot,
+                                   microversion=microversion)
+        snapshot = output_parser.details(snapshot_raw)
+        return snapshot
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def delete_snapshot(self, snapshot, microversion=None):
+        """Deletes snapshot by Names or IDs."""
+        return self.manila(
+            "snapshot-delete %s" % snapshot, microversion=microversion)
+
+    def list_snapshot_instances(self, snapshot_id=None, columns=None,
+                                detailed=None, microversion=None):
+        """List snapshot instances."""
+        cmd = 'snapshot-instance-list '
+        if snapshot_id:
+            cmd += '--snapshot %s' % snapshot_id
+        if columns is not None:
+            cmd += ' --columns ' + columns
+        if detailed:
+            cmd += ' --detailed True '
+        snapshot_instances_raw = self.manila(cmd, microversion=microversion)
+        snapshot_instances = utils.listing(snapshot_instances_raw)
+        return snapshot_instances
+
+    def get_snapshot_instance(self, id=None, microversion=None):
+        """Get snapshot instance."""
+        cmd = 'snapshot-instance-show %s ' % id
+        snapshot_instance_raw = self.manila(cmd, microversion=microversion)
+        snapshot_instance = output_parser.details(snapshot_instance_raw)
+        return snapshot_instance
+
+    def reset_snapshot_instance(self, id=None, state=None, microversion=None):
+        """Reset snapshot instance status."""
+        cmd = 'snapshot-instance-reset-state %s ' % id
+        if state:
+            cmd += '--state %s' % state
+        snapshot_instance_raw = self.manila(cmd, microversion=microversion)
+        snapshot_instance = utils.listing(snapshot_instance_raw)
+        return snapshot_instance
+
+    def is_snapshot_deleted(self, snapshot, microversion=None):
+        """Indicates whether snapshot is deleted or not.
+
+        :param snapshot: str -- Name or ID of snapshot
+        """
+        try:
+            self.get_snapshot(snapshot, microversion=microversion)
+            return False
+        except tempest_lib_exc.NotFound:
+            return True
+
+    def wait_for_snapshot_deletion(self, snapshot, microversion=None):
+        """Wait for snapshot deletion by its Name or ID.
+
+        :param snapshot: str -- Name or ID of snapshot
+        """
+        self.wait_for_resource_deletion(
+            SNAPSHOT, res_id=snapshot, interval=5, timeout=300,
+            microversion=microversion)
+
+    def wait_for_snapshot_status(self, snapshot, status, microversion=None):
+        """Waits for a snapshot to reach a given status."""
+        body = self.get_snapshot(snapshot, microversion=microversion)
+        snapshot_name = body['name']
+        snapshot_status = body['status']
+        start = int(time.time())
+
+        while snapshot_status != status:
+            time.sleep(self.build_interval)
+            body = self.get_snapshot(snapshot, microversion=microversion)
+            snapshot_status = body['status']
+
+            if snapshot_status == status:
+                return
+            elif 'error' in snapshot_status.lower():
+                raise exceptions.SnapshotBuildErrorException(snapshot=snapshot)
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = (
+                    "Snapshot %(snapshot_name)s failed to reach %(status)s "
+                    "status within the required time (%(timeout)s s)." % {
+                        "snapshot_name": snapshot_name, "status": status,
+                        "timeout": self.build_timeout})
+                raise tempest_lib_exc.TimeoutException(message)
 
     @not_found_wrapper
     def list_access(self, share_id, columns=None, microversion=None):

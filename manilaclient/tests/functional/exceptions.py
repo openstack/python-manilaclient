@@ -33,7 +33,7 @@ class InvalidData(exceptions.TempestException):
 
 
 class ShareTypeNotFound(exceptions.NotFound):
-    message = "Share type '%(share_type)s' was not found"
+    message = "Share type '%(share_type)s' was not found."
 
 
 class InvalidConfiguration(exceptions.TempestException):
@@ -41,7 +41,11 @@ class InvalidConfiguration(exceptions.TempestException):
 
 
 class ShareBuildErrorException(exceptions.TempestException):
-    message = "Share %(share)s failed to build and is in ERROR status"
+    message = "Share %(share)s failed to build and is in ERROR status."
+
+
+class SnapshotBuildErrorException(exceptions.TempestException):
+    message = "Snapshot %(snapshot)s failed to build and is in ERROR status."
 
 
 class AccessRuleCreateErrorException(exceptions.TempestException):
