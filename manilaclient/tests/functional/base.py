@@ -171,9 +171,10 @@ class BaseTestCase(base.ClientTestBase):
 
     @classmethod
     def create_share_type(cls, name=None, driver_handles_share_servers=True,
-                          snapshot_support=None, is_public=True, client=None,
-                          cleanup_in_class=True, microversion=None,
-                          extra_specs=None):
+                          snapshot_support=None,
+                          create_share_from_snapshot=None, is_public=True,
+                          client=None, cleanup_in_class=True,
+                          microversion=None, extra_specs=None):
         if client is None:
             client = cls.get_admin_client()
         share_type = client.create_share_type(
@@ -183,6 +184,7 @@ class BaseTestCase(base.ClientTestBase):
             is_public=is_public,
             microversion=microversion,
             extra_specs=extra_specs,
+            create_share_from_snapshot=create_share_from_snapshot,
         )
         resource = {
             "type": "share_type",

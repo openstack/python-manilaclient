@@ -163,7 +163,8 @@ class ManilaCLIClient(base.CLIClient):
     # Share types
 
     def create_share_type(self, name=None, driver_handles_share_servers=True,
-                          snapshot_support=None, is_public=True,
+                          snapshot_support=None,
+                          create_share_from_snapshot=None, is_public=True,
                           microversion=None, extra_specs=None):
         """Creates share type.
 
@@ -172,10 +173,12 @@ class ManilaCLIClient(base.CLIClient):
         :param driver_handles_share_servers: bool/str -- boolean or its
             string alias. Default is True.
         :param snapshot_support: bool/str -- boolean or its
-            string alias. Default is True.
+            string alias. Default is None.
         :param is_public: bool/str -- boolean or its string alias. Default is
             True.
         :param extra_specs: -- dictionary of extra specs Default is None.
+        :param create_share_from_snapshot: -- boolean or its string
+            alias. Default is None.
         """
         if name is None:
             name = data_utils.rand_name('manilaclient_functional_test')
@@ -192,6 +195,13 @@ class ManilaCLIClient(base.CLIClient):
             if not isinstance(snapshot_support, six.string_types):
                 snapshot_support = six.text_type(snapshot_support)
                 cmd += " --snapshot-support " + snapshot_support
+
+        if create_share_from_snapshot is not None:
+            if not isinstance(create_share_from_snapshot, six.string_types):
+                create_share_from_snapshot = six.text_type(
+                    create_share_from_snapshot)
+                cmd += (" --create-share-from-snapshot-support " +
+                        create_share_from_snapshot)
 
         if extra_specs is not None:
             extra_spec_str = ''

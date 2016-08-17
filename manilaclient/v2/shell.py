@@ -2876,8 +2876,15 @@ def do_extra_specs_list(cs, args):
     '--snapshot-support',
     metavar='<snapshot_support>',
     action='single_alias',
-    help="Boolean extra spec that used for filtering of back ends by their "
-         "capability to create share snapshots. (Default is True).")
+    help="Boolean extra spec used for filtering of back ends by their "
+         "capability to create share snapshots.")
+@cliutils.arg(
+    '--create_share_from_snapshot_support',
+    '--create-share-from-snapshot-support',
+    metavar='<create_share_from_snapshot_support>',
+    action='single_alias',
+    help="Boolean extra spec used for filtering of back ends by their "
+         "capability to create shares from snapshots.")
 @cliutils.arg(
     '--extra-specs',
     '--extra_specs',  # alias
@@ -2918,22 +2925,26 @@ def do_type_create(cs, args):
                "set via positional argument.")
         raise exceptions.CommandError(msg)
 
-    if args.snapshot_support and 'snapshot_support' in kwargs['extra_specs']:
-        msg = ("Argument 'snapshot_support' value specified twice.")
-        raise exceptions.CommandError(msg)
+    boolean_keys = ('snapshot_support', 'create_share_from_snapshot_support')
+    for key in boolean_keys:
+        value = getattr(args, key)
 
-    try:
-        if args.snapshot_support:
-            kwargs['spec_snapshot_support'] = strutils.bool_from_string(
-                args.snapshot_support, strict=True)
-        elif 'snapshot_support' in kwargs['extra_specs']:
-            kwargs['extra_specs']['snapshot_support'] = (
-                strutils.bool_from_string(
-                    kwargs['extra_specs']['snapshot_support'], strict=True))
-    except ValueError as e:
-        msg = ("Argument 'snapshot_support' is of boolean type and has "
-               "invalid value: %s" % six.text_type(e))
-        raise exceptions.CommandError(msg)
+        if value is not None and key in kwargs['extra_specs']:
+            msg = ("Argument '%s' value specified twice." % key)
+            raise exceptions.CommandError(msg)
+
+        try:
+            if value:
+                kwargs['extra_specs'][key] = (
+                    strutils.bool_from_string(value, strict=True))
+            elif key in kwargs['extra_specs']:
+                kwargs['extra_specs'][key] = (
+                    strutils.bool_from_string(
+                        kwargs['extra_specs'][key], strict=True))
+        except ValueError as e:
+            msg = ("Argument '%s' is of boolean "
+                   "type and has invalid value: %s" % (key, six.text_type(e)))
+            raise exceptions.CommandError(msg)
 
     stype = cs.share_types.create(**kwargs)
     _print_share_type(stype)

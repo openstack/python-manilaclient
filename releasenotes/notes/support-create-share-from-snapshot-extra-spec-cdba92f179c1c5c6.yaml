@@ -1,0 +1,4 @@
+---
+features:
+  - Support the new optional create_share_from_snapshot_support extra spec,
+    and handle the newly-optional snapshot_support extra spec.

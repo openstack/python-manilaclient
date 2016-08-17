@@ -16,6 +16,7 @@
 
 import ddt
 import fixtures
+import itertools
 import mock
 from oslo_utils import strutils
 import six
@@ -449,6 +450,7 @@ class ShellTest(test_utils.TestCase):
                 'extra_specs': {
                     'driver_handles_share_servers': False,
                     'snapshot_support': True,
+                    'create_share_from_snapshot_support': True,
                 },
                 'share_type_access:is_public': public
             }
@@ -783,14 +785,17 @@ class ShellTest(test_utils.TestCase):
             ' --extra-specs driver_handles_share_servers=' + value,
         )
 
-    @ddt.data('True', 'False')
-    def test_type_create_duplicate_snapshot_support(self, value):
-        self.assertRaises(
-            exceptions.CommandError,
-            self.run_command,
-            'type-create test True --snapshot-support ' + value +
-            ' --extra-specs snapshot_support=' + value,
-        )
+    @ddt.data(*itertools.product(
+        ['snapshot_support', 'create_share_from_snapshot_support'],
+        ['True', 'False'])
+    )
+    @ddt.unpack
+    def test_type_create_duplicate_switch_and_extra_spec(self, key, value):
+
+        cmd = ('type-create test True --%(key)s %(value)s --extra-specs '
+               '%(key)s=%(value)s' % {'key': key, 'value': value})
+
+        self.assertRaises(exceptions.CommandError, self.run_command, cmd)
 
     def test_type_create_duplicate_extra_spec_key(self):
         self.assertRaises(
@@ -813,6 +818,7 @@ class ShellTest(test_utils.TestCase):
                 "extra_specs": {
                     "driver_handles_share_servers": expected_bool,
                     "snapshot_support": True,
+                    "create_share_from_snapshot_support": True,
                 }
             }
         }
@@ -828,7 +834,7 @@ class ShellTest(test_utils.TestCase):
           [{'expected_bool': False, 'text': v}
            for v in ('false', 'False', '0', 'FALSE', 'fAlSe')])
     )
-    def test_create_with_snapshot_support(self, expected_bool, text):
+    def test_type_create_with_snapshot_support(self, expected_bool, text):
         expected = {
             "share_type": {
                 "name": "test",
@@ -859,6 +865,7 @@ class ShellTest(test_utils.TestCase):
                 "extra_specs": {
                     "driver_handles_share_servers": False,
                     "snapshot_support": expected_bool,
+                    "create_share_from_snapshot_support": True,
                     "replication_type": replication_type,
                 }
             }
@@ -870,20 +877,46 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('POST', '/types', body=expected)
 
-    @ddt.data('fake', 'FFFalse', 'trueee')
-    def test_type_create_invalid_snapshot_support_value(self, value):
+    @ddt.unpack
+    @ddt.data(
+        *([{'expected_bool': True, 'text': v}
+           for v in ('true', 'True', '1', 'TRUE', 'tRuE')] +
+          [{'expected_bool': False, 'text': v}
+           for v in ('false', 'False', '0', 'FALSE', 'fAlSe')])
+    )
+    def test_type_create_with_create_share_from_snapshot_support(
+            self, expected_bool, text):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "share_type_access:is_public": True,
+                "extra_specs": {
+                    "driver_handles_share_servers": False,
+                    "snapshot_support": True,
+                    "create_share_from_snapshot_support": expected_bool,
+                }
+            }
+        }
+
+        self.run_command('type-create test false --snapshot-support true '
+                         '--create-share-from-snapshot-support ' + text)
+
+        self.assert_called('POST', '/types', body=expected)
+
+    @ddt.data('snapshot_support', 'create_share_from_snapshot_support')
+    def test_type_create_invalid_switch_value(self, value):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            'type-create test false --snapshot-support ' + value,
+            'type-create test false --%s fake' % value,
         )
 
-    @ddt.data('fake', 'FFFalse', 'trueee')
-    def test_type_create_invalid_snapshot_support_value2(self, value):
+    @ddt.data('snapshot_support', 'create_share_from_snapshot_support')
+    def test_type_create_invalid_extra_spec_value(self, value):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            'type-create test false --extra-specs snapshot_support=' + value,
+            'type-create test false --extra-specs %s=fake' % value,
         )
 
     @ddt.data('--is-public', '--is_public')

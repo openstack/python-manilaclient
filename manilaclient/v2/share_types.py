@@ -133,73 +133,92 @@ class ShareTypeManager(base.ManagerWithFind):
         """
         self._delete("/types/%s" % common_base.getid(share_type))
 
-    def _do_create(self, name, spec_driver_handles_share_servers,
-                   spec_snapshot_support, is_public=True,
-                   is_public_keyname="os-share-type-access:is_public",
-                   optional_extra_specs=None):
+    def _do_create(self, name, extra_specs, is_public,
+                   is_public_keyname="share_type_access:is_public"):
         """Create a share type.
 
         :param name: Descriptive name of the share type
         :rtype: :class:`ShareType`
         """
-        if optional_extra_specs is None:
-            optional_extra_specs = {}
 
-        if spec_snapshot_support is not None:
-            if 'snapshot_support' in optional_extra_specs:
-                msg = "'snapshot_support' extra spec is provided twice."
-                raise exceptions.CommandError(msg)
-            else:
-                optional_extra_specs['snapshot_support'] = (
-                    spec_snapshot_support)
-        elif 'snapshot_support' not in optional_extra_specs:
-            optional_extra_specs['snapshot_support'] = True
+        body = {
+            "share_type": {
+                "name": name,
+                is_public_keyname: is_public,
+                "extra_specs": extra_specs,
+            }
+        }
+        return self._create("/types", body, "share_type")
+
+    @api_versions.wraps("1.0", "2.6")
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=None, is_public=True, extra_specs=None):
+
+        if extra_specs is None:
+            extra_specs = {}
+
+        self._handle_spec_driver_handles_share_servers(
+            extra_specs, spec_driver_handles_share_servers)
+        self._handle_spec_snapshot_support(
+            extra_specs, spec_snapshot_support, set_default=True)
+
+        return self._do_create(
+            name, extra_specs, is_public,
+            is_public_keyname="os-share-type-access:is_public")
+
+    @api_versions.wraps("2.7", "2.23")  # noqa
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=None, is_public=True, extra_specs=None):
+
+        if extra_specs is None:
+            extra_specs = {}
+
+        self._handle_spec_driver_handles_share_servers(
+            extra_specs, spec_driver_handles_share_servers)
+        self._handle_spec_snapshot_support(
+            extra_specs, spec_snapshot_support, set_default=True)
+
+        return self._do_create(name, extra_specs, is_public)
+
+    @api_versions.wraps("2.24")  # noqa
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=None, is_public=True, extra_specs=None):
+
+        if extra_specs is None:
+            extra_specs = {}
+
+        self._handle_spec_driver_handles_share_servers(
+            extra_specs, spec_driver_handles_share_servers)
+        self._handle_spec_snapshot_support(extra_specs, spec_snapshot_support)
+
+        return self._do_create(name, extra_specs, is_public)
+
+    def _handle_spec_driver_handles_share_servers(
+            self, extra_specs, spec_driver_handles_share_servers):
+        """Validation and default for DHSS extra spec."""
 
         if spec_driver_handles_share_servers is not None:
-            if 'driver_handles_share_servers' in optional_extra_specs:
+            if 'driver_handles_share_servers' in extra_specs:
                 msg = ("'driver_handles_share_servers' is already set via "
                        "positional argument.")
                 raise exceptions.CommandError(msg)
             else:
-                optional_extra_specs['driver_handles_share_servers'] = (
+                extra_specs['driver_handles_share_servers'] = (
                     spec_driver_handles_share_servers)
         else:
             msg = ("'driver_handles_share_servers' is not set via "
                    "positional argument.")
             raise exceptions.CommandError(msg)
 
-        body = {
-            "share_type": {
-                "name": name,
-                is_public_keyname: is_public,
-                "extra_specs": optional_extra_specs,
-            }
-        }
+    def _handle_spec_snapshot_support(self, extra_specs, spec_snapshot_support,
+                                      set_default=False):
+        """Validation and default for snapshot extra spec."""
 
-        return self._create("/types", body, "share_type")
-
-    @api_versions.wraps("1.0", "2.6")
-    def create(self, name, spec_driver_handles_share_servers,
-               spec_snapshot_support=None, is_public=True,
-               extra_specs=None):
-
-        return self._do_create(
-            name,
-            spec_driver_handles_share_servers,
-            spec_snapshot_support,
-            is_public,
-            "os-share-type-access:is_public",
-            optional_extra_specs=extra_specs)
-
-    @api_versions.wraps("2.7")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,
-               spec_snapshot_support=None, is_public=True,
-               extra_specs=None):
-
-        return self._do_create(
-            name,
-            spec_driver_handles_share_servers,
-            spec_snapshot_support,
-            is_public,
-            "share_type_access:is_public",
-            optional_extra_specs=extra_specs)
+        if spec_snapshot_support is not None:
+            if 'snapshot_support' in extra_specs:
+                msg = "'snapshot_support' extra spec is provided twice."
+                raise exceptions.CommandError(msg)
+            else:
+                extra_specs['snapshot_support'] = spec_snapshot_support
+        elif 'snapshot_support' not in extra_specs and set_default:
+            extra_specs['snapshot_support'] = True

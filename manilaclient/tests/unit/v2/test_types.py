@@ -11,7 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import ddt
+import itertools
 import mock
 
 from manilaclient import api_versions
@@ -21,6 +23,53 @@ from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_types
 
 cs = fakes.FakeClient()
+
+
+def get_valid_type_create_data_2_0():
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [None, True, False]
+    extra_specs = [None, {'foo': 'bar'}]
+
+    combos = list(itertools.product(public, dhss, snapshot, extra_specs))
+
+    return combos
+
+
+def get_valid_type_create_data_2_24():
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [None]
+    create_from_snapshot = [None]
+    extra_specs = [None, {'replication_type': 'writable', 'foo': 'bar'}]
+
+    snapshot_none_combos = list(itertools.product(public, dhss, snapshot,
+                                                  create_from_snapshot,
+                                                  extra_specs))
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [True]
+    create_from_snapshot = [True, False, None]
+    extra_specs = [None, {'replication_type': 'readable', 'foo': 'bar'}]
+
+    snapshot_true_combos = list(itertools.product(public, dhss, snapshot,
+                                                  create_from_snapshot,
+                                                  extra_specs))
+
+    public = [True, False]
+    dhss = [True, False]
+    snapshot = [False]
+    create_from_snapshot = [False, None]
+    extra_specs = [None, {'replication_type': 'dr', 'foo': 'bar'}]
+
+    snapshot_false_combos = list(itertools.product(public, dhss, snapshot,
+                                                   create_from_snapshot,
+                                                   extra_specs))
+
+    return snapshot_none_combos + snapshot_true_combos + snapshot_false_combos
 
 
 @ddt.ddt
@@ -60,38 +109,19 @@ class TypesTest(utils.TestCase):
         cs.share_types.list(show_all=False)
         cs.assert_called('GET', '/types')
 
-    @ddt.data(
-        (True, True, None, {'snapshot_support': True}),
-        (True, True, None, {'snapshot_support': True,
-                            'replication_type': 'fake_repl_type',
-                            'foo': 'bar'}),
-        (True, True, None, {'snapshot_support': False,
-                            'replication_type': 'fake_repl_type',
-                            'foo': 'abc'}),
-        (True, False, None, {'snapshot_support': True,
-                             'replication_type': 'fake_repl_type'}),
-        (False, True, None, {'snapshot_support': True,
-                             'replication_type': 'fake_repl_type'}),
-        (True, False, None, {'snapshot_support': False,
-                             'replication_type': 'fake_repl_type'}),
-        (False, False, None, {'snapshot_support': True,
-                              'replication_type': 'fake_repl_type'}),
-        (False, True, None, {'snapshot_support': False,
-                             'replication_type': 'fake_repl_type'}),
-        (False, False, None, {'snapshot_support': False,
-                              'replication_type': 'fake_repl_type'}),
-
-        (False, False, None, {'replication_type': 'fake_repl_type'}),
-        (False, False, True, {'replication_type': 'fake_repl_type'}),
-        (False, False, False, {'replication_type': 'fake_repl_type'}),
-
-        (False, False, False, None),
-        (False, False, True, None),
-        (False, False, None, None),
-    )
+    @ddt.data(*get_valid_type_create_data_2_0())
     @ddt.unpack
-    def test_create(self, is_public, dhss, spec_snapshot_support, extra_specs):
+    def test_create_2_7(self, is_public, dhss, snapshot, extra_specs):
+
+        extra_specs = copy.copy(extra_specs)
+
         manager = self._get_share_types_manager("2.7")
+        self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
+
+        result = manager.create(
+            'test-type-3', spec_driver_handles_share_servers=dhss,
+            spec_snapshot_support=snapshot, extra_specs=extra_specs,
+            is_public=is_public)
 
         if extra_specs is None:
             extra_specs = {}
@@ -108,25 +138,70 @@ class TypesTest(utils.TestCase):
 
         expected_body["share_type"]["extra_specs"][
             "driver_handles_share_servers"] = dhss
+        expected_body["share_type"]["extra_specs"]['snapshot_support'] = (
+            True if snapshot is None else snapshot)
 
-        if spec_snapshot_support is None:
-            if 'snapshot_support' not in extra_specs:
-                expected_body["share_type"]["extra_specs"][
-                    'snapshot_support'] = True
+        manager._create.assert_called_once_with(
+            "/types", expected_body, "share_type")
+        self.assertEqual("fake", result)
+
+    def _add_standard_extra_specs_to_dict(self, extra_specs,
+                                          create_from_snapshot=None):
+
+        if all(spec is None for spec in [create_from_snapshot]):
+            return extra_specs
+
+        extra_specs = extra_specs or {}
+
+        if create_from_snapshot is not None:
+            extra_specs['create_share_from_snapshot_support'] = (
+                create_from_snapshot)
+
+        return extra_specs
+
+    @ddt.data(*get_valid_type_create_data_2_24())
+    @ddt.unpack
+    def test_create_2_24(self, is_public, dhss, snapshot, create_from_snapshot,
+                         extra_specs):
+
+        extra_specs = copy.copy(extra_specs)
+        extra_specs = self._add_standard_extra_specs_to_dict(
+            extra_specs, create_from_snapshot=create_from_snapshot)
+
+        manager = self._get_share_types_manager("2.24")
+        self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
+
+        result = manager.create(
+            'test-type-3', spec_driver_handles_share_servers=dhss,
+            spec_snapshot_support=snapshot,
+            extra_specs=extra_specs, is_public=is_public)
+
+        expected_extra_specs = dict(extra_specs or {})
+        expected_extra_specs["driver_handles_share_servers"] = dhss
+
+        if snapshot is None:
+            expected_extra_specs.pop("snapshot_support", None)
         else:
-            expected_body["share_type"]["extra_specs"][
-                'snapshot_support'] = spec_snapshot_support
+            expected_extra_specs["snapshot_support"] = snapshot
 
-        with mock.patch.object(manager, '_create',
-                               mock.Mock(return_value="fake")):
-            result = manager.create(
-                'test-type-3', spec_driver_handles_share_servers=dhss,
-                spec_snapshot_support=spec_snapshot_support,
-                extra_specs=extra_specs, is_public=is_public)
+        if create_from_snapshot is None:
+            expected_extra_specs.pop("create_share_from_snapshot_support",
+                                     None)
+        else:
+            expected_extra_specs["create_share_from_snapshot_support"] = (
+                create_from_snapshot)
 
-            manager._create.assert_called_once_with(
-                "/types", expected_body, "share_type")
-            self.assertEqual("fake", result)
+        expected_body = {
+            "share_type": {
+                "name": 'test-type-3',
+                'share_type_access:is_public': is_public,
+                "extra_specs": expected_extra_specs,
+            }
+        }
+
+        manager._create.assert_called_once_with(
+            "/types", expected_body, "share_type")
+        self.assertEqual("fake", result)
 
     @ddt.data(
         (False, False, True, {'snapshot_support': True,
@@ -144,34 +219,67 @@ class TypesTest(utils.TestCase):
         (False, None, None, {'driver_handles_share_servers': None}),
     )
     @ddt.unpack
-    def test_create_command_error(self, is_public, dhss, spec_snapshot_support,
-                                  extra_specs):
+    def test_create_error_2_7(self, is_public, dhss, snapshot,
+                              extra_specs):
         manager = self._get_share_types_manager("2.7")
-        with mock.patch.object(manager, '_create',
-                               mock.Mock(return_value="fake")):
-            self.assertRaises(
-                exceptions.CommandError,
-                manager.create,
-                'test-type-3',
-                spec_driver_handles_share_servers=dhss,
-                spec_snapshot_support=spec_snapshot_support,
-                extra_specs=extra_specs,
-                is_public=is_public)
+        self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
+
+        self.assertRaises(
+            exceptions.CommandError,
+            manager.create,
+            'test-type-3',
+            spec_driver_handles_share_servers=dhss,
+            spec_snapshot_support=snapshot,
+            extra_specs=extra_specs,
+            is_public=is_public)
+
+    @ddt.data(
+        (False, True, None, None, {'driver_handles_share_servers': True}),
+        (False, False, False, False, {'snapshot_support': True,
+                                      'replication_type': 'fake_repl_type'}),
+    )
+    @ddt.unpack
+    def test_create_error_2_24(self, is_public, dhss, snapshot,
+                               create_from_snapshot, extra_specs):
+
+        extra_specs = copy.copy(extra_specs)
+        extra_specs = self._add_standard_extra_specs_to_dict(
+            extra_specs, create_from_snapshot=create_from_snapshot)
+
+        manager = self._get_share_types_manager("2.24")
+        self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
+
+        self.assertRaises(
+            exceptions.CommandError,
+            manager.create,
+            'test-type-3',
+            spec_driver_handles_share_servers=dhss,
+            spec_snapshot_support=snapshot,
+            extra_specs=extra_specs,
+            is_public=is_public)
 
     @ddt.data(
         ("2.6", True),
         ("2.7", True),
+        ("2.24", True),
         ("2.6", False),
         ("2.7", False),
+        ("2.24", False),
     )
     @ddt.unpack
     def test_create_with_default_values(self, microversion, dhss):
+
         manager = self._get_share_types_manager(microversion)
+        self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
+
+        result = manager.create('test-type-3', dhss)
+
         if (api_versions.APIVersion(microversion) >
                 api_versions.APIVersion("2.6")):
             is_public_keyname = "share_type_access:is_public"
         else:
             is_public_keyname = "os-share-type-access:is_public"
+
         expected_body = {
             "share_type": {
                 "name": 'test-type-3',
@@ -183,13 +291,13 @@ class TypesTest(utils.TestCase):
             }
         }
 
-        with mock.patch.object(manager, '_create',
-                               mock.Mock(return_value="fake")):
-            result = manager.create('test-type-3', dhss)
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion("2.24")):
+            del expected_body['share_type']['extra_specs']['snapshot_support']
 
-            manager._create.assert_called_once_with(
-                "/types", expected_body, "share_type")
-            self.assertEqual("fake", result)
+        manager._create.assert_called_once_with(
+            "/types", expected_body, "share_type")
+        self.assertEqual("fake", result)
 
     def test_set_key(self):
         t = cs.share_types.get(1)
