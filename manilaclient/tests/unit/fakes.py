@@ -59,7 +59,8 @@ class FakeClient(object):
                     'a': actual
                 }
 
-    def assert_called_anytime(self, method, url, body=None):
+    def assert_called_anytime(self, method, url, body=None,
+                              clear_callstack=True):
         """Assert than an API method was called anytime in the test."""
         expected = (method, url)
 
@@ -83,8 +84,8 @@ class FakeClient(object):
                 print("!=")
                 print(body)
                 raise
-
-        self.client.callstack = []
+        if clear_callstack:
+            self.client.callstack = []
 
     def clear_callstack(self):
         self.client.callstack = []

@@ -101,7 +101,8 @@ class FakeHTTPClient(client.HTTPClient):
                 raise AssertionError('%r != %r' %
                                      (self.callstack[pos][3], body))
 
-    def assert_called_anytime(self, method, url, body=None):
+    def assert_called_anytime(self, method, url, body=None,
+                              clear_callstack=True):
         """Assert than an API method was called anytime in the test.
         """
         expected = (method, url)
@@ -121,7 +122,8 @@ class FakeHTTPClient(client.HTTPClient):
         if body is not None:
             assert entry[3] == body, "%s != %s" % (entry[3], body)
 
-        self.callstack = []
+        if clear_callstack:
+            self.callstack = []
 
     def clear_callstack(self):
         self.callstack = []

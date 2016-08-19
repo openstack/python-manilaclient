@@ -39,7 +39,7 @@ class ShareServer(common_base.Resource):
         return super(ShareServer, self).__getattr__(attr)
 
 
-class ShareServerManager(base.Manager):
+class ShareServerManager(base.ManagerWithFind):
     """Manage :class:`ShareServer` resources."""
     resource_class = ShareServer
 

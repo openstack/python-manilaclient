@@ -150,6 +150,15 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         share = {'share': {'id': 1234, 'name': 'sharename'}}
         return (200, {}, share)
 
+    def get_share_servers_1234(self, **kw):
+        share_servers = {
+            'share_servers': {
+                'id': 1234,
+                'share_network_id': 'fake_network_id',
+            },
+        }
+        return (200, {}, share_servers)
+
     def get_shares_1111(self, **kw):
         share = {'share': {'id': 1111, 'name': 'share1111'}}
         return (200, {}, share)
@@ -426,6 +435,42 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (202, {}, None)
 
     def delete_share_servers_1234(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_security_services_fake_security_service1(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_security_services_fake_security_service2(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_networks_fake_share_network1(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_networks_fake_share_network2(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_snapshots_fake_snapshot1(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_snapshots_fake_snapshot2(self, **kwargs):
+        return (202, {}, None)
+
+    def post_snapshots_fake_snapshot_force1_action(self, **kwargs):
+        return (202, {}, None)
+
+    def post_snapshots_fake_snapshot_force2_action(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_types_fake_type1(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_types_fake_type2(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_servers_fake_share_server1(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_servers_fake_share_server2(self, **kwargs):
         return (202, {}, None)
 
     def put_share_networks_1111(self, **kwargs):
