@@ -16,6 +16,7 @@
 import ddt
 from tempest.lib import exceptions as tempest_lib_exc
 
+from manilaclient import api_versions
 from manilaclient import config
 from manilaclient.tests.functional import base
 
@@ -75,7 +76,7 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
 
         return access
 
-    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    @ddt.data("1.0", "2.0", "2.6", "2.7", "2.21")
     def test_create_list_access_rule_for_share(self, microversion):
         self.skip_if_microversion_not_supported(microversion)
         access = self._test_create_list_access_rule_for_share(
@@ -90,6 +91,11 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
         self.assertTrue(any(a['access_to'] is not None for a in access_list))
         self.assertTrue(any(a['access_level'] is not None
                         for a in access_list))
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion("2.21")):
+            self.assertTrue(all('access_key' in a for a in access_list))
+        else:
+            self.assertTrue(all('access_key' not in a for a in access_list))
 
     @ddt.data("1.0", "2.0", "2.6", "2.7")
     def test_create_list_access_rule_for_share_select_column(
@@ -126,6 +132,11 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
         self.assertEqual(access_to.replace('\\\\', '\\'),
                          access.get('access_to'))
         self.assertEqual(self.access_level, access.get('access_level'))
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion("2.21")):
+            self.assertIn('access_key', access)
+        else:
+            self.assertNotIn('access_key', access)
 
         self.user_client.wait_for_access_rule_status(share_id, access['id'])
         self.user_client.access_deny(share_id, access['id'])
@@ -134,17 +145,17 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
         self.assertRaises(tempest_lib_exc.NotFound,
                           self.user_client.get_access, share_id, access['id'])
 
-    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    @ddt.data("1.0", "2.0", "2.6", "2.7", "2.21")
     def test_create_delete_ip_access_rule(self, microversion):
         self._create_delete_access_rule(
             self.share_id, 'ip', self.access_to['ip'].pop(), microversion)
 
-    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    @ddt.data("1.0", "2.0", "2.6", "2.7", "2.21")
     def test_create_delete_user_access_rule(self, microversion):
         self._create_delete_access_rule(
             self.share_id, 'user', CONF.username_for_user_rules, microversion)
 
-    @ddt.data("1.0", "2.0", "2.6", "2.7")
+    @ddt.data("1.0", "2.0", "2.6", "2.7", "2.21")
     def test_create_delete_cert_access_rule(self, microversion):
         self._create_delete_access_rule(
             self.share_id, 'cert', self.access_to['cert'].pop(), microversion)

@@ -1,0 +1,4 @@
+---
+features:
+  - Returns ``access_key`` as part of ``access_list`` API
+    response for API microversions >= '2.21'.
