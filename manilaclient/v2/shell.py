@@ -254,6 +254,8 @@ def _extract_extra_specs(args):
 
 def _extract_key_value_options(args, option_name):
     result_dict = {}
+    duplicate_options = []
+
     options = getattr(args, option_name, None)
 
     if options:
@@ -265,7 +267,15 @@ def _extract_key_value_options(args, option_name):
                 key = option
                 value = None
 
-            result_dict[key] = value
+            if key not in result_dict:
+                result_dict[key] = value
+            else:
+                duplicate_options.append(key)
+
+        if len(duplicate_options) > 0:
+            duplicate_str = ', '.join(duplicate_options)
+            msg = "Following options were duplicated: %s" % duplicate_str
+            raise exceptions.CommandError(msg)
     return result_dict
 
 
@@ -2770,6 +2780,18 @@ def do_extra_specs_list(cs, args):
     help="Boolean extra spec that used for filtering of back ends by their "
          "capability to create share snapshots. (Default is True).")
 @cliutils.arg(
+    '--extra-specs',
+    '--extra_specs',  # alias
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    action='single_alias',
+    help="Extra specs key and value of share type that will be"
+         " used for share type creation. OPTIONAL: Default=None."
+         " e.g --extra-specs  thin_provisioning='<is> True', "
+         "replication_type=readable.",
+    default=None)
+@cliutils.arg(
     '--is_public',
     '--is-public',
     metavar='<is_public>',
@@ -2789,10 +2811,26 @@ def do_type_create(cs, args):
         msg = ("Argument spec_driver_handles_share_servers "
                "argument is not valid: %s" % six.text_type(e))
         raise exceptions.CommandError(msg)
+
+    kwargs['extra_specs'] = _extract_extra_specs(args)
+
+    if 'driver_handles_share_servers' in kwargs['extra_specs']:
+        msg = ("Argument 'driver_handles_share_servers' is already "
+               "set via positional argument.")
+        raise exceptions.CommandError(msg)
+
+    if args.snapshot_support and 'snapshot_support' in kwargs['extra_specs']:
+        msg = ("Argument 'snapshot_support' value specified twice.")
+        raise exceptions.CommandError(msg)
+
     try:
         if args.snapshot_support:
             kwargs['spec_snapshot_support'] = strutils.bool_from_string(
                 args.snapshot_support, strict=True)
+        elif 'snapshot_support' in kwargs['extra_specs']:
+            kwargs['extra_specs']['snapshot_support'] = (
+                strutils.bool_from_string(
+                    kwargs['extra_specs']['snapshot_support'], strict=True))
     except ValueError as e:
         msg = ("Argument 'snapshot_support' is of boolean type and has "
                "invalid value: %s" % six.text_type(e))

@@ -756,6 +756,32 @@ class ShellTest(test_utils.TestCase):
             'type-create test ' + value,
         )
 
+    @ddt.data('True', 'False')
+    def test_type_create_duplicate_dhss(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test ' + value +
+            ' --extra-specs driver_handles_share_servers=' + value,
+        )
+
+    @ddt.data('True', 'False')
+    def test_type_create_duplicate_snapshot_support(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test True --snapshot-support ' + value +
+            ' --extra-specs snapshot_support=' + value,
+        )
+
+    def test_type_create_duplicate_extra_spec_key(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test True --extra-specs'
+            ' a=foo1 a=foo2',
+        )
+
     @ddt.unpack
     @ddt.data({'expected_bool': True, 'text': 'true'},
               {'expected_bool': True, 'text': '1'},
@@ -790,13 +816,39 @@ class ShellTest(test_utils.TestCase):
                 "name": "test",
                 "share_type_access:is_public": True,
                 "extra_specs": {
+                    "snapshot_support": expected_bool,
+                    "driver_handles_share_servers": False,
+                }
+            }
+        }
+        self.run_command('type-create test false --snapshot-support ' + text)
+
+        self.assert_called('POST', '/types', body=expected)
+
+    @ddt.unpack
+    @ddt.data({'expected_bool': True,
+               'snapshot_text': 'true',
+               'replication_type': 'readable'},
+              {'expected_bool': False,
+               'snapshot_text': 'false',
+               'replication_type': 'writable'})
+    def test_create_with_extra_specs(self, expected_bool, snapshot_text,
+                                     replication_type):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "share_type_access:is_public": True,
+                "extra_specs": {
                     "driver_handles_share_servers": False,
                     "snapshot_support": expected_bool,
+                    "replication_type": replication_type,
                 }
             }
         }
 
-        self.run_command('type-create test false --snapshot-support ' + text)
+        self.run_command('type-create test false --extra-specs'
+                         ' snapshot_support=' + snapshot_text +
+                         ' replication_type=' + replication_type)
 
         self.assert_called('POST', '/types', body=expected)
 
@@ -806,6 +858,14 @@ class ShellTest(test_utils.TestCase):
             exceptions.CommandError,
             self.run_command,
             'type-create test false --snapshot-support ' + value,
+        )
+
+    @ddt.data('fake', 'FFFalse', 'trueee')
+    def test_type_create_invalid_snapshot_support_value2(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test false --extra-specs snapshot_support=' + value,
         )
 
     @ddt.data('--is-public', '--is_public')
