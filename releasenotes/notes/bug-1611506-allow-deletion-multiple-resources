@@ -1,0 +1,6 @@
+---
+fixes:
+  - Fixed 6 delete commands namely security-service-delete,
+    share-network-delete, share-server-delete, snapshot-delete,
+    snapshot-force-delete, and type-delete to allow deletion of
+    multiple resources together.

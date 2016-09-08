@@ -236,6 +236,11 @@ def _find_security_service(cs, security_service):
                                          security_service)
 
 
+def _find_share_server(cs, share_server):
+    """Get a share server by ID."""
+    return apiclient_utils.find_resource(cs.share_servers, share_server)
+
+
 def _translate_keys(collection, convert):
     for item in collection:
         keys = item.__dict__
@@ -1776,21 +1781,52 @@ def do_snapshot_rename(cs, args):
 @cliutils.arg(
     'snapshot',
     metavar='<snapshot>',
-    help='Name or ID of the snapshot to delete.')
+    nargs='+',
+    help='Name or ID of the snapshot(s) to delete.')
 def do_snapshot_delete(cs, args):
-    """Remove a snapshot."""
-    snapshot = _find_share_snapshot(cs, args.snapshot)
-    snapshot.delete()
+    """Remove one or more snapshots."""
+    failure_count = 0
+
+    for snapshot in args.snapshot:
+        try:
+            snapshot_ref = _find_share_snapshot(
+                cs, snapshot)
+            cs.share_snapshots.delete(snapshot_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for snapshot %s failed: %s" % (
+                snapshot, e), file=sys.stderr)
+
+    if failure_count == len(args.snapshot):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "snapshots.")
 
 
 @cliutils.arg(
     'snapshot',
     metavar='<snapshot>',
-    help='Name or ID of the snapshot to force delete.')
+    nargs='+',
+    help='Name or ID of the snapshot(s) to force delete.')
 def do_snapshot_force_delete(cs, args):
-    """Attempt force-delete of snapshot, regardless of state (Admin only)."""
-    snapshot = _find_share_snapshot(cs, args.snapshot)
-    snapshot.force_delete()
+    """Attempt force-deletion of one or more snapshots.
+
+    Regardless of the state (Admin only).
+    """
+    failure_count = 0
+
+    for snapshot in args.snapshot:
+        try:
+            snapshot_ref = _find_share_snapshot(
+                cs, snapshot)
+            cs.share_snapshots.force_delete(snapshot_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for snapshot %s failed: %s" % (
+                snapshot, e), file=sys.stderr)
+
+    if failure_count == len(args.snapshot):
+        raise exceptions.CommandError("Unable to force delete any of the "
+                                      "specified snapshots.")
 
 
 @cliutils.arg(
@@ -2207,10 +2243,25 @@ def do_share_network_security_service_list(cs, args):
 @cliutils.arg(
     'share_network',
     metavar='<share-network>',
-    help='Name or ID of share network to be deleted.')
+    nargs='+',
+    help='Name or ID of share network(s) to be deleted.')
 def do_share_network_delete(cs, args):
-    """Delete share network."""
-    _find_share_network(cs, args.share_network).delete()
+    """Delete one or more share networks."""
+    failure_count = 0
+
+    for share_network in args.share_network:
+        try:
+            share_ref = _find_share_network(
+                cs, share_network)
+            cs.share_networks.delete(share_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share network %s failed: %s" % (
+                share_network, e), file=sys.stderr)
+
+    if failure_count == len(args.share_network):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "share networks.")
 
 
 @cliutils.arg(
@@ -2445,11 +2496,25 @@ def do_security_service_list(cs, args):
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
-    help='Security service name or ID to delete.')
+    nargs='+',
+    help='Name or ID of the security service(s) to delete')
 def do_security_service_delete(cs, args):
-    """Delete security service."""
-    security_service = _find_security_service(cs, args.security_service)
-    security_service.delete()
+    """Delete one or more security services."""
+    failure_count = 0
+
+    for security_service in args.security_service:
+        try:
+            security_ref = _find_security_service(
+                cs, security_service)
+            cs.security_services.delete(security_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for security service %s failed: %s" % (
+                security_service, e), file=sys.stderr)
+
+    if failure_count == len(args.security_service):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "security services.")
 
 
 @cliutils.arg(
@@ -2532,11 +2597,27 @@ def do_share_server_details(cs, args):
 @cliutils.arg(
     'id',
     metavar='<id>',
+    nargs='+',
     type=str,
-    help='ID of share server.')
+    help='ID of the share server(s) to delete.')
 def do_share_server_delete(cs, args):
-    """Delete share server (Admin only)."""
-    cs.share_servers.delete(args.id)
+    """Delete one or more share servers (Admin only)."""
+
+    failure_count = 0
+
+    for id in args.id:
+        try:
+            id_ref = _find_share_server(
+                cs, id)
+            cs.share_servers.delete(id_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share server %s failed: %s" % (
+                id, e), file=sys.stderr)
+
+    if failure_count == len(args.id):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "share servers.")
 
 
 @cliutils.arg(
@@ -2843,11 +2924,26 @@ def do_type_create(cs, args):
 @cliutils.arg(
     'id',
     metavar='<id>',
-    help="Name or ID of the share type to delete.")
+    nargs='+',
+    help="Name or ID of the share type(s) to delete.")
 def do_type_delete(cs, args):
-    """Delete a specific share type (Admin only)."""
-    share_type = _find_share_type(cs, args.id)
-    cs.share_types.delete(share_type)
+    """Delete one or more specific share types (Admin only)."""
+
+    failure_count = 0
+
+    for id in args.id:
+        try:
+            id_ref = _find_share_type(
+                cs, id)
+            cs.share_types.delete(id_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share type %s failed: %s" % (
+                id, e), file=sys.stderr)
+
+    if failure_count == len(args.id):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "share types.")
 
 
 @cliutils.arg(
