@@ -3016,6 +3016,19 @@ def do_type_key(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'e.g. --columns "name,host"')
+@cliutils.arg(
+    '--detail', '--detailed',
+    action='store_true',
+    help='Show detailed information about pools. (Default=False)')
+@cliutils.arg(
+    '--share-type', '--share_type',
+    '--share-type-id', '--share_type_id',
+    metavar='<share_type>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Filter results by share type name or ID. (Default=None)'
+         'Available only for microversion >= 2.23')
 def do_pool_list(cs, args):
     """List all backend storage pools known to the scheduler (Admin only)."""
 
@@ -3023,12 +3036,19 @@ def do_pool_list(cs, args):
         'host': args.host,
         'backend': args.backend,
         'pool': args.pool,
+        'share_type': args.share_type,
     }
-    fields = ["Name", "Host", "Backend", "Pool"]
+
+    if args.detail:
+        fields = ["Name", "Host", "Backend", "Pool", "Capabilities"]
+    else:
+        fields = ["Name", "Host", "Backend", "Pool"]
+
     if args.columns is not None:
         fields = _split_columns(columns=args.columns)
 
-    pools = cs.pools.list(detailed=False, search_opts=search_opts)
+    pools = cs.pools.list(detailed=args.detail, search_opts=search_opts)
+
     cliutils.print_list(pools, fields=fields)
 
 
