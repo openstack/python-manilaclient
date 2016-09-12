@@ -141,6 +141,20 @@ class ManilaCLIClient(base.CLIClient):
             raise exceptions.ResourceReleaseFailed(
                 res_type=res_type, res_id=res_id)
 
+    def list_availability_zones(self, columns=None, microversion=None):
+        """List availability zones.
+
+        :param columns: comma separated string of columns.
+            Example, "--columns id,name"
+        :param microversion: API microversion that should be used.
+        """
+        cmd = 'availability-zone-list'
+        if columns is not None:
+            cmd += ' --columns ' + columns
+        azs_raw = self.manila(cmd, microversion=microversion)
+        azs = output_parser.listing(azs_raw)
+        return azs
+
     # Share types
 
     def create_share_type(self, name=None, driver_handles_share_servers=True,

@@ -100,6 +100,17 @@ class ShellTest(test_utils.TestCase):
         return self.shell.cs.assert_called_anytime(
             method, url, body, clear_callstack=clear_callstack)
 
+    def test_availability_zone_list(self):
+        self.run_command('availability-zone-list')
+        self.assert_called('GET', '/availability-zones')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_availability_zone_list_select_column(self):
+        self.run_command('availability-zone-list --columns id,name')
+        self.assert_called('GET', '/availability-zones')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Name'])
+
     def test_service_list(self):
         self.run_command('service-list')
         self.assert_called('GET', '/services')

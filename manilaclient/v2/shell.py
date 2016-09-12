@@ -2621,6 +2621,25 @@ def do_share_server_delete(cs, args):
 
 
 @cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id,name"')
+def do_availability_zone_list(cs, args):
+    """List all availability zones."""
+
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+    else:
+        fields = ("Id", "Name", "Created_At", "Updated_At")
+
+    availability_zones = cs.availability_zones.list()
+    cliutils.print_list(availability_zones, fields=fields)
+
+
+@cliutils.arg(
     '--host',
     metavar='<hostname>',
     default=None,

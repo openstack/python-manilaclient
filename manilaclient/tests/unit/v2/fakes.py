@@ -86,6 +86,21 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, body)
 
+    def get_availability_zones(self):
+        availability_zones = {
+            "availability_zones": [
+                {"id": "368c5780-ad72-4bcf-a8b6-19e45f4fafoo",
+                 "name": "foo",
+                 "created_at": "2016-07-08T14:13:12.000000",
+                 "updated_at": "2016-07-08T15:14:13.000000"},
+                {"id": "368c5780-ad72-4bcf-a8b6-19e45f4fabar",
+                 "name": "bar",
+                 "created_at": "2016-07-08T14:13:12.000000",
+                 "updated_at": "2016-07-08T15:14:13.000000"},
+            ]
+        }
+        return (200, {}, availability_zones)
+
     def get_os_services(self, **kw):
         services = {
             "services": [

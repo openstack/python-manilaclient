@@ -22,6 +22,7 @@ import manilaclient
 from manilaclient.common import constants
 from manilaclient.common import httpclient
 from manilaclient import exceptions
+from manilaclient.v2 import availability_zones
 from manilaclient.v2 import consistency_group_snapshots as cg_snapshots
 from manilaclient.v2 import consistency_groups
 from manilaclient.v2 import limits
@@ -205,6 +206,8 @@ class Client(object):
                                             http_log_debug=http_log_debug,
                                             api_version=self.api_version)
 
+        self.availability_zones = availability_zones.AvailabilityZoneManager(
+            self)
         self.limits = limits.LimitsManager(self)
         self.services = services.ServiceManager(self)
         self.security_services = security_services.SecurityServiceManager(self)
