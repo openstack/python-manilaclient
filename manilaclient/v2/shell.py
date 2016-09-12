@@ -219,6 +219,19 @@ def _print_share_snapshot(cs, snapshot):
     cliutils.print_dict(info)
 
 
+def _quota_set_pretty_show(quotas):
+    """convert quotas object to dict and display"""
+
+    new_quotas = {}
+    for quota_k, quota_v in sorted(quotas.to_dict().items()):
+        if isinstance(quota_v, dict):
+            quota_v = '\n'.join(
+                ['%s = %s' % (k, v) for k, v in sorted(quota_v.items())])
+        new_quotas[quota_k] = quota_v
+
+    cliutils.print_dict(new_quotas)
+
+
 def _find_share_snapshot_instance(cs, snapshot_instance):
     """Get a share snapshot instance by ID."""
     return apiclient_utils.find_resource(
@@ -361,13 +374,16 @@ def _quota_update(manager, identifier, args):
     metavar='<user-id>',
     default=None,
     help='ID of user to list the quotas for.')
+@cliutils.arg(
+    '--detail',
+    action='store_true',
+    help='Optional flag to indicate whether to show quota in detail. '
+         'Default false, available only for microversion >= 2.25.')
 def do_quota_show(cs, args):
     """List the quotas for a tenant/user."""
-    project_id = cs.keystone_client.project_id
-    if not args.tenant:
-        _quota_show(cs.quotas.get(project_id, user_id=args.user))
-    else:
-        _quota_show(cs.quotas.get(args.tenant, user_id=args.user))
+    project = args.tenant or cs.keystone_client.project_id
+    qts = cs.quotas.get(project, user_id=args.user, detail=args.detail)
+    _quota_set_pretty_show(qts)
 
 
 @cliutils.arg(

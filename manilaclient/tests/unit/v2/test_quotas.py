@@ -35,28 +35,41 @@ class QuotaSetsTest(utils.TestCase):
             return quotas.RESOURCE_PATH
         return quotas.RESOURCE_PATH_LEGACY
 
-    @ddt.data("2.6", "2.7")
+    @ddt.data("2.6", "2.7", "2.25")
     def test_tenant_quotas_get(self, microversion):
         tenant_id = 'test'
         manager = self._get_manager(microversion)
         resource_path = self._get_resource_path(microversion)
-        expected_url = "%s/test" % resource_path
+        version = api_versions.APIVersion(microversion)
+        if version >= api_versions.APIVersion('2.25'):
+            expected_url = "%s/test/detail" % resource_path
+        else:
+            expected_url = ("%s/test"
+                            % resource_path)
+
         with mock.patch.object(manager, '_get',
                                mock.Mock(return_value='fake_get')):
-            manager.get(tenant_id)
+            manager.get(tenant_id, detail=True)
 
             manager._get.assert_called_once_with(expected_url, "quota_set")
 
-    @ddt.data("2.6", "2.7")
+    @ddt.data("2.6", "2.7", "2.25")
     def test_user_quotas_get(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
         manager = self._get_manager(microversion)
         resource_path = self._get_resource_path(microversion)
-        expected_url = "%s/test?user_id=fake_user" % resource_path
+        version = api_versions.APIVersion(microversion)
+        if version >= api_versions.APIVersion('2.25'):
+            expected_url = ("%s/test/detail?user_id=fake_user"
+                            % resource_path)
+        else:
+            expected_url = ("%s/test?user_id=fake_user"
+                            % resource_path)
+
         with mock.patch.object(manager, '_get',
                                mock.Mock(return_value='fake_get')):
-            manager.get(tenant_id, user_id=user_id)
+            manager.get(tenant_id, user_id=user_id, detail=True)
 
             manager._get.assert_called_once_with(expected_url, "quota_set")
 

@@ -1619,6 +1619,33 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             fields=["Name", "Host", "Backend", "Pool"])
 
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_quota_show(self):
+        self.run_command('quota-show --tenant 1234')
+        self.assert_called(
+            'GET',
+            '/quota-sets/1234',
+        )
+        cliutils.print_dict.assert_called_once_with(mock.ANY)
+
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_quota_show_with_detail(self):
+        self.run_command('quota-show --tenant 1234 --detail')
+        self.assert_called(
+            'GET',
+            '/quota-sets/1234/detail',
+        )
+        cliutils.print_dict.assert_called_once_with(mock.ANY)
+
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_quota_show_with_user_id(self):
+        self.run_command('quota-show --tenant 1234 --user 1111')
+        self.assert_called(
+            'GET',
+            '/quota-sets/1234?user_id=1111',
+        )
+        cliutils.print_dict.assert_called_once_with(mock.ANY)
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list_with_detail(self):
         self.run_command('pool-list --detail')
@@ -1640,6 +1667,23 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_with(
             mock.ANY,
             fields=["Name", "Host"])
+
+    @ddt.data(({"key1": "value1",
+               "key2": "value2"},
+               {"key1": "value1",
+               "key2": "value2"}),
+              ({"key1": {"key11": "value11", "key12": "value12"},
+                "key2": {"key21": "value21"}},
+               {"key1": "key11 = value11\nkey12 = value12",
+                "key2": "key21 = value21"}),
+              ({}, {}))
+    @ddt.unpack
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_quota_set_pretty_show(self, value, expected):
+        fake_quota_set = fakes.FakeQuotaSet(value)
+
+        shell_v2._quota_set_pretty_show(fake_quota_set)
+        cliutils.print_dict.assert_called_with(expected)
 
     @ddt.data('--share-type test_type', '--share_type test_type',
               '--share-type-id 0123456789', '--share_type_id 0123456789')

@@ -79,3 +79,8 @@ class ManilaClientTestQuotasReadOnly(base.BaseTestCase):
     @utils.skip_if_microversion_not_supported("2.7")
     def test_quota_show_api_2_7(self, role):
         self._get_quotas(role, "show", "2.7")
+
+    @ddt.data('admin', 'user')
+    @utils.skip_if_microversion_not_supported("2.25")
+    def test_quota_show_api_2_25(self, role):
+        self._get_quotas(role, "show  --detail", "2.25")

@@ -1,0 +1,3 @@
+---
+features:
+  - Add support to check quota usage by '--detail' in quota-show

@@ -285,6 +285,42 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, instances)
 
+    def get_quota_sets_1234(self, *args, **kwargs):
+        quota_set = {
+            'quota_set': {
+                'id': '1234',
+                'shares': 50,
+                'gigabytes': 1000,
+                'snapshots': 50,
+                'snapshot_gigabytes': 1000,
+                'share_networks': 10,
+            }
+        }
+        return (200, {}, quota_set)
+
+    def get_quota_sets_1234_detail(self, *args, **kwargs):
+        quota_set = {
+            'quota_set': {
+                'id': '1234',
+                'shares': {'in_use': 0,
+                           'limit': 50,
+                           'reserved': 0},
+                'gigabytes': {'in_use': 0,
+                              'limit': 10000,
+                              'reserved': 0},
+                'snapshots': {'in_use': 0,
+                              'limit': 50,
+                              'reserved': 0},
+                'snapshot_gigabytes': {'in_use': 0,
+                                       'limit': 1000,
+                                       'reserved': 0},
+                'share_networks': {'in_use': 0,
+                                   'limit': 10,
+                                   'reserved': 0},
+            }
+        }
+        return (200, {}, quota_set)
+
     def get_share_instances(self, **kw):
         return self._share_instances()
 
@@ -921,3 +957,12 @@ def fake_create(url, body, response_key):
 
 def fake_update(url, body, response_key):
     return {'url': url, 'body': body, 'resp_key': response_key}
+
+
+class FakeQuotaSet(object):
+
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+
+    def to_dict(self):
+        return self.dictionary

@@ -35,27 +35,40 @@ class QuotaSet(common_base.Resource):
 class QuotaSetManager(base.ManagerWithFind):
     resource_class = QuotaSet
 
-    def _do_get(self, tenant_id, user_id=None, resource_path=RESOURCE_PATH):
+    def _do_get(self, tenant_id, user_id=None, detail=False,
+                resource_path=RESOURCE_PATH):
         if hasattr(tenant_id, 'tenant_id'):
             tenant_id = tenant_id.tenant_id
+
+        if detail:
+            query = '/detail'
+        else:
+            query = ''
+
+        if user_id:
+            query = '%s?user_id=%s' % (query, user_id)
         data = {
             "resource_path": resource_path,
             "tenant_id": tenant_id,
-            "user_id": user_id,
         }
-        if user_id:
-            url = "%(resource_path)s/%(tenant_id)s?user_id=%(user_id)s" % data
-        else:
-            url = "%(resource_path)s/%(tenant_id)s" % data
+
+        url = ("%(resource_path)s/%(tenant_id)s" + query) % data
         return self._get(url, "quota_set")
 
     @api_versions.wraps("1.0", "2.6")
-    def get(self, tenant_id, user_id=None):
-        return self._do_get(tenant_id, user_id, RESOURCE_PATH_LEGACY)
+    def get(self, tenant_id, user_id=None, detail=False):
+        return self._do_get(tenant_id, user_id,
+                            resource_path=RESOURCE_PATH_LEGACY)
 
-    @api_versions.wraps("2.7")  # noqa
-    def get(self, tenant_id, user_id=None):
-        return self._do_get(tenant_id, user_id, RESOURCE_PATH)
+    @api_versions.wraps("2.7", "2.24")  # noqa
+    def get(self, tenant_id, user_id=None, detail=False):
+        return self._do_get(tenant_id, user_id,
+                            resource_path=RESOURCE_PATH)
+
+    @api_versions.wraps("2.25")  # noqa
+    def get(self, tenant_id, user_id=None, detail=False):
+        return self._do_get(tenant_id, user_id, detail,
+                            resource_path=RESOURCE_PATH)
 
     def _do_update(self, tenant_id, shares=None, snapshots=None,
                    gigabytes=None, snapshot_gigabytes=None,
