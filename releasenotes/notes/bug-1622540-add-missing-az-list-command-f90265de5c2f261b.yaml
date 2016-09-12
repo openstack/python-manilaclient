@@ -1,0 +1,4 @@
+---
+fixes:
+  - Added support for missing command to list manila service availability
+    zones.
