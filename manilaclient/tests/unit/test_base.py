@@ -28,19 +28,28 @@ class BaseTest(utils.TestCase):
 
     def test_eq(self):
         # Two resources of the same type with the same id: equal
+        # The truth of r1==r2 does not imply that r1!=r2 is false in PY2.
+        # Test that inequality operator is defined and that comparing equal
+        # items returns False.
         r1 = common_base.Resource(None, {'id': 1, 'name': 'hi'})
         r2 = common_base.Resource(None, {'id': 1, 'name': 'hello'})
-        self.assertEqual(r1, r2)
+        self.assertTrue(r1 == r2)
+        self.assertFalse(r1 != r2)
 
         # Two resources of different types: never equal
         r1 = common_base.Resource(None, {'id': 1})
         r2 = shares.Share(None, {'id': 1})
         self.assertNotEqual(r1, r2)
+        self.assertTrue(r1 != r2)
 
         # Two resources with no ID: equal if their info is equal
+        # The truth of r1==r2 does not imply that r1!=r2 is false in PY2.
+        # Test that inequality operator is defined and that comparing equal
+        # items returns False.
         r1 = common_base.Resource(None, {'name': 'joe', 'age': 12})
         r2 = common_base.Resource(None, {'name': 'joe', 'age': 12})
-        self.assertEqual(r1, r2)
+        self.assertTrue(r1 == r2)
+        self.assertFalse(r1 != r2)
 
     def test_findall_invalid_attribute(self):
         # Make sure findall with an invalid attribute doesn't cause errors.
