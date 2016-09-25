@@ -27,31 +27,23 @@ from manilaclient import api_versions
 # directory "%project_root%/manilaclient/tests/functional"
 auth_opts = [
     cfg.StrOpt("username",
-               default=None,
                help="This should be the username of a user WITHOUT "
                     "administrative privileges."),
     cfg.StrOpt("tenant_name",
-               default=None,
                help="The non-administrative user's tenant name."),
     cfg.StrOpt("password",
-               default=None,
                help="The non-administrative user's password."),
     cfg.StrOpt("auth_url",
-               default=None,
                help="URL for where to find the OpenStack Identity public "
                     "API endpoint."),
     cfg.StrOpt("admin_username",
-               default=None,
                help="This should be the username of a user WITH "
                     "administrative privileges."),
     cfg.StrOpt("admin_tenant_name",
-               default=None,
                help="The administrative user's tenant name."),
     cfg.StrOpt("admin_password",
-               default=None,
                help="The administrative user's password."),
     cfg.StrOpt("admin_auth_url",
-               default=None,
                help="URL for where to find the OpenStack Identity admin "
                     "API endpoint."),
     cfg.BoolOpt("insecure",
@@ -84,16 +76,13 @@ share_opts = [
                     "Manilaclient functional tests. Defaults to "
                     "manilaclient's max supported API microversion."),
     cfg.StrOpt("share_network",
-               default=None,
                help="Share network Name or ID, that will be used for shares. "
                     "Some backend drivers require a share network for share "
                     "creation."),
     cfg.StrOpt("admin_share_network",
-               default=None,
                help="Share network Name or ID, that will be used for shares "
                     "in admin tenant."),
     cfg.StrOpt("share_type",
-               default=None,
                help="Share type Name or ID, that will be used with share "
                     "creation scheduling. Optional."),
     cfg.ListOpt("enable_protocols",
