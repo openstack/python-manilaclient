@@ -14,8 +14,8 @@
 #    under the License.
 
 from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
-from manilaclient.openstack.common import cliutils
+from manilaclient.common.apiclient import base as common_base
+from manilaclient.common import cliutils
 
 
 class ListExtResource(common_base.Resource):

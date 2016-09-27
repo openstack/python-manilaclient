@@ -17,7 +17,7 @@
 Exception definitions.
 """
 
-from manilaclient.openstack.common.apiclient.exceptions import *  # noqa
+from manilaclient.common.apiclient.exceptions import *  # noqa
 
 
 class NoTokenLookupException(ClientException):

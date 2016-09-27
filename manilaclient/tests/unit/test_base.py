@@ -10,8 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
-from manilaclient.openstack.common.apiclient import base as common_base
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import shares

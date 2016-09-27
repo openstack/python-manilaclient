@@ -15,7 +15,7 @@
 import six.moves.urllib.parse as urlparse
 
 from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.common.apiclient import base as common_base
 
 
 RESOURCES_PATH = '/scheduler-stats/pools'

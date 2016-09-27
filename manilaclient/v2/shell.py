@@ -24,10 +24,10 @@ from oslo_utils import strutils
 import six
 
 from manilaclient import api_versions
+from manilaclient.common.apiclient import utils as apiclient_utils
+from manilaclient.common import cliutils
 from manilaclient.common import constants
 from manilaclient import exceptions
-from manilaclient.openstack.common.apiclient import utils as apiclient_utils
-from manilaclient.openstack.common import cliutils
 from manilaclient.v2 import quotas
 
 

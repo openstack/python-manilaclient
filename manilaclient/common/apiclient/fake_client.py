@@ -30,7 +30,7 @@ import requests
 import six
 from six.moves.urllib import parse
 
-from manilaclient.openstack.common.apiclient import client
+from manilaclient.common.apiclient import client
 
 
 def assert_has_keys(dct, required=None, optional=None):
@@ -46,8 +46,7 @@ def assert_has_keys(dct, required=None, optional=None):
 
 
 class TestResponse(requests.Response):
-    """Wrap requests.Response and provide a convenient initialization.
-    """
+    """Wrap requests.Response and provide a convenient initialization."""
 
     def __init__(self, data):
         super(TestResponse, self).__init__()
@@ -86,8 +85,7 @@ class FakeHTTPClient(client.HTTPClient):
         super(FakeHTTPClient, self).__init__(*args, **kwargs)
 
     def assert_called(self, method, url, body=None, pos=-1):
-        """Assert than an API method was just called.
-        """
+        """Assert than an API method was just called."""
         expected = (method, url)
         called = self.callstack[pos][0:2]
         assert self.callstack, \
@@ -103,8 +101,7 @@ class FakeHTTPClient(client.HTTPClient):
 
     def assert_called_anytime(self, method, url, body=None,
                               clear_callstack=True):
-        """Assert than an API method was called anytime in the test.
-        """
+        """Assert than an API method was called anytime in the test."""
         expected = (method, url)
 
         assert self.callstack, \

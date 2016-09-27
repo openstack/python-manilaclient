@@ -20,7 +20,7 @@ except ImportError:
     from urllib.parse import urlencode  # noqa
 
 from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/share-servers'
 RESOURCE_PATH = '/share-servers/%s'

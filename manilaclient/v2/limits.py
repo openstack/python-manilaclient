@@ -15,7 +15,7 @@
 # under the License.
 
 from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.common.apiclient import base as common_base
 
 
 class Limits(common_base.Resource):

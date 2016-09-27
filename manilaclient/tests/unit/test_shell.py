@@ -21,9 +21,9 @@ from tempest.lib.cli import output_parser
 from testtools import matchers
 
 import manilaclient
+from manilaclient.common import cliutils
 from manilaclient.common import constants
 from manilaclient import exceptions
-from manilaclient.openstack.common import cliutils
 from manilaclient import shell
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes

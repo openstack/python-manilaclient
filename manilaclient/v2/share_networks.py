@@ -21,8 +21,9 @@ except ImportError:
 import six
 
 from manilaclient import base
+from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
-from manilaclient.openstack.common.apiclient import base as common_base
+
 
 RESOURCES_PATH = '/share-networks'
 RESOURCE_PATH = "/share-networks/%s"

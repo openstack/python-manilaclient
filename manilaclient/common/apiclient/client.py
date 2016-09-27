@@ -36,8 +36,8 @@ except ImportError:
 from oslo_utils import importutils
 import requests
 
-from manilaclient.openstack.common._i18n import _
-from manilaclient.openstack.common.apiclient import exceptions
+from manilaclient.common._i18n import _
+from manilaclient.common.apiclient import exceptions
 
 
 _logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class HTTPClient(object):
       into terminal and send the same request with curl.
     """
 
-    user_agent = "manilaclient.openstack.common.apiclient"
+    user_agent = "manilaclient.common.apiclient"
 
     def __init__(self,
                  auth_plugin,
@@ -275,7 +275,7 @@ class HTTPClient(object):
 
         >>> def test_clients():
         ...     from keystoneclient.auth import keystone
-        ...     from openstack.common.apiclient import client
+        ...     from manilaclient.common.apiclient import client
         ...     auth = keystone.KeystoneAuthPlugin(
         ...         username="user", password="pass", tenant_name="tenant",
         ...         auth_url="http://auth:5000/v2.0")

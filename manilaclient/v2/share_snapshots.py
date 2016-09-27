@@ -21,8 +21,8 @@ except ImportError:
 
 from manilaclient import api_versions
 from manilaclient import base
+from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
-from manilaclient.openstack.common.apiclient import base as common_base
 
 
 class ShareSnapshot(common_base.Resource):

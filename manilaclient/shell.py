@@ -34,10 +34,10 @@ import six
 
 from manilaclient import api_versions
 from manilaclient import client
+from manilaclient.common import cliutils
 from manilaclient.common import constants
 from manilaclient import exceptions as exc
 import manilaclient.extension
-from manilaclient.openstack.common import cliutils
 from manilaclient.v2 import shell as shell_v2
 
 DEFAULT_OS_SHARE_API_VERSION = api_versions.MAX_VERSION

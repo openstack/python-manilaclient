@@ -17,8 +17,8 @@ import mock
 
 import manilaclient
 from manilaclient import api_versions
+from manilaclient.common import cliutils
 from manilaclient import exceptions
-from manilaclient.openstack.common import cliutils
 from manilaclient.tests.unit import utils
 
 

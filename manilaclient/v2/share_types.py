@@ -20,8 +20,8 @@ Share Type interface.
 
 from manilaclient import api_versions
 from manilaclient import base
+from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
-from manilaclient.openstack.common.apiclient import base as common_base
 
 
 class ShareType(common_base.Resource):

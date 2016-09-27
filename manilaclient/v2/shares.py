@@ -24,9 +24,9 @@ except ImportError:
 
 from manilaclient import api_versions
 from manilaclient import base
+from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 from manilaclient import exceptions
-from manilaclient.openstack.common.apiclient import base as common_base
 from manilaclient.v2 import share_instances
 
 

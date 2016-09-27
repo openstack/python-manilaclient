@@ -19,10 +19,10 @@ import re
 import warnings
 
 import manilaclient
+from manilaclient.common._i18n import _
+from manilaclient.common import cliutils
 from manilaclient.common import constants
 from manilaclient import exceptions
-from manilaclient.openstack.common._i18n import _
-from manilaclient.openstack.common import cliutils
 from manilaclient import utils
 
 LOG = logging.getLogger(__name__)

@@ -19,7 +19,7 @@ from six.moves.urllib import parse
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/consistency-groups'
 RESOURCE_PATH = '/consistency-groups/%s'

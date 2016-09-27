@@ -30,7 +30,7 @@ import prettytable
 import six
 from six import moves
 
-from manilaclient.openstack.common._i18n import _
+from manilaclient.common._i18n import _
 
 
 class MissingArgs(Exception):

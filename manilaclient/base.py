@@ -23,8 +23,8 @@ import contextlib
 import hashlib
 import os
 
+from manilaclient.common import cliutils
 from manilaclient import exceptions
-from manilaclient.openstack.common import cliutils
 from manilaclient import utils
 
 

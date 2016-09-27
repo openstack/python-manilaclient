@@ -21,7 +21,7 @@ except ImportError:
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.openstack.common.apiclient import base as common_base
+from manilaclient.common.apiclient import base as common_base
 
 RESOURCE_PATH_LEGACY = '/os-services'
 RESOURCE_PATH = '/services'
