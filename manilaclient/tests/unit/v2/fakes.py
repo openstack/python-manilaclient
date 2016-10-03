@@ -169,7 +169,16 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         share_servers = {
             'share_servers': {
                 'id': 1234,
-                'share_network_id': 'fake_network_id',
+                'share_network_id': 'fake_network_id_1',
+            },
+        }
+        return (200, {}, share_servers)
+
+    def get_share_servers_5678(self, **kw):
+        share_servers = {
+            'share_servers': {
+                'id': 5678,
+                'share_network_id': 'fake_network_id_2',
             },
         }
         return (200, {}, share_servers)
@@ -253,6 +262,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         else:
             raise AssertionError("Unexpected action: %s" % action)
         return (resp, {}, _body)
+
+    post_snapshots_5678_action = post_snapshots_1234_action
 
     def post_snapshots_manage(self, body, **kw):
         _body = {'snapshot': {'id': 'fake'}}
@@ -450,6 +461,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (202, {}, None)
 
     def delete_share_servers_1234(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_servers_5678(self, **kwargs):
         return (202, {}, None)
 
     def delete_security_services_fake_security_service1(self, **kwargs):
