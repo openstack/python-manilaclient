@@ -14,10 +14,13 @@
 
 # This script is executed inside pre_test_hook function in devstack gate.
 
-# Install manila devstack integration
-cp -r $BASE/new/manila/contrib/devstack/* $BASE/new/devstack
+# Run manila's pre_test_hook.sh script first
+source $BASE/new/manila/contrib/ci/pre_test_hook.sh True generic multibackend
 
 localrc_path=$BASE/new/devstack/localrc
 
 # Set big quota for share networks to avoid limit exceedances
 echo "MANILA_OPTGROUP_DEFAULT_quota_share_networks=50" >> $localrc_path
+
+# Set following to '3' when manilaclient functional tests support it.
+echo "IDENTITY_API_VERSION=2.0" >> $localrc_path
