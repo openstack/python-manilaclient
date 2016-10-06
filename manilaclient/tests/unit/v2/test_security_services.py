@@ -48,7 +48,7 @@ class SecurityServiceTest(utils.TestCase):
             self.assertEqual(result['url'], security_services.RESOURCES_PATH)
             self.assertEqual(result['resp_key'],
                              security_services.RESOURCE_NAME)
-            self.assertTrue(security_services.RESOURCE_NAME in result['body'])
+            self.assertIn(security_services.RESOURCE_NAME, result['body'])
             self.assertEqual(result['body'][security_services.RESOURCE_NAME],
                              values)
 
@@ -67,7 +67,7 @@ class SecurityServiceTest(utils.TestCase):
             self.assertEqual(result['url'], security_services.RESOURCES_PATH)
             self.assertEqual(result['resp_key'],
                              security_services.RESOURCE_NAME)
-            self.assertTrue(security_services.RESOURCE_NAME in result['body'])
+            self.assertIn(security_services.RESOURCE_NAME, result['body'])
             self.assertEqual(result['body'][security_services.RESOURCE_NAME],
                              values)
 

@@ -119,7 +119,7 @@ class ShareServerManagerTest(utils.TestCase):
                 "%s/%s" % (share_servers.RESOURCES_PATH, share_server_id),
                 share_servers.RESOURCE_NAME)
             for key in ["details:fake_key1", "details:fake_key2"]:
-                self.assertTrue(key in list(server._info))
+                self.assertIn(key, list(server._info))
 
     def test_details(self):
         with mock.patch.object(self.manager, '_get',
