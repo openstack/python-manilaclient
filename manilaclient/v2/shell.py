@@ -2605,15 +2605,14 @@ def do_share_server_delete(cs, args):
 
     failure_count = 0
 
-    for id in args.id:
+    for server_id in args.id:
         try:
-            id_ref = _find_share_server(
-                cs, id)
+            id_ref = _find_share_server(cs, server_id)
             cs.share_servers.delete(id_ref)
         except Exception as e:
             failure_count += 1
             print("Delete for share server %s failed: %s" % (
-                id, e), file=sys.stderr)
+                server_id, e), file=sys.stderr)
 
     if failure_count == len(args.id):
         raise exceptions.CommandError("Unable to delete any of the specified "
@@ -2950,15 +2949,14 @@ def do_type_delete(cs, args):
 
     failure_count = 0
 
-    for id in args.id:
+    for name_or_id in args.id:
         try:
-            id_ref = _find_share_type(
-                cs, id)
+            id_ref = _find_share_type(cs, name_or_id)
             cs.share_types.delete(id_ref)
         except Exception as e:
             failure_count += 1
             print("Delete for share type %s failed: %s" % (
-                id, e), file=sys.stderr)
+                name_or_id, e), file=sys.stderr)
 
     if failure_count == len(args.id):
         raise exceptions.CommandError("Unable to delete any of the specified "

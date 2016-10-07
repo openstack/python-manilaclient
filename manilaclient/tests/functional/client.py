@@ -31,6 +31,7 @@ CONF = config.CONF
 SHARE = 'share'
 SHARE_TYPE = 'share_type'
 SHARE_NETWORK = 'share_network'
+SHARE_SERVER = 'share_server'
 
 
 def not_found_wrapper(f):
@@ -39,9 +40,10 @@ def not_found_wrapper(f):
         try:
             return f(self, *args, **kwargs)
         except tempest_lib_exc.CommandFailed as e:
-            if re.search('No (\w+) with a name or ID', e.stderr):
-                # Raise appropriate 'NotFound' error
-                raise tempest_lib_exc.NotFound()
+            for regexp in ('No (\w+) with a name or ID', 'not found'):
+                if re.search(regexp, e.stderr):
+                    # Raise appropriate 'NotFound' error
+                    raise tempest_lib_exc.NotFound()
             raise
 
     return wrapped_func
@@ -123,6 +125,8 @@ class ManilaCLIClient(base.CLIClient):
             func = self.is_share_type_deleted
         elif res_type == SHARE_NETWORK:
             func = self.is_share_network_deleted
+        elif res_type == SHARE_SERVER:
+            func = self.is_share_server_deleted
         elif res_type == SHARE:
             func = self.is_share_deleted
         elif res_type == SNAPSHOT:
@@ -1068,3 +1072,64 @@ class ManilaCLIClient(base.CLIClient):
             microversion=microversion)
         share = output_parser.details(share_raw)
         return share
+
+    # Share servers
+
+    @not_found_wrapper
+    def get_share_server(self, share_server, microversion=None):
+        """Returns share server by its Name or ID."""
+        share_server_raw = self.manila(
+            'share-server-show %s' % share_server, microversion=microversion)
+        share_server = output_parser.details(share_server_raw)
+        return share_server
+
+    def list_share_servers(self, filters=None, columns=None,
+                           microversion=None):
+        """List share servers.
+
+        :param filters: dict -- filters for listing of share servers.
+            Example, input:
+                {'project_id': 'foo'}
+                {'-project_id': 'foo'}
+                {'--project_id': 'foo'}
+                {'project-id': 'foo'}
+            will be transformed to filter parameter "--project-id=foo"
+         :param columns: comma separated string of columns.
+            Example, "--columns id"
+        """
+        cmd = 'share-server-list '
+        if columns is not None:
+            cmd += ' --columns ' + columns
+        if filters and isinstance(filters, dict):
+            for k, v in filters.items():
+                cmd += '%(k)s=%(v)s ' % {
+                    'k': self._stranslate_to_cli_optional_param(k), 'v': v}
+        share_servers_raw = self.manila(cmd, microversion=microversion)
+        share_servers = utils.listing(share_servers_raw)
+        return share_servers
+
+    @not_found_wrapper
+    def delete_share_server(self, share_server, microversion=None):
+        """Deletes share server by its Name or ID."""
+        return self.manila('share-server-delete %s' % share_server,
+                           microversion=microversion)
+
+    def is_share_server_deleted(self, share_server_id, microversion=None):
+        """Says whether share server is deleted or not.
+
+        :param share_server: text -- ID of the share server
+        """
+        servers = self.list_share_servers(microversion=microversion)
+        for list_element in servers:
+            if share_server_id == list_element['Id']:
+                return False
+        return True
+
+    def wait_for_share_server_deletion(self, share_server, microversion=None):
+        """Wait for share server deletion by its Name or ID.
+
+        :param share_server: text -- Name or ID of share server
+        """
+        self.wait_for_resource_deletion(
+            SHARE_SERVER, res_id=share_server, interval=3, timeout=60,
+            microversion=microversion)

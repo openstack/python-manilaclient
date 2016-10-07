@@ -38,17 +38,22 @@ class ShareServer(common_base.Resource):
             attr = 'share_network_name'
         return super(ShareServer, self).__getattr__(attr)
 
+    def delete(self):
+        """Delete this share server."""
+        self.manager.delete(self)
+
 
 class ShareServerManager(base.ManagerWithFind):
     """Manage :class:`ShareServer` resources."""
     resource_class = ShareServer
 
-    def get(self, server_id):
+    def get(self, server):
         """Get a share server.
 
-        :param server_id: The ID of the share server to get.
+        :param server: ID of the :class:`ShareServer` to get.
         :rtype: :class:`ShareServer`
         """
+        server_id = common_base.getid(server)
         server = self._get("%s/%s" % (RESOURCES_PATH, server_id),
                            RESOURCE_NAME)
         # Split big dict 'backend_details' to separated strings
@@ -62,20 +67,22 @@ class ShareServerManager(base.ManagerWithFind):
             server._info["details:%s" % k] = v
         return server
 
-    def details(self, server_id):
+    def details(self, server):
         """Get a share server details.
 
-        :param server_id: The ID of the share server to get details from.
+        :param server: ID of the :class:`ShareServer` to get details from.
         :rtype: list of :class:`ShareServerBackendDetails
         """
+        server_id = common_base.getid(server)
         return self._get("%s/%s/details" % (RESOURCES_PATH, server_id),
                          "details")
 
-    def delete(self, server_id):
+    def delete(self, server):
         """Delete share server.
 
-        :param server_id: id of share server to be deleted.
+        :param server: ID of the :class:`ShareServer` to delete.
         """
+        server_id = common_base.getid(server)
         self._delete(RESOURCE_PATH % server_id)
 
     def list(self, search_opts=None):

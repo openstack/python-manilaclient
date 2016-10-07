@@ -119,6 +119,12 @@ share_opts = [
                 help="Defines whether to run tests that use share snapshots "
                      "or not. Disable this feature if used driver doesn't "
                      "support it."),
+    cfg.BoolOpt("run_share_servers_tests",
+                default=True,
+                help="Defines whether to run tests that use share servers "
+                     "or not. Disable this feature if used driver doesn't "
+                     "support it or when autodeletion of share servers "
+                     "is enabled."),
 ]
 
 # 2. Generate config

@@ -29,7 +29,12 @@ from manilaclient import exceptions
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v2 import fakes
+from manilaclient.v2 import security_services
 from manilaclient.v2 import share_instances
+from manilaclient.v2 import share_networks
+from manilaclient.v2 import share_servers
+from manilaclient.v2 import share_snapshots
+from manilaclient.v2 import share_types
 from manilaclient.v2 import shell as shell_v2
 
 
@@ -1974,93 +1979,125 @@ class ShellTest(test_utils.TestCase):
         expected = {'reset_task_state': {'task_state': param}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
-    @ddt.data('fake-security-service1',
-              'fake-security-service1 fake-security-service2')
-    @mock.patch.object(shell_v2, '_find_security_service', mock.Mock())
-    def test_security_service_delete(self, args):
-        args_split = args.split()
-        shell_v2._find_security_service.side_effect = args_split
+    @ddt.data(('fake_security_service1', ),
+              ('fake_security_service1', 'fake_security_service2'))
+    def test_security_service_delete(self, ss_ids):
+        fake_security_services = [
+            security_services.SecurityService('fake', {'id': ss_id}, True)
+            for ss_id in ss_ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_security_service',
+            mock.Mock(side_effect=fake_security_services))
 
-        self.run_command('security-service-delete %s' % args)
+        self.run_command('security-service-delete %s' % ' '.join(ss_ids))
 
-        self.assert_called_anytime(
-            'DELETE', '/security-services/%s' % args_split[0],
-            clear_callstack=False)
-        self.assert_called_anytime(
-            'DELETE', '/security-services/%s' % args_split[-1])
+        shell_v2._find_security_service.assert_has_calls([
+            mock.call(self.shell.cs, ss_id) for ss_id in ss_ids
+        ])
+        for ss in fake_security_services:
+            self.assert_called_anytime(
+                'DELETE', '/security-services/%s' % ss.id,
+                clear_callstack=False)
 
-    @ddt.data('fake-share-network1',
-              'fake-share-network1 fake-share-network2')
-    @mock.patch.object(shell_v2, '_find_share_network', mock.Mock())
-    def test_share_network_delete(self, args):
-        args_split = args.split()
-        shell_v2._find_share_network.side_effect = args_split
+    @ddt.data(('fake_share_network1', ),
+              ('fake_share_network1', 'fake_share_network1'))
+    def test_share_network_delete(self, sn_ids):
+        fake_share_networks = [
+            share_networks.ShareNetwork('fake', {'id': sn_id}, True)
+            for sn_id in sn_ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(side_effect=fake_share_networks))
 
-        self.run_command('share-network-delete %s' % args)
+        self.run_command('share-network-delete %s' % ' '.join(sn_ids))
 
-        self.assert_called_anytime(
-            'DELETE', '/share-networks/%s' % args_split[0],
-            clear_callstack=False)
-        self.assert_called_anytime(
-            'DELETE', '/share-networks/%s' % args_split[-1])
+        shell_v2._find_share_network.assert_has_calls([
+            mock.call(self.shell.cs, sn_id) for sn_id in sn_ids
+        ])
+        for sn in fake_share_networks:
+            self.assert_called_anytime(
+                'DELETE', '/share-networks/%s' % sn.id,
+                clear_callstack=False)
 
-    @ddt.data('fake-snapshot1',
-              'fake-snapshot1 fake-snapshot2')
-    @mock.patch.object(shell_v2, '_find_share_snapshot', mock.Mock())
-    def test_snapshot_delete(self, args):
-        args_split = args.split()
-        shell_v2._find_share_snapshot.side_effect = args_split
+    @ddt.data(('fake_snapshot1', ), ('fake_snapshot1', 'fake_snapshot2'))
+    def test_snapshot_delete(self, snapshot_ids):
+        fake_snapshots = [
+            share_snapshots.ShareSnapshot('fake', {'id': snapshot_id}, True)
+            for snapshot_id in snapshot_ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_snapshot',
+            mock.Mock(side_effect=fake_snapshots))
 
-        self.run_command('snapshot-delete %s' % args)
+        self.run_command('snapshot-delete %s' % ' '.join(snapshot_ids))
 
-        self.assert_called_anytime(
-            'DELETE', '/snapshots/%s' % args_split[0],
-            clear_callstack=False)
-        self.assert_called_anytime(
-            'DELETE', '/snapshots/%s' % args_split[-1])
+        shell_v2._find_share_snapshot.assert_has_calls([
+            mock.call(self.shell.cs, s_id) for s_id in snapshot_ids
+        ])
+        for snapshot in fake_snapshots:
+            self.assert_called_anytime(
+                'DELETE', '/snapshots/%s' % snapshot.id,
+                clear_callstack=False)
 
-    @ddt.data('fake-snapshot-force1',
-              'fake-snapshot-force1 fake-snapshot-force2')
-    @mock.patch.object(shell_v2, '_find_share_snapshot', mock.Mock())
-    def test_snapshot_delete_force(self, args):
-        args_split = args.split()
-        shell_v2._find_share_snapshot.side_effect = args_split
+    @ddt.data(('1234', ), ('1234', '5678'))
+    def test_snapshot_force_delete(self, snapshot_ids):
+        fake_snapshots = [
+            share_snapshots.ShareSnapshot('fake', {'id': snapshot_id}, True)
+            for snapshot_id in snapshot_ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_snapshot',
+            mock.Mock(side_effect=fake_snapshots))
 
-        self.run_command('snapshot-force-delete %s' % args)
+        self.run_command('snapshot-force-delete %s' % ' '.join(snapshot_ids))
 
-        self.assert_called_anytime(
-            'POST', '/snapshots/%s/action' % args_split[0],
-            {'force_delete': None}, clear_callstack=False)
-        self.assert_called_anytime(
-            'POST', '/snapshots/%s/action' % args_split[-1],
-            {'force_delete': None})
+        shell_v2._find_share_snapshot.assert_has_calls([
+            mock.call(self.shell.cs, s_id) for s_id in snapshot_ids
+        ])
+        for snapshot in fake_snapshots:
+            self.assert_called_anytime(
+                'POST', '/snapshots/%s/action' % snapshot.id,
+                {'force_delete': None},
+                clear_callstack=False)
 
-    @ddt.data('fake-type1',
-              'fake-type1 fake-type2')
-    @mock.patch.object(shell_v2, '_find_share_type', mock.Mock())
-    def test_share_type_delete(self, args):
-        args_split = args.split()
-        shell_v2._find_share_type.side_effect = args_split
+    @ddt.data(('fake_type1', ), ('fake_type1', 'fake_type2'))
+    def test_share_type_delete(self, type_ids):
+        fake_share_types = [
+            share_types.ShareType('fake', {'id': type_id}, True)
+            for type_id in type_ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_type',
+            mock.Mock(side_effect=fake_share_types))
 
-        self.run_command('type-delete %s' % args)
+        self.run_command('type-delete %s' % ' '.join(type_ids))
 
-        self.assert_called_anytime(
-            'DELETE', '/types/%s' % args_split[0],
-            clear_callstack=False)
-        self.assert_called_anytime(
-            'DELETE', '/types/%s' % args_split[-1])
+        shell_v2._find_share_type.assert_has_calls([
+            mock.call(self.shell.cs, t_id) for t_id in type_ids
+        ])
+        for fake_share_type in fake_share_types:
+            self.assert_called_anytime(
+                'DELETE', '/types/%s' % fake_share_type.id,
+                clear_callstack=False)
 
-    @ddt.data('fake-share-server1',
-              'fake-share-server1 fake-share-server2')
-    @mock.patch.object(shell_v2, '_find_share_server', mock.Mock())
-    def test_share_server_delete(self, args):
-        args_split = args.split()
-        shell_v2._find_share_server.side_effect = args_split
+    @ddt.data(('1234', ), ('1234', '5678'))
+    def test_share_server_delete(self, server_ids):
+        fake_share_servers = [
+            share_servers.ShareServer('fake', {'id': server_id}, True)
+            for server_id in server_ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_server',
+            mock.Mock(side_effect=fake_share_servers))
 
-        self.run_command('share-server-delete %s' % args)
+        self.run_command('share-server-delete %s' % ' '.join(server_ids))
 
-        self.assert_called_anytime(
-            'DELETE', '/share-servers/%s' % args_split[0],
-            clear_callstack=False)
-        self.assert_called_anytime(
-            'DELETE', '/share-servers/%s' % args_split[-1])
+        shell_v2._find_share_server.assert_has_calls([
+            mock.call(self.shell.cs, s_id) for s_id in server_ids
+        ])
+        for server in fake_share_servers:
+            self.assert_called_anytime(
+                'DELETE', '/share-servers/%s' % server.id,
+                clear_callstack=False)
