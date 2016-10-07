@@ -32,6 +32,7 @@ SHARE = 'share'
 SHARE_TYPE = 'share_type'
 SHARE_NETWORK = 'share_network'
 SHARE_SERVER = 'share_server'
+SNAPSHOT = 'snapshot'
 
 
 def not_found_wrapper(f):
@@ -40,7 +41,7 @@ def not_found_wrapper(f):
         try:
             return f(self, *args, **kwargs)
         except tempest_lib_exc.CommandFailed as e:
-            for regexp in ('No (\w+) with a name or ID', 'not found'):
+            for regexp in ('No (\w+) with a name or ID', 'not(.*){0,5}found'):
                 if re.search(regexp, e.stderr):
                     # Raise appropriate 'NotFound' error
                     raise tempest_lib_exc.NotFound()

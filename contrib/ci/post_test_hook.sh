@@ -60,6 +60,9 @@ iniset $MANILACLIENT_CONF DEFAULT admin_user_domain_id $OS_USER_DOMAIN_ID
 SUPPRESS_ERRORS=${SUPPRESS_ERRORS_IN_CLEANUP:-True}
 iniset $MANILACLIENT_CONF DEFAULT suppress_errors_in_cleanup $SUPPRESS_ERRORS
 
+# Set access type usage specific to dummy driver that we are using in CI
+iniset $MANILACLIENT_CONF DEFAULT access_types_mapping "nfs:ip,cifs:user"
+
 # Create share network and use it for functional tests if required
 USE_SHARE_NETWORK=$(trueorfalse True USE_SHARE_NETWORK)
 if [[ ${USE_SHARE_NETWORK} = True ]]; then

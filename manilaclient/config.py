@@ -140,7 +140,7 @@ share_opts = [
                      "Allowed share protocols: nfs, cifs, cephfs, glusterfs, "
                      "hdfs."),
     cfg.StrOpt("username_for_user_rules",
-               default="TESTDOMAIN\\Administrator",
+               default="stack",
                help="Username, that will be used in share access tests for "
                     "user type of access."),
     cfg.BoolOpt("run_snapshot_tests",

@@ -15,7 +15,7 @@
 # This script is executed inside pre_test_hook function in devstack gate.
 
 # Run manila's pre_test_hook.sh script first
-source $BASE/new/manila/contrib/ci/pre_test_hook.sh True generic multibackend
+source $BASE/new/manila/contrib/ci/pre_test_hook.sh True dummy multibackend
 
 localrc_path=$BASE/new/devstack/localrc
 

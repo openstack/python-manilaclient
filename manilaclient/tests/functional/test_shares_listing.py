@@ -145,9 +145,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
         filters = filters or dict()
         shares = self.user_client.list_shares(filters=filters)
 
-        self.assertTrue(len(shares) > 1)
-        for s_id in (self.private_share['id'], self.public_share['id']):
-            self.assertTrue(any(s_id == s['ID'] for s in shares))
+        self.assertTrue(len(shares) > 0)
         if filters:
             for share in shares:
                 try:
