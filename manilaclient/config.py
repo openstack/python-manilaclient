@@ -26,6 +26,7 @@ from manilaclient import api_versions
 # "auth_opts" are used by functional tests that are located in
 # directory "%project_root%/manilaclient/tests/functional"
 auth_opts = [
+    # Options for user with 'member' role.
     cfg.StrOpt("username",
                help="This should be the username of a user WITHOUT "
                     "administrative privileges."),
@@ -36,6 +37,20 @@ auth_opts = [
     cfg.StrOpt("auth_url",
                help="URL for where to find the OpenStack Identity public "
                     "API endpoint."),
+    cfg.StrOpt("project_domain_name",
+               help=("Project domain Name of user with 'member' role "
+                     "as specified for auth v3.")),
+    cfg.StrOpt("project_domain_id",
+               help=("Project domain ID of user with 'member' role "
+                     "as specified for auth v3.")),
+    cfg.StrOpt("user_domain_name",
+               help=("User domain Name of user with 'member' role "
+                     "as specified for auth v3.")),
+    cfg.StrOpt("user_domain_id",
+               help=("User domain ID of user with 'member' role "
+                     "as specified for auth v3.")),
+
+    # Options for user with 'admin' role.
     cfg.StrOpt("admin_username",
                help="This should be the username of a user WITH "
                     "administrative privileges."),
@@ -46,6 +61,20 @@ auth_opts = [
     cfg.StrOpt("admin_auth_url",
                help="URL for where to find the OpenStack Identity admin "
                     "API endpoint."),
+    cfg.StrOpt("admin_project_domain_name",
+               help=("Project domain Name of user with 'admin' role "
+                     "as specified for auth v3.")),
+    cfg.StrOpt("admin_project_domain_id",
+               help=("Project domain ID of user with 'admin' role "
+                     "as specified for auth v3.")),
+    cfg.StrOpt("admin_user_domain_name",
+               help=("User domain Name of user with 'admin' role "
+                     "as specified for auth v3.")),
+    cfg.StrOpt("admin_user_domain_id",
+               help=("User domain ID of user with 'admin' role "
+                     "as specified for auth v3.")),
+
+    # Other auth options
     cfg.BoolOpt("insecure",
                 default=False,
                 help="Disable SSL certificate verification."),
