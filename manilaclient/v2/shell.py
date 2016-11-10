@@ -543,7 +543,7 @@ def do_rate_limits(cs, args):
     'share_protocol',
     metavar='<share_protocol>',
     type=str,
-    help='Share type (NFS, CIFS, CephFS, GlusterFS or HDFS).')
+    help='Share protocol (NFS, CIFS, CephFS, GlusterFS or HDFS).')
 @cliutils.arg(
     'size',
     metavar='<size>',
