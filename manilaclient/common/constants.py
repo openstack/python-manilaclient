@@ -73,6 +73,12 @@ CG_SNAPSHOT_MEMBERS_SORT_KEY_VALUES = (
     'cgsnapshot_id',
 )
 
+TASK_STATE_MIGRATION_SUCCESS = 'migration_success'
+TASK_STATE_MIGRATION_ERROR = 'migration_error'
+TASK_STATE_MIGRATION_CANCELLED = 'migration_cancelled'
+TASK_STATE_MIGRATION_DRIVER_PHASE1_DONE = 'migration_driver_phase1_done'
+TASK_STATE_DATA_COPYING_COMPLETED = 'data_copying_completed'
+
 EXPERIMENTAL_HTTP_HEADER = 'X-OpenStack-Manila-API-Experimental'
 V1_SERVICE_TYPE = 'share'
 V2_SERVICE_TYPE = 'sharev2'

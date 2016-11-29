@@ -1,0 +1,11 @@
+---
+features:
+  - Added 'preserve-snapshots' to migration-start command.
+upgrades:
+  - Share migration driver-assisted parameters are now mandatory.
+deprecations:
+  - Support for the experimental share migration APIs has been
+    dropped for API microversions prior to 2.29.
+fixes:
+  - Updated descriptions of migration-start parameters.
+

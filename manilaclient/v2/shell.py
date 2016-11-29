@@ -652,7 +652,7 @@ def do_create(cs, args):
     _print_share(cs, share)
 
 
-@api_versions.wraps("2.22")
+@api_versions.wraps("2.29")
 @cliutils.arg(
     'share',
     metavar='<share>',
@@ -660,56 +660,61 @@ def do_create(cs, args):
 @cliutils.arg(
     'host',
     metavar='<host@backend#pool>',
-    help="Destination host, backend and pool in format 'host@backend#pool'.")
+    help="Destination host where share will be migrated to. Use the "
+         "format 'host@backend#pool'.")
 @cliutils.arg(
     '--force_host_assisted_migration',
     '--force-host-assisted-migration',
     metavar='<True|False>',
     choices=['True', 'False'],
-    required=False,
     action='single_alias',
-    help='Enables or disables generic host-based force-migration, which '
-         'bypasses driver optimizations. Default=False. '
-         'Renamed from "force_host_copy" in version 2.22.',
-    default=False)
+    required=False,
+    default=False,
+    help="Enforces the use of the host-assisted migration approach, "
+         "which bypasses driver optimizations. Default=False.")
 @cliutils.arg(
     '--preserve-metadata',
     '--preserve_metadata',
     action='single_alias',
     metavar='<True|False>',
     choices=['True', 'False'],
-    required=False,
-    help='Chooses whether migration should be forced to preserve all file '
-         'metadata when moving its contents. Default=True. '
-         'Introduced in version 2.22.',
-    default=True)
+    required=True,
+    help="Enforces migration to preserve all file metadata when moving its "
+         "contents. If set to True, host-assisted migration will not be "
+         "attempted.")
+@cliutils.arg(
+    '--preserve-snapshots',
+    '--preserve_snapshots',
+    action='single_alias',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=True,
+    help="Enforces migration of the share snapshots to the destination. If "
+         "set to True, host-assisted migration will not be attempted.")
 @cliutils.arg(
     '--writable',
     metavar='<True|False>',
     choices=['True', 'False'],
-    required=False,
-    help='Chooses whether migration should be forced to remain writable '
-         'while contents are being moved. Default=True. '
-         'Introduced in version 2.22.',
-    default=True)
+    required=True,
+    help="Enforces migration to keep the share writable while contents are "
+         "being moved. If set to True, host-assisted migration will not be "
+         "attempted.")
 @cliutils.arg(
-    '--non-disruptive',
-    '--non_disruptive',
-    action='single_alias',
+    '--nondisruptive',
     metavar='<True|False>',
     choices=['True', 'False'],
-    required=False,
-    help='Chooses whether migration should only be performed if it is not '
-         'disruptive. Default=False. Introduced in version 2.22.',
-    default=False)
+    required=True,
+    help="Enforces migration to be nondisruptive. If set to True, "
+         "host-assisted migration will not be attempted.")
 @cliutils.arg(
     '--new_share_network',
     '--new-share-network',
     metavar='<new_share_network>',
     action='single_alias',
     required=False,
-    help='Specifies a new share network if desired to change. Default=None. '
-         'Introduced in version 2.22.',
+    help='Specify the new share network for the share. Do not specify this '
+         'parameter if the migrating share has to be retained within its '
+         'current share network.',
     default=None)
 @cliutils.arg(
     '--new_share_type',
@@ -717,8 +722,9 @@ def do_create(cs, args):
     metavar='<new_share_type>',
     required=False,
     action='single_alias',
-    help='Specifies a new share type if desired to change. Default=None. '
-         'Introduced in version 2.22.',
+    help='Specify the new share type for the share. Do not specify this '
+         'parameter if the migrating share has to be retained with its '
+         'current share type.',
     default=None)
 def do_migration_start(cs, args):
     """Migrates share to a new host (Admin only, Experimental)."""
@@ -733,8 +739,8 @@ def do_migration_start(cs, args):
         new_share_type_id = share_type.id if share_type else None
     share.migration_start(args.host, args.force_host_assisted_migration,
                           args.preserve_metadata, args.writable,
-                          args.non_disruptive, new_share_net_id,
-                          new_share_type_id)
+                          args.nondisruptive, args.preserve_snapshots,
+                          new_share_net_id, new_share_type_id)
 
 
 @cliutils.arg(

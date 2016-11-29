@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ast
 import six
 from tempest.lib.cli import output_parser
 import testtools
@@ -117,3 +118,23 @@ def skip_if_microversion_not_supported(microversion):
                   "allowed to be used by configuration." % microversion)
         return testtools.skip(reason)
     return lambda f: f
+
+
+def choose_matching_backend(share, pools, share_type):
+    extra_specs = {}
+
+    # convert extra-specs in provided type to dict format
+    pair = [x.strip() for x in share_type['required_extra_specs'].split(':')]
+    if len(pair) == 2:
+        value = (True if six.text_type(pair[1]).lower() == 'true'
+                 else False if six.text_type(pair[1]).lower() == 'false'
+                 else pair[1])
+        extra_specs[pair[0]] = value
+
+    selected_pool = next(
+        (x for x in pools if (x['Name'] != share['host'] and all(
+            y in ast.literal_eval(x['Capabilities']).items() for y in
+            extra_specs.items()))),
+        None)
+
+    return selected_pool['Name']

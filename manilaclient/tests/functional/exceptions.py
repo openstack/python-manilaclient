@@ -54,3 +54,8 @@ class AccessRuleCreateErrorException(exceptions.TempestException):
 
 class AccessRuleDeleteErrorException(exceptions.TempestException):
     message = "Access rule %(access)s failed to delete and is in ERROR state."
+
+
+class ShareMigrationException(exceptions.TempestException):
+    message = ("Share %(share_id)s failed to migrate from "
+               "host %(src)s to host %(dest)s.")

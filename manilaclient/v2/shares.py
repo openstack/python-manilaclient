@@ -44,14 +44,14 @@ class Share(common_base.Resource):
         self.manager.unmanage(self, **kwargs)
 
     def migration_start(self, host, force_host_assisted_migration,
-                        preserve_metadata=True, writable=True,
-                        nondisruptive=False, new_share_network_id=None,
+                        preserve_metadata, writable, nondisruptive,
+                        preserve_snapshots, new_share_network_id=None,
                         new_share_type_id=None):
         """Migrate the share to a new host."""
         self.manager.migration_start(self, host, force_host_assisted_migration,
                                      preserve_metadata, writable,
-                                     nondisruptive, new_share_network_id,
-                                     new_share_type_id)
+                                     nondisruptive, preserve_snapshots,
+                                     new_share_network_id, new_share_type_id)
 
     def migration_complete(self):
         """Complete migration of a share."""
@@ -154,17 +154,18 @@ class ShareManager(base.ManagerWithFind):
         }
         return self._create('/shares', {'share': body}, 'share')
 
-    @api_versions.wraps("2.22")
+    @api_versions.wraps("2.29")
     @api_versions.experimental_api
     def migration_start(self, share, host, force_host_assisted_migration,
-                        preserve_metadata=True, writable=True,
-                        nondisruptive=False, new_share_network_id=None,
+                        preserve_metadata, writable, nondisruptive,
+                        preserve_snapshots, new_share_network_id=None,
                         new_share_type_id=None):
         return self._action(
             "migration_start", share, {
                 "host": host,
                 "force_host_assisted_migration": force_host_assisted_migration,
                 "preserve_metadata": preserve_metadata,
+                "preserve_snapshots": preserve_snapshots,
                 "writable": writable,
                 "nondisruptive": nondisruptive,
                 "new_share_network_id": new_share_network_id,

@@ -2076,10 +2076,10 @@ class ShellTest(test_utils.TestCase):
                            body=expected)
 
     def test_migration_start(self):
-        command = ("migration-start --preserve-metadata False --writable False"
-                   " --force-host-assisted-migration True "
-                   "--non-disruptive True --new-share-network 1111 "
-                   "--new-share-type 1 1234 host@backend#pool")
+        command = ("migration-start --force-host-assisted-migration True "
+                   "--new-share-network 1111 --new-share-type 1 1234 "
+                   "host@backend#pool --writable False --nondisruptive True "
+                   "--preserve-metadata False --preserve-snapshots True")
         self.run_command(command)
         expected = {'migration_start': {
             'host': 'host@backend#pool',
@@ -2087,6 +2087,7 @@ class ShellTest(test_utils.TestCase):
             'preserve-metadata': 'False',
             'writable': 'False',
             'nondisruptive': 'True',
+            'preserve_snapshots': 'True',
             'new_share_network_id': '1111',
             'new_share_type_id': '1'
         }}

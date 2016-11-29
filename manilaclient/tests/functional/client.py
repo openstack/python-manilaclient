@@ -23,6 +23,7 @@ from tempest.lib.cli import output_parser
 from tempest.lib.common.utils import data_utils
 from tempest.lib import exceptions as tempest_lib_exc
 
+from manilaclient.common import constants
 from manilaclient import config
 from manilaclient.tests.functional import exceptions
 from manilaclient.tests.functional import utils
@@ -713,6 +714,36 @@ class ManilaCLIClient(base.CLIClient):
                         "build_timeout": self.build_timeout})
                 raise tempest_lib_exc.TimeoutException(message)
 
+    def wait_for_migration_task_state(self, share_id, dest_host,
+                                      task_state_to_wait, microversion=None):
+        """Waits for a share to migrate to a certain host."""
+        statuses = ((task_state_to_wait,)
+                    if not isinstance(task_state_to_wait, (tuple, list, set))
+                    else task_state_to_wait)
+        share = self.get_share(share_id, microversion=microversion)
+        start = int(time.time())
+        while share['task_state'] not in statuses:
+            time.sleep(self.build_interval)
+            share = self.get_share(share_id, microversion=microversion)
+            if share['task_state'] in statuses:
+                break
+            elif share['task_state'] == constants.TASK_STATE_MIGRATION_ERROR:
+                raise exceptions.ShareMigrationException(
+                    share_id=share['id'], src=share['host'], dest=dest_host)
+            elif int(time.time()) - start >= self.build_timeout:
+                message = ('Share %(share_id)s failed to reach a status in'
+                           '%(status)s when migrating from host %(src)s to '
+                           'host %(dest)s within the required time '
+                           '%(timeout)s.' % {
+                               'src': share['host'],
+                               'dest': dest_host,
+                               'share_id': share['id'],
+                               'timeout': self.build_timeout,
+                               'status': six.text_type(statuses),
+                           })
+                raise tempest_lib_exc.TimeoutException(message)
+        return share
+
     @not_found_wrapper
     def _set_share_metadata(self, share, data, update_all=False,
                             microversion=None):
@@ -980,6 +1011,47 @@ class ManilaCLIClient(base.CLIClient):
             'state': state,
             'share': share_id,
         }, microversion=version)
+
+    def migration_start(self, share_id, dest_host, writable, nondisruptive,
+                        preserve_metadata, preserve_snapshots,
+                        force_host_assisted_migration, new_share_network=None,
+                        new_share_type=None):
+        cmd = ('migration-start %(share)s %(host)s '
+               '--writable %(writable)s --nondisruptive %(nondisruptive)s '
+               '--preserve-metadata %(preserve_metadata)s '
+               '--preserve-snapshots %(preserve_snapshots)s') % {
+            'share': share_id,
+            'host': dest_host,
+            'writable': writable,
+            'nondisruptive': nondisruptive,
+            'preserve_metadata': preserve_metadata,
+            'preserve_snapshots': preserve_snapshots,
+        }
+        if force_host_assisted_migration:
+            cmd += (' --force-host-assisted-migration %s'
+                    % force_host_assisted_migration)
+        if new_share_network:
+            cmd += ' --new-share-network %s' % new_share_network
+        if new_share_type:
+            cmd += ' --new-share-type %s' % new_share_type
+        return self.manila(cmd)
+
+    def migration_complete(self, share_id):
+        return self.manila('migration-complete %s' % share_id)
+
+    def migration_cancel(self, share_id):
+        return self.manila('migration-cancel %s' % share_id)
+
+    def migration_get_progress(self, share_id):
+        result = self.manila('migration-get-progress %s' % share_id)
+        return output_parser.details(result)
+
+    def pool_list(self, detail=False):
+        cmd = 'pool-list'
+        if detail:
+            cmd += ' --detail'
+        response = self.manila(cmd)
+        return output_parser.listing(response)
 
     def create_security_service(self, type='ldap', name=None, description=None,
                                 dns_ip=None, server=None, domain=None,

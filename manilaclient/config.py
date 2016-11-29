@@ -154,6 +154,12 @@ share_opts = [
                      "or not. Disable this feature if used driver doesn't "
                      "support it or when autodeletion of share servers "
                      "is enabled."),
+    cfg.BoolOpt("run_migration_tests",
+                default=False,
+                help="Defines whether to run share migration tests or not. "
+                     "Disable this feature if there is no more than one "
+                     "storage pool being tested or if used driver does not "
+                     "support it."),
 ]
 
 # 2. Generate config
