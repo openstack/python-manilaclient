@@ -145,7 +145,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
         filters = filters or dict()
         shares = self.user_client.list_shares(filters=filters)
 
-        self.assertTrue(len(shares) > 0)
+        self.assertGreater(len(shares), 0)
         if filters:
             for share in shares:
                 try:
@@ -188,7 +188,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
     @ddt.data(True, False)
     def test_list_shares_with_public(self, public):
         shares = self.user_client.list_shares(is_public=public)
-        self.assertTrue(len(shares) > 1)
+        self.assertGreater(len(shares), 1)
         if public:
             self.assertTrue(all('Project ID' in s for s in shares))
         else:

@@ -37,7 +37,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         export_locations = client.list_share_export_locations(
             self.share['id'])
 
-        self.assertTrue(len(export_locations) > 0)
+        self.assertGreater(len(export_locations), 0)
         expected_keys = ('ID', 'Path', 'Preferred')
         for el in export_locations:
             for key in expected_keys:
@@ -53,7 +53,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         export_locations = client.list_share_export_locations(
             self.share['id'], columns='id,path')
 
-        self.assertTrue(len(export_locations) > 0)
+        self.assertGreater(len(export_locations), 0)
         expected_keys = ('Id', 'Path')
         unexpected_keys = ('Updated At', 'Created At')
         for el in export_locations:
@@ -94,7 +94,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
 
         client = self.admin_client
         share_instances = client.list_share_instances(self.share['id'])
-        self.assertTrue(len(share_instances) > 0)
+        self.assertGreater(len(share_instances), 0)
         self.assertIn('ID', share_instances[0])
         self.assertTrue(uuidutils.is_uuid_like(share_instances[0]['ID']))
         share_instance_id = share_instances[0]['ID']
@@ -102,7 +102,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         export_locations = client.list_share_instance_export_locations(
             share_instance_id)
 
-        self.assertTrue(len(export_locations) > 0)
+        self.assertGreater(len(export_locations), 0)
         expected_keys = ('ID', 'Path', 'Is Admin only', 'Preferred')
         for el in export_locations:
             for key in expected_keys:
@@ -114,7 +114,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
 
         client = self.admin_client
         share_instances = client.list_share_instances(self.share['id'])
-        self.assertTrue(len(share_instances) > 0)
+        self.assertGreater(len(share_instances), 0)
         self.assertIn('ID', share_instances[0])
         self.assertTrue(uuidutils.is_uuid_like(share_instances[0]['ID']))
         share_instance_id = share_instances[0]['ID']
@@ -122,7 +122,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         export_locations = client.list_share_instance_export_locations(
             share_instance_id, columns='id,path')
 
-        self.assertTrue(len(export_locations) > 0)
+        self.assertGreater(len(export_locations), 0)
         expected_keys = ('Id', 'Path')
         unexpected_keys = ('Updated At', 'Created At', 'Is Admin only')
         for el in export_locations:
@@ -137,7 +137,7 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
 
         client = self.admin_client
         share_instances = client.list_share_instances(self.share['id'])
-        self.assertTrue(len(share_instances) > 0)
+        self.assertGreater(len(share_instances), 0)
         self.assertIn('ID', share_instances[0])
         self.assertTrue(uuidutils.is_uuid_like(share_instances[0]['ID']))
         share_instance_id = share_instances[0]['ID']

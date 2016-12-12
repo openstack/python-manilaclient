@@ -150,7 +150,7 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
     def _list_share_networks_with_filters(self, filters):
         share_networks = self.admin_client.list_share_networks(filters=filters)
 
-        self.assertTrue(len(share_networks) > 0)
+        self.assertGreater(len(share_networks), 0)
         self.assertTrue(
             any(self.sn['id'] == sn['id'] for sn in share_networks))
         for sn in share_networks:

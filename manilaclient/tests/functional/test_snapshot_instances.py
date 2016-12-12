@@ -43,7 +43,7 @@ class SnapshotInstancesTest(base.BaseTestCase):
     def test_list_all_snapshot_instances(self):
         snapshot_instances = self.admin_client.list_snapshot_instances()
 
-        self.assertTrue(len(snapshot_instances) > 0)
+        self.assertGreater(len(snapshot_instances), 0)
         expected_keys = ('ID', 'Snapshot ID', 'Status')
         for si in snapshot_instances:
             for key in expected_keys:
@@ -55,7 +55,7 @@ class SnapshotInstancesTest(base.BaseTestCase):
         snapshot_instances = self.admin_client.list_snapshot_instances(
             detailed=True)
 
-        self.assertTrue(len(snapshot_instances) > 0)
+        self.assertGreater(len(snapshot_instances), 0)
         expected_keys = ('ID', 'Snapshot ID', 'Status', 'Created_at',
                          'Updated_at', 'Share_id', 'Share_instance_id',
                          'Progress', 'Provider_location')
@@ -82,7 +82,7 @@ class SnapshotInstancesTest(base.BaseTestCase):
         snapshot_instances = self.admin_client.list_snapshot_instances(
             self.snapshot['id'], columns='id,status')
 
-        self.assertTrue(len(snapshot_instances) > 0)
+        self.assertGreater(len(snapshot_instances), 0)
         expected_keys = ('Id', 'Status')
         unexpected_keys = ('Snapshot ID', )
         for si in snapshot_instances:
@@ -98,7 +98,7 @@ class SnapshotInstancesTest(base.BaseTestCase):
 
         snapshot_instance = self.admin_client.get_snapshot_instance(
             snapshot_instances[0]['ID'])
-        self.assertTrue(len(snapshot_instance) > 0)
+        self.assertGreater(len(snapshot_instance), 0)
         expected_keys = ('id', 'snapshot_id', 'status', 'created_at',
                          'updated_at', 'share_id', 'share_instance_id',
                          'progress', 'provider_location')
