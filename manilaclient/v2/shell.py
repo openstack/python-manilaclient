@@ -1934,13 +1934,16 @@ def do_reset_state(cs, args):
     share.reset_state(args.state)
 
 
+@api_versions.wraps("1.0", "2.25")
 @cliutils.arg(
     '--nova-net-id',
     '--nova-net_id', '--nova_net_id', '--nova_net-id',  # aliases
     metavar='<nova-net-id>',
     default=None,
     action='single_alias',
-    help="Nova net ID. Used to set up network for share servers.")
+    help="Nova net ID. Used to set up network for share servers. This "
+         "option is deprecated and will be rejected in newer releases "
+         "of OpenStack Manila.")
 @cliutils.arg(
     '--neutron-net-id',
     '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
@@ -1968,17 +1971,58 @@ def do_reset_state(cs, args):
     help="Share network description.")
 def do_share_network_create(cs, args):
     """Create description for network used by the tenant."""
-    values = dict(
-        neutron_net_id=args.neutron_net_id,
-        neutron_subnet_id=args.neutron_subnet_id,
-        nova_net_id=args.nova_net_id,
-        name=args.name,
-        description=args.description)
+    values = {
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'nova_net_id': args.nova_net_id,
+        'name': args.name,
+        'description': args.description,
+    }
     share_network = cs.share_networks.create(**values)
     info = share_network._info.copy()
     cliutils.print_dict(info)
 
 
+@api_versions.wraps("2.26")  # noqa
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
+    metavar='<neutron-net-id>',
+    default=None,
+    action='single_alias',
+    help="Neutron network ID. Used to set up network for share servers.")
+@cliutils.arg(
+    '--neutron-subnet-id',
+    '--neutron-subnet_id', '--neutron_subnet_id', '--neutron_subnet-id',
+    metavar='<neutron-subnet-id>',
+    default=None,
+    action='single_alias',
+    help="Neutron subnet ID. Used to set up network for share servers. "
+         "This subnet should belong to specified neutron network.")
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help="Share network name.")
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    default=None,
+    help="Share network description.")
+def do_share_network_create(cs, args):
+    """Create description for network used by the tenant."""
+    values = {
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'name': args.name,
+        'description': args.description,
+    }
+    share_network = cs.share_networks.create(**values)
+    info = share_network._info.copy()
+    cliutils.print_dict(info)
+
+
+@api_versions.wraps("1.0", "2.25")
 @cliutils.arg(
     'share_network',
     metavar='<share-network>',
@@ -1989,7 +2033,9 @@ def do_share_network_create(cs, args):
     metavar='<nova-net-id>',
     default=None,
     action='single_alias',
-    help="Nova net ID. Used to set up network for share servers.")
+    help="Nova net ID. Used to set up network for share servers. This "
+         "option is deprecated and will be rejected in newer releases "
+         "of OpenStack Manila.")
 @cliutils.arg(
     '--neutron-net-id',
     '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
@@ -2017,12 +2063,59 @@ def do_share_network_create(cs, args):
     help="Share network description.")
 def do_share_network_update(cs, args):
     """Update share network data."""
-    values = dict(
-        neutron_net_id=args.neutron_net_id,
-        neutron_subnet_id=args.neutron_subnet_id,
-        nova_net_id=args.nova_net_id,
-        name=args.name,
-        description=args.description)
+    values = {
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'nova_net_id': args.nova_net_id,
+        'name': args.name,
+        'description': args.description,
+    }
+    share_network = _find_share_network(
+        cs, args.share_network).update(**values)
+    info = share_network._info.copy()
+    cliutils.print_dict(info)
+
+
+@api_versions.wraps("2.26")  # noqa
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Name or ID of share network to update.')
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
+    metavar='<neutron-net-id>',
+    default=None,
+    action='single_alias',
+    help="Neutron network ID. Used to set up network for share servers. This "
+         "option is deprecated and will be rejected in newer releases of "
+         "OpenStack Manila.")
+@cliutils.arg(
+    '--neutron-subnet-id',
+    '--neutron-subnet_id', '--neutron_subnet_id', '--neutron_subnet-id',
+    metavar='<neutron-subnet-id>',
+    default=None,
+    action='single_alias',
+    help="Neutron subnet ID. Used to set up network for share servers. "
+         "This subnet should belong to specified neutron network.")
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help="Share network name.")
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    default=None,
+    help="Share network description.")
+def do_share_network_update(cs, args):
+    """Update share network data."""
+    values = {
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'name': args.name,
+        'description': args.description,
+    }
     share_network = _find_share_network(
         cs, args.share_network).update(**values)
     info = share_network._info.copy()
@@ -2040,6 +2133,7 @@ def do_share_network_show(cs, args):
     cliutils.print_dict(info)
 
 
+@api_versions.wraps("1.0", "2.25")
 @cliutils.arg(
     '--all-tenants',
     dest='all_tenants',
@@ -2090,7 +2184,8 @@ def do_share_network_show(cs, args):
     metavar='<nova_net_id>',
     action='single_alias',
     default=None,
-    help='Filter results by Nova net ID.')
+    help='Filter results by Nova net ID. This option is deprecated and will '
+         'be rejected in newer releases of OpenStack Manila.')
 @cliutils.arg(
     '--neutron-net-id',
     '--neutron_net_id', '--neutron_net-id', '--neutron-net_id',  # aliases
@@ -2163,6 +2258,143 @@ def do_share_network_list(cs, args):
         'created_since': args.created_since,
         'created_before': args.created_before,
         'nova_net_id': args.nova_net_id,
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'network_type': args.network_type,
+        'segmentation_id': args.segmentation_id,
+        'cidr': args.cidr,
+        'ip_version': args.ip_version,
+        'offset': args.offset,
+        'limit': args.limit,
+    }
+    if args.security_service:
+        search_opts['security_service_id'] = _find_security_service(
+            cs, args.security_service).id
+    share_networks = cs.share_networks.list(search_opts=search_opts)
+    fields = ['id', 'name']
+
+    if args.columns is not None:
+        fields = _split_columns(columns=args.columns)
+
+    cliutils.print_list(share_networks, fields=fields)
+
+
+@api_versions.wraps("2.26")  # noqa
+@cliutils.arg(
+    '--all-tenants',
+    dest='all_tenants',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help='Display information from all tenants (Admin only).')
+@cliutils.arg(
+    '--project-id',
+    '--project_id',  # alias
+    metavar='<project_id>',
+    action='single_alias',
+    default=None,
+    help='Filter results by project ID.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help='Filter results by name.')
+@cliutils.arg(
+    '--created-since',
+    '--created_since',  # alias
+    metavar='<created_since>',
+    action='single_alias',
+    default=None,
+    help='''Return only share networks created since given date. '''
+         '''The date is in the format 'yyyy-mm-dd'.''')
+@cliutils.arg(
+    '--created-before',
+    '--created_before',  # alias
+    metavar='<created_before>',
+    action='single_alias',
+    default=None,
+    help='''Return only share networks created until given date. '''
+         '''The date is in the format 'yyyy-mm-dd'.''')
+@cliutils.arg(
+    '--security-service',
+    '--security_service',  # alias
+    metavar='<security_service>',
+    action='single_alias',
+    default=None,
+    help='Filter results by attached security service.')
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron_net_id', '--neutron_net-id', '--neutron-net_id',  # aliases
+    metavar='<neutron_net_id>',
+    action='single_alias',
+    default=None,
+    help='Filter results by neutron net ID.')
+@cliutils.arg(
+    '--neutron-subnet-id',
+    '--neutron_subnet_id', '--neutron-subnet_id',  # aliases
+    '--neutron_subnet-id',  # alias
+    metavar='<neutron_subnet_id>',
+    action='single_alias',
+    default=None,
+    help='Filter results by neutron subnet ID.')
+@cliutils.arg(
+    '--network-type',
+    '--network_type',  # alias
+    metavar='<network_type>',
+    action='single_alias',
+    default=None,
+    help='Filter results by network type.')
+@cliutils.arg(
+    '--segmentation-id',
+    '--segmentation_id',  # alias
+    metavar='<segmentation_id>',
+    type=int,
+    action='single_alias',
+    default=None,
+    help='Filter results by segmentation ID.')
+@cliutils.arg(
+    '--cidr',
+    metavar='<cidr>',
+    default=None,
+    help='Filter results by CIDR.')
+@cliutils.arg(
+    '--ip-version',
+    '--ip_version',  # alias
+    metavar='<ip_version>',
+    type=int,
+    action='single_alias',
+    default=None,
+    help='Filter results by IP version.')
+@cliutils.arg(
+    '--offset',
+    metavar='<offset>',
+    type=int,
+    default=None,
+    help='Start position of share networks listing.')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Number of share networks to return per request.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'e.g. --columns "id"')
+def do_share_network_list(cs, args):
+    """Get a list of network info."""
+    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    search_opts = {
+        'all_tenants': all_tenants,
+        'project_id': args.project_id,
+        'name': args.name,
+        'created_since': args.created_since,
+        'created_before': args.created_before,
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
         'network_type': args.network_type,

@@ -27,7 +27,7 @@ from manilaclient import utils
 
 LOG = logging.getLogger(__name__)
 
-MAX_VERSION = '2.24'
+MAX_VERSION = '2.26'
 MIN_VERSION = '2.0'
 DEPRECATED_VERSION = '1.0'
 _VERSIONED_METHOD_MAP = {}

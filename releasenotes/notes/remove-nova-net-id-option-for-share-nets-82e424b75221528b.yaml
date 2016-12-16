@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    Added new microversion in which ``nova-net-id`` option is no longer allowed
+    for share-network create or update commands.  Nova networking was deprecated
+    in OpenStack in Newton and is no longer supported for general deployments in
+    Ocata.

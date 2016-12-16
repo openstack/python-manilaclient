@@ -20,6 +20,7 @@ except ImportError:
 
 import six
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
@@ -49,6 +50,7 @@ class ShareNetworkManager(base.ManagerWithFind):
     """Manage :class:`ShareNetwork` resources."""
     resource_class = ShareNetwork
 
+    @api_versions.wraps("1.0", "2.25")
     def create(self, neutron_net_id=None, neutron_subnet_id=None,
                nova_net_id=None, name=None, description=None):
         """Create share network.
@@ -67,6 +69,31 @@ class ShareNetworkManager(base.ManagerWithFind):
             values['neutron_subnet_id'] = neutron_subnet_id
         if nova_net_id:
             values['nova_net_id'] = nova_net_id
+        if name:
+            values['name'] = name
+        if description:
+            values['description'] = description
+
+        body = {RESOURCE_NAME: values}
+
+        return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
+
+    @api_versions.wraps("2.26")  # noqa
+    def create(self, neutron_net_id=None, neutron_subnet_id=None,
+               name=None, description=None):
+        """Create share network.
+
+        :param neutron_net_id: ID of Neutron network
+        :param neutron_subnet_id: ID of Neutron subnet
+        :param name: share network name
+        :param description: share network description
+        :rtype: :class:`ShareNetwork`
+        """
+        values = {}
+        if neutron_net_id:
+            values['neutron_net_id'] = neutron_net_id
+        if neutron_subnet_id:
+            values['neutron_subnet_id'] = neutron_subnet_id
         if name:
             values['name'] = name
         if description:
@@ -121,6 +148,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._get(RESOURCE_PATH % common_base.getid(share_network),
                          RESOURCE_NAME)
 
+    @api_versions.wraps("1.0", "2.25")
     def update(self, share_network, neutron_net_id=None,
                neutron_subnet_id=None, nova_net_id=None,
                name=None, description=None):
@@ -136,6 +164,38 @@ class ShareNetworkManager(base.ManagerWithFind):
             values['neutron_subnet_id'] = neutron_subnet_id
         if nova_net_id is not None:
             values['nova_net_id'] = nova_net_id
+        if name is not None:
+            values['name'] = name
+        if description is not None:
+            values['description'] = description
+
+        for k, v in six.iteritems(values):
+            if v == '':
+                values[k] = None
+
+        if not values:
+            msg = "Must specify fields to be updated"
+            raise exceptions.CommandError(msg)
+
+        body = {RESOURCE_NAME: values}
+        return self._update(RESOURCE_PATH % common_base.getid(share_network),
+                            body,
+                            RESOURCE_NAME)
+
+    @api_versions.wraps("2.26")  # noqa
+    def update(self, share_network, neutron_net_id=None,
+               neutron_subnet_id=None, name=None,
+               description=None):
+        """Updates a share network.
+
+        :param share_network: share network to update.
+        :rtype: :class:`ShareNetwork`
+        """
+        values = {}
+        if neutron_net_id is not None:
+            values['neutron_net_id'] = neutron_net_id
+        if neutron_subnet_id is not None:
+            values['neutron_subnet_id'] = neutron_subnet_id
         if name is not None:
             values['name'] = name
         if description is not None:
