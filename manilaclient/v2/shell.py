@@ -1509,8 +1509,8 @@ def do_share_instance_force_delete(cs, args):
     metavar='<state>',
     default='available',
     help=('Indicate which state to assign the instance. Options include '
-          'available, error, creating, deleting, error_deleting. If no '
-          'state is provided, available will be used.'))
+          'available, error, creating, deleting, error_deleting, migrating,'
+          'migrating_to. If no state is provided, available will be used.'))
 @api_versions.wraps("2.3")
 def do_share_instance_reset_state(cs, args):
     """Explicitly update the state of a share instance (Admin only)."""
