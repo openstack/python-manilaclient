@@ -1602,6 +1602,17 @@ class ShellTest(test_utils.TestCase):
             fields=["Name", "Host", "Backend", "Pool"])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_pool_list_with_detail(self):
+        self.run_command('pool-list --detail')
+        self.assert_called(
+            'GET',
+            '/scheduler-stats/pools/detail?backend=.%2A&host=.%2A&pool=.%2A',
+        )
+        cliutils.print_list.assert_called_with(
+            mock.ANY,
+            fields=["Name", "Host", "Backend", "Pool", 'Capabilities'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list_select_column(self):
         self.run_command('pool-list --columns name,host')
         self.assert_called(
@@ -1612,13 +1623,17 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             fields=["Name", "Host"])
 
+    @ddt.data('--share-type test_type', '--share_type test_type',
+              '--share-type-id 0123456789', '--share_type_id 0123456789')
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_pool_list_with_filters(self):
-        self.run_command(
-            'pool-list --host host1 --backend backend1 --pool pool1')
+    def test_pool_list_with_filters(self, param):
+        cmd = ('pool-list --host host1 --backend backend1 --pool pool1' + ' ' +
+               param)
+        self.run_command(cmd)
         self.assert_called(
             'GET',
-            '/scheduler-stats/pools?backend=backend1&host=host1&pool=pool1',
+            '/scheduler-stats/pools?backend=backend1&host=host1&'
+            'pool=pool1&share_type=%s' % param.split()[-1],
         )
         cliutils.print_list.assert_called_with(
             mock.ANY,

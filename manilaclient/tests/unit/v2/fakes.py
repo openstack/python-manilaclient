@@ -594,6 +594,27 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, pools)
 
+    def get_scheduler_stats_pools_detail(self, **kw):
+        pools = {
+            'pools': [
+                {
+                    'name': 'host1@backend1#pool1',
+                    'host': 'host1',
+                    'backend': 'backend1',
+                    'pool': 'pool1',
+                    'capabilities': {'qos': True},
+                },
+                {
+                    'name': 'host1@backend1#pool2',
+                    'host': 'host1',
+                    'backend': 'backend1',
+                    'pool': 'pool2',
+                    'capabilities': {'qos': False},
+                }
+            ]
+        }
+        return (200, {}, pools)
+
     def get_consistency_groups_detail(self, **kw):
         consistency_groups = {
             'consistency_groups': [
