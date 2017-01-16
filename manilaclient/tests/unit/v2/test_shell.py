@@ -95,8 +95,12 @@ class ShellTest(test_utils.TestCase):
         client.get_client_class = self.old_get_client_class
         super(ShellTest, self).tearDown()
 
-    def run_command(self, cmd):
-        self.shell.main(cmd.split())
+    def run_command(self, cmd, version=None):
+        if version:
+            args = ['--os-share-api-version', version] + cmd.split()
+        else:
+            args = cmd.split()
+        self.shell.main(args)
 
     def assert_called(self, method, url, body=None, **kwargs):
         return self.shell.cs.assert_called(method, url, body, **kwargs)
@@ -1058,19 +1062,16 @@ class ShellTest(test_utils.TestCase):
         {},
         {'--name': 'fake_name'},
         {'--description': 'fake_description'},
-        {'--nova_net_id': 'fake_nova_net_id'},
         {'--neutron_net_id': 'fake_neutron_net_id'},
         {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
         {'--description': 'fake_description',
          '--name': 'fake_name',
          '--neutron_net_id': 'fake_neutron_net_id',
-         '--neutron_subnet_id': 'fake_neutron_subnet_id',
-         '--nova_net_id': 'fake_nova_net_id'})
+         '--neutron_subnet_id': 'fake_neutron_subnet_id'})
     def test_share_network_create(self, data):
         cmd = 'share-network-create'
         for k, v in data.items():
             cmd += ' ' + k + ' ' + v
-
         self.run_command(cmd)
 
         self.assert_called('POST', '/share-networks')
@@ -1078,24 +1079,21 @@ class ShellTest(test_utils.TestCase):
     @ddt.data(
         {'--name': 'fake_name'},
         {'--description': 'fake_description'},
-        {'--nova_net_id': 'fake_nova_net_id'},
         {'--neutron_net_id': 'fake_neutron_net_id'},
         {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
         {'--description': 'fake_description',
          '--name': 'fake_name',
          '--neutron_net_id': 'fake_neutron_net_id',
-         '--neutron_subnet_id': 'fake_neutron_subnet_id',
-         '--nova_net_id': 'fake_nova_net_id'},
+         '--neutron_subnet_id': 'fake_neutron_subnet_id'},
         {'--name': '""'},
         {'--description': '""'},
-        {'--nova_net_id': '""'},
         {'--neutron_net_id': '""'},
         {'--neutron_subnet_id': '""'},
         {'--description': '""',
          '--name': '""',
          '--neutron_net_id': '""',
          '--neutron_subnet_id': '""',
-         '--nova_net_id': '""'},)
+         },)
     def test_share_network_update(self, data):
         cmd = 'share-network-update 1111'
         expected = dict()
@@ -1190,19 +1188,6 @@ class ShellTest(test_utils.TestCase):
             self.assert_called(
                 'GET',
                 '/share-networks/detail?created_since=2001-01-01',
-            )
-            cliutils.print_list.assert_called_with(
-                mock.ANY,
-                fields=['id', 'name'])
-
-    @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_share_network_list_nova_net_id_aliases(self):
-        for command in ['--nova-net-id', '--nova-net_id',
-                        '--nova_net-id', '--nova_net_id']:
-            self.run_command('share-network-list %s fake-id' % command)
-            self.assert_called(
-                'GET',
-                '/share-networks/detail?nova_net_id=fake-id',
             )
             cliutils.print_list.assert_called_with(
                 mock.ANY,

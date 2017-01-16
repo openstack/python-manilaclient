@@ -200,7 +200,7 @@ class BaseTestCase(base.ClientTestBase):
 
     @classmethod
     def create_share_network(cls, name=None, description=None,
-                             nova_net_id=None, neutron_net_id=None,
+                             neutron_net_id=None,
                              neutron_subnet_id=None, client=None,
                              cleanup_in_class=True, microversion=None):
         if client is None:
@@ -208,7 +208,6 @@ class BaseTestCase(base.ClientTestBase):
         share_network = client.create_share_network(
             name=name,
             description=description,
-            nova_net_id=nova_net_id,
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id,
             microversion=microversion,

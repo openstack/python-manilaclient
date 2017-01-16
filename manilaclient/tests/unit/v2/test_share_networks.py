@@ -12,14 +12,19 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
+import ddt
+import itertools
 import mock
 
+from manilaclient import api_versions
 from manilaclient import exceptions
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_networks
 
 
+@ddt.ddt
 class ShareNetworkTest(utils.TestCase):
 
     class _FakeShareNetwork(object):
@@ -39,17 +44,24 @@ class ShareNetworkTest(utils.TestCase):
             'description': 'new whatever',
         }
 
-    def test_create(self):
-        body_expected = {share_networks.RESOURCE_NAME: self.values}
+    @ddt.data("2.25", "2.26")
+    def test_create(self, microversion):
+        api_version = api_versions.APIVersion(microversion)
+        values = self.values.copy()
+        if (api_version >= api_versions.APIVersion("2.26")):
+            del(values['nova_net_id'])
+        body_expected = {share_networks.RESOURCE_NAME: values}
 
-        with mock.patch.object(self.manager, '_create', fakes.fake_create):
-            result = self.manager.create(**self.values)
+        manager = share_networks.ShareNetworkManager(
+            fakes.FakeClient(api_version=api_version))
+        with mock.patch.object(manager, '_create', fakes.fake_create):
+            result = manager.create(**values)
 
             self.assertEqual(result['url'], share_networks.RESOURCES_PATH)
             self.assertEqual(result['resp_key'], share_networks.RESOURCE_NAME)
             self.assertEqual(
-                result['body'],
-                body_expected)
+                body_expected,
+                result['body'])
 
     def test_delete_str(self):
         share_nw = 'fake share nw'
@@ -101,25 +113,25 @@ class ShareNetworkTest(utils.TestCase):
                 expected_path,
                 share_networks.RESOURCES_NAME)
 
-    def test_update_str(self):
-        share_nw = 'fake share nw'
-        body_expected = {share_networks.RESOURCE_NAME: self.values}
+    @ddt.data(*itertools.product(
+        ["2.25", "2.26"],
+        ['fake share nw', _FakeShareNetwork()]
+    ))
+    @ddt.unpack
+    def test_update_share_network(self, microversion, share_nw):
+        api_version = api_versions.APIVersion(microversion)
+        values = self.values.copy()
+        if (api_version >= api_versions.APIVersion("2.26")):
+            del(values['nova_net_id'])
+        body_expected = {share_networks.RESOURCE_NAME: values}
 
-        with mock.patch.object(self.manager, '_update', fakes.fake_update):
-            result = self.manager.update(share_nw, **self.values)
+        manager = share_networks.ShareNetworkManager(
+            fakes.FakeClient(api_version=api_version))
+        with mock.patch.object(manager, '_update', fakes.fake_update):
+            result = manager.update(share_nw, **values)
+            id = share_nw.id if hasattr(share_nw, 'id') else share_nw
             self.assertEqual(result['url'],
-                             share_networks.RESOURCE_PATH % share_nw)
-            self.assertEqual(result['resp_key'], share_networks.RESOURCE_NAME)
-            self.assertEqual(result['body'], body_expected)
-
-    def test_update_obj(self):
-        share_nw = self._FakeShareNetwork()
-        body_expected = {share_networks.RESOURCE_NAME: self.values}
-
-        with mock.patch.object(self.manager, '_update', fakes.fake_update):
-            result = self.manager.update(share_nw, **self.values)
-            self.assertEqual(result['url'],
-                             share_networks.RESOURCE_PATH % share_nw.id)
+                             share_networks.RESOURCE_PATH % id)
             self.assertEqual(result['resp_key'], share_networks.RESOURCE_NAME)
             self.assertEqual(result['body'], body_expected)
 

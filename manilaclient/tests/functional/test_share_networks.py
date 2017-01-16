@@ -42,7 +42,6 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
     @ddt.data(
         {'name': data_utils.rand_name('autotest_share_network_name')},
         {'description': 'fake_description'},
-        {'nova_net_id': 'fake_nova_net_id'},
         {'neutron_net_id': 'fake_neutron_net_id',
          'neutron_subnet_id': 'fake_neutron_subnet_id'},
     )
@@ -52,7 +51,6 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
         expected_data = {
             'name': 'None',
             'description': 'None',
-            'nova_net_id': 'None',
             'neutron_net_id': 'None',
             'neutron_subnet_id': 'None',
         }
@@ -72,39 +70,13 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
         self.assertEqual(self.neutron_net_id, get['neutron_net_id'])
         self.assertEqual(self.neutron_subnet_id, get['neutron_subnet_id'])
 
-        # We did not set Nova data, so, we expect these fields to be set
-        # to None.
-        self.assertEqual('None', get['nova_net_id'])
-
-    def test_get_share_network_with_nova_data(self):
-        name = data_utils.rand_name('autotest')
-        description = 'fake_description'
-        nova_net_id = 'fake_nova_net_id'
-
-        create = self.create_share_network(
-            name=name,
-            description=description,
-            nova_net_id=nova_net_id,
-            cleanup_in_class=False)
-
-        self.assertEqual(name, create['name'])
-        self.assertEqual(description, create['description'])
-        self.assertEqual(nova_net_id, create['nova_net_id'])
-
-        # We did not set Neutron data, so, we expect these fields to be set
-        # to None.
-        self.assertEqual('None', create['neutron_net_id'])
-        self.assertEqual('None', create['neutron_subnet_id'])
-
     @ddt.data(
         {'name': data_utils.rand_name('autotest_share_network_name')},
         {'description': 'fake_description'},
-        {'nova_net_id': 'fake_nova_net_id'},
         {'neutron_net_id': 'fake_neutron_net_id',
          'neutron_subnet_id': 'fake_neutron_subnet_id'},
         {'name': '""'},
         {'description': '""'},
-        {'nova_net_id': '""'},
         {'neutron_net_id': '""'},
         {'neutron_subnet_id': '""'},
     )
@@ -116,7 +88,6 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
         expected_data = {
             'name': 'None',
             'description': 'None',
-            'nova_net_id': 'None',
             'neutron_net_id': 'None',
             'neutron_subnet_id': 'None',
         }

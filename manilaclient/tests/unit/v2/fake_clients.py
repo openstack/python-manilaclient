@@ -14,7 +14,6 @@
 
 from six.moves.urllib import parse
 
-import manilaclient
 from manilaclient import api_versions
 from manilaclient.common import httpclient
 from manilaclient.tests.unit import fakes
@@ -25,16 +24,18 @@ from manilaclient.v2 import client
 class FakeClient(fakes.FakeClient, client.Client):
 
     def __init__(self, *args, **kwargs):
+        api_version = kwargs.get('version') or api_versions.MAX_VERSION
         client.Client.__init__(self, 'username', 'password',
                                'project_id', 'auth_url',
                                extensions=kwargs.get('extensions'),
-                               version=manilaclient.API_MAX_VERSION,)
+                               version=api_version)
         self.client = FakeHTTPClient(**kwargs)
 
 
 class FakeHTTPClient(httpclient.HTTPClient):
 
     def __init__(self, **kwargs):
+        api_version = kwargs.get('version') or api_versions.MAX_VERSION
         self.username = 'username'
         self.password = 'password'
         self.auth_url = 'auth_url'
@@ -42,7 +43,7 @@ class FakeHTTPClient(httpclient.HTTPClient):
         self.base_url = 'localhost'
         self.default_headers = {
             'X-Auth-Token': 'xabc123',
-            'X-Openstack-Manila-Api-Version': api_versions.MAX_VERSION,
+            'X-Openstack-Manila-Api-Version': api_version,
             'Accept': 'application/json',
         }
 
