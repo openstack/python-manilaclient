@@ -1,0 +1,6 @@
+---
+features:
+  - Manila exposes new transitional states for access rules
+    and the collective "access_rules_status" fields for shares and
+    share instances. The API request version in the client has been bumped
+    to support these changes.
