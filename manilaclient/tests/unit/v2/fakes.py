@@ -438,6 +438,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action]['new_size'] is not None
         elif action in ('unmanage', ):
             assert body[action] is None
+        elif action in ('revert', ):
+            assert body[action] is not None
+            assert body[action]['snapshot_id'] is not None
         elif action in (
                 'migration_cancel', 'migration_complete',
                 'migration_get_progress'):

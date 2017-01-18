@@ -19,6 +19,7 @@ import ddt
 import mock
 
 from manilaclient import api_versions
+from manilaclient.common.apiclient import exceptions as client_exceptions
 from manilaclient import exceptions
 from manilaclient import extension
 from manilaclient.tests.unit import utils
@@ -238,6 +239,35 @@ class SharesTest(utils.TestCase):
 
             manager._action.assert_called_once_with("unmanage", share)
             self.assertEqual("fake", result)
+
+    def test_revert_to_snapshot(self):
+
+        share = 'fake_share'
+        snapshot = 'fake_snapshot'
+        version = api_versions.APIVersion("2.27")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+        mock_action = self.mock_object(
+            manager, '_action', mock.Mock(return_value='fake'))
+
+        result = manager.revert_to_snapshot(share, snapshot)
+
+        self.assertEqual('fake', result)
+        mock_action.assert_called_once_with(
+            'revert', 'fake_share', info={'snapshot_id': 'fake_snapshot'})
+
+    def test_revert_to_snapshot_not_supported(self):
+
+        share = 'fake_share'
+        snapshot = 'fake_snapshot'
+        version = api_versions.APIVersion("2.26")
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+
+        self.assertRaises(client_exceptions.UnsupportedVersion,
+                          manager.revert_to_snapshot,
+                          share,
+                          snapshot)
 
     @ddt.data(
         ("2.6", "os-force_delete"),

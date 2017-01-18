@@ -164,7 +164,8 @@ class ManilaCLIClient(base.CLIClient):
 
     def create_share_type(self, name=None, driver_handles_share_servers=True,
                           snapshot_support=None,
-                          create_share_from_snapshot=None, is_public=True,
+                          create_share_from_snapshot=None,
+                          revert_to_snapshot=None, is_public=True,
                           microversion=None, extra_specs=None):
         """Creates share type.
 
@@ -179,6 +180,8 @@ class ManilaCLIClient(base.CLIClient):
         :param extra_specs: -- dictionary of extra specs Default is None.
         :param create_share_from_snapshot: -- boolean or its string
             alias. Default is None.
+        :param revert_to_snapshot: -- boolean or its string alias. Default is
+            None.
         """
         if name is None:
             name = data_utils.rand_name('manilaclient_functional_test')
@@ -194,14 +197,20 @@ class ManilaCLIClient(base.CLIClient):
         if snapshot_support is not None:
             if not isinstance(snapshot_support, six.string_types):
                 snapshot_support = six.text_type(snapshot_support)
-                cmd += " --snapshot-support " + snapshot_support
+            cmd += " --snapshot-support " + snapshot_support
 
         if create_share_from_snapshot is not None:
             if not isinstance(create_share_from_snapshot, six.string_types):
                 create_share_from_snapshot = six.text_type(
                     create_share_from_snapshot)
-                cmd += (" --create-share-from-snapshot-support " +
-                        create_share_from_snapshot)
+            cmd += (" --create-share-from-snapshot-support " +
+                    create_share_from_snapshot)
+
+        if revert_to_snapshot is not None:
+            if not isinstance(revert_to_snapshot, six.string_types):
+                revert_to_snapshot = six.text_type(
+                    revert_to_snapshot)
+            cmd += (" --revert-to-snapshot-support " + revert_to_snapshot)
 
         if extra_specs is not None:
             extra_spec_str = ''

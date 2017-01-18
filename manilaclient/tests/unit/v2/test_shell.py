@@ -455,6 +455,7 @@ class ShellTest(test_utils.TestCase):
                     'driver_handles_share_servers': False,
                     'snapshot_support': True,
                     'create_share_from_snapshot_support': True,
+                    'revert_to_snapshot_support': False,
                 },
                 'share_type_access:is_public': public
             }
@@ -617,6 +618,19 @@ class ShellTest(test_utils.TestCase):
         self.run_command('snapshot-unmanage 1234')
         self.assert_called('POST', '/snapshots/1234/action',
                            body={'unmanage': None})
+
+    def test_revert_to_snapshot(self):
+
+        fake_share_snapshot = type(
+            'FakeShareSnapshot', (object,), {'id': '5678', 'share_id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_snapshot',
+            mock.Mock(return_value=fake_share_snapshot))
+
+        self.run_command('revert-to-snapshot 5678')
+
+        self.assert_called('POST', '/shares/1234/action',
+                           body={'revert': {'snapshot_id': '5678'}})
 
     def test_delete(self):
         self.run_command('delete 1234')
@@ -823,6 +837,7 @@ class ShellTest(test_utils.TestCase):
                     "driver_handles_share_servers": expected_bool,
                     "snapshot_support": True,
                     "create_share_from_snapshot_support": True,
+                    "revert_to_snapshot_support": False,
                 }
             }
         }
@@ -870,6 +885,7 @@ class ShellTest(test_utils.TestCase):
                     "driver_handles_share_servers": False,
                     "snapshot_support": expected_bool,
                     "create_share_from_snapshot_support": True,
+                    "revert_to_snapshot_support": False,
                     "replication_type": replication_type,
                 }
             }
@@ -898,6 +914,7 @@ class ShellTest(test_utils.TestCase):
                     "driver_handles_share_servers": False,
                     "snapshot_support": True,
                     "create_share_from_snapshot_support": expected_bool,
+                    "revert_to_snapshot_support": False,
                 }
             }
         }
@@ -921,6 +938,41 @@ class ShellTest(test_utils.TestCase):
             exceptions.CommandError,
             self.run_command,
             'type-create test false --extra-specs %s=fake' % value,
+        )
+
+    @ddt.unpack
+    @ddt.data(
+        *([{'expected_bool': True, 'text': v}
+           for v in ('true', 'True', '1', 'TRUE', 'tRuE')] +
+          [{'expected_bool': False, 'text': v}
+           for v in ('false', 'False', '0', 'FALSE', 'fAlSe')])
+    )
+    def test_type_create_with_revert_to_snapshot_support(
+            self, expected_bool, text):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "share_type_access:is_public": True,
+                "extra_specs": {
+                    "driver_handles_share_servers": False,
+                    "snapshot_support": True,
+                    "create_share_from_snapshot_support": True,
+                    "revert_to_snapshot_support": expected_bool,
+                }
+            }
+        }
+
+        self.run_command('type-create test false --snapshot-support true '
+                         '--revert-to-snapshot-support ' + text)
+
+        self.assert_called('POST', '/types', body=expected)
+
+    @ddt.data('fake', 'FFFalse', 'trueee')
+    def test_type_create_invalid_revert_to_snapshot_support_value(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test false --revert-to-snapshot-support ' + value,
         )
 
     @ddt.data('--is-public', '--is_public')
