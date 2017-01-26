@@ -1,0 +1,6 @@
+---
+fixes:
+  - Manila now allows modifying the share instance statuses to "migrating"
+    or "migrating_to". Clarified the help text in the client to include
+    these statuses.
+
