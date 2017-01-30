@@ -3900,7 +3900,7 @@ def do_share_group_type_access_remove(cs, args):
     action='single_alias',
     metavar='<availability-zone>',
     help='Optional availability zone in which group should be created. '
-         '(Default=None')
+         '(Default=None)')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_create(cs, args):
