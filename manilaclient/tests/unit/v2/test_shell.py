@@ -1363,7 +1363,7 @@ class ShellTest(test_utils.TestCase):
             'limit': 20,
         }
         command_str = 'share-network-list'
-        for key, value in six.iteritems(filters):
+        for key, value in filters.items():
             command_str += ' --%(key)s=%(value)s' % {'key': key,
                                                      'value': value}
         self.run_command(command_str)
@@ -1687,7 +1687,7 @@ class ShellTest(test_utils.TestCase):
             'limit': 20,
         }
         command_str = 'security-service-list'
-        for key, value in six.iteritems(filters):
+        for key, value in filters.items():
             command_str += ' --%(key)s=%(value)s' % {'key': key,
                                                      'value': value}
         self.run_command(command_str)

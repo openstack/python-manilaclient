@@ -14,7 +14,6 @@
 #    under the License.
 
 import ddt
-import six
 from tempest.lib.common.utils import data_utils
 from tempest.lib import exceptions as tempest_lib_exc
 
@@ -91,7 +90,7 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
             'neutron_net_id': 'None',
             'neutron_subnet_id': 'None',
         }
-        update_values = dict([(k, v) for k, v in six.iteritems(net_data)
+        update_values = dict([(k, v) for k, v in net_data.items()
                               if v != '""'])
         expected_data.update(update_values)
 

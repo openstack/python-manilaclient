@@ -16,7 +16,6 @@ from keystoneclient import adapter
 from keystoneclient import client as ks_client
 from keystoneclient import discover
 from keystoneclient import session
-import six
 
 import manilaclient
 from manilaclient.common import constants
@@ -129,7 +128,7 @@ class Client(object):
                 'api_key': 'password',
             }
 
-            for arg, replacement in six.iteritems(deprecated):
+            for arg, replacement in deprecated.items():
                 if kwargs.get(arg, None) is None:
                     continue
 

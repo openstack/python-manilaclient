@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
 try:
     from urllib import urlencode  # noqa
 except ImportError:
@@ -63,7 +62,7 @@ class ShareServerManager(base.ManagerWithFind):
         # +---------------------+------------------------------------+
         # | details:instance_id |35203a78-c733-4b1f-b82c-faded312e537|
         # +---------------------+------------------------------------+
-        for k, v in six.iteritems(server._info["backend_details"]):
+        for k, v in server._info["backend_details"].items():
             server._info["details:%s" % k] = v
         return server
 
@@ -93,7 +92,7 @@ class ShareServerManager(base.ManagerWithFind):
         query_string = ''
         if search_opts:
             opts = sorted(
-                [(k, v) for (k, v) in six.iteritems(search_opts) if v])
+                [(k, v) for (k, v) in search_opts.items() if v])
             query_string = urlencode(opts)
             query_string = '?' + query_string if query_string else ''
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)

@@ -18,8 +18,6 @@ try:
 except ImportError:
     from urllib.parse import urlencode  # noqa
 
-import six
-
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
@@ -169,7 +167,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         if description is not None:
             values['description'] = description
 
-        for k, v in six.iteritems(values):
+        for k, v in values.items():
             if v == '':
                 values[k] = None
 
@@ -201,7 +199,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         if description is not None:
             values['description'] = description
 
-        for k, v in six.iteritems(values):
+        for k, v in values.items():
             if v == '':
                 values[k] = None
 

@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
 try:
     from urllib import urlencode  # noqa
 except ImportError:
@@ -50,7 +49,7 @@ class ServiceManager(base.Manager):
         query_string = ''
         if search_opts:
             query_string = urlencode(
-                sorted([(k, v) for (k, v) in six.iteritems(search_opts) if v]))
+                sorted([(k, v) for (k, v) in search_opts.items() if v]))
             if query_string:
                 query_string = "?%s" % query_string
         return self._list(resource_path + query_string, RESOURCE_NAME)
