@@ -148,11 +148,11 @@ class HTTPClient(object):
                 if attempts > self.retries:
                     raise
 
-                self._logger.debug("Request error: %s" % six.text_type(e))
+                self._logger.debug("Request error: %s", six.text_type(e))
 
             self._logger.debug(
                 "Failed attempt(%(current)s of %(total)s), "
-                " retrying in %(sec)s seconds" % {
+                " retrying in %(sec)s seconds", {
                     'current': attempts,
                     'total': self.retries,
                     'sec': timeout
@@ -189,13 +189,13 @@ class HTTPClient(object):
             if "password" in data:
                 data = strutils.mask_password(data)
             string_parts.append(" -d '%s'" % data)
-        self._logger.debug("\nREQ: %s\n" % "".join(string_parts))
+        self._logger.debug("\nREQ: %s\n", "".join(string_parts))
 
     def log_response(self, resp):
         if not self.http_log_debug:
             return
         self._logger.debug(
-            "RESP: [%(code)s] %(headers)s\nRESP BODY: %(body)s\n" % {
+            "RESP: [%(code)s] %(headers)s\nRESP BODY: %(body)s\n", {
                 'code': resp.status_code,
                 'headers': resp.headers,
                 'body': resp.text
