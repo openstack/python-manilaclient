@@ -91,7 +91,6 @@ class SharesReadWriteBase(base.BaseTestCase):
         self.assertEqual(self.description, get['description'])
         self.assertEqual('1', get['size'])
         self.assertEqual(self.protocol.upper(), get['share_proto'])
-        self.assertTrue(get.get('export_locations', []) > 0)
 
 
 @ddt.ddt

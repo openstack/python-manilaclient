@@ -168,7 +168,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
     @ddt.data(1, 0)
     def test_list_shares_for_all_tenants(self, all_tenants):
         shares = self.admin_client.list_shares(all_tenants=all_tenants)
-        self.assertTrue(len(shares) >= 1)
+        self.assertLessEqual(1, len(shares))
 
         if all_tenants:
             self.assertTrue(all('Project ID' in s for s in shares))

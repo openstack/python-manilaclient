@@ -68,14 +68,14 @@ class APIVersionTestCase(utils.TestCase):
         v5 = api_versions.APIVersion("1.0")
         v_null = api_versions.APIVersion()
 
-        self.assertTrue(v1 < v2)
-        self.assertTrue(v3 > v2)
-        self.assertTrue(v1 != v2)
-        self.assertTrue(v1 == v4)
-        self.assertTrue(v1 != v_null)
-        self.assertTrue(v5 < v1)
-        self.assertTrue(v5 < v2)
-        self.assertTrue(v_null == v_null)
+        self.assertLess(v1, v2)
+        self.assertGreater(v3, v2)
+        self.assertNotEqual(v1, v2)
+        self.assertEqual(v1, v4)
+        self.assertNotEqual(v1, v_null)
+        self.assertLess(v5, v1)
+        self.assertLess(v5, v2)
+        self.assertEqual(v_null, v_null)
         self.assertRaises(TypeError, v1.__le__, "2.1")
 
     def test_version_matches(self):
