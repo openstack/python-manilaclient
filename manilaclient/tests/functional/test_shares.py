@@ -151,7 +151,7 @@ class SharesTestMigration(base.BaseTestCase):
             share_type=self.old_type['ID'],
             share_network=self.old_share_net['id'],
             wait_for_creation=True)
-        share = self.user_client.get_share(share['id'])
+        share = self.admin_client.get_share(share['id'])
 
         pools = self.admin_client.pool_list(detail=True)
 

@@ -61,9 +61,8 @@ class SharesListReadOnlyTest(base.BaseTestCase):
     def test_shares_list_filter_by_project_id(self, role):
         self.clients[role].manila('list', params='--project-id fake')
 
-    @ddt.data('admin', 'user')
-    def test_shares_list_filter_by_host(self, role):
-        self.clients[role].manila('list', params='--host fake')
+    def test_shares_list_filter_by_host(self):
+        self.clients['admin'].manila('list', params='--host fake')
 
     @ddt.data('admin', 'user')
     def test_shares_list_with_limit_and_offset(self, role):
@@ -225,10 +224,6 @@ class SharesListReadWriteTest(base.BaseTestCase):
         share_network_id = self.user_client.get_share_network(
             CONF.share_network)['id']
         self._list_shares({'share_network': share_network_id})
-
-    def test_list_shares_by_host(self):
-        get = self.user_client.get_share(self.private_share['id'])
-        self._list_shares({'host': get['host']})
 
     @ddt.data(
         {'limit': 1},

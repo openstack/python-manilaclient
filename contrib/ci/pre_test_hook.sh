@@ -17,11 +17,12 @@
 # Run manila's pre_test_hook.sh script first
 source $BASE/new/manila/contrib/ci/pre_test_hook.sh True dummy multibackend
 
-localrc_path=$BASE/new/devstack/localrc
+localconf=$BASE/new/devstack/local.conf
 
+echo "[[local|localrc]]" >> $localconf
 # Set big quota for share networks to avoid limit exceedances
-echo "MANILA_OPTGROUP_DEFAULT_quota_share_networks=50" >> $localrc_path
+echo "MANILA_OPTGROUP_DEFAULT_quota_share_networks=50" >> $localconf
 
 # Enable and use only v3 of Identity API
-echo "IDENTITY_API_VERSION=3" >> $localrc_path
-echo "ENABLE_IDENTITY_V2=False" >> $localrc_path
+echo "IDENTITY_API_VERSION=3" >> $localconf
+echo "ENABLE_IDENTITY_V2=False" >> $localconf
