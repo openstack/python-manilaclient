@@ -1792,6 +1792,18 @@ class ShellTest(test_utils.TestCase):
         )
         cliutils.print_dict.assert_called_once_with(mock.ANY)
 
+    @ddt.data('1111', '0')
+    @mock.patch('manilaclient.common.cliutils.print_dict')
+    def test_quota_show_with_share_type(self, share_type_id, mock_print_dict):
+        self.run_command(
+            'quota-show --tenant 1234 --share_type %s' % share_type_id)
+
+        self.assert_called(
+            'GET',
+            '/quota-sets/1234?share_type=%s' % share_type_id,
+        )
+        mock_print_dict.assert_called_once_with(mock.ANY)
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list_with_detail(self):
         self.run_command('pool-list --detail')

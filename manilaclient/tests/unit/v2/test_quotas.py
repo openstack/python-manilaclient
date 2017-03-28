@@ -35,7 +35,7 @@ class QuotaSetsTest(utils.TestCase):
             return quotas.RESOURCE_PATH
         return quotas.RESOURCE_PATH_LEGACY
 
-    @ddt.data("2.6", "2.7", "2.25")
+    @ddt.data("2.6", "2.7", "2.25", "2.38", "2.39")
     def test_tenant_quotas_get(self, microversion):
         tenant_id = 'test'
         manager = self._get_manager(microversion)
@@ -53,7 +53,7 @@ class QuotaSetsTest(utils.TestCase):
 
             manager._get.assert_called_once_with(expected_url, "quota_set")
 
-    @ddt.data("2.6", "2.7", "2.25")
+    @ddt.data("2.6", "2.7", "2.25", "2.38", "2.39")
     def test_user_quotas_get(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
@@ -73,7 +73,21 @@ class QuotaSetsTest(utils.TestCase):
 
             manager._get.assert_called_once_with(expected_url, "quota_set")
 
-    @ddt.data("2.6", "2.7")
+    def test_share_type_quotas_get(self):
+        tenant_id = 'fake_tenant_id'
+        share_type = 'fake_share_type'
+        manager = self._get_manager('2.39')
+        resource_path = self._get_resource_path('2.39')
+        expected_url = ("%s/%s/detail?share_type=%s"
+                        % (resource_path, tenant_id, share_type))
+
+        with mock.patch.object(manager, '_get',
+                               mock.Mock(return_value='fake_get')):
+            manager.get(tenant_id, share_type=share_type, detail=True)
+
+            manager._get.assert_called_once_with(expected_url, "quota_set")
+
+    @ddt.data("2.6", "2.7", "2.38", "2.39")
     def test_tenant_quotas_defaults(self, microversion):
         tenant_id = 'test'
         manager = self._get_manager(microversion)
@@ -86,10 +100,10 @@ class QuotaSetsTest(utils.TestCase):
             manager._get.assert_called_once_with(expected_url, "quota_set")
 
     @ddt.data(
-        ("2.6", {}),
-        ("2.6", {"force": True}),
-        ("2.7", {}),
-        ("2.7", {"force": True}),
+        ("2.6", {}), ("2.6", {"force": True}),
+        ("2.7", {}), ("2.7", {"force": True}),
+        ("2.38", {}), ("2.38", {"force": True}),
+        ("2.39", {}), ("2.39", {"force": True}),
     )
     @ddt.unpack
     def test_update_quota(self, microversion, extra_data):
@@ -117,7 +131,7 @@ class QuotaSetsTest(utils.TestCase):
             manager._update.assert_called_once_with(
                 expected_url, expected_body, "quota_set")
 
-    @ddt.data("2.6", "2.7")
+    @ddt.data("2.6", "2.7", "2.38", "2.39")
     def test_update_user_quota(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
@@ -143,7 +157,46 @@ class QuotaSetsTest(utils.TestCase):
             manager._update.assert_called_once_with(
                 expected_url, expected_body, "quota_set")
 
-    @ddt.data("2.6", "2.7")
+    def test_update_share_type_quota(self):
+        tenant_id = 'fake_tenant_id'
+        share_type = 'fake_share_type'
+        manager = self._get_manager('2.39')
+        resource_path = self._get_resource_path('2.39')
+        expected_url = "%s/%s?share_type=%s" % (
+            resource_path, tenant_id, share_type)
+        expected_body = {
+            'quota_set': {
+                'tenant_id': tenant_id,
+                'shares': 1,
+                'snapshots': 2,
+                'gigabytes': 3,
+                'snapshot_gigabytes': 4,
+            },
+        }
+        with mock.patch.object(manager, '_update',
+                               mock.Mock(return_value='fake_update')):
+            manager.update(
+                tenant_id, shares=1, snapshots=2, gigabytes=3,
+                snapshot_gigabytes=4, share_type=share_type)
+
+            manager._update.assert_called_once_with(
+                expected_url, expected_body, "quota_set")
+
+    def test_update_share_type_quotas_for_share_networks(self):
+        manager = self._get_manager("2.39")
+
+        with mock.patch.object(manager, '_update',
+                               mock.Mock(return_value='fake_delete')):
+            self.assertRaises(
+                ValueError,
+                manager.update,
+                'fake_tenant_id', share_type='fake_share_type',
+                share_networks=13,
+            )
+
+            manager._update.assert_not_called()
+
+    @ddt.data("2.6", "2.7", "2.38", "2.39")
     def test_quotas_delete(self, microversion):
         tenant_id = 'test'
         manager = self._get_manager(microversion)
@@ -155,7 +208,7 @@ class QuotaSetsTest(utils.TestCase):
 
             manager._delete.assert_called_once_with(expected_url)
 
-    @ddt.data("2.6", "2.7")
+    @ddt.data("2.6", "2.7", "2.38", "2.39")
     def test_user_quotas_delete(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
@@ -167,3 +220,29 @@ class QuotaSetsTest(utils.TestCase):
             manager.delete(tenant_id, user_id=user_id)
 
             manager._delete.assert_called_once_with(expected_url)
+
+    def test_share_type_quotas_delete(self):
+        tenant_id = 'test'
+        share_type = 'fake_st'
+        manager = self._get_manager("2.39")
+        resource_path = self._get_resource_path("2.39")
+        expected_url = "%s/test?share_type=fake_st" % resource_path
+        with mock.patch.object(manager, '_delete',
+                               mock.Mock(return_value='fake_delete')):
+            manager.delete(tenant_id, share_type=share_type)
+
+            manager._delete.assert_called_once_with(expected_url)
+
+    @ddt.data('get', 'update', 'delete')
+    def test_share_type_quotas_using_old_microversion(self, operation):
+        manager = self._get_manager("2.38")
+
+        with mock.patch.object(manager, '_%s' % operation,
+                               mock.Mock(return_value='fake_delete')):
+            self.assertRaises(
+                TypeError,
+                getattr(manager, operation),
+                'fake_tenant_id', share_type='fake_share_type',
+            )
+
+            getattr(manager, '_%s' % operation).assert_not_called()

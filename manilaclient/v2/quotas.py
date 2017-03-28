@@ -35,8 +35,15 @@ class QuotaSet(common_base.Resource):
 class QuotaSetManager(base.ManagerWithFind):
     resource_class = QuotaSet
 
-    def _do_get(self, tenant_id, user_id=None, detail=False,
+    def _check_user_id_and_share_type_args(self, user_id, share_type):
+        if user_id and share_type:
+            raise ValueError(
+                "'user_id' and 'share_type' values are mutually exclusive. "
+                "one or both should be unset.")
+
+    def _do_get(self, tenant_id, user_id=None, share_type=None, detail=False,
                 resource_path=RESOURCE_PATH):
+        self._check_user_id_and_share_type_args(user_id, share_type)
         if hasattr(tenant_id, 'tenant_id'):
             tenant_id = tenant_id.tenant_id
 
@@ -45,8 +52,13 @@ class QuotaSetManager(base.ManagerWithFind):
         else:
             query = ''
 
-        if user_id:
+        if user_id and share_type:
+            query = '%s?user_id=%s&share_type=%s' % (
+                query, user_id, share_type)
+        elif user_id:
             query = '%s?user_id=%s' % (query, user_id)
+        elif share_type:
+            query = '%s?share_type=%s' % (query, share_type)
         data = {
             "resource_path": resource_path,
             "tenant_id": tenant_id,
@@ -65,16 +77,22 @@ class QuotaSetManager(base.ManagerWithFind):
         return self._do_get(tenant_id, user_id,
                             resource_path=RESOURCE_PATH)
 
-    @api_versions.wraps("2.25")  # noqa
+    @api_versions.wraps("2.25", "2.38")  # noqa
     def get(self, tenant_id, user_id=None, detail=False):
-        return self._do_get(tenant_id, user_id, detail,
+        return self._do_get(tenant_id, user_id, detail=detail,
                             resource_path=RESOURCE_PATH)
+
+    @api_versions.wraps("2.39")  # noqa
+    def get(self, tenant_id, user_id=None, share_type=None, detail=False):
+        return self._do_get(
+            tenant_id, user_id, share_type=share_type, detail=detail,
+            resource_path=RESOURCE_PATH)
 
     def _do_update(self, tenant_id, shares=None, snapshots=None,
                    gigabytes=None, snapshot_gigabytes=None,
                    share_networks=None, force=None, user_id=None,
-                   resource_path=RESOURCE_PATH):
-
+                   share_type=None, resource_path=RESOURCE_PATH):
+        self._check_user_id_and_share_type_args(user_id, share_type)
         body = {
             'quota_set': {
                 'tenant_id': tenant_id,
@@ -94,9 +112,12 @@ class QuotaSetManager(base.ManagerWithFind):
             "resource_path": resource_path,
             "tenant_id": tenant_id,
             "user_id": user_id,
+            "st": share_type,
         }
         if user_id:
             url = '%(resource_path)s/%(tenant_id)s?user_id=%(user_id)s' % data
+        elif share_type:
+            url = '%(resource_path)s/%(tenant_id)s?share_type=%(st)s' % data
         else:
             url = "%(resource_path)s/%(tenant_id)s" % data
 
@@ -108,16 +129,32 @@ class QuotaSetManager(base.ManagerWithFind):
                user_id=None):
         return self._do_update(
             tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id, RESOURCE_PATH_LEGACY,
+            share_networks, force, user_id, resource_path=RESOURCE_PATH_LEGACY,
         )
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.38")  # noqa
     def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None, force=None,
                user_id=None):
         return self._do_update(
             tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id, RESOURCE_PATH,
+            share_networks, force, user_id, resource_path=RESOURCE_PATH,
+        )
+
+    @api_versions.wraps("2.39")  # noqa
+    def update(self, tenant_id, user_id=None, share_type=None,
+               shares=None, snapshots=None, gigabytes=None,
+               snapshot_gigabytes=None, share_networks=None,
+               force=None):
+        if share_type and share_networks:
+            raise ValueError(
+                "'share_networks' quota can be set only for project or user, "
+                "not share type.")
+        return self._do_update(
+            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
+            share_networks, force, user_id,
+            share_type=share_type,
+            resource_path=RESOURCE_PATH,
         )
 
     @api_versions.wraps("1.0", "2.6")
@@ -134,14 +171,19 @@ class QuotaSetManager(base.ManagerWithFind):
                 "resource_path": RESOURCE_PATH, "tenant_id": tenant_id},
             "quota_set")
 
-    def _do_delete(self, tenant_id, user_id=None, resource_path=RESOURCE_PATH):
+    def _do_delete(self, tenant_id, user_id=None, share_type=None,
+                   resource_path=RESOURCE_PATH):
+        self._check_user_id_and_share_type_args(user_id, share_type)
         data = {
             "resource_path": resource_path,
             "tenant_id": tenant_id,
             "user_id": user_id,
+            "st": share_type,
         }
         if user_id:
             url = '%(resource_path)s/%(tenant_id)s?user_id=%(user_id)s' % data
+        elif share_type:
+            url = '%(resource_path)s/%(tenant_id)s?share_type=%(st)s' % data
         else:
             url = '%(resource_path)s/%(tenant_id)s' % data
         self._delete(url)
@@ -151,6 +193,11 @@ class QuotaSetManager(base.ManagerWithFind):
         return self._do_delete(
             tenant_id, user_id, resource_path=RESOURCE_PATH_LEGACY)
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.38")  # noqa
     def delete(self, tenant_id, user_id=None):
         return self._do_delete(tenant_id, user_id, resource_path=RESOURCE_PATH)
+
+    @api_versions.wraps("2.39")  # noqa
+    def delete(self, tenant_id, user_id=None, share_type=None):
+        return self._do_delete(
+            tenant_id, user_id, share_type, resource_path=RESOURCE_PATH)

@@ -399,50 +399,70 @@ def _quota_update(manager, identifier, args):
 
 
 @cliutils.arg(
-    '--tenant',
+    '--tenant-id',
     metavar='<tenant-id>',
     default=None,
     help='ID of tenant to list the quotas for.')
 @cliutils.arg(
-    '--user',
+    '--user-id',
     metavar='<user-id>',
     default=None,
-    help='ID of user to list the quotas for.')
+    help="ID of user to list the quotas for. Optional. "
+         "Mutually exclusive with '--share-type'.")
+@cliutils.arg(
+    '--share-type',
+    '--share_type',
+    metavar='<share-type>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help="UUID or name of a share type to set the quotas for. Optional. "
+         "Mutually exclusive with '--user-id'. "
+         "Available only for microversion >= 2.39")
 @cliutils.arg(
     '--detail',
     action='store_true',
     help='Optional flag to indicate whether to show quota in detail. '
          'Default false, available only for microversion >= 2.25.')
+@api_versions.wraps("1.0")
 def do_quota_show(cs, args):
     """List the quotas for a tenant/user."""
-    project = args.tenant or cs.keystone_client.project_id
-    qts = cs.quotas.get(project, user_id=args.user, detail=args.detail)
-    _quota_set_pretty_show(qts)
+    project = args.tenant_id or cs.keystone_client.project_id
+    kwargs = {
+        "tenant_id": project,
+        "user_id": args.user_id,
+        "detail": args.detail,
+    }
+    if args.share_type is not None:
+        if cs.api_version < api_versions.APIVersion("2.39"):
+            raise exceptions.CommandError(
+                "'share type' quotas are available only starting with "
+                "'2.39' API microversion.")
+        kwargs["share_type"] = args.share_type
+    _quota_set_pretty_show(cs.quotas.get(**kwargs))
 
 
 @cliutils.arg(
-    '--tenant',
+    '--tenant-id',
     metavar='<tenant-id>',
     default=None,
     help='ID of tenant to list the default quotas for.')
 def do_quota_defaults(cs, args):
     """List the default quotas for a tenant."""
-    project_id = cs.keystone_client.project_id
-    if not args.tenant:
-        _quota_show(cs.quotas.defaults(project_id))
-    else:
-        _quota_show(cs.quotas.defaults(args.tenant))
+    project = args.tenant_id or cs.keystone_client.project_id
+    _quota_show(cs.quotas.defaults(project))
 
 
 @cliutils.arg(
-    'tenant',
+    'tenant_id',
     metavar='<tenant_id>',
     help='UUID of tenant to set the quotas for.')
 @cliutils.arg(
-    '--user',
+    '--user-id',
     metavar='<user-id>',
     default=None,
-    help='ID of user to set the quotas for.')
+    help="ID of a user to set the quotas for. Optional. "
+         "Mutually exclusive with '--share-type'.")
 @cliutils.arg(
     '--shares',
     metavar='<shares>',
@@ -478,36 +498,82 @@ def do_quota_defaults(cs, args):
     action='single_alias',
     help='New value for the "share_networks" quota.')
 @cliutils.arg(
+    '--share-type',
+    '--share_type',
+    metavar='<share-type>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help="UUID or name of a share type to set the quotas for. Optional. "
+         "Mutually exclusive with '--user-id'. "
+         "Available only for microversion >= 2.39")
+@cliutils.arg(
     '--force',
     dest='force',
     action="store_true",
     default=None,
     help='Whether force update the quota even if the already used '
          'and reserved exceeds the new quota.')
+@api_versions.wraps("1.0")
 def do_quota_update(cs, args):
-    """Update the quotas for a tenant/user (Admin only)."""
-
-    _quota_update(cs.quotas, args.tenant, args)
+    """Update the quotas for a project/user and/or share type (Admin only)."""
+    kwargs = {
+        "tenant_id": args.tenant_id,
+        "user_id": args.user_id,
+        "shares": args.shares,
+        "gigabytes": args.gigabytes,
+        "snapshots": args.snapshots,
+        "snapshot_gigabytes": args.snapshot_gigabytes,
+        "share_networks": args.share_networks,
+        "force": args.force,
+    }
+    if args.share_type is not None:
+        if cs.api_version < api_versions.APIVersion("2.39"):
+            raise exceptions.CommandError(
+                "'share type' quotas are available only starting with "
+                "'2.39' API microversion.")
+        kwargs["share_type"] = args.share_type
+    cs.quotas.update(**kwargs)
 
 
 @cliutils.arg(
-    '--tenant',
+    '--tenant-id',
     metavar='<tenant-id>',
     help='ID of tenant to delete quota for.')
 @cliutils.arg(
-    '--user',
+    '--user-id',
     metavar='<user-id>',
-    help='ID of user to delete quota for.')
+    help="ID of user to delete quota for. Optional."
+         "Mutually exclusive with '--share-type'.")
+@cliutils.arg(
+    '--share-type',
+    '--share_type',
+    metavar='<share-type>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help="UUID or name of a share type to set the quotas for. Optional. "
+         "Mutually exclusive with '--user-id'. "
+         "Available only for microversion >= 2.39")
+@api_versions.wraps("1.0")
 def do_quota_delete(cs, args):
-    """Delete quota for a tenant/user.
+    """Delete quota for a tenant/user or tenant/share-type.
 
     The quota will revert back to default (Admin only).
     """
-    if not args.tenant:
-        project_id = cs.keystone_client.project_id
-        cs.quotas.delete(project_id, user_id=args.user)
-    else:
-        cs.quotas.delete(args.tenant, user_id=args.user)
+    project_id = args.tenant_id or cs.keystone_client.project_id
+    kwargs = {
+        "tenant_id": project_id,
+        "user_id": args.user_id,
+    }
+    if args.share_type is not None:
+        if cs.api_version < api_versions.APIVersion("2.39"):
+            raise exceptions.CommandError(
+                "'share type' quotas are available only starting with "
+                "'2.39' API microversion.")
+        kwargs["share_type"] = args.share_type
+
+    cs.quotas.delete(**kwargs)
 
 
 @cliutils.arg(
