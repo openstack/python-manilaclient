@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import uuid
 
 import ddt
 import mock
@@ -19,6 +18,7 @@ import manilaclient
 from manilaclient import exceptions
 from manilaclient.tests.unit import utils
 from manilaclient.v2 import client
+from oslo_utils import uuidutils
 
 
 @ddt.ddt
@@ -34,7 +34,7 @@ class ClientTest(utils.TestCase):
     def test_adapter_properties(self):
         # sample of properties, there are many more
         retries = 3
-        base_url = uuid.uuid4().hex
+        base_url = uuidutils.generate_uuid(dashed=False)
 
         s = client.session.Session()
         c = client.Client(session=s,
@@ -52,7 +52,8 @@ class ClientTest(utils.TestCase):
 
     def test_auth_via_token_and_session(self):
         s = client.session.Session()
-        base_url = uuid.uuid4().hex
+        base_url = uuidutils.generate_uuid(dashed=False)
+
         c = client.Client(input_auth_token='token',
                           service_catalog_url=base_url, session=s,
                           api_version=manilaclient.API_MAX_VERSION)
@@ -61,7 +62,7 @@ class ClientTest(utils.TestCase):
         self.assertIsNone(c.keystone_client)
 
     def test_auth_via_token(self):
-        base_url = uuid.uuid4().hex
+        base_url = uuidutils.generate_uuid(dashed=False)
 
         c = client.Client(input_auth_token='token',
                           service_catalog_url=base_url,
