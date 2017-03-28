@@ -48,7 +48,7 @@ class HTTPClient(object):
                  http_log_debug=False):
         self.endpoint_url = endpoint_url
         self.base_url = self._get_base_url(self.endpoint_url)
-        self.retries = retries
+        self.retries = int(retries or 0)
         self.http_log_debug = http_log_debug
 
         self.request_options = self._set_request_options(
