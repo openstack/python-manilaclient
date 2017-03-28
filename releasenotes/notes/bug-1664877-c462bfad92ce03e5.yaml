@@ -1,0 +1,13 @@
+---
+fixes:
+  - |
+    If using python3.5, a TypeError will raise if server returns a 4xx
+    response. Below is the error message:
+
+    TypeError: unorderable types: int() > NoneType()
+
+    This error occurred because python-manilaclient tried to compare
+    an integer with None. This is not a valid comparison starting
+    from python3.5.
+
+    See bug #1664877 for more details.
