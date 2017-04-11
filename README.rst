@@ -2,8 +2,8 @@
 Team and repository tags
 ========================
 
-.. image:: http://governance.openstack.org/badges/python-manilaclient.svg
-    :target: http://governance.openstack.org/reference/tags/index.html
+.. image:: https://governance.openstack.org/badges/python-manilaclient.svg
+    :target: https://governance.openstack.org/reference/tags/index.html
 
 .. Change things from this point on
 
@@ -26,8 +26,8 @@ See the `OpenStack CLI guide`_ for information on how to use the ``manila``
 command-line tool. You may also want to look at the
 `OpenStack API documentation`_.
 
-.. _OpenStack CLI Guide: http://docs.openstack.org/user-guide/cli.html
-.. _OpenStack API documentation: http://docs.openstack.org/api/
+.. _OpenStack CLI Guide: https://docs.openstack.org/user-guide/cli.html
+.. _OpenStack API documentation: https://docs.openstack.org/api/
 
 The project is hosted on `Launchpad`_, where bugs can be filed. The code is
 hosted on `Github`_. Patches must be submitted using `Gerrit`_, *not* Github
@@ -35,7 +35,7 @@ pull requests.
 
 .. _Github: https://github.com/openstack/python-manilaclient
 .. _Launchpad: https://launchpad.net/python-manilaclient
-.. _Gerrit: http://docs.openstack.org/infra/manual/developers.html#development-workflow
+.. _Gerrit: https://docs.openstack.org/infra/manual/developers.html#development-workflow
 
 This code is a fork of `Cinderclient`_ of Grizzly release and then it was
 developed separately. Cinderclient code is a fork of
@@ -45,7 +45,7 @@ python-manilaclient is licensed under the Apache License like the rest of
 OpenStack.
 
 .. _Cinderclient: https://github.com/openstack/python-cinderclient
-__ http://github.com/jacobian/python-cloudservers
+__ https://github.com/jacobian/python-cloudservers
 
 .. contents:: Contents:
    :local:
@@ -99,9 +99,9 @@ Quick-start using keystone::
 * `How to Contribute`_
 
 .. _PyPi: https://pypi.python.org/pypi/python-manilaclient
-.. _Online Documentation: http://docs.openstack.org/developer/python-manilaclient
+.. _Online Documentation: https://docs.openstack.org/developer/python-manilaclient
 .. _Launchpad project: https://launchpad.net/python-manilaclient
 .. _Blueprints: https://blueprints.launchpad.net/python-manilaclient
 .. _Bugs: https://bugs.launchpad.net/python-manilaclient
 .. _Source: https://git.openstack.org/cgit/openstack/python-manilaclient
-.. _How to Contribute: http://docs.openstack.org/infra/manual/developers.html
+.. _How to Contribute: https://docs.openstack.org/infra/manual/developers.html
