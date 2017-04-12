@@ -2294,7 +2294,6 @@ def do_share_network_update(cs, args):
     values = {
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
-        'nova_net_id': args.nova_net_id,
         'name': args.name,
         'description': args.description,
     }
@@ -2485,7 +2484,6 @@ def do_share_network_list(cs, args):
         'name': args.name,
         'created_since': args.created_since,
         'created_before': args.created_before,
-        'nova_net_id': args.nova_net_id,
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
         'network_type': args.network_type,
