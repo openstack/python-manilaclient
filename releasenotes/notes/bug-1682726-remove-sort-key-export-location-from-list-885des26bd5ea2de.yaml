@@ -1,0 +1,3 @@
+---
+fixes:
+  - Remove unused sort key export_location from list CLI.

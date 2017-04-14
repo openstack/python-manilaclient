@@ -20,7 +20,7 @@ SORT_DIR_VALUES = ('asc', 'desc')
 
 SHARE_SORT_KEY_VALUES = (
     'id', 'status', 'size', 'host', 'share_proto',
-    'export_location', 'availability_zone',
+    'availability_zone',
     'user_id', 'project_id',
     'created_at', 'updated_at',
     'display_name', 'name',
