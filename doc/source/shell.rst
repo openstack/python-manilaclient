@@ -7,10 +7,10 @@ The :program:`manila` shell utility
 The :program:`manila` shell utility interacts with the OpenStack Manila API
 from the command line. It supports the entirety of the OpenStack Manila API.
 
-You'll need to provide :program:`manila` with your OpenStack username and
-API key. You can do this with the :option:`--os-username`, :option:`--os-password`
-and :option:`--os-tenant-name` options, but it's easier to just set them as
-environment variables by setting two environment variables:
+You'll need to provide :program:`manila` with your OpenStack username and API
+key. You can do this with the `--os-username`, `--os-password` and
+`--os-tenant-name` options, but it's easier to just set them as environment
+variables by setting two environment variables:
 
 .. envvar:: OS_USERNAME or MANILA_USERNAME
 
