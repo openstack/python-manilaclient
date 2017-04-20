@@ -289,8 +289,7 @@ class ManilaCLIClient(base.CLIClient):
             microversion=microversion)
 
     def get_project_id(self, name_or_id):
-        identity_api_version = (
-            "3" if "/v3" in (CONF.admin_auth_url or CONF.auth_url) else "2.0")
+        identity_api_version = '3'
         flags = (
             "--os-username %(username)s "
             "--os-project-name %(project_name)s "
