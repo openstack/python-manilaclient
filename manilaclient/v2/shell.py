@@ -235,7 +235,7 @@ def _print_share_snapshot(cs, snapshot):
 
 
 def _quota_set_pretty_show(quotas):
-    """convert quotas object to dict and display"""
+    """Convert quotas object to dict and display."""
 
     new_quotas = {}
     for quota_k, quota_v in sorted(quotas.to_dict().items()):
@@ -572,7 +572,7 @@ def do_absolute_limits(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "verb,uri,value"')
+         'example --columns "verb,uri,value".')
 def do_rate_limits(cs, args):
     """Print a list of rate limits for a user."""
     limits = cs.limits.get().rate
@@ -630,7 +630,7 @@ def do_rate_limits(cs, args):
     metavar='<share-type>',
     default=None,
     action='single_alias',
-    help='Optional share type. Use of optional volume type is deprecated'
+    help='Optional share type. Use of optional volume type is deprecated. '
          '(Default=None)')
 @cliutils.arg(
     '--public',
@@ -910,7 +910,7 @@ def do_metadata_update_all(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,host,status"')
+         'example --columns "id,host,status".')
 def do_share_export_location_list(cs, args):
     """List export locations of a given share."""
     if args.columns is not None:
@@ -948,7 +948,7 @@ def do_share_export_location_show(cs, args):
     'service_host',
     metavar='<service_host>',
     type=str,
-    help='manage-share service host: some.host@driver#pool')
+    help='manage-share service host: some.host@driver#pool.')
 @cliutils.arg(
     'protocol',
     metavar='<protocol>',
@@ -959,7 +959,7 @@ def do_share_export_location_show(cs, args):
     metavar='<export_path>',
     type=str,
     help='Share export path, NFS share such as: 10.0.0.1:/example_path, '
-         'CIFS share such as: \\\\10.0.0.1\\example_cifs_share')
+         'CIFS share such as: \\\\10.0.0.1\\example_cifs_share.')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -990,7 +990,7 @@ def do_share_export_location_show(cs, args):
     action='store_true',
     default=False,
     help="Level of visibility for share. Defines whether other tenants are "
-         "able to see it or not. Available only for microversion >= 2.8")
+         "able to see it or not. Available only for microversion >= 2.8.")
 def do_manage(cs, args):
     """Manage share not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
@@ -1278,7 +1278,7 @@ def do_snapshot_access_deny(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "access_type,access_to"')
+         'example --columns "access_type,access_to".')
 def do_access_list(cs, args):
     """Show access list for share."""
     list_of_keys = [
@@ -1304,7 +1304,7 @@ def do_access_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "access_type,access_to"')
+         'example --columns "access_type,access_to".')
 def do_access_list(cs, args):
     """Show access list for share."""
     list_of_keys = [
@@ -1331,7 +1331,7 @@ def do_access_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "access_type,access_to"')
+         'example --columns "access_type,access_to".')
 def do_snapshot_access_list(cs, args):
     """Show access list for a snapshot."""
     if args.columns is not None:
@@ -1378,7 +1378,8 @@ def do_snapshot_access_list(cs, args):
     type=str,
     nargs='*',
     metavar='<key=value>',
-    help='Filters results by a metadata key and value. OPTIONAL: Default=None',
+    help='Filters results by a metadata key and value. OPTIONAL: '
+         'Default=None.',
     default=None)
 @cliutils.arg(
     '--extra-specs',
@@ -1388,7 +1389,7 @@ def do_snapshot_access_list(cs, args):
     metavar='<key=value>',
     action='single_alias',
     help='Filters results by a extra specs key and value of share type that '
-         'was used for share creation. OPTIONAL: Default=None',
+         'was used for share creation. OPTIONAL: Default=None.',
     default=None)
 @cliutils.arg(
     '--share-type', '--volume-type',
@@ -1479,7 +1480,7 @@ def do_snapshot_access_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "export_location,is public"')
+         'example --columns "export_location,is public".')
 @cliutils.service_type('sharev2')
 def do_list(cs, args):
     """List NAS shares with filters."""
@@ -1562,7 +1563,7 @@ def do_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,host,status"')
+         'example --columns "id,host,status".')
 @api_versions.wraps("2.3")
 def do_share_instance_list(cs, args):
     """List share instances (Admin only)."""
@@ -1658,7 +1659,7 @@ def do_share_instance_reset_state(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,host,status"')
+         'example --columns "id,host,status".')
 def do_share_instance_export_location_list(cs, args):
     """List export locations of a given share instance."""
     if args.columns is not None:
@@ -1767,7 +1768,7 @@ def do_share_instance_export_location_show(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -1823,7 +1824,7 @@ def do_snapshot_show(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,path"')
+         'example --columns "id,path".')
 def do_snapshot_export_location_list(cs, args):
     """List export locations of a given snapshot."""
     if args.columns is not None:
@@ -1850,7 +1851,7 @@ def do_snapshot_export_location_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,path,is_admin_only"')
+         'example --columns "id,path,is_admin_only".')
 def do_snapshot_instance_export_location_list(cs, args):
     """List export locations of a given snapshot instance."""
     if args.columns is not None:
@@ -2084,7 +2085,7 @@ def do_snapshot_reset_state(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id"')
+         'example --columns "id".')
 @cliutils.arg(
     '--detailed',
     metavar='<detailed>',
@@ -2475,7 +2476,7 @@ def do_share_network_show(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id"')
+         'example --columns "id".')
 def do_share_network_list(cs, args):
     """Get a list of network info."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -2613,7 +2614,7 @@ def do_share_network_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id"')
+         'example --columns "id".')
 def do_share_network_list(cs, args):
     """Get a list of network info."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -2684,7 +2685,7 @@ def do_share_network_security_service_remove(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 def do_share_network_security_service_list(cs, args):
     """Get list of security services associated with a given share network."""
     share_network = _find_share_network(cs, args.share_network)
@@ -2923,7 +2924,7 @@ def do_security_service_show(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "name,type"')
+         'example --columns "name,type".')
 def do_security_service_list(cs, args):
     """Get a list of security services."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -2957,7 +2958,7 @@ def do_security_service_list(cs, args):
     'security_service',
     metavar='<security-service>',
     nargs='+',
-    help='Name or ID of the security service(s) to delete')
+    help='Name or ID of the security service(s) to delete.')
 def do_security_service_delete(cs, args):
     """Delete one or more security services."""
     failure_count = 0
@@ -3003,7 +3004,7 @@ def do_security_service_delete(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,host,status"')
+         'example --columns "id,host,status".')
 def do_share_server_list(cs, args):
     """List all share servers (Admin only)."""
     search_opts = {
@@ -3085,7 +3086,7 @@ def do_share_server_delete(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 def do_availability_zone_list(cs, args):
     """List all availability zones."""
 
@@ -3129,7 +3130,7 @@ def do_availability_zone_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,host"')
+         'example --columns "id,host".')
 def do_service_list(cs, args):
     """List all services (Admin only)."""
     search_opts = {
@@ -3213,7 +3214,7 @@ def _print_dict(data_dict):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "name,host"')
+         'example --columns "name,host".')
 @cliutils.arg(
     '--detail', '--detailed',
     action='store_true',
@@ -3226,7 +3227,7 @@ def _print_dict(data_dict):
     default=None,
     action='single_alias',
     help='Filter results by share type name or ID. (Default=None)'
-         'Available only for microversion >= 2.23')
+         'Available only for microversion >= 2.23.')
 def do_pool_list(cs, args):
     """List all backend storage pools known to the scheduler (Admin only)."""
 
@@ -3389,7 +3390,7 @@ def _find_share_type(cs, stype):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 def do_type_list(cs, args):
     """Print a list of available 'share types'."""
     try:
@@ -3408,7 +3409,7 @@ def do_type_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 def do_extra_specs_list(cs, args):
     """Print a list of current 'share types and extra specs' (Admin Only)."""
     stypes = cs.share_types.list()
@@ -3424,7 +3425,7 @@ def do_extra_specs_list(cs, args):
     metavar='<spec_driver_handles_share_servers>',
     type=str,
     help="Required extra specification. "
-         "Valid values are 'true'/'1' and 'false'/'0'")
+         "Valid values are 'true'/'1' and 'false'/'0'.")
 @cliutils.arg(
     '--snapshot_support',
     '--snapshot-support',
@@ -3462,7 +3463,7 @@ def do_extra_specs_list(cs, args):
     action='single_alias',
     help="Extra specs key and value of share type that will be"
          " used for share type creation. OPTIONAL: Default=None."
-         " e.g --extra-specs  thin_provisioning='<is> True', "
+         " example --extra-specs  thin_provisioning='<is> True', "
          "replication_type=readable.",
     default=None)
 @cliutils.arg(
@@ -3693,7 +3694,7 @@ def _find_share_group_type(cs, sg_type):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_type_list(cs, args):
@@ -3715,7 +3716,7 @@ def do_share_group_type_list(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_type_specs_list(cs, args):
@@ -4037,7 +4038,7 @@ def do_share_group_create(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_list(cs, args):
@@ -4239,7 +4240,7 @@ def do_share_group_snapshot_create(cs, args):
     metavar='<limit>',
     type=int,
     default=None,
-    help='Maximum number of share group snapshots to return.'
+    help='Maximum number of share group snapshots to return. '
          '(Default=None)')
 @cliutils.arg(
     '--offset',
@@ -4273,7 +4274,7 @@ def do_share_group_snapshot_create(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_snapshot_list(cs, args):
@@ -4321,7 +4322,7 @@ def do_share_group_snapshot_show(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "id,name"')
+         'example --columns "id,name".')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_snapshot_list_members(cs, args):
@@ -4368,7 +4369,7 @@ def do_share_group_snapshot_reset_state(cs, args):
     '--name',
     metavar='<name>',
     default=None,
-    help='Optional new name for the share group snapshot. (Default=None')
+    help='Optional new name for the share group snapshot. (Default=None)')
 @cliutils.arg(
     '--description',
     metavar='<description>',
@@ -4449,7 +4450,7 @@ def do_share_group_snapshot_delete(cs, args):
     type=str,
     default=None,
     help='Comma separated list of columns to be displayed '
-         'e.g. --columns "replica_state,id"')
+         'example --columns "replica_state,id".')
 @api_versions.wraps("2.11")
 def do_share_replica_list(cs, args):
     """List share replicas (Experimental)."""
