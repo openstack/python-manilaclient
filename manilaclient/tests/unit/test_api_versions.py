@@ -260,11 +260,11 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = api_versions.APIVersion("2.3")
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.1")
 
-        self.assertRaisesRegexp(exceptions.UnsupportedVersion,
-                                ".*range is '2.4' to '2.7'.*",
-                                api_versions.discover_version,
-                                self.fake_client,
-                                api_versions.APIVersion("2.3"))
+        self.assertRaisesRegex(exceptions.UnsupportedVersion,
+                               ".*range is '2.4' to '2.7'.*",
+                               api_versions.discover_version,
+                               self.fake_client,
+                               api_versions.APIVersion("2.3"))
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
     def test_server_is_too_old(self):
@@ -347,8 +347,8 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = api_versions.APIVersion("2.5")
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.5")
 
-        self.assertRaisesRegexp(exceptions.UnsupportedVersion,
-                                ".*range is '2.0' to '2.5'.*",
-                                api_versions.discover_version,
-                                self.fake_client,
-                                api_versions.APIVersion("1.0"))
+        self.assertRaisesRegex(exceptions.UnsupportedVersion,
+                               ".*range is '2.0' to '2.5'.*",
+                               api_versions.discover_version,
+                               self.fake_client,
+                               api_versions.APIVersion("1.0"))
