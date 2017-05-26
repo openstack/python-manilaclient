@@ -323,6 +323,26 @@ class ShellTest(test_utils.TestCase):
             self.run_command('list --host' + separator + 'fake_host')
             self.assert_called('GET', '/shares/detail?host=fake_host')
 
+    @ddt.data(('id', 'b4991315-eb7d-43ec-979e-5715d4399827'),
+              ('path', 'fake_path'))
+    @ddt.unpack
+    def test_share_list_filter_by_export_location(self, filter_type, value):
+        for separator in self.separators:
+            self.run_command('list --export_location' + separator + value)
+            self.assert_called(
+                'GET',
+                '/shares/detail?export_location_' + filter_type + '=' + value)
+
+    @ddt.data('list', 'share-instance-list')
+    def test_share_or_instance_list_filter_by_export_location_version_invalid(
+            self, cmd):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            cmd + ' --export_location=fake',
+            '2.34'
+        )
+
     def test_list_filter_by_share_network(self):
         aliases = ['--share-network', '--share_network', ]
         fake_sn = type('Empty', (object,), {'id': 'fake_share_network_id'})
@@ -362,6 +382,20 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
             ['Id', 'Host', 'Status'])
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    @ddt.data(('id', 'b4991315-eb7d-43ec-979e-5715d4399827'),
+              ('path', 'fake_path'))
+    @ddt.unpack
+    def test_share_instance_list_filter_by_export_location(self, filter_type,
+                                                           value):
+        for separator in self.separators:
+            self.run_command('share-instance-list --export_location' +
+                             separator + value)
+            self.assert_called(
+                'GET',
+                ('/share_instances?export_location_' +
+                 filter_type + '=' + value))
 
     @mock.patch.object(apiclient_utils, 'find_resource',
                        mock.Mock(return_value='fake'))

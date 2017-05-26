@@ -1,0 +1,4 @@
+---
+features:
+  - Shares and share instances can now be filtered with their
+    export location IDs or paths.

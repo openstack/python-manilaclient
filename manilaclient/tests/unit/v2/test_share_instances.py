@@ -41,6 +41,15 @@ class ShareInstancesTest(utils.TestCase):
         cs.share_instances.list()
         cs.assert_called('GET', '/share_instances')
 
+    @ddt.data(('id', 'b4991315-eb7d-43ec-979e-5715d4399827'),
+              ('path', '//0.0.0.0/fake_path'))
+    @ddt.unpack
+    def test_list_by_export_location(self, filter_type, value):
+        cs.share_instances.list(export_location=value)
+        cs.assert_called(
+            'GET', '/share_instances?export_location_' +
+            filter_type + '=' + value)
+
     def test_get(self):
         instance = type('None', (object, ), {'id': '1234'})
         cs.share_instances.get(instance)
