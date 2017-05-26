@@ -1320,6 +1320,33 @@ def do_access_list(cs, args):
     cliutils.print_list(access_list, list_of_keys)
 
 
+@api_versions.wraps("2.33")  # noqa
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'example --columns "access_type,access_to".')
+def do_access_list(cs, args):
+    """Show access list for share."""
+    list_of_keys = [
+        'id', 'access_type', 'access_to', 'access_level', 'state',
+        'access_key', 'created_at', 'updated_at',
+    ]
+
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+
+    share = _find_share(cs, args.share)
+    access_list = share.access_list()
+    cliutils.print_list(access_list, list_of_keys)
+
+
 @api_versions.wraps("2.32")
 @cliutils.arg(
     'snapshot',
