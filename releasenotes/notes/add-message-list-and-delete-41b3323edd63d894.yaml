@@ -1,0 +1,3 @@
+---
+features:
+     - Added new subcommands message-list, message-show and message-delete.

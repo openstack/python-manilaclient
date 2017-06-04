@@ -81,3 +81,8 @@ V2_SERVICE_TYPE = 'sharev2'
 SERVICE_TYPES = {'1': V1_SERVICE_TYPE, '2': V2_SERVICE_TYPE}
 
 EXTENSION_PLUGIN_NAMESPACE = 'manilaclient.common.apiclient.auth'
+MESSAGE_SORT_KEY_VALUES = (
+    'id', 'project_id', 'request_id', 'resource_type', 'action_id',
+    'detail_id', 'resource_id', 'message_level', 'expires_at',
+    'request_id', 'created_at'
+)

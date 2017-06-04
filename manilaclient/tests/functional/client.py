@@ -29,6 +29,7 @@ from manilaclient.tests.functional import exceptions
 from manilaclient.tests.functional import utils
 
 CONF = config.CONF
+MESSAGE = 'message'
 SHARE = 'share'
 SHARE_TYPE = 'share_type'
 SHARE_NETWORK = 'share_network'
@@ -133,6 +134,8 @@ class ManilaCLIClient(base.CLIClient):
             func = self.is_share_deleted
         elif res_type == SNAPSHOT:
             func = self.is_snapshot_deleted
+        elif res_type == MESSAGE:
+            func = self.is_message_deleted
         else:
             raise exceptions.InvalidResource(message=res_type)
 
@@ -1362,4 +1365,71 @@ class ManilaCLIClient(base.CLIClient):
         """
         self.wait_for_resource_deletion(
             SHARE_SERVER, res_id=share_server, interval=3, timeout=60,
+            microversion=microversion)
+
+    # user messages
+
+    def wait_for_message(self, resource_id):
+        """Waits until a message for a resource with given id exists"""
+        start = int(time.time())
+        message = None
+
+        while not message:
+            time.sleep(self.build_interval)
+            for msg in self.list_messages():
+                if msg['Resource ID'] == resource_id:
+                    return msg
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = ('No message for resource with id %s was created in'
+                           ' the required time (%s s).' %
+                           (resource_id, self.build_timeout))
+                raise tempest_lib_exc.TimeoutException(message)
+
+    def list_messages(self, columns=None, microversion=None):
+        """List messages.
+
+        :param columns: str -- comma separated string of columns.
+            Example, "--columns id,resource_id".
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = "message-list"
+        if columns is not None:
+            cmd += " --columns " + columns
+        messages_raw = self.manila(cmd, microversion=microversion)
+        messages = utils.listing(messages_raw)
+        return messages
+
+    @not_found_wrapper
+    def get_message(self, message, microversion=None):
+        """Returns share server by its Name or ID."""
+        message_raw = self.manila(
+            'message-show %s' % message, microversion=microversion)
+        message = output_parser.details(message_raw)
+        return message
+
+    @not_found_wrapper
+    def delete_message(self, message, microversion=None):
+        """Deletes message by its ID."""
+        return self.manila('message-delete %s' % message,
+                           microversion=microversion)
+
+    def is_message_deleted(self, message, microversion=None):
+        """Indicates whether message is deleted or not.
+
+        :param message: str -- ID of message
+        """
+        try:
+            self.get_message(message, microversion=microversion)
+            return False
+        except tempest_lib_exc.NotFound:
+            return True
+
+    def wait_for_message_deletion(self, message, microversion=None):
+        """Wait for message deletion by its ID.
+
+        :param message: text -- ID of message
+        """
+        self.wait_for_resource_deletion(
+            MESSAGE, res_id=message, interval=3, timeout=60,
             microversion=microversion)

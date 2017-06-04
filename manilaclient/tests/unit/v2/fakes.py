@@ -1095,6 +1095,35 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return 200, {}, sg_type_access
 
+    fake_message = {
+        'id': 'fake message id',
+        'action_id': '001',
+        'detail_id': '002',
+        'user_message': 'user message',
+        'message_level': 'ERROR',
+        'resource_type': 'SHARE',
+        'resource_id': 'resource id',
+        'created_at': '2015-08-27T09:49:58-05:00',
+        'expires_at': '2015-09-27T09:49:58-05:00',
+        'request_id': 'req-936666d2-4c8f-4e41-9ac9-237b43f8b848',
+    }
+
+    def get_messages(self, **kw):
+        messages = {
+            'messages': [self.fake_message],
+        }
+        return 200, {}, messages
+
+    def get_messages_1234(self, **kw):
+        message = {'message': self.fake_message}
+        return 200, {}, message
+
+    def delete_messages_1234(self, **kw):
+        return 202, {}, None
+
+    def delete_messages_5678(self, **kw):
+        return 202, {}, None
+
 
 def fake_create(url, body, response_key):
     return {'url': url, 'body': body, 'resp_key': response_key}
@@ -1151,3 +1180,16 @@ class ShareGroupSnapshot(object):
     share_network_id = ShareNetwork().id
     name = 'fake name'
     description = 'fake description'
+
+
+class Message(object):
+    id = 'fake message id'
+    action_id = '001'
+    detail_id = '002'
+    user_message = 'user message'
+    message_level = 'ERROR'
+    resource_type = 'SHARE'
+    resource_id = 'resource id'
+    created_at = '2015-08-27T09:49:58-05:00'
+    expires_at = '2015-09-27T09:49:58-05:00'
+    request_id = 'req-936666d2-4c8f-4e41-9ac9-237b43f8b848'

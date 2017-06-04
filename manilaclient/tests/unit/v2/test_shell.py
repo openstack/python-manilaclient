@@ -30,6 +30,7 @@ from manilaclient import exceptions
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v2 import fakes
+from manilaclient.v2 import messages
 from manilaclient.v2 import security_services
 from manilaclient.v2 import share_instances
 from manilaclient.v2 import share_networks
@@ -2622,4 +2623,52 @@ class ShellTest(test_utils.TestCase):
         for server in fake_share_servers:
             self.assert_called_anytime(
                 'DELETE', '/share-servers/%s' % server.id,
+                clear_callstack=False)
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_message_list(self):
+        self.run_command('message-list')
+
+        self.assert_called('GET', '/messages')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['ID', 'Resource Type', 'Resource ID',
+                              'Action ID', 'User Message', 'Detail ID',
+                              'Created At'], sortby_index=None)
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_message_list_select_column(self):
+        self.run_command('message-list --columns id,resource_type')
+
+        self.assert_called('GET', '/messages')
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY, fields=['Id', 'Resource_Type'], sortby_index=None)
+
+    def test_message_list_with_filters(self):
+        self.run_command('message-list --limit 10 --offset 0')
+
+        self.assert_called(
+            'GET', '/messages?limit=10&offset=0')
+
+    def test_message_show(self):
+        self.run_command('message-show 1234')
+
+        self.assert_called('GET', '/messages/1234')
+
+    @ddt.data(('1234', ), ('1234', '5678'))
+    def test_message_delete(self, ids):
+        fake_messages = [
+            messages.Message('fake', {'id': mid}, True) for mid in ids
+        ]
+        self.mock_object(
+            shell_v2, '_find_message',
+            mock.Mock(side_effect=fake_messages))
+
+        self.run_command('message-delete %s' % ' '.join(ids))
+
+        shell_v2._find_message.assert_has_calls([
+            mock.call(self.shell.cs, mid) for mid in ids
+        ])
+        for fake_message in fake_messages:
+            self.assert_called_anytime(
+                'DELETE', '/messages/%s' % fake_message.id,
                 clear_callstack=False)

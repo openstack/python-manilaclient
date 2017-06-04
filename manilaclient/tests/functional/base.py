@@ -17,6 +17,7 @@ import traceback
 
 from oslo_log import log
 from tempest.lib.cli import base
+from tempest.lib.common.utils import data_utils
 from tempest.lib import exceptions as lib_exc
 
 from manilaclient import config
@@ -324,3 +325,40 @@ class BaseTestCase(base.ClientTestBase):
         if wait_for_creation:
             client.wait_for_snapshot_status(snapshot['id'], 'available')
         return snapshot
+
+    @classmethod
+    def create_message(cls, client=None, wait_for_creation=True,
+                       cleanup_in_class=False, microversion=None):
+        """Trigger a 'no valid host' situation to generate a message."""
+        if client is None:
+            client = cls.get_admin_client()
+
+        extra_specs = {
+            'vendor_name': 'foobar',
+        }
+        share_type_name = data_utils.rand_name("share-type")
+        cls.create_share_type(
+            name=share_type_name, extra_specs=extra_specs,
+            driver_handles_share_servers=False, client=client,
+            cleanup_in_class=cleanup_in_class, microversion=microversion)
+
+        share_name = data_utils.rand_name("share")
+        share = cls.create_share(
+            name=share_name, share_type=share_type_name,
+            cleanup_in_class=cleanup_in_class, microversion=microversion,
+            wait_for_creation=False, client=client)
+
+        client.wait_for_share_status(share['id'], "error")
+        message = client.wait_for_message(share['id'])
+
+        resource = {
+            "type": "message",
+            "id": message["ID"],
+            "client": client,
+            "microversion": microversion,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        return message

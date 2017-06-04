@@ -269,6 +269,11 @@ def _find_share_server(cs, share_server):
     return apiclient_utils.find_resource(cs.share_servers, share_server)
 
 
+def _find_message(cs, message):
+    """Get a message by ID."""
+    return apiclient_utils.find_resource(cs.messages, message)
+
+
 def _translate_keys(collection, convert):
     for item in collection:
         keys = item.__dict__
@@ -4650,3 +4655,170 @@ def do_share_replica_resync(cs, args):
      """
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.resync(replica)
+
+
+##############################################################################
+#
+# User Messages
+#
+##############################################################################
+
+
+@api_versions.wraps("2.37")
+@cliutils.arg(
+    '--resource_id',
+    '--resource-id',
+    '--resource',
+    metavar='<resource_id>',
+    default=None,
+    action='single_alias',
+    help='Filters results by a resource uuid. Default=None.')
+@cliutils.arg(
+    '--resource_type',
+    '--resource-type',
+    metavar='<type>',
+    default=None,
+    action='single_alias',
+    help='Filters results by a resource type. Default=None. '
+         'Example: "manila message-list --resource_type share"')
+@cliutils.arg(
+    '--action_id',
+    '--action-id',
+    '--action',
+    metavar='<id>',
+    default=None,
+    action='single_alias',
+    help='Filters results by action id. Default=None.')
+@cliutils.arg(
+    '--detail_id',
+    '--detail-id',
+    '--detail',
+    metavar='<id>',
+    default=None,
+    action='single_alias',
+    help='Filters results by detail id. Default=None.')
+@cliutils.arg(
+    '--request_id',
+    '--request-id',
+    '--request',
+    metavar='<request_id>',
+    default=None,
+    action='single_alias',
+    help='Filters results by request id. Default=None.')
+@cliutils.arg(
+    '--level',
+    '--message_level',
+    '--message-level',
+    metavar='<level>',
+    default=None,
+    action='single_alias',
+    help='Filters results by the message level. Default=None. '
+         'Example: "manila message-list --level ERROR".')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of messages to return. (Default=None)')
+@cliutils.arg(
+    '--offset',
+    metavar="<offset>",
+    default=None,
+    help='Start position of message listing.')
+@cliutils.arg(
+    '--sort-key', '--sort_key',
+    metavar='<sort_key>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Key to be sorted, available keys are %(keys)s. Default=desc.' % {
+        'keys': constants.MESSAGE_SORT_KEY_VALUES})
+@cliutils.arg(
+    '--sort-dir', '--sort_dir',
+    metavar='<sort_dir>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Sort direction, available values are %(values)s. '
+         'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES})
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'example --columns "resource_id,user_message".')
+def do_message_list(cs, args):
+    """Lists all messages."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = ['ID', 'Resource Type', 'Resource ID', 'Action ID',
+                        'User Message', 'Detail ID', 'Created At']
+
+    search_opts = {
+        'offset': args.offset,
+        'limit': args.limit,
+        'request_id': args.request_id,
+        'resource_type': args.resource_type,
+        'resource_id': args.resource_id,
+        'action_id': args.action_id,
+        'detail_id': args.detail_id,
+        'message_level': args.level
+    }
+    messages = cs.messages.list(
+        search_opts=search_opts, sort_key=args.sort_key,
+        sort_dir=args.sort_dir)
+    cliutils.print_list(messages, fields=list_of_keys, sortby_index=None)
+
+
+@cliutils.arg(
+    'message',
+    metavar='<message>',
+    help='ID of the message.')
+@api_versions.wraps("2.37")
+def do_message_show(cs, args):
+    """Show details about a message."""
+
+    message = cs.messages.get(args.message)
+    _print_message(message)
+
+
+@api_versions.wraps("2.37")
+@cliutils.arg(
+    'message',
+    metavar='<message>',
+    nargs='+',
+    help='ID of the message(s).')
+def do_message_delete(cs, args):
+    """Remove one or more messages."""
+    failure_count = 0
+
+    for message in args.message:
+        try:
+            message_ref = _find_message(cs, message)
+            cs.messages.delete(message_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Delete for message %s failed: %s" % (message, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.message):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "messages.")
+
+
+def _print_message(message):
+    message_dict = {
+        'id': message.id,
+        'resource_type': message.resource_type,
+        'resource_id': message.resource_id,
+        'action_id': message.action_id,
+        'user_message': message.user_message,
+        'message_level': message.message_level,
+        'detail_id': message.detail_id,
+        'created_at': message.created_at,
+        'expires_at': message.expires_at,
+        'request_id': message.request_id,
+    }
+    cliutils.print_dict(message_dict)
