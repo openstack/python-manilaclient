@@ -1,0 +1,5 @@
+---
+features:
+  - Beginning in version 2.33, share access list API returns
+    "created_at" and "updated_at" for each access rule as part
+    of the JSON response.
