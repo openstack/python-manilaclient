@@ -90,8 +90,10 @@ class QuotaSetManager(base.ManagerWithFind):
 
     def _do_update(self, tenant_id, shares=None, snapshots=None,
                    gigabytes=None, snapshot_gigabytes=None,
-                   share_networks=None, force=None, user_id=None,
-                   share_type=None, resource_path=RESOURCE_PATH):
+                   share_networks=None,
+                   force=None, user_id=None, share_type=None,
+                   share_groups=None, share_group_snapshots=None,
+                   resource_path=RESOURCE_PATH):
         self._check_user_id_and_share_type_args(user_id, share_type)
         body = {
             'quota_set': {
@@ -101,6 +103,8 @@ class QuotaSetManager(base.ManagerWithFind):
                 'gigabytes': gigabytes,
                 'snapshot_gigabytes': snapshot_gigabytes,
                 'share_networks': share_networks,
+                'share_groups': share_groups,
+                'share_group_snapshots': share_group_snapshots,
                 'force': force,
             },
         }
@@ -141,10 +145,26 @@ class QuotaSetManager(base.ManagerWithFind):
             share_networks, force, user_id, resource_path=RESOURCE_PATH,
         )
 
-    @api_versions.wraps("2.39")  # noqa
+    @api_versions.wraps("2.39", "2.39")  # noqa
+    def update(self, tenant_id, user_id=None, share_type=None,
+               shares=None, snapshots=None, gigabytes=None,
+               snapshot_gigabytes=None, share_networks=None, force=None):
+        if share_type and share_networks:
+            raise ValueError(
+                "'share_networks' quota can be set only for project or user, "
+                "not share type.")
+        return self._do_update(
+            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
+            share_networks, force, user_id,
+            share_type=share_type,
+            resource_path=RESOURCE_PATH,
+        )
+
+    @api_versions.wraps("2.40")  # noqa
     def update(self, tenant_id, user_id=None, share_type=None,
                shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None,
+               share_groups=None, share_group_snapshots=None,
                force=None):
         if share_type and share_networks:
             raise ValueError(
@@ -154,6 +174,8 @@ class QuotaSetManager(base.ManagerWithFind):
             tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
             share_networks, force, user_id,
             share_type=share_type,
+            share_groups=share_groups,
+            share_group_snapshots=share_group_snapshots,
             resource_path=RESOURCE_PATH,
         )
 

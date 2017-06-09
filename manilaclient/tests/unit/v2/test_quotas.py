@@ -131,7 +131,7 @@ class QuotaSetsTest(utils.TestCase):
             manager._update.assert_called_once_with(
                 expected_url, expected_body, "quota_set")
 
-    @ddt.data("2.6", "2.7", "2.38", "2.39")
+    @ddt.data("2.6", "2.7", "2.38", "2.39", "2.40")
     def test_update_user_quota(self, microversion):
         tenant_id = 'test'
         user_id = 'fake_user'
@@ -148,11 +148,26 @@ class QuotaSetsTest(utils.TestCase):
                 'share_networks': 5,
             },
         }
+        kwargs = {
+            'shares': expected_body['quota_set']['shares'],
+            'snapshots': expected_body['quota_set']['snapshots'],
+            'gigabytes': expected_body['quota_set']['gigabytes'],
+            'snapshot_gigabytes': expected_body['quota_set'][
+                'snapshot_gigabytes'],
+            'share_networks': expected_body['quota_set']['share_networks'],
+            'user_id': user_id,
+        }
+        if microversion == '2.40':
+            expected_body['quota_set']['share_groups'] = 6
+            expected_body['quota_set']['share_group_snapshots'] = 7
+            kwargs['share_groups'] = expected_body['quota_set'][
+                'share_groups']
+            kwargs['share_group_snapshots'] = expected_body['quota_set'][
+                'share_group_snapshots']
+
         with mock.patch.object(manager, '_update',
                                mock.Mock(return_value='fake_update')):
-            manager.update(
-                tenant_id, shares=1, snapshots=2, gigabytes=3,
-                snapshot_gigabytes=4, share_networks=5, user_id=user_id)
+            manager.update(tenant_id, **kwargs)
 
             manager._update.assert_called_once_with(
                 expected_url, expected_body, "quota_set")

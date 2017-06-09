@@ -372,13 +372,6 @@ _quota_resources = [
 ]
 
 
-def _quota_show(quotas):
-    quota_dict = {}
-    for resource in _quota_resources:
-        quota_dict[resource] = getattr(quotas, resource, None)
-    cliutils.print_dict(quota_dict)
-
-
 def _quota_update(manager, identifier, args):
     updates = {}
     for resource in _quota_resources:
@@ -450,7 +443,7 @@ def do_quota_show(cs, args):
 def do_quota_defaults(cs, args):
     """List the default quotas for a tenant."""
     project = args.tenant_id or cs.keystone_client.project_id
-    _quota_show(cs.quotas.defaults(project))
+    _quota_set_pretty_show(cs.quotas.defaults(project))
 
 
 @cliutils.arg(
@@ -498,6 +491,21 @@ def do_quota_defaults(cs, args):
     action='single_alias',
     help='New value for the "share_networks" quota.')
 @cliutils.arg(
+    '--share-groups', '--share_groups', '--groups',
+    metavar='<share_groups>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "share_groups" quota.')
+@cliutils.arg(
+    '--share-group-snapshots', '--share_group_snapshots',
+    '--group-snapshots', '--group_snapshots',
+    metavar='<share_group_snapshots>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "share_group_snapshots" quota.')
+@cliutils.arg(
     '--share-type',
     '--share_type',
     metavar='<share-type>',
@@ -533,6 +541,17 @@ def do_quota_update(cs, args):
                 "'share type' quotas are available only starting with "
                 "'2.39' API microversion.")
         kwargs["share_type"] = args.share_type
+    if args.share_groups is not None or args.share_group_snapshots is not None:
+        if cs.api_version < api_versions.APIVersion("2.40"):
+            raise exceptions.CommandError(
+                "'share group' quotas are available only starting with "
+                "'2.40' API microversion.")
+        elif args.share_type is not None:
+            raise exceptions.CommandError(
+                "Share type quotas handle only 'shares', 'gigabytes', "
+                "'snapshots' and 'snapshot_gigabytes' resources.")
+        kwargs["share_groups"] = args.share_groups
+        kwargs["share_group_snapshots"] = args.share_group_snapshots
     cs.quotas.update(**kwargs)
 
 
@@ -583,7 +602,7 @@ def do_quota_delete(cs, args):
 def do_quota_class_show(cs, args):
     """List the quotas for a quota class."""
 
-    _quota_show(cs.quota_classes.get(args.class_name))
+    _quota_set_pretty_show(cs.quota_classes.get(args.class_name))
 
 
 @cliutils.arg(

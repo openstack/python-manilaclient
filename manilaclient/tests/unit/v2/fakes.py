@@ -302,6 +302,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }
         return (200, {}, instances)
 
+    def put_quota_sets_1234(self, *args, **kwargs):
+        return (200, {}, {})
+
     def get_quota_sets_1234(self, *args, **kwargs):
         quota_set = {
             'quota_set': {

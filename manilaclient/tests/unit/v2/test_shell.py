@@ -1804,6 +1804,38 @@ class ShellTest(test_utils.TestCase):
         )
         mock_print_dict.assert_called_once_with(mock.ANY)
 
+    @ddt.data(
+        ('--shares 13', {'shares': 13}),
+        ('--gigabytes 14', {'gigabytes': 14}),
+        ('--snapshots 15', {'snapshots': 15}),
+        ('--snapshot-gigabytes 13', {'snapshot_gigabytes': 13}),
+        ('--share-networks 13', {'share_networks': 13}),
+        ('--share-groups 13', {'share_groups': 13}),
+        ('--share-groups 0', {'share_groups': 0}),
+        ('--share-group-snapshots 13', {'share_group_snapshots': 13}),
+        ('--share-group-snapshots 0', {'share_group_snapshots': 0}),
+    )
+    @ddt.unpack
+    def test_quota_update(self, cmd, expected_body):
+        self.run_command('quota-update 1234 %s' % cmd)
+
+        expected = {'quota_set': expected_body}
+        self.assert_called('PUT', '/quota-sets/1234', body=expected)
+
+    @ddt.data(
+        "quota-update 1234 --share-groups 13 --share-type foo",
+        "quota-update 1234 --share-group-snapshots 14 --share-type bar",
+        ("quota-update 1234 --share-groups 13 --share-type foo "
+         "--share-group-snapshots 14"),
+        "--os-share-api-version 2.39 quota-update 1234 --share-groups 13",
+        ("--os-share-api-version 2.39 quota-update 1234 "
+         "--share-group-snapshots 13"),
+        ("--os-share-api-version 2.38 quota-update 1234 --shares 5 "
+         "--share-type foo"),
+    )
+    def test_quota_update_with_wrong_combinations(self, cmd):
+        self.assertRaises(exceptions.CommandError, self.run_command, cmd)
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list_with_detail(self):
         self.run_command('pool-list --detail')

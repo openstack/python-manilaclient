@@ -1,0 +1,7 @@
+---
+features:
+  - Added support for share group and share group snapshot quotas.
+upgrade:
+  - After addition of share group and share group snapshot quotas, it is now
+    possible to get 'over limit' error creating share groups and share group
+    snapshots.
