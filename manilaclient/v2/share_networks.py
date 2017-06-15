@@ -224,6 +224,9 @@ class ShareNetworkManager(base.ManagerWithFind):
 
         :rtype: list of :class:`NetworkInfo`
         """
+        if not search_opts:
+            search_opts = {}
+
         if search_opts:
             query_string = urlencode(
                 sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))

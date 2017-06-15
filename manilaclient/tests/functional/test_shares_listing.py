@@ -48,6 +48,14 @@ class SharesListReadOnlyTest(base.BaseTestCase):
         self.clients[role].manila('list', params='--export_location fake')
 
     @ddt.data('admin', 'user')
+    def test_shares_list_filter_by_inexact_name(self, role):
+        self.clients[role].manila('list', params='--name~ na')
+
+    @ddt.data('admin', 'user')
+    def test_shares_list_filter_by_inexact_description(self, role):
+        self.clients[role].manila('list', params='--description~ des')
+
+    @ddt.data('admin', 'user')
     def test_shares_list_filter_by_status(self, role):
         self.clients[role].manila('list', params='--status status')
 
@@ -290,3 +298,23 @@ class SharesListReadWriteTest(base.BaseTestCase):
             self.admin_client.list_share_instances,
             filters={'export_location': 'fake'},
             microversion='2.34')
+
+    @ddt.data('name', 'description')
+    def test_list_shares_by_inexact_option(self, option):
+        shares = self.user_client.list_shares(
+            filters={option + '~': option})
+
+        # We know we have to have atleast three shares.
+        # Due to test concurrency, there can be
+        # more than three shares (some created by other tests).
+        self.assertGreaterEqual(len(shares), 3)
+        self.assertTrue(
+            any(self.private_share['id'] == s['ID'] for s in shares))
+
+    def test_list_shares_by_description(self):
+        shares = self.user_client.list_shares(
+            filters={'description': self.private_description})
+
+        self.assertEqual(1, len(shares))
+        self.assertTrue(
+            any(self.private_share['id'] == s['ID'] for s in shares))

@@ -144,6 +144,10 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
         filters = {'name': self.name}
         self._list_share_networks_with_filters(filters)
 
+    def test_list_share_networks_filter_by_description(self):
+        filters = {'description': self.description}
+        self._list_share_networks_with_filters(filters)
+
     def test_list_share_networks_filter_by_neutron_net_id(self):
         filters = {'neutron_net_id': self.neutron_net_id}
         self._list_share_networks_with_filters(filters)
@@ -151,3 +155,18 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
     def test_list_share_networks_filter_by_neutron_subnet_id(self):
         filters = {'neutron_subnet_id': self.neutron_subnet_id}
         self._list_share_networks_with_filters(filters)
+
+    @ddt.data('name', 'description')
+    def test_list_share_networks_filter_by_inexact(self, option):
+        self.create_share_network(
+            name=data_utils.rand_name('autotest_inexact'),
+            description='fake_description_inexact',
+            neutron_net_id='fake_neutron_net_id',
+            neutron_subnet_id='fake_neutron_subnet_id',
+        )
+
+        filters = {option + '~': 'inexact'}
+        share_networks = self.admin_client.list_share_networks(
+            filters=filters)
+
+        self.assertGreater(len(share_networks), 0)
