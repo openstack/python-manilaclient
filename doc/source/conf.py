@@ -18,7 +18,15 @@ sys.path.append(os.path.abspath('exts'))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'oslosphinx', 'clidoc']
+extensions = ['sphinx.ext.autodoc', 'openstackdocstheme', 'clidoc']
+
+# openstackdocstheme options
+repository_name = 'openstack/python-manilaclient'
+bug_project = 'python-manilaclient'
+bug_tag = ''
+
+# Must set this variable to include year, month, day, hours, and minutes.
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -60,3 +68,4 @@ pygments_style = 'sphinx'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'python-manilaclientdoc'
+html_theme = 'openstackdocs'
