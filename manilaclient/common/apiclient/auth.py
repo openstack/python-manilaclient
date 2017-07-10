@@ -25,7 +25,7 @@ import six
 from stevedore import extension
 
 from manilaclient.common.apiclient import exceptions
-
+from manilaclient.common import constants
 
 _discovered_plugins = {}
 
@@ -41,8 +41,7 @@ def discover_auth_systems():
     def add_plugin(ext):
         _discovered_plugins[ext.name] = ext.plugin
 
-    ep_namespace = "manilaclient.common.apiclient.auth"
-    mgr = extension.ExtensionManager(ep_namespace)
+    mgr = extension.ExtensionManager(constants.EXTENSION_PLUGIN_NAMESPACE)
     mgr.map(add_plugin)
 
 
