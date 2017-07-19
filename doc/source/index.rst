@@ -26,7 +26,7 @@ openstack/python-manilaclient project using `Gerrit`_.
 
 .. _git.openstack.org: https://git.openstack.org/cgit/openstack/python-manilaclient
 .. _Launchpad: https://launchpad.net/python-manilaclient
-.. _Gerrit: http://docs.openstack.org/infra/manual/developers.html#development-workflow
+.. _Gerrit: https://docs.openstack.org/infra/manual/developers.html#development-workflow
 
 Testing
 -------
@@ -37,7 +37,7 @@ The preferred way to run tests is using ``tox``.
 
 See `Consistent Testing Interface`_ for more details.
 
-.. _Consistent Testing Interface: http://git.openstack.org/cgit/openstack/governance/tree/reference/project-testing-interface.rst
+.. _Consistent Testing Interface: https://git.openstack.org/cgit/openstack/governance/tree/reference/project-testing-interface.rst
 
 Functional tests
 ----------------

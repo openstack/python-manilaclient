@@ -1,8 +1,8 @@
 Manila Style Commandments
 =========================
 
-Step 1: Read http://www.python.org/dev/peps/pep-0008/
-Step 2: Read http://www.python.org/dev/peps/pep-0008/ again
+Step 1: Read https://www.python.org/dev/peps/pep-0008/
+Step 2: Read https://www.python.org/dev/peps/pep-0008/ again
 Step 3: Read on
 
 Imports
@@ -63,7 +63,7 @@ Docstrings
 
   When writing the docstring for a class, an extra line should be placed
   after the closing quotations. For more in-depth explanations for these
-  decisions see http://www.python.org/dev/peps/pep-0257/
+  decisions see https://www.python.org/dev/peps/pep-0257/
 
   If you are going to describe parameters and return values, use Sphinx, the
   appropriate syntax is as follows.
