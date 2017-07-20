@@ -26,7 +26,7 @@ See the `OpenStack CLI guide`_ for information on how to use the ``manila``
 command-line tool. You may also want to look at the
 `OpenStack API documentation`_.
 
-.. _OpenStack CLI Guide: https://docs.openstack.org/user-guide/cli.html
+.. _OpenStack CLI Guide: https://docs.openstack.org/python-openstackclient/latest/cli/
 .. _OpenStack API documentation: https://docs.openstack.org/api/
 
 The project is hosted on `Launchpad`_, where bugs can be filed. The code is
@@ -99,7 +99,7 @@ Quick-start using keystone::
 * `How to Contribute`_
 
 .. _PyPi: https://pypi.python.org/pypi/python-manilaclient
-.. _Online Documentation: https://docs.openstack.org/developer/python-manilaclient
+.. _Online Documentation: https://docs.openstack.org/python-manilaclient/latest/
 .. _Launchpad project: https://launchpad.net/python-manilaclient
 .. _Blueprints: https://blueprints.launchpad.net/python-manilaclient
 .. _Bugs: https://bugs.launchpad.net/python-manilaclient
