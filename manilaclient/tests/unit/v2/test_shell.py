@@ -245,6 +245,22 @@ class ShellTest(test_utils.TestCase):
                     self.assert_called(
                         'GET', '/shares/detail?share_type_id=' + fake_st.id)
 
+    def test_list_filter_by_inexact_name(self):
+        for separator in self.separators:
+            self.run_command('list --name~' + separator +
+                             'fake_name')
+            self.assert_called(
+                'GET',
+                '/shares/detail?name%7E=fake_name')
+
+    def test_list_filter_by_inexact_description(self):
+        for separator in self.separators:
+            self.run_command('list --description~' + separator +
+                             'fake_description')
+            self.assert_called(
+                'GET',
+                '/shares/detail?description%7E=fake_description')
+
     def test_list_filter_by_share_type_not_found(self):
         for separator in self.separators:
             self.assertRaises(
@@ -767,6 +783,22 @@ class ShellTest(test_utils.TestCase):
             self.run_command('snapshot-list --offset' + separator + '50')
             self.assert_called(
                 'GET', '/snapshots/detail?offset=50')
+
+    def test_list_snapshots_filter_by_inexact_name(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --name~' + separator +
+                             'fake_name')
+            self.assert_called(
+                'GET',
+                '/snapshots/detail?name%7E=fake_name')
+
+    def test_list_snapshots_filter_by_inexact_description(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --description~' + separator +
+                             'fake_description')
+            self.assert_called(
+                'GET',
+                '/snapshots/detail?description%7E=fake_description')
 
     def test_list_snapshots_with_sort_dir_verify_keys(self):
         aliases = ['--sort_dir', '--sort-dir']
@@ -1412,6 +1444,22 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             fields=['id', 'name'])
 
+    def test_share_network_list_filter_by_inexact_name(self):
+        for separator in self.separators:
+            self.run_command('share-network-list --name~' + separator +
+                             'fake_name')
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?name%7E=fake_name')
+
+    def test_share_network_list_filter_by_inexact_description(self):
+        for separator in self.separators:
+            self.run_command('share-network-list --description~' + separator +
+                             'fake_description')
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?description%7E=fake_description')
+
     def test_share_network_security_service_add(self):
         self.run_command('share-network-security-service-add fake_share_nw '
                          'fake_security_service')
@@ -1949,6 +1997,22 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/share-groups/detail')
         cliutils.print_list.assert_called_once_with(
             mock.ANY, fields=['Id', 'Name', 'Description'])
+
+    def test_share_group_list_filter_by_inexact_name(self):
+        for separator in self.separators:
+            self.run_command('share-group-list --name~' + separator +
+                             'fake_name')
+            self.assert_called(
+                'GET',
+                '/share-groups/detail?name%7E=fake_name')
+
+    def test_share_group_list_filter_by_inexact_description(self):
+        for separator in self.separators:
+            self.run_command('share-group-list --description~' + separator +
+                             'fake_description')
+            self.assert_called(
+                'GET',
+                '/share-groups/detail?description%7E=fake_description')
 
     def test_share_group_show(self):
         self.run_command('share-group-show 1234')
@@ -2750,3 +2814,25 @@ class ShellTest(test_utils.TestCase):
             self.assert_called_anytime(
                 'DELETE', '/messages/%s' % fake_message.id,
                 clear_callstack=False)
+
+    @ddt.data(('share-network-list', ' --description~',
+               '/share-networks/', '2.35'),
+              ('share-network-list', ' --name~',
+               '/share-networks/', '2.35'),
+              ('share-group-list', ' --description~',
+               '/share-groups/', '2.35'),
+              ('share-group-list', ' --name~', '/share-groups/', '2.35'),
+              ('list', ' --description~', '/shares/', '2.35'),
+              ('list', ' --name~', '/shares/', '2.35'),
+              ('snapshot-list', ' --description~', '/snapshots/', '2.35'),
+              ('snapshot-list', ' --name~', '/snapshots/', '2.35'))
+    @ddt.unpack
+    def test_list_filter_by_inexact_version_not_support(
+            self, cmd, option, url, version):
+        for separator in self.separators:
+            self.assertRaises(
+                exceptions.CommandError,
+                self.run_command,
+                cmd + option + separator + 'fake',
+                version=version
+            )

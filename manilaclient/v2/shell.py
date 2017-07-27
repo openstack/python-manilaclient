@@ -1477,6 +1477,27 @@ def do_snapshot_access_list(cs, args):
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
+    '--description',
+    metavar='<description>',
+    type=str,
+    default=None,
+    help='Filter results by description. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
+    '--name~',
+    metavar='<name~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share name pattern. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
+    '--description~',
+    metavar='<description~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share description pattern. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
     '--status',
     metavar='<status>',
     type=str,
@@ -1652,6 +1673,16 @@ def do_list(cs, args):
         'project_id': args.project_id,
         'is_public': args.public,
     }
+    if cs.api_version.matches(api_versions.APIVersion("2.36"),
+                              api_versions.APIVersion()):
+        search_opts['name~'] = getattr(args, 'name~')
+        search_opts['description~'] = getattr(args, 'description~')
+        search_opts['description'] = getattr(args, 'description')
+    elif (getattr(args, 'name~') or getattr(args, 'description~') or
+          getattr(args, 'description')):
+        raise exceptions.CommandError(
+            "Pattern based filtering (name~, description~ and description)"
+            " is only available with manila API version >= 2.36")
 
     if cs.api_version.matches(api_versions.APIVersion("2.35"),
                               api_versions.APIVersion()):
@@ -1858,6 +1889,13 @@ def do_share_instance_export_location_show(cs, args):
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
+    '--description',
+    metavar='<description>',
+    type=str,
+    default=None,
+    help='Filter results by description. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
     '--status',
     metavar='<status>',
     default=None,
@@ -1918,6 +1956,20 @@ def do_share_instance_export_location_show(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "id,name".')
+@cliutils.arg(
+    '--name~',
+    metavar='<name~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share snapshot name pattern. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
+    '--description~',
+    metavar='<description~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share snapshot description pattern. '
+         'Available only for microversion >= 2.36.')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -1941,6 +1993,17 @@ def do_snapshot_list(cs, args):
         'share_id': share.id,
         'usage': args.usage,
     }
+    if cs.api_version.matches(api_versions.APIVersion("2.36"),
+                              api_versions.APIVersion()):
+        search_opts['name~'] = getattr(args, 'name~')
+        search_opts['description~'] = getattr(args, 'description~')
+        search_opts['description'] = getattr(args, 'description')
+    elif (getattr(args, 'name~') or getattr(args, 'description~') or
+          getattr(args, 'description')):
+        raise exceptions.CommandError(
+            "Pattern based filtering (name~, description~ and description)"
+            " is only available with manila API version >= 2.36")
+
     snapshots = cs.share_snapshots.list(
         search_opts=search_opts,
         sort_key=args.sort_key,
@@ -2680,6 +2743,13 @@ def do_share_network_list(cs, args):
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
+    '--description',
+    metavar='<description>',
+    type=str,
+    default=None,
+    help='Filter results by description. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
     '--created-since',
     '--created_since',  # alias
     metavar='<created_since>',
@@ -2764,6 +2834,20 @@ def do_share_network_list(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "id".')
+@cliutils.arg(
+    '--name~',
+    metavar='<name~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share network name pattern. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
+    '--description~',
+    metavar='<description~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share network description pattern. '
+         'Available only for microversion >= 2.36.')
 def do_share_network_list(cs, args):
     """Get a list of network info."""
     all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
@@ -2782,6 +2866,17 @@ def do_share_network_list(cs, args):
         'offset': args.offset,
         'limit': args.limit,
     }
+    if cs.api_version.matches(api_versions.APIVersion("2.36"),
+                              api_versions.APIVersion()):
+        search_opts['name~'] = getattr(args, 'name~')
+        search_opts['description~'] = getattr(args, 'description~')
+        search_opts['description'] = getattr(args, 'description')
+    elif (getattr(args, 'name~') or getattr(args, 'description~') or
+          getattr(args, 'description')):
+        raise exceptions.CommandError(
+            "Pattern based filtering (name~, description~ and description)"
+            " is only available with manila API version >= 2.36")
+
     if args.security_service:
         search_opts['security_service_id'] = _find_security_service(
             cs, args.security_service).id
@@ -4106,6 +4201,13 @@ def do_share_group_create(cs, args):
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
+    '--description',
+    metavar='<description>',
+    type=str,
+    default=None,
+    help='Filter results by description. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
     '--status',
     metavar='<status>',
     type=str,
@@ -4188,6 +4290,20 @@ def do_share_group_create(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "id,name".')
+@cliutils.arg(
+    '--name~',
+    metavar='<name~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share group name pattern. '
+         'Available only for microversion >= 2.36.')
+@cliutils.arg(
+    '--description~',
+    metavar='<description~>',
+    type=str,
+    default=None,
+    help='Filter results matching a share group description pattern. '
+         'Available only for microversion >= 2.36.')
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_list(cs, args):
@@ -4219,6 +4335,17 @@ def do_share_group_list(cs, args):
         'share_network_id': share_network.id,
         'project_id': args.project_id,
     }
+    if cs.api_version.matches(api_versions.APIVersion("2.36"),
+                              api_versions.APIVersion()):
+        search_opts['name~'] = getattr(args, 'name~')
+        search_opts['description~'] = getattr(args, 'description~')
+        search_opts['description'] = getattr(args, 'description')
+    elif (getattr(args, 'name~') or getattr(args, 'description~') or
+          getattr(args, 'description')):
+        raise exceptions.CommandError(
+            "Pattern based filtering (name~, description~ and description)"
+            " is only available with manila API version >= 2.36")
+
     share_groups = cs.share_groups.list(
         search_opts=search_opts, sort_key=args.sort_key,
         sort_dir=args.sort_dir)

@@ -1,0 +1,8 @@
+---
+features:
+  - Added support for matching filters (name~, description~)
+    to filter results of the list commands for shares, snapshots,
+    share-networks, and share-groups.
+  - Added support for ``description`` as a filter to the list
+    commands for shares, snapshots, share-networks, and
+    share-groups.
