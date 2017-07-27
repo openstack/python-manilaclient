@@ -1598,6 +1598,14 @@ def do_snapshot_access_list(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "export_location,is public".')
+@cliutils.arg(
+    '--export-location', '--export_location',
+    metavar='<export_location>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='ID or path of the share export location. '
+         'Available only for microversion >= 2.35.')
 @cliutils.service_type('sharev2')
 def do_list(cs, args):
     """List NAS shares with filters."""
@@ -1645,6 +1653,14 @@ def do_list(cs, args):
         'is_public': args.public,
     }
 
+    if cs.api_version.matches(api_versions.APIVersion("2.35"),
+                              api_versions.APIVersion()):
+        search_opts['export_location'] = args.export_location
+    elif args.export_location:
+        raise exceptions.CommandError(
+            "Filtering by export location is only "
+            "available with manila API version >= 2.35")
+
     if share_group:
         search_opts['share_group_id'] = share_group.id
 
@@ -1681,6 +1697,14 @@ def do_list(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "id,host,status".')
+@cliutils.arg(
+    '--export-location', '--export_location',
+    metavar='<export_location>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='ID or path of the share instance export location. '
+         'Available only for microversion >= 2.35.')
 @api_versions.wraps("2.3")
 def do_share_instance_list(cs, args):
     """List share instances (Admin only)."""
@@ -1697,7 +1721,15 @@ def do_share_instance_list(cs, args):
     if share:
         instances = cs.shares.list_instances(share)
     else:
-        instances = cs.share_instances.list()
+        if cs.api_version.matches(
+                api_versions.APIVersion("2.35"), api_versions.APIVersion()):
+            instances = cs.share_instances.list(args.export_location)
+        else:
+            if args.export_location:
+                raise exceptions.CommandError(
+                    "Filtering by export location is only "
+                    "available with manila API version >= 2.35")
+            instances = cs.share_instances.list()
 
     cliutils.print_list(instances, list_of_keys)
 

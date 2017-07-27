@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_utils import uuidutils
+
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
@@ -46,10 +48,26 @@ class ShareInstanceManager(base.ManagerWithFind):
         share_id = common_base.getid(instance)
         return self._get("/share_instances/%s" % share_id, "share_instance")
 
-    @api_versions.wraps("2.3")
+    @api_versions.wraps("2.3", "2.34")
     def list(self):
         """List all share instances."""
-        return self._list('/share_instances', 'share_instances')
+        return self.do_list()
+
+    @api_versions.wraps("2.35")   # noqa
+    def list(self, export_location=None):
+        """List all share instances."""
+        return self.do_list(export_location)
+
+    def do_list(self, export_location=None):
+        """List all share instances."""
+        path = '/share_instances'
+        if export_location:
+            if uuidutils.is_uuid_like(export_location):
+                path += '?export_location_id=' + export_location
+            else:
+                path += '?export_location_path=' + export_location
+
+        return self._list(path, 'share_instances')
 
     def _action(self, action, instance, info=None, **kwargs):
         """Perform a share instance 'action'.

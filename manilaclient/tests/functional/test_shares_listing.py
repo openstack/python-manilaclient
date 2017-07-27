@@ -44,6 +44,10 @@ class SharesListReadOnlyTest(base.BaseTestCase):
         self.clients[role].manila('list', params='--name name')
 
     @ddt.data('admin', 'user')
+    def test_shares_list_filter_by_export_location(self, role):
+        self.clients[role].manila('list', params='--export_location fake')
+
+    @ddt.data('admin', 'user')
     def test_shares_list_filter_by_status(self, role):
         self.clients[role].manila('list', params='--status status')
 
@@ -240,3 +244,49 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self.assertTrue(any(s['Name'] is not None for s in shares))
         self.assertTrue(any(s['Size'] is not None for s in shares))
         self.assertTrue(all('Description' not in s for s in shares))
+
+    @ddt.data('ID', 'Path')
+    def test_list_shares_by_export_location(self, option):
+        export_locations = self.admin_client.list_share_export_locations(
+            self.public_share['id'])
+        shares = self.admin_client.list_shares(
+            filters={'export_location': export_locations[0][option]})
+
+        self.assertEqual(1, len(shares))
+        self.assertTrue(
+            any(self.public_share['id'] == s['ID'] for s in shares))
+        for share in shares:
+            get = self.admin_client.get_share(share['ID'])
+            self.assertEqual(self.public_name, get['name'])
+
+    @ddt.data('ID', 'Path')
+    def test_list_share_instances_by_export_location(self, option):
+        export_locations = self.admin_client.list_share_export_locations(
+            self.public_share['id'])
+        share_instances = self.admin_client.list_share_instances(
+            filters={'export_location': export_locations[0][option]})
+
+        self.assertEqual(1, len(share_instances))
+
+        share_instance_id = share_instances[0]['ID']
+        except_export_locations = (
+            self.admin_client.list_share_instance_export_locations(
+                share_instance_id))
+        self.assertGreater(len(except_export_locations), 0)
+        self.assertTrue(
+            any(export_locations[0][option] == e[option] for e in
+                except_export_locations))
+
+    def test_list_share_by_export_location_with_invalid_version(self):
+        self.assertRaises(
+            exceptions.CommandFailed,
+            self.admin_client.list_shares,
+            filters={'export_location': 'fake'},
+            microversion='2.34')
+
+    def test_list_share_instance_by_export_location_invalid_version(self):
+        self.assertRaises(
+            exceptions.CommandFailed,
+            self.admin_client.list_share_instances,
+            filters={'export_location': 'fake'},
+            microversion='2.34')

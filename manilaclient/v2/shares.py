@@ -15,6 +15,7 @@
 """Interface for shares extension."""
 
 import collections
+from oslo_utils import uuidutils
 import re
 import string
 try:
@@ -318,8 +319,23 @@ class ShareManager(base.ManagerWithFind):
         share_id = common_base.getid(share)
         return self._update("/shares/%s" % share_id, body)
 
+    @api_versions.wraps("1.0", "2.34")
     def list(self, detailed=True, search_opts=None,
              sort_key=None, sort_dir=None):
+        """Get a list of all shares."""
+        search_opts.pop("export_location", None)
+        return self.do_list(detailed=detailed, search_opts=search_opts,
+                            sort_key=sort_key, sort_dir=sort_dir)
+
+    @api_versions.wraps("2.35")   # noqa
+    def list(self, detailed=True, search_opts=None,
+             sort_key=None, sort_dir=None):
+        """Get a list of all shares."""
+        return self.do_list(detailed=detailed, search_opts=search_opts,
+                            sort_key=sort_key, sort_dir=sort_dir)
+
+    def do_list(self, detailed=True, search_opts=None,
+                sort_key=None, sort_dir=None):
         """Get a list of all shares.
 
         :param detailed: Whether to return detailed share info or not.
@@ -372,6 +388,13 @@ class ShareManager(base.ManagerWithFind):
 
         if 'is_public' not in search_opts:
             search_opts['is_public'] = True
+
+        export_location = search_opts.pop('export_location', None)
+        if export_location:
+            if uuidutils.is_uuid_like(export_location):
+                search_opts['export_location_id'] = export_location
+            else:
+                search_opts['export_location_path'] = export_location
 
         if search_opts:
             query_string = urlencode(
