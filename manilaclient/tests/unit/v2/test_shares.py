@@ -389,6 +389,18 @@ class SharesTest(utils.TestCase):
          'action_name': 'allow_access', 'microversion': '2.13'},
         {'access_to': 'alice bob', 'access_type': 'cephx',
          'action_name': 'allow_access', 'microversion': '2.13'},
+        {'access_to': 'AD80:0000:0000:0000:ABAA:0000:00C2:0002',
+         'access_type': 'ip', 'action_name': 'allow_access',
+         'microversion': '2.38'},
+        {'access_to': 'AD80::/36',
+         'access_type': 'ip', 'action_name': 'allow_access',
+         'microversion': '2.38'},
+        {'access_to': 'AD80:ABAA::/128',
+         'access_type': 'ip', 'action_name': 'allow_access',
+         'microversion': '2.38'},
+        {'access_to': 'ad80::abaa:0:c2:2',
+         'access_type': 'ip', 'action_name': 'allow_access',
+         'microversion': '2.38'},
     )
     @ddt.unpack
     def test_allow_access_to_share(self, access_to, access_type,
@@ -439,6 +451,12 @@ class SharesTest(utils.TestCase):
          'microversion': '2.13'},
         {'access_to': u"bj\u00F6rn", 'access_type': 'cephx',
          'microversion': '2.13'},
+        {'access_to': "AD80:0000:0000:0000:ABAA:0000:00C2:0002/65",
+         'access_type': 'ip', 'microversion': '2.38'},
+        {'access_to': "AD80:0000:0000:0000:ABAA:0000:00C2:0002*32",
+         'access_type': 'ip', 'microversion': '2.38'},
+        {'access_to': "AD80:0000:0000:0000:ABAA:0000:00C2:0002",
+         'access_type': 'ip', 'microversion': '2.37'},
     )
     @ddt.unpack
     def test_allow_access_to_share_error_invalid_access(self, access_to,
