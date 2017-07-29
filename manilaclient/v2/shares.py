@@ -325,6 +325,7 @@ class ShareManager(base.ManagerWithFind):
     def list(self, detailed=True, search_opts=None,
              sort_key=None, sort_dir=None):
         """Get a list of all shares."""
+        search_opts = search_opts or {}
         search_opts.pop("export_location", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
                             sort_key=sort_key, sort_dir=sort_dir)
