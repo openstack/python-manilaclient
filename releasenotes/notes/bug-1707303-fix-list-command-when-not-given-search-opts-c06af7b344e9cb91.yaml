@@ -1,0 +1,4 @@
+---
+fixes:
+  - The list command for --os-share-api-version <=2.34 has been fixed to not
+    error out in case there are no search options/filters specified.
