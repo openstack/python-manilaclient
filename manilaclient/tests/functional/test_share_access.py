@@ -15,7 +15,6 @@
 
 import ddt
 from tempest.lib import exceptions as tempest_lib_exc
-import testtools
 
 from manilaclient import api_versions
 from manilaclient import config
@@ -173,7 +172,6 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
             self.share_id, 'cert', self.access_to['cert'].pop(), microversion)
 
     @ddt.data("2.38", api_versions.MAX_VERSION)
-    @testtools.skip("BUG: https://bugs.launchpad.net/manila/+bug/1707066")
     def test_create_delete_ipv6_access_rule(self, microversion):
         self._create_delete_access_rule(
             self.share_id, 'ip', self.access_to['ipv6'].pop(), microversion)
