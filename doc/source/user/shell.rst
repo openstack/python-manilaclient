@@ -38,7 +38,7 @@ For example, in Bash you'd use::
     export OS_PASSWORD=bar
     export OS_TENANT_NAME=foobarproject
     export OS_AUTH_URL=http://...
-    export OS_SHARE_API_VERSION=1
+    export OS_SHARE_API_VERSION=2
 
 From there, all shell commands take the form::
 
@@ -48,4 +48,4 @@ Run :program:`manila help` to get a full list of all possible commands,
 and run :program:`manila help <command>` to get detailed help for that
 command.
 
-.. include:: manila_cli_output.rst.inc
+.. include:: ../cli/manila_cli_output.rst.inc
