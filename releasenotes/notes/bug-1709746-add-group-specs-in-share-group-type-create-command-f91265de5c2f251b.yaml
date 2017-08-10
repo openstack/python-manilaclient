@@ -1,0 +1,3 @@
+---
+fixes:
+  - Added group specs in share group type create CLI.

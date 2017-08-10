@@ -2332,7 +2332,7 @@ class ShellTest(test_utils.TestCase):
             mock.ANY, columns=mock.ANY)
 
     @ddt.data(True, False)
-    def test_share_group_type_create_with_access(self, public):
+    def test_share_group_type_create_with_access_and_group_specs(self, public):
         fake_share_type_1 = type('FakeShareType', (object,), {'id': '1234'})
         fake_share_type_2 = type('FakeShareType', (object,), {'id': '5678'})
         self.mock_object(
@@ -2342,14 +2342,15 @@ class ShellTest(test_utils.TestCase):
             'share_group_type': {
                 'name': 'test-group-type-1',
                 'share_types': ['1234', '5678'],
-                'group_specs': {},
+                'group_specs': {'spec1': 'value1'},
                 'is_public': public,
             }
         }
 
         self.run_command(
-            'share-group-type-create test-group-type-1 type1,type2 '
-            '--is-public %s' % six.text_type(public))
+            'share-group-type-create test-group-type-1 '
+            'type1,type2 --is-public %s --group-specs '
+            'spec1=value1' % six.text_type(public))
 
         self.assert_called('POST', '/share-group-types', body=expected)
 

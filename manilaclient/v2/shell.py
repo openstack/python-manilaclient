@@ -3985,6 +3985,17 @@ def do_share_group_type_specs_list(cs, args):
     metavar='<is_public>',
     action='single_alias',
     help='Make type accessible to the public (default true).')
+@cliutils.arg(
+    '--group-specs',
+    '--group_specs',
+    metavar='<key=value>',
+    type=str,
+    nargs='*',
+    action='single_alias',
+    default=None,
+    help='Share Group type extra specs by key and value. '
+         'OPTIONAL: Default=None. '
+         'Example: "--group-specs consistent_snapshot_support=host".',)
 @cliutils.service_type('sharev2')
 @api_versions.experimental_api
 def do_share_group_type_create(cs, args):
@@ -3998,6 +4009,8 @@ def do_share_group_type_create(cs, args):
         'name': args.name,
         'is_public': strutils.bool_from_string(args.is_public, default=True),
     }
+    if args.group_specs is not None:
+        kwargs['group_specs'] = _extract_group_specs(args)
 
     sg_type = cs.share_group_types.create(**kwargs)
     _print_share_group_type(sg_type)
