@@ -32,6 +32,8 @@
 
 import pbr.version
 
+import openstackdocstheme
+
 # If your documentation needs a minimal Sphinx version, state it here.
 # needs_sphinx = '1.0'
 
@@ -46,7 +48,7 @@ extensions = [
 # openstackdocstheme options
 repository_name = 'openstack/python-manilaclient'
 bug_project = 'python-manilaclient'
-bug_tag = ''
+bug_tag = 'release notes'
 html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -128,7 +130,7 @@ html_theme = 'openstackdocs'
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-# html_theme_path = []
+html_theme_path = [openstackdocstheme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
