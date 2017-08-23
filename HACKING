@@ -42,11 +42,11 @@ Human Alphabetical Order Examples
   import time
   import unittest
 
-  from manila import flags
-  from manila import test
   from manila.auth import users
   from manila.endpoint import api
   from manila.endpoint import cloud
+  from manila import flags
+  from manila import test
 
 Docstrings
 ----------
@@ -75,7 +75,7 @@ Docstrings
   """
 
 Text encoding
-----------
+-------------
 - All text within python code should be of type 'unicode'.
 
     WRONG:
