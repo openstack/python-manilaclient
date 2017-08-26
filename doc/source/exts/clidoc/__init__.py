@@ -30,7 +30,7 @@ def _get_cli_output():
 
 def builder_inited(app):
     # generate the missing rst files
-    with open(os.path.join(app.env.srcdir, "manila_cli_output.rst.inc"), "w") as f:
+    with open(os.path.join(app.env.srcdir, "cli/manila_cli_output.rst.inc"), "w") as f:
         f.write("``manila help``::\n\n")
         f.write("\n".join(_get_cli_output()))
         f.write("\n")

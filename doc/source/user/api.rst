@@ -1,5 +1,5 @@
-The :mod:`manilaclient` Python API
-==================================
+The :program:`manilaclient` Python API
+======================================
 
 .. module:: manilaclient
    :synopsis: A client for the OpenStack Manila API.
@@ -7,7 +7,7 @@ The :mod:`manilaclient` Python API
 .. currentmodule:: manilaclient
 
 Usage
-=====
+-----
 
 In order to use the Python API directly, you must first obtain an auth
 token and identify which endpoint you wish to speak to. Once you have
