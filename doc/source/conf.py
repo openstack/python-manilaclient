@@ -16,6 +16,8 @@
 import os
 import sys
 
+import openstackdocstheme
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -32,14 +34,6 @@ sys.path.append(os.path.abspath('exts'))
 # extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'openstackdocstheme', 'clidoc']
-
-# openstackdocstheme options
-repository_name = 'openstack/python-manilaclient'
-bug_project = 'python-manilaclient'
-bug_tag = ''
-
-# Must set this variable to include year, month, day, hours, and minutes.
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -82,3 +76,11 @@ pygments_style = 'sphinx'
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'python-manilaclientdoc'
 html_theme = 'openstackdocs'
+html_theme_path = [openstackdocstheme.get_html_theme_path()]
+
+# openstackdocstheme options
+repository_name = 'openstack/python-manilaclient'
+bug_project = 'python-manilaclient'
+bug_tag = 'docs'
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
+
