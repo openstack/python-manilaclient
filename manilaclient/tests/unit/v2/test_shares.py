@@ -371,7 +371,7 @@ class SharesTest(utils.TestCase):
          'action_name': 'os-allow_access', 'microversion': '2.0'},
         {'access_to': '1' * 255, 'access_type': 'user',
          'action_name': 'os-allow_access', 'microversion': '2.0'},
-        {'access_to': 'fake\\]{.-_\'`;}[', 'access_type': 'user',
+        {'access_to': 'fake$\\]{.-_\'`;}[', 'access_type': 'user',
          'action_name': 'os-allow_access', 'microversion': '2.0'},
         {'access_to': 'MYDOMAIN\\Administrator', 'access_type': 'user',
          'action_name': 'os-allow_access', 'microversion': '2.0'},

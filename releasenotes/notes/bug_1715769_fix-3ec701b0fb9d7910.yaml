@@ -1,0 +1,4 @@
+---
+fixes:
+  - Usernames can contain the $ symbol to allow for windows computer
+    authentication in an Active Directory environment
