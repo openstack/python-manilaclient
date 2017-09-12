@@ -451,7 +451,7 @@ class OpenStackManilaShell(object):
         logging.basicConfig(level=logging.DEBUG, format=streamformat)
         logging.getLogger('requests.packages.urllib3.connectionpool'
                           ).setLevel(logging.WARNING)
-        logging.getLogger('keystoneclient.session').setLevel(logging.WARNING)
+        logging.getLogger('keystoneauth1.session').setLevel(logging.WARNING)
 
     def _build_subcommands_and_extensions(self,
                                           os_api_version,

@@ -12,10 +12,10 @@
 
 import warnings
 
+from keystoneauth1 import session
 from keystoneclient import adapter
 from keystoneclient import client as ks_client
 from keystoneclient import discover
-from keystoneclient import session
 
 import manilaclient
 from manilaclient.common import constants
@@ -43,10 +43,10 @@ class Client(object):
         >>> client = Client(USERNAME, PASSWORD, PROJECT_ID, AUTH_URL)
 
     Or, alternatively, you can create a client instance using the
-    keystoneclient.session API::
+    keystoneauth1.session API::
 
         >>> from keystoneclient.auth.identity import v2
-        >>> from keystoneclient import session
+        >>> from keystoneauth1 import session
         >>> from manilaclient import client
         >>> auth = v2.Password(auth_url=AUTH_URL,
                                username=USERNAME,
