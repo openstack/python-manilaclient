@@ -3,6 +3,7 @@
 .coverage
 .idea
 .testrepository
+.stestr/*
 .tox/*
 .venv
 cover/*
