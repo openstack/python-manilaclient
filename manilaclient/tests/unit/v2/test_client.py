@@ -174,7 +174,7 @@ class ClientTest(utils.TestCase):
 
         self.mock_object(client.httpclient, 'HTTPClient')
         self.mock_object(client.ks_client, 'Client')
-        self.mock_object(client.discover, 'Discover')
+        self.mock_object(client.session.discover, 'Discover')
         self.mock_object(client.session, 'Session')
         client_args = self._get_client_args(**kwargs)
         client_args['api_version'] = manilaclient.API_MIN_VERSION
@@ -198,7 +198,7 @@ class ClientTest(utils.TestCase):
                  'region_id': 'SecondRegion', 'url': 'http://3.3.3.2'},
             ],
         }
-        client.discover.Discover.return_value.url_for.side_effect = (
+        client.session.discover.Discover.return_value.url_for.side_effect = (
             fake_url_for)
         client.ks_client.Client.return_value.auth_token.return_value = (
             'fake_token')
@@ -237,7 +237,7 @@ class ClientTest(utils.TestCase):
     def test_client_init_no_session_no_auth_token_v2(self, kwargs):
         self.mock_object(client.httpclient, 'HTTPClient')
         self.mock_object(client.ks_client, 'Client')
-        self.mock_object(client.discover, 'Discover')
+        self.mock_object(client.session.discover, 'Discover')
         self.mock_object(client.session, 'Session')
         client_args = self._get_client_args(**kwargs)
         client_args['api_version'] = manilaclient.API_MIN_VERSION
@@ -253,7 +253,7 @@ class ClientTest(utils.TestCase):
                  'publicUrl': 'http://3.3.3.3', 'adminUrl': 'http://3.3.3.2'},
             ],
         }
-        client.discover.Discover.return_value.url_for.side_effect = (
+        client.session.discover.Discover.return_value.url_for.side_effect = (
             lambda v: 'url_v2.0' if v == 'v2.0' else None)
         client.ks_client.Client.return_value.auth_token.return_value = (
             'fake_token')
@@ -280,7 +280,7 @@ class ClientTest(utils.TestCase):
         mocked_ks_client.authenticate.assert_called_with()
 
     @mock.patch.object(client.ks_client, 'Client', mock.Mock())
-    @mock.patch.object(client.discover, 'Discover', mock.Mock())
+    @mock.patch.object(client.session.discover, 'Discover', mock.Mock())
     @mock.patch.object(client.session, 'Session', mock.Mock())
     def test_client_init_no_session_no_auth_token_endpoint_not_found(self):
         self.mock_object(client.httpclient, 'HTTPClient')
@@ -288,14 +288,15 @@ class ClientTest(utils.TestCase):
             auth_urli='fake_url',
             password='foo_password',
             tenant_id='foo_tenant_id')
-        client.discover.Discover.return_value.url_for.return_value = None
+        discover = client.session.discover.Discover
+        discover.return_value.url_for.return_value = None
         mocked_ks_client = client.ks_client.Client.return_value
 
         self.assertRaises(
             exceptions.CommandError, client.Client, **client_args)
 
         self.assertTrue(client.session.Session.called)
-        self.assertTrue(client.discover.Discover.called)
+        self.assertTrue(client.session.discover.Discover.called)
         self.assertFalse(client.httpclient.HTTPClient.called)
         self.assertFalse(client.ks_client.Client.called)
         self.assertFalse(mocked_ks_client.service_catalog.get_endpoints.called)
