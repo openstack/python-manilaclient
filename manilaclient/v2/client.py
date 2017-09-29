@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import warnings
+from debtcollector import removals
 
 from keystoneauth1 import session
 from keystoneclient import adapter
@@ -73,6 +73,21 @@ class Client(object):
         >>> client.shares.list()
         ...
     """
+    @removals.removed_kwarg(
+        'share_service_name', message="Please use 'service_name' instead",
+        removal_version='2.0.0')
+    @removals.removed_kwarg(
+        'proxy_tenant_id', message="This is not used anywhere",
+        removal_version='2.0.0')
+    @removals.removed_kwarg(
+        'proxy_token', message="This is not used anywhere",
+        removal_version='2.0.0')
+    @removals.removed_kwarg(
+        'os_cache', message="Please use 'use_keyring' instead",
+        removal_version='2.0.0')
+    @removals.removed_kwarg(
+        'api_key', message="Please use 'password' instead",
+        removal_version='2.0.0')
     def __init__(self, username=None, api_key=None,
                  project_id=None, auth_url=None, insecure=False, timeout=None,
                  tenant_id=None, project_name=None, region_name=None,
@@ -119,32 +134,6 @@ class Client(object):
         self.cached_token_lifetime = cached_token_lifetime
 
         service_name = kwargs.get("share_service_name", service_name)
-
-        def check_deprecated_arguments():
-            deprecated = {
-                'share_service_name': 'service_name',
-                'proxy_tenant_id': None,
-                'proxy_token': None,
-                'os_cache': 'use_keyring',
-                'api_key': 'password',
-            }
-
-            for arg, replacement in deprecated.items():
-                if kwargs.get(arg, None) is None:
-                    continue
-
-                replacement_msg = ""
-
-                if replacement is not None:
-                    replacement_msg = " Use %s instead." % replacement
-
-                msg = "Argument %(arg)s is deprecated.%(repl)s" % {
-                    'arg': arg,
-                    'repl': replacement_msg
-                }
-                warnings.warn(msg)
-
-        check_deprecated_arguments()
 
         if input_auth_token and not service_catalog_url:
             msg = ("For token-based authentication you should "
@@ -260,6 +249,10 @@ class Client(object):
             if extension.manager_class:
                 setattr(self, extension.name, extension.manager_class(self))
 
+    @removals.remove(
+        message="authenticate() method is deprecated. Client automatically "
+        "makes authentication call in the constructor.",
+        removal_version='2.0.0')
     def authenticate(self):
         """Authenticate against the server.
 
@@ -269,9 +262,7 @@ class Client(object):
         Returns on success; raises :exc:`exceptions.Unauthorized` if the
         credentials are wrong.
         """
-        warnings.warn("authenticate() method is deprecated. "
-                      "Client automatically makes authentication call "
-                      "in the constructor.")
+        pass
 
     def _get_keystone_client(self):
         # First create a Keystone session

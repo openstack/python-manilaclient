@@ -1,0 +1,14 @@
+---
+deprecations:
+  - |
+    v1.Client is deprecated and will be removed with the 2.0.0 release of
+    python-manilaclient. Please use v2.Client.
+  - |
+    Some kwargs when creating a Client instance (for v1.Client and v2.Client)
+    are deprecated and will be removed with the 2.0.0 release of
+    python-manilaclient. The arguments are 'share_service_name',
+    'proxy_tenant_id', 'proxy_token', 'os_cache' and 'api_key'.
+  - |
+    The method 'authenticate()' for a v1.Client and v2.Client instance is
+    deprecated and will be removed with the 2.0.0 release of
+    python-manilaclient.
