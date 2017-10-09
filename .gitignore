@@ -6,6 +6,9 @@
 .stestr/*
 .tox/*
 .venv
+.project
+.pydevproject
+.ropeproject
 cover/*
 build/*
 etc/manilaclient/manilaclient.conf*
