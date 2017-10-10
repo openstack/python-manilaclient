@@ -497,7 +497,7 @@ class OpenStackManilaShell(object):
             return 0
 
         os_service_type = args.service_type
-        os_endpoint_type = args.endpoint_type
+        os_endpoint_type = args.endpoint_type or DEFAULT_MANILA_ENDPOINT_TYPE
 
         client_args = dict(
             username=args.os_username,
@@ -507,7 +507,7 @@ class OpenStackManilaShell(object):
             insecure=args.insecure,
             region_name=args.os_region_name,
             tenant_id=args.os_project_id or args.os_tenant_id,
-            endpoint_type=DEFAULT_MANILA_ENDPOINT_TYPE,
+            endpoint_type=os_endpoint_type,
             extensions=self.extensions,
             service_type=constants.V1_SERVICE_TYPE,
             service_name=args.service_name,

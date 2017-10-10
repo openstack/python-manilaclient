@@ -208,6 +208,85 @@ class OpenstackManilaShellTest(utils.TestCase):
                 service_catalog_url=expected["service_catalog_url"],
             )
 
+    @ddt.data(
+        # default without any env var or kwargs
+        {
+            "env_vars": {"OS_TOKEN": "foo_token",
+                         "OS_MANILA_BYPASS_URL": "http://bar.url"},
+            "kwargs": {},
+            "expected": {"input_auth_token": "foo_token",
+                         "service_catalog_url": "http://bar.url",
+                         "os_endpoint_type": "publicURL"}
+        },
+        # only env var
+        {
+            "env_vars": {"OS_TOKEN": "foo_token",
+                         "OS_MANILA_BYPASS_URL": "http://bar.url",
+                         "OS_MANILA_ENDPOINT_TYPE": "custom-endpoint-type"},
+            "kwargs": {},
+            "expected": {"input_auth_token": "foo_token",
+                         "service_catalog_url": "http://bar.url",
+                         "os_endpoint_type": "custom-endpoint-type"},
+        },
+        # only kwargs
+        {
+            "env_vars": {"OS_TOKEN": "foo_token",
+                         "OS_MANILA_BYPASS_URL": "http://bar.url"},
+            "kwargs": {"--endpoint-type": "custom-kwargs-endpoint-type"},
+            "expected": {"input_auth_token": "foo_token",
+                         "service_catalog_url": "http://bar.url",
+                         "os_endpoint_type": "custom-kwargs-endpoint-type"},
+        },
+        # env var *and* kwargs (kwargs should win)
+        {
+            "env_vars": {"OS_TOKEN": "foo_token",
+                         "OS_MANILA_BYPASS_URL": "http://bar.url",
+                         "os_endpoint_type": "custom-env-endpoint-type"},
+            "kwargs": {"--endpoint-type": "custom-kwargs-endpoint-type"},
+            "expected": {"input_auth_token": "foo_token",
+                         "service_catalog_url": "http://bar.url",
+                         "os_endpoint_type": "custom-kwargs-endpoint-type"},
+        }
+    )
+    @ddt.unpack
+    def test_main_success_with_os_endpoint(self, env_vars, kwargs, expected):
+        self.set_env_vars(env_vars)
+        with mock.patch.object(shell, "client") as mock_client:
+            cmd = ""
+            for k, v in kwargs.items():
+                cmd += "%s=%s " % (k, v)
+            cmd += "list"
+
+            self.shell(cmd)
+
+            mock_client.Client.assert_called_with(
+                manilaclient.API_MAX_VERSION,
+                username="",
+                password="",
+                project_name="",
+                auth_url="",
+                insecure=False,
+                region_name="",
+                tenant_id="",
+                endpoint_type=expected["os_endpoint_type"],
+                extensions=mock.ANY,
+                service_type=constants.V1_SERVICE_TYPE,
+                service_name="",
+                retries=0,
+                http_log_debug=False,
+                cacert=None,
+                use_keyring=False,
+                force_new_token=False,
+                user_id="",
+                user_domain_id="",
+                user_domain_name="",
+                project_domain_id="",
+                project_domain_name="",
+                cert="",
+                input_auth_token=expected["input_auth_token"],
+                service_catalog_url=expected["service_catalog_url"],
+            )
+
     def test_help_unknown_command(self):
         self.assertRaises(exceptions.CommandError, self.shell, 'help foofoo')
 
