@@ -12,10 +12,9 @@
 
 from debtcollector import removals
 
+from keystoneauth1 import adapter
 from keystoneauth1 import session
-from keystoneclient import adapter
 from keystoneclient import client as ks_client
-from keystoneclient import discover
 
 import manilaclient
 from manilaclient.common import constants
@@ -238,8 +237,7 @@ class Client(object):
         ks_session = session.Session(verify=verify, cert=self.cert)
 
         # Discover the supported keystone versions using the given url
-        ks_discover = discover.Discover(
-            session=ks_session, auth_url=self.auth_url)
+        ks_discover = session.discover.Discover(ks_session, self.auth_url)
 
         # Inspect the auth_url to see the supported version. If both v3 and v2
         # are supported, then use the highest version if possible.
