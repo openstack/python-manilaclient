@@ -53,7 +53,7 @@ class SharesTest(utils.TestCase):
 
     # Testcases for class ShareManager
 
-    @ddt.data('nfs', 'cifs', 'cephfs', 'glusterfs', 'hdfs')
+    @ddt.data('nfs', 'cifs', 'cephfs', 'glusterfs', 'hdfs', 'maprfs')
     def test_create_share_with_protocol(self, protocol):
         expected = {
             'size': 1,
