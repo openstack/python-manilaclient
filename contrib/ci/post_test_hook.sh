@@ -21,7 +21,7 @@ export MANILACLIENT_CONF="$MANILACLIENT_DIR/etc/manilaclient/manilaclient.conf"
 cd $MANILACLIENT_DIR
 
 # Give permissions
-sudo chown -R jenkins:stack .
+sudo chown -R $USER:stack .
 
 # Create manilaclient config file
 touch $MANILACLIENT_CONF
@@ -98,7 +98,7 @@ set +o errexit
 CONCURRENCY=${CONCURRENCY:-8}
 
 # Run functional tests
-sudo -H -u jenkins tox -e functional -v -- --concurrency=$CONCURRENCY
+sudo -H -u $USER tox -e functional -v -- --concurrency=$CONCURRENCY
 EXIT_CODE=$?
 
 if [ -d ".testrepository" ] ; then
