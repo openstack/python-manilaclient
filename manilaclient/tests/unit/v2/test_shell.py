@@ -2470,13 +2470,12 @@ class ShellTest(test_utils.TestCase):
 
     @ddt.data(True, False)
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
-    def test_share_replica_delete(self, force):
+    def test_share_replica_delete_force(self, force):
 
         fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
         shell_v2._find_share_replica.return_value = fake_replica
 
         force = '--force' if force else ''
-
         self.run_command('share-replica-delete fake-replica ' + force)
 
         if force:
@@ -2484,6 +2483,45 @@ class ShellTest(test_utils.TestCase):
                                body={'force_delete': None})
         else:
             self.assert_called('DELETE', '/share-replicas/1234')
+
+    @ddt.data([1, 0], [1, 1], [2, 0], [2, 1], [2, 2])
+    @ddt.unpack
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    def test_share_replica_delete_errors(self, replica_count, replica_errors):
+
+        class StubbedReplicaFindError(Exception):
+            """Error in find share replica stub"""
+            pass
+
+        class StubbedFindWithErrors(object):
+            def __init__(self, existing_replicas):
+                self.existing_replicas = existing_replicas
+
+            def __call__(self, cs, replica):
+                if replica not in self.existing_replicas:
+                    raise StubbedReplicaFindError
+                return type('FakeShareReplica', (object,), {'id': replica})
+
+        all_replicas = []
+        existing_replicas = []
+        for counter in range(replica_count):
+            replica = 'fake-replica-%d' % counter
+            if counter >= replica_errors:
+                existing_replicas.append(replica)
+            all_replicas.append(replica)
+
+        shell_v2._find_share_replica.side_effect = StubbedFindWithErrors(
+            existing_replicas)
+        cmd = 'share-replica-delete %s' % ' '.join(all_replicas)
+
+        if replica_count == replica_errors:
+            self.assertRaises(exceptions.CommandError, self.run_command, cmd)
+        else:
+            self.run_command(cmd)
+            for replica in existing_replicas:
+                self.assert_called_anytime('DELETE',
+                                           '/share-replicas/' + replica,
+                                           clear_callstack=False)
 
     def test_share_replica_list_all(self):
 
