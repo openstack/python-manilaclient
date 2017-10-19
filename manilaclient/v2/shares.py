@@ -127,8 +127,8 @@ class ShareManager(base.ManagerWithFind):
                share_group_id=None):
         """Create a share.
 
-        :param share_proto: text - share protocol for new share
-            available values are NFS, CIFS, CephFS, GlusterFS and HDFS.
+        :param share_proto: text - share protocol for new share available
+            values are NFS, CIFS, CephFS, GlusterFS, HDFS and MAPRFS.
         :param size: int - size in GiB
         :param snapshot_id: text - ID of the snapshot
         :param name: text - name of new share
