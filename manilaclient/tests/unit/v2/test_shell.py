@@ -2797,21 +2797,38 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('GET', '/messages/1234')
 
-    @ddt.data(('1234', ), ('1234', '5678'))
+    @ddt.data(('1234', ),
+              ('1234_error', ),
+              ('1234_error', '5678'),
+              ('1234', '5678_error'),
+              ('1234', '5678'))
     def test_message_delete(self, ids):
-        fake_messages = [
-            messages.Message('fake', {'id': mid}, True) for mid in ids
-        ]
+        fake_messages = dict()
+        for mid in ids:
+            if mid.endswith('_error'):
+                continue
+            fake_messages[mid] = messages.Message('fake', {'id': mid}, True)
+
+        def _find_message_with_errors(cs, mid):
+            if mid.endswith('_error'):
+                raise Exception
+            return fake_messages[mid]
+
         self.mock_object(
             shell_v2, '_find_message',
-            mock.Mock(side_effect=fake_messages))
+            mock.Mock(side_effect=_find_message_with_errors))
 
-        self.run_command('message-delete %s' % ' '.join(ids))
+        cmd = 'message-delete %s' % ' '.join(ids)
+
+        if len(fake_messages) == 0:
+            self.assertRaises(exceptions.CommandError, self.run_command, cmd)
+        else:
+            self.run_command(cmd)
 
         shell_v2._find_message.assert_has_calls([
             mock.call(self.shell.cs, mid) for mid in ids
         ])
-        for fake_message in fake_messages:
+        for fake_message in fake_messages.values():
             self.assert_called_anytime(
                 'DELETE', '/messages/%s' % fake_message.id,
                 clear_callstack=False)
