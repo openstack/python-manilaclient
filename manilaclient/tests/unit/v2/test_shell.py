@@ -503,10 +503,6 @@ class ShellTest(test_utils.TestCase):
                 'name': 'test-type-3',
                 'extra_specs': {
                     'driver_handles_share_servers': False,
-                    'snapshot_support': True,
-                    'create_share_from_snapshot_support': True,
-                    'revert_to_snapshot_support': False,
-                    'mount_snapshot_support': False,
                 },
                 'share_type_access:is_public': public
             }
@@ -901,10 +897,6 @@ class ShellTest(test_utils.TestCase):
                 "share_type_access:is_public": True,
                 "extra_specs": {
                     "driver_handles_share_servers": expected_bool,
-                    "snapshot_support": True,
-                    "create_share_from_snapshot_support": True,
-                    "revert_to_snapshot_support": False,
-                    "mount_snapshot_support": False,
                 }
             }
         }
@@ -951,9 +943,6 @@ class ShellTest(test_utils.TestCase):
                 "extra_specs": {
                     "driver_handles_share_servers": False,
                     "snapshot_support": expected_bool,
-                    "create_share_from_snapshot_support": True,
-                    "revert_to_snapshot_support": False,
-                    "mount_snapshot_support": False,
                     "replication_type": replication_type,
                 }
             }
@@ -982,8 +971,6 @@ class ShellTest(test_utils.TestCase):
                     "driver_handles_share_servers": False,
                     "snapshot_support": True,
                     "create_share_from_snapshot_support": expected_bool,
-                    "revert_to_snapshot_support": False,
-                    "mount_snapshot_support": False,
                 }
             }
         }
@@ -1025,7 +1012,6 @@ class ShellTest(test_utils.TestCase):
                 "extra_specs": {
                     "driver_handles_share_servers": False,
                     "snapshot_support": True,
-                    "create_share_from_snapshot_support": True,
                     "revert_to_snapshot_support": expected_bool,
                 }
             }
@@ -1060,7 +1046,6 @@ class ShellTest(test_utils.TestCase):
                 "extra_specs": {
                     "driver_handles_share_servers": False,
                     "snapshot_support": True,
-                    "create_share_from_snapshot_support": True,
                     "revert_to_snapshot_support": False,
                     "mount_snapshot_support": expected_bool,
                 }
@@ -1901,7 +1886,7 @@ class ShellTest(test_utils.TestCase):
     def test_quota_update(self, cmd, expected_body):
         self.run_command('quota-update 1234 %s' % cmd)
 
-        expected = {'quota_set': expected_body}
+        expected = {'quota_set': dict(expected_body, tenant_id='1234')}
         self.assert_called('PUT', '/quota-sets/1234', body=expected)
 
     @ddt.data(
@@ -2046,7 +2031,7 @@ class ShellTest(test_utils.TestCase):
         expected = {
             'share_group': {
                 'name': 'fake_sg',
-                'description': 'my_sg',
+                'description': 'my_group',
                 'availability_zone': 'fake_az',
                 'share_group_type_id': '2345',
                 'share_network_id': '3456',
@@ -2620,12 +2605,12 @@ class ShellTest(test_utils.TestCase):
         expected = {'migration_start': {
             'host': 'host@backend#pool',
             'force_host_assisted_migration': 'True',
-            'preserve-metadata': 'False',
+            'preserve_metadata': 'False',
             'writable': 'False',
             'nondisruptive': 'True',
             'preserve_snapshots': 'True',
-            'new_share_network_id': '1111',
-            'new_share_type_id': '1'
+            'new_share_network_id': 1111,
+            'new_share_type_id': 1,
         }}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 

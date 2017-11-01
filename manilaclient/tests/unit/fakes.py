@@ -50,14 +50,7 @@ class FakeClient(object):
 
         if body is not None:
             actual = self.client.callstack[pos][2]
-
-            if isinstance(actual, dict) and isinstance(body, dict):
-                assert sorted(list(actual)) == sorted(list(body))
-            else:
-                assert actual == body, "Expected %(b)s; got %(a)s" % {
-                    'b': body,
-                    'a': actual
-                }
+            assert actual == body, "Expected %s; got %s" % (body, actual)
 
     def assert_called_anytime(self, method, url, body=None,
                               clear_callstack=True):
