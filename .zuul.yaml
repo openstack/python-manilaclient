@@ -1,0 +1,24 @@
+- project:
+    name: openstack/python-manilaclient
+    check:
+      jobs:
+        - manilaclient-dsvm-neutron-functional
+        - rally-dsvm-manila-multibackend:
+            voting: false
+        - rally-dsvm-manila-multibackend-no-ss:
+            voting: false
+    gate:
+      jobs:
+        - manilaclient-dsvm-neutron-functional
+
+- job:
+    name: manilaclient-dsvm-neutron-functional
+    parent: legacy-dsvm-base
+    run: playbooks/legacy/manilaclient-dsvm-neutron-functional/run.yaml
+    post-run: playbooks/legacy/manilaclient-dsvm-neutron-functional/post.yaml
+    timeout: 4800
+    required-projects:
+      - openstack-infra/devstack-gate
+      - openstack/manila
+      - openstack/neutron
+      - openstack/python-manilaclient
