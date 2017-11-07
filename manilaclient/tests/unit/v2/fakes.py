@@ -771,6 +771,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def delete_share_replicas_1234(self, **kw):
         return (202, {}, None)
 
+    def delete_share_replicas_fake_replica_0(self, **kw):
+        return (202, {}, None)
+
+    def delete_share_replicas_fake_replica_1(self, **kw):
+        return (202, {}, None)
+
     def get_share_replicas_detail(self, **kw):
         replicas = {
             'share_replicas': [

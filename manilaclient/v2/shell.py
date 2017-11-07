@@ -4828,10 +4828,9 @@ def do_share_replica_show(cs, args):
 def do_share_replica_delete(cs, args):
     """Remove one or more share replicas (Experimental)."""
     failure_count = 0
-    kwargs = {}
-
-    if args.force is not None:
-        kwargs['force'] = args.force
+    kwargs = {
+        "force": args.force
+    }
 
     for replica in args.replica:
         try:
