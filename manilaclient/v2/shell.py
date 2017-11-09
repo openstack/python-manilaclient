@@ -1473,27 +1473,27 @@ def do_snapshot_access_list(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share description pattern. '
          'Available only for microversion >= 2.36.')
@@ -1886,12 +1886,13 @@ def do_share_instance_export_location_show(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
+    type=six.text_type,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
@@ -1959,14 +1960,14 @@ def do_share_instance_export_location_show(cs, args):
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share snapshot name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share snapshot description pattern. '
          'Available only for microversion >= 2.36.')
@@ -2740,12 +2741,13 @@ def do_share_network_list(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
+    type=six.text_type,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
@@ -2837,14 +2839,14 @@ def do_share_network_list(cs, args):
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share network name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share network description pattern. '
          'Available only for microversion >= 2.36.')

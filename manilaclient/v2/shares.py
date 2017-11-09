@@ -19,17 +19,15 @@ import ipaddress
 from oslo_utils import uuidutils
 import re
 import six
+from six.moves.urllib import parse
 import string
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
 
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 from manilaclient import exceptions
+from manilaclient import utils
 from manilaclient.v2 import share_instances
 
 
@@ -399,13 +397,13 @@ class ShareManager(base.ManagerWithFind):
             else:
                 search_opts['export_location_path'] = export_location
 
+        query_string = ""
         if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % (query_string,)
-        else:
-            query_string = ''
+            search_opts = utils.unicode_key_value_to_string(search_opts)
+            params = sorted(
+                [(k, v) for (k, v) in list(search_opts.items()) if v])
+            if params:
+                query_string = "?%s" % parse.urlencode(params)
 
         if detailed:
             path = "/shares/detail%s" % (query_string,)

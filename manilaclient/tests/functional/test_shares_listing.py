@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2015 Mirantis Inc.
 # All Rights Reserved.
 #
@@ -310,6 +311,21 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self.assertGreaterEqual(len(shares), 3)
         self.assertTrue(
             any(self.private_share['id'] == s['ID'] for s in shares))
+
+    def test_list_shares_by_inexact_unicode_option(self):
+        self.create_share(
+            name=u'共享名称',
+            description=u'共享描述',
+            public=True,
+            client=self.get_user_client(),
+            cleanup_in_class=True)
+        filters = {'name~': u'名称'}
+        shares = self.user_client.list_shares(filters=filters)
+        self.assertGreater(len(shares), 0)
+
+        filters = {'description~': u'描述'}
+        shares = self.user_client.list_shares(filters=filters)
+        self.assertGreater(len(shares), 0)
 
     def test_list_shares_by_description(self):
         shares = self.user_client.list_shares(

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2013 OpenStack Foundation
 # Copyright 2014 Mirantis, Inc.
 # All Rights Reserved.
@@ -260,6 +261,22 @@ class ShellTest(test_utils.TestCase):
             self.assert_called(
                 'GET',
                 '/shares/detail?description%7E=fake_description')
+
+    def test_list_filter_by_inexact_unicode_name(self):
+        for separator in self.separators:
+            self.run_command('list --name~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/shares/detail?name%7E=%D1%84%D1%84%D1%84')
+
+    def test_list_filter_by_inexact_unicode_description(self):
+        for separator in self.separators:
+            self.run_command('list --description~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/shares/detail?description%7E=%D1%84%D1%84%D1%84')
 
     def test_list_filter_by_share_type_not_found(self):
         for separator in self.separators:
@@ -799,6 +816,22 @@ class ShellTest(test_utils.TestCase):
             self.assert_called(
                 'GET',
                 '/snapshots/detail?description%7E=fake_description')
+
+    def test_list_snapshots_filter_by_inexact_unicode_name(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --name~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/snapshots/detail?name%7E=%D1%84%D1%84%D1%84')
+
+    def test_list_snapshots_filter_by_inexact_unicode_description(self):
+        for separator in self.separators:
+            self.run_command('snapshot-list --description~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/snapshots/detail?description%7E=%D1%84%D1%84%D1%84')
 
     def test_list_snapshots_with_sort_dir_verify_keys(self):
         aliases = ['--sort_dir', '--sort-dir']
@@ -1459,6 +1492,22 @@ class ShellTest(test_utils.TestCase):
             self.assert_called(
                 'GET',
                 '/share-networks/detail?description%7E=fake_description')
+
+    def test_share_network_list_filter_by_inexact_unicode_name(self):
+        for separator in self.separators:
+            self.run_command('share-network-list --name~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?name%7E=%D1%84%D1%84%D1%84')
+
+    def test_share_network_list_filter_by_inexact_unicode_description(self):
+        for separator in self.separators:
+            self.run_command('share-network-list --description~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/share-networks/detail?description%7E=%D1%84%D1%84%D1%84')
 
     def test_share_network_security_service_add(self):
         self.run_command('share-network-security-service-add fake_share_nw '

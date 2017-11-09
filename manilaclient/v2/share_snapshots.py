@@ -14,15 +14,13 @@
 #    under the License.
 """Interface for shares extension."""
 
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
+from six.moves.urllib import parse
 
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
+from manilaclient import utils
 
 
 class ShareSnapshot(common_base.Resource):
@@ -153,13 +151,13 @@ class ShareSnapshotManager(base.ManagerWithFind):
                     'sort_dir must be one of the following: %s.'
                     % ', '.join(constants.SORT_DIR_VALUES))
 
+        query_string = ""
         if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % (query_string,)
-        else:
-            query_string = ''
+            search_opts = utils.unicode_key_value_to_string(search_opts)
+            params = sorted(
+                [(k, v) for (k, v) in list(search_opts.items()) if v])
+            if params:
+                query_string = "?%s" % parse.urlencode(params)
 
         if detailed:
             path = "/snapshots/detail%s" % (query_string,)

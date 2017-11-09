@@ -13,15 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
+from six.moves.urllib import parse
 
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
+from manilaclient import utils
 
 
 RESOURCES_PATH = '/share-networks'
@@ -227,13 +225,13 @@ class ShareNetworkManager(base.ManagerWithFind):
         if not search_opts:
             search_opts = {}
 
+        query_string = ""
         if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % query_string
-        else:
-            query_string = ''
+            search_opts = utils.unicode_key_value_to_string(search_opts)
+            params = sorted(
+                [(k, v) for (k, v) in list(search_opts.items()) if v])
+            if params:
+                query_string = "?%s" % parse.urlencode(params)
 
         if detailed:
             path = RESOURCES_PATH + "/detail" + query_string
