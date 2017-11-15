@@ -511,7 +511,7 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
             ['ID', 'Name', 'visibility', 'is_default', 'required_extra_specs',
-             'optional_extra_specs'],
+             'optional_extra_specs', 'Description'],
             mock.ANY)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
@@ -956,6 +956,31 @@ class ShellTest(test_utils.TestCase):
         self.run_command('type-create test ' + text)
 
         self.assert_called('POST', '/types', body=expected)
+
+    def test_type_create_with_description(self):
+        expected = {
+            "share_type": {
+                "name": "test",
+                "description": "test_description",
+                "share_type_access:is_public": True,
+                "extra_specs": {
+                    "driver_handles_share_servers": False,
+                }
+            }
+        }
+        self.run_command('type-create test false '
+                         '--description test_description', version='2.41')
+
+        self.assert_called('POST', '/types', body=expected)
+
+    @ddt.data('2.26', '2.40')
+    def test_type_create_invalid_description_version(self, version):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'type-create test false --description test_description',
+            version=version
+        )
 
     @ddt.unpack
     @ddt.data(

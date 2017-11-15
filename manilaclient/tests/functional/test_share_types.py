@@ -116,12 +116,19 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
             spec_create_share_from_snapshot, spec_revert_to_snapshot_support,
             None, extra_specs)
 
+    def test_create_delete_share_type_with_description(self):
+        self.skip_if_microversion_not_supported('2.41')
+        self._test_create_delete_share_type(
+            '2.41', True, False, None, None, None, None, None,
+            description=data_utils.rand_name('test_share_type_description'))
+
     def _test_create_delete_share_type(self, microversion, is_public, dhss,
                                        spec_snapshot_support,
                                        spec_create_share_from_snapshot,
                                        spec_revert_to_snapshot_support,
                                        spec_mount_snapshot_support,
-                                       extra_specs):
+                                       extra_specs,
+                                       description=None):
 
         share_type_name = data_utils.rand_name('manilaclient_functional_test')
 
@@ -138,7 +145,8 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
             mount_snapshot=spec_mount_snapshot_support,
             is_public=is_public,
             microversion=microversion,
-            extra_specs=extra_specs)
+            extra_specs=extra_specs,
+            description=description)
 
         # Verify response body
         for key in self.create_keys:
@@ -146,6 +154,13 @@ class ShareTypesReadWriteTest(base.BaseTestCase):
 
         # Verify type name
         self.assertEqual(share_type_name, share_type['Name'])
+
+        # Verify type description
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion('2.41')):
+            self.assertEqual(description, share_type['Description'])
+        else:
+            self.assertNotIn('description', share_type)
 
         # Verify required DHSS extra spec
         dhss_expected = 'driver_handles_share_servers : %s' % dhss

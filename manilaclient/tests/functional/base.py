@@ -176,20 +176,24 @@ class BaseTestCase(base.ClientTestBase):
                           create_share_from_snapshot=None,
                           revert_to_snapshot=None, mount_snapshot=None,
                           is_public=True, client=None, cleanup_in_class=True,
-                          microversion=None, extra_specs=None):
+                          microversion=None, extra_specs=None,
+                          description=None):
         if client is None:
             client = cls.get_admin_client()
-        share_type = client.create_share_type(
-            name=name,
-            driver_handles_share_servers=driver_handles_share_servers,
-            snapshot_support=snapshot_support,
-            is_public=is_public,
-            microversion=microversion,
-            extra_specs=extra_specs,
-            create_share_from_snapshot=create_share_from_snapshot,
-            revert_to_snapshot=revert_to_snapshot,
-            mount_snapshot=mount_snapshot,
-        )
+        data = {
+            "name": name,
+            "driver_handles_share_servers": driver_handles_share_servers,
+            "snapshot_support": snapshot_support,
+            "is_public": is_public,
+            "microversion": microversion,
+            "extra_specs": extra_specs,
+            "create_share_from_snapshot": create_share_from_snapshot,
+            "revert_to_snapshot": revert_to_snapshot,
+            "mount_snapshot": mount_snapshot,
+        }
+        if description:
+            data["description"] = description
+        share_type = client.create_share_type(**data)
         resource = {
             "type": "share_type",
             "id": share_type["ID"],

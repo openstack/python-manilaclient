@@ -364,9 +364,11 @@ class TypesTest(utils.TestCase):
         ("2.6", True),
         ("2.7", True),
         ("2.24", True),
+        ("2.41", True),
         ("2.6", False),
         ("2.7", False),
         ("2.24", False),
+        ("2.41", False),
     )
     @ddt.unpack
     def test_create_with_default_values(self, microversion, dhss):
@@ -374,7 +376,13 @@ class TypesTest(utils.TestCase):
         manager = self._get_share_types_manager(microversion)
         self.mock_object(manager, '_create', mock.Mock(return_value="fake"))
 
-        result = manager.create('test-type-3', dhss)
+        description = 'test description'
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion("2.41")):
+            result = manager.create(
+                'test-type-3', dhss, description=description)
+        else:
+            result = manager.create('test-type-3', dhss)
 
         if (api_versions.APIVersion(microversion) >
                 api_versions.APIVersion("2.6")):
@@ -397,6 +405,9 @@ class TypesTest(utils.TestCase):
                 api_versions.APIVersion("2.24")):
             del expected_body['share_type']['extra_specs']['snapshot_support']
 
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion("2.41")):
+            expected_body['share_type']['description'] = description
         manager._create.assert_called_once_with(
             "/types", expected_body, "share_type")
         self.assertEqual("fake", result)

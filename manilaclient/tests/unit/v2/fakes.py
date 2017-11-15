@@ -886,6 +886,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             'share_type': {
                 'id': 3,
                 'name': 'test-type-3',
+                'description': 'test description',
                 'extra_specs': share_type['extra_specs'],
                 'required_extra_specs': required_extra_specs,
             }

@@ -134,7 +134,8 @@ class ShareTypeManager(base.ManagerWithFind):
         self._delete("/types/%s" % common_base.getid(share_type))
 
     def _do_create(self, name, extra_specs, is_public,
-                   is_public_keyname="share_type_access:is_public"):
+                   is_public_keyname="share_type_access:is_public",
+                   description=None):
         """Create a share type.
 
         :param name: Descriptive name of the share type
@@ -148,6 +149,9 @@ class ShareTypeManager(base.ManagerWithFind):
                 "extra_specs": extra_specs,
             }
         }
+
+        if description:
+            body["share_type"]["description"] = description
         return self._create("/types", body, "share_type")
 
     @api_versions.wraps("1.0", "2.6")
@@ -180,7 +184,7 @@ class ShareTypeManager(base.ManagerWithFind):
 
         return self._do_create(name, extra_specs, is_public)
 
-    @api_versions.wraps("2.24")  # noqa
+    @api_versions.wraps("2.24", "2.40")  # noqa
     def create(self, name, spec_driver_handles_share_servers,
                spec_snapshot_support=None, is_public=True, extra_specs=None):
 
@@ -192,6 +196,20 @@ class ShareTypeManager(base.ManagerWithFind):
         self._handle_spec_snapshot_support(extra_specs, spec_snapshot_support)
 
         return self._do_create(name, extra_specs, is_public)
+
+    @api_versions.wraps("2.41")  # noqa
+    def create(self, name, spec_driver_handles_share_servers,
+               spec_snapshot_support=None, is_public=True, extra_specs=None,
+               description=None):
+        if extra_specs is None:
+            extra_specs = {}
+
+        self._handle_spec_driver_handles_share_servers(
+            extra_specs, spec_driver_handles_share_servers)
+        self._handle_spec_snapshot_support(extra_specs, spec_snapshot_support)
+
+        return self._do_create(name, extra_specs, is_public,
+                               description=description)
 
     def _handle_spec_driver_handles_share_servers(
             self, extra_specs, spec_driver_handles_share_servers):

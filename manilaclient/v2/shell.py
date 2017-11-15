@@ -3578,7 +3578,8 @@ def _is_share_type_public(share_type):
     return 'public' if share_type.is_public else 'private'
 
 
-def _print_share_type_list(stypes, default_share_type=None, columns=None):
+def _print_share_type_list(stypes, default_share_type=None, columns=None,
+                           description=False):
 
     def _is_default(share_type):
         if share_type == default_share_type:
@@ -3605,13 +3606,15 @@ def _print_share_type_list(stypes, default_share_type=None, columns=None):
         'required_extra_specs',
         'optional_extra_specs',
     ]
+    if description:
+        fields.append('Description')
     if columns is not None:
         fields = _split_columns(columns=columns, title=False)
 
     cliutils.print_list(stypes, fields, formatters)
 
 
-def _print_share_type(stype, default_share_type=None):
+def _print_share_type(stype, default_share_type=None, show_des=False):
 
     def _is_default(share_type):
         if share_type == default_share_type:
@@ -3627,6 +3630,8 @@ def _print_share_type(stype, default_share_type=None):
         'required_extra_specs': _print_type_required_extra_specs(stype),
         'optional_extra_specs': _print_type_optional_extra_specs(stype),
     }
+    if show_des:
+        stype_dict['Description'] = stype.description
     cliutils.print_dict(stype_dict)
 
 
@@ -3669,8 +3674,10 @@ def do_type_list(cs, args):
         default = None
 
     stypes = cs.share_types.list(show_all=args.all)
+    show_des = cs.api_version.matches(
+        api_versions.APIVersion("2.41"), api_versions.APIVersion())
     _print_share_type_list(stypes, default_share_type=default,
-                           columns=args.columns)
+                           columns=args.columns, description=show_des)
 
 
 @cliutils.arg(
@@ -3696,6 +3703,13 @@ def do_extra_specs_list(cs, args):
     type=str,
     help="Required extra specification. "
          "Valid values are 'true'/'1' and 'false'/'0'.")
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    type=str,
+    default=None,
+    help='Filter results by description. '
+         'Available only for microversion >= 2.41.')
 @cliutils.arg(
     '--snapshot_support',
     '--snapshot-support',
@@ -3764,6 +3778,16 @@ def do_type_create(cs, args):
                "set via positional argument.")
         raise exceptions.CommandError(msg)
 
+    show_des = False
+    if cs.api_version.matches(api_versions.APIVersion("2.41"),
+                              api_versions.APIVersion()):
+        show_des = True
+        kwargs['description'] = getattr(args, 'description')
+    elif getattr(args, 'description'):
+        raise exceptions.CommandError(
+            "Pattern based option (description)"
+            " is only available with manila API version >= 2.41")
+
     boolean_keys = (
         'snapshot_support',
         'create_share_from_snapshot_support',
@@ -3791,7 +3815,7 @@ def do_type_create(cs, args):
             raise exceptions.CommandError(msg)
 
     stype = cs.share_types.create(**kwargs)
-    _print_share_type(stype)
+    _print_share_type(stype, show_des=show_des)
 
 
 @cliutils.arg(
