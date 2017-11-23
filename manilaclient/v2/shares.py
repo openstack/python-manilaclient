@@ -445,14 +445,29 @@ class ShareManager(base.ManagerWithFind):
             exc_str = ('Invalid CN (common name). Must be 1-64 chars long.')
             raise exceptions.CommandError(exc_str)
 
+    '''
+    for the reference specification for AD usernames, reference below links:
+
+    1:https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/
+            windows-server-2008-R2-and-2008/cc733146(v=ws.11)
+    2:https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/
+            windows-server-2000/bb726984(v=technet.10)
+    '''
     @staticmethod
     def _validate_username(access):
-        valid_username_re = '[\w\$\.\-_\`;\'\{\}\[\]\\\\]{4,255}$'
+        sole_periods_spaces_re = '[\s|\.]+$'
+        valid_username_re = '.[^\"\/\\\[\]\:\;\|\=\,\+\*\?\<\>]{3,254}$'
         username = access
+
+        if re.match(sole_periods_spaces_re, username):
+            exc_str = ('Invalid user or group name,cannot consist solely '
+                       'of periods or spaces.')
+            raise exceptions.CommandError(exc_str)
+
         if not re.match(valid_username_re, username):
             exc_str = ('Invalid user or group name. Must be 4-255 characters '
                        'and consist of alphanumeric characters and '
-                       'special characters $]{.-_\'`;}[\\')
+                       'exclude special characters "/\[]:;|=,+*?<>')
             raise exceptions.CommandError(exc_str)
 
     @staticmethod
