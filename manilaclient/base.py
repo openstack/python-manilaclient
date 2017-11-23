@@ -208,7 +208,8 @@ class ManagerWithFind(Manager):
         found = []
         searches = list(kwargs.items())
 
-        for obj in self.list():
+        search_opts = {'all_tenants': 1}
+        for obj in self.list(search_opts=search_opts):
             try:
                 if all(getattr(obj, attr) == value
                        for (attr, value) in searches):

@@ -332,7 +332,7 @@ class ShellTest(test_utils.TestCase):
             self.run_command,
             'list --snapshot not_found_expected',
         )
-        self.assert_called('GET', '/snapshots/detail')
+        self.assert_called('GET', '/snapshots/detail?all_tenants=1')
 
     def test_list_filter_by_host(self):
         for separator in self.separators:
@@ -378,7 +378,7 @@ class ShellTest(test_utils.TestCase):
             self.run_command,
             'list --share-network not_found_expected',
         )
-        self.assert_called('GET', '/share-networks/detail')
+        self.assert_called('GET', '/share-networks/detail?all_tenants=1')
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_instance_list(self):
