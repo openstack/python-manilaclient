@@ -9,6 +9,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+from mock import mock
 
 from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
@@ -60,3 +61,8 @@ class BaseTest(utils.TestCase):
         self.assertRaises(exceptions.NotFound,
                           cs.shares.find,
                           vegetable='carrot')
+
+    def test_findall_with_all_tenants(self):
+        cs.shares.list = mock.Mock(return_value=[])
+        cs.shares.findall()
+        cs.shares.list.assert_called_once_with(search_opts={'all_tenants': 1})
