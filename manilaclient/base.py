@@ -74,8 +74,12 @@ class Manager(utils.HookableMixin):
 
         with self.completion_cache('human_id', obj_class, mode="w"):
             with self.completion_cache('uuid', obj_class, mode="w"):
-                return [obj_class(self, res, loaded=True)
-                        for res in data if res]
+                resource = [obj_class(self, res, loaded=True)
+                            for res in data if res]
+                if 'count' in body:
+                    return resource, body['count']
+                else:
+                    return resource
 
     @contextlib.contextmanager
     def completion_cache(self, cache_type, obj_class, mode):

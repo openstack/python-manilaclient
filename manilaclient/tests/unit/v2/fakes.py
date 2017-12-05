@@ -233,7 +233,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                          "rel": "self"},
                     ],
                 },
-            ]
+            ],
+            'count': 2,
         }
         return (200, {}, shares)
 

@@ -1,0 +1,3 @@
+---
+features:
+  - Added ``with_count`` option in share's list commands since 2.42.

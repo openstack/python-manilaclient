@@ -1627,6 +1627,14 @@ def do_snapshot_access_list(cs, args):
     action='single_alias',
     help='ID or path of the share export location. '
          'Available only for microversion >= 2.35.')
+@cliutils.arg(
+    '--count',
+    dest='count',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    default=False,
+    help='Display total number of shares to return. '
+         'Available only for microversion >= 2.42.')
 @cliutils.service_type('sharev2')
 def do_list(cs, args):
     """List NAS shares with filters."""
@@ -1692,14 +1700,28 @@ def do_list(cs, args):
             "Filtering by export location is only "
             "available with manila API version >= 2.35")
 
+    if (args.count and
+            cs.api_version.matches(
+                api_versions.APIVersion(), api_versions.APIVersion("2.41"))):
+        raise exceptions.CommandError(
+            "Display total number of shares is only "
+            "available with manila API version >= 2.42")
+
     if share_group:
         search_opts['share_group_id'] = share_group.id
 
-    shares = cs.shares.list(
-        search_opts=search_opts,
-        sort_key=args.sort_key,
-        sort_dir=args.sort_dir,
-    )
+    total_count = 0
+    if strutils.bool_from_string(args.count, strict=True):
+        search_opts['with_count'] = args.count
+        shares, total_count = cs.shares.list(
+            search_opts=search_opts, sort_key=args.sort_key,
+            sort_dir=args.sort_dir,
+        )
+    else:
+        shares = cs.shares.list(
+            search_opts=search_opts, sort_key=args.sort_key,
+            sort_dir=args.sort_dir,
+        )
     # NOTE(vponomaryov): usage of 'export_location' and
     # 'export_locations' columns may cause scaling issue using API 2.9+ and
     # when lots of shares are returned.
@@ -1712,6 +1734,8 @@ def do_list(cs, args):
             setattr(share, 'export_locations', els)
             setattr(share, 'export_location', els[0] if els else None)
     cliutils.print_list(shares, list_of_keys)
+    if args.count:
+        print("Shares in total: %s" % total_count)
 
 
 @cliutils.arg(

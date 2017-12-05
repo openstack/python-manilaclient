@@ -397,6 +397,25 @@ class ShellTest(test_utils.TestCase):
         )
         self.assert_called('GET', '/share-networks/detail')
 
+    @ddt.data('True', 'False')
+    def test_list_filter_with_count(self, value):
+        except_url = '/shares/detail?with_count=' + value
+        if value == 'False':
+            except_url = '/shares/detail'
+
+        for separator in self.separators:
+            self.run_command('list --count' + separator + value)
+            self.assert_called('GET', except_url)
+
+    @ddt.data('True', 'False')
+    def test_list_filter_with_count_invalid_version(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'list --count ' + value,
+            version='2.41'
+        )
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_instance_list(self):
         self.run_command('share-instance-list')
