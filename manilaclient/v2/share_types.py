@@ -117,6 +117,15 @@ class ShareTypeManager(base.ManagerWithFind):
             query_string = '?is_public=all'
         return self._list("/types%s" % query_string, "share_types")
 
+    def show(self, share_type):
+        """Get a share.
+
+        :param share: either share object or text with its ID.
+        :rtype: :class:`Share`
+        """
+        type_id = common_base.getid(share_type)
+        return self._get("/types/%s" % type_id, "share_type")
+
     def get(self, share_type="default"):
         """Get a specific share type.
 

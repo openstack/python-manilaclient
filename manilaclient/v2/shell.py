@@ -151,6 +151,21 @@ def _find_share_instance(cs, instance):
     return apiclient_utils.find_resource(cs.share_instances, instance)
 
 
+def _print_type_show(stype, default_share_type=None):
+
+    is_default = 'YES' if stype == default_share_type else 'NO'
+    stype_dict = {
+        'id': stype.id,
+        'name': stype.name,
+        'visibility': _is_share_type_public(stype),
+        'is_default': is_default,
+        'description': None,
+        'required_extra_specs': _print_type_required_extra_specs(stype),
+        'optional_extra_specs': _print_type_optional_extra_specs(stype),
+    }
+    cliutils.print_dict(stype_dict)
+
+
 @api_versions.wraps("1.0", "2.8")
 def _print_share_instance(cs, instance):
     info = instance._info.copy()
@@ -3647,6 +3662,20 @@ def do_type_list(cs, args):
     stypes = cs.share_types.list(show_all=args.all)
     _print_share_type_list(stypes, default_share_type=default,
                            columns=args.columns)
+
+
+@cliutils.arg(
+    'share_type',
+    metavar='<share_type>',
+    help='Name or ID of the share type.')
+def do_type_show(cs, args):
+    """Show share type details."""
+    share_type = cs.share_types.show(args.share_type)
+    try:
+        default = cs.share_types.get()
+    except exceptions.NotFound:
+        default = None
+    _print_type_show(share_type, default_share_type=default)
 
 
 @cliutils.arg(
