@@ -38,7 +38,7 @@ class ShareSnapshotInstanceExportLocationManager(base.ManagerWithFind):
     resource_class = ShareSnapshotInstanceExportLocation
 
     @api_versions.wraps("2.32")
-    def list(self, snapshot_instance=None):
+    def list(self, snapshot_instance=None, search_opts=None):
         return self._list("/snapshot-instances/%s/export-locations" %
                           common_base.getid(snapshot_instance),
                           'share_snapshot_export_locations')

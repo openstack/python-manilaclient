@@ -34,7 +34,7 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.31")
     @api_versions.experimental_api
-    def list(self, share_group_type):
+    def list(self, share_group_type, search_opts=None):
         if share_group_type.is_public:
             return None
         share_group_type_id = common_base.getid(share_group_type)

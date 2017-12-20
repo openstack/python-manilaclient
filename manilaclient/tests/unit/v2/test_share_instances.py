@@ -38,7 +38,7 @@ class ShareInstancesTest(utils.TestCase):
         return share_instances.ShareInstanceManager(api=mock_microversion)
 
     def test_list(self):
-        cs.share_instances.list()
+        cs.share_instances.list(search_opts=None)
         cs.assert_called('GET', '/share_instances')
 
     @ddt.data(('id', 'b4991315-eb7d-43ec-979e-5715d4399827'),

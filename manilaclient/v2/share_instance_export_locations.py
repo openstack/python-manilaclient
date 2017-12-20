@@ -33,7 +33,7 @@ class ShareInstanceExportLocationManager(base.ManagerWithFind):
     resource_class = ShareInstanceExportLocation
 
     @api_versions.wraps("2.9")
-    def list(self, share_instance):
+    def list(self, share_instance, search_opts=None):
         """List all share export locations."""
         share_instance_id = common_base.getid(share_instance)
         return self._list(

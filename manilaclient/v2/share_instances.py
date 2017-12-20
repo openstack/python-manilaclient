@@ -49,12 +49,12 @@ class ShareInstanceManager(base.ManagerWithFind):
         return self._get("/share_instances/%s" % share_id, "share_instance")
 
     @api_versions.wraps("2.3", "2.34")
-    def list(self):
+    def list(self, search_opts=None):
         """List all share instances."""
         return self.do_list()
 
     @api_versions.wraps("2.35")   # noqa
-    def list(self, export_location=None):
+    def list(self, export_location=None, search_opts=None):
         """List all share instances."""
         return self.do_list(export_location)
 

@@ -58,7 +58,7 @@ class ShareGroupTypeAccessManagerTest(utils.TestCase):
             self.manager, '_list',
             mock.Mock(return_value=[fake_share_group_type_access]))
 
-        result = self.manager.list(fake.ShareGroupType())
+        result = self.manager.list(fake.ShareGroupType(), search_opts=None)
 
         self.assertEqual([fake_share_group_type_access], result)
         mock_list.assert_called_once_with(

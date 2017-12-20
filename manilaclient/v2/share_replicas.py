@@ -63,10 +63,11 @@ class ShareReplicaManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.11")
     @api_versions.experimental_api
-    def list(self, share=None):
+    def list(self, share=None, search_opts=None):
         """List all share replicas or list replicas belonging to a share.
 
         :param share: either share object or its UUID.
+        :param search_opts: default None
         :rtype: list of :class:`ShareReplica`
         """
 

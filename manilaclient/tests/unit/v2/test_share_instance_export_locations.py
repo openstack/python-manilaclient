@@ -43,7 +43,8 @@ class ShareInstanceExportLocationsTest(utils.TestCase):
 
     def test_list_of_export_locations(self):
         share_instance_id = '1234'
-        cs.share_instance_export_locations.list(share_instance_id)
+        cs.share_instance_export_locations.list(
+            share_instance_id, search_opts=None)
         cs.assert_called(
             'GET', '/share_instances/%s/export_locations' % share_instance_id)
 

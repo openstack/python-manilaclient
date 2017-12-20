@@ -31,7 +31,7 @@ class ShareSnapshotInstanceExportLocationsTest(utils.TestCase):
     def test_list_snapshot_instance(self):
         snapshot_instance_id = '1234'
         cs.share_snapshot_instance_export_locations.list(
-            snapshot_instance_id)
+            snapshot_instance_id, search_opts=None)
         cs.assert_called(
             'GET', '/snapshot-instances/%s/export-locations'
                    % snapshot_instance_id)
