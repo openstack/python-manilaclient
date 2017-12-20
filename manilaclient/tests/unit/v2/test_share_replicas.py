@@ -95,7 +95,7 @@ class ShareReplicasTest(utils.TestCase):
 
     def test_list(self):
         with mock.patch.object(self.manager, '_list', mock.Mock()):
-            self.manager.list()
+            self.manager.list(search_opts=None)
             self.manager._list.assert_called_once_with(
                 share_replicas.RESOURCES_PATH + '/detail',
                 share_replicas.RESOURCES_NAME)

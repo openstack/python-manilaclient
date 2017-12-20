@@ -131,7 +131,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.31")
     @api_versions.experimental_api
-    def list(self, show_all=True):
+    def list(self, show_all=True, search_opts=None):
         """Get a list of all share group types.
 
         :rtype: list of :class:`ShareGroupType`.

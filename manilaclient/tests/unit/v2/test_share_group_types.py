@@ -188,7 +188,7 @@ class ShareGroupTypeManagerTest(utils.TestCase):
             self.manager, '_list',
             mock.Mock(return_value=[fake_share_group_type]))
 
-        result = self.manager.list()
+        result = self.manager.list(search_opts=None)
 
         self.assertEqual([fake_share_group_type], result)
         mock_list.assert_called_once_with(

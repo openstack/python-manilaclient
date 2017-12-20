@@ -1,0 +1,4 @@
+---
+fixes:
+  - Fixed bugs 1738917 and 1738918. Names can now be used in commands
+    pertaining to share group types.

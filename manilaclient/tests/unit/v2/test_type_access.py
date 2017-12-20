@@ -49,7 +49,7 @@ class TypeAccessTest(utils.TestCase):
 
         with mock.patch.object(manager, '_list',
                                mock.Mock(return_value=fake_access_list)):
-            access = manager.list(share_type=share_type)
+            access = manager.list(share_type=share_type, search_opts=None)
 
             manager._list.assert_called_once_with(
                 "/types/3/%s" % action_name, "share_type_access")

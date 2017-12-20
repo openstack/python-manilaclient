@@ -219,5 +219,5 @@ class ManagerWithFind(Manager):
 
         return found
 
-    def list(self):
+    def list(self, search_opts=None):
         raise NotImplementedError

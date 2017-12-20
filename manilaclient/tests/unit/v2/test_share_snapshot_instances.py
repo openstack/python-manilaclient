@@ -47,7 +47,7 @@ class SnapshotInstancesTest(utils.TestCase):
         else:
             url = '/snapshot-instances'
         self.mock_object(self.manager, '_list', mock.Mock())
-        self.manager.list(detailed=detailed)
+        self.manager.list(detailed=detailed, search_opts=None)
         self.manager._list.assert_called_once_with(url, 'snapshot_instances')
 
     @ddt.data(True, False)

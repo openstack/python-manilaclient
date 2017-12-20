@@ -45,7 +45,7 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
                          "snapshot_instance")
 
     @api_versions.wraps("2.19")
-    def list(self, detailed=False, snapshot=None):
+    def list(self, detailed=False, snapshot=None, search_opts=None):
         """List all snapshot instances."""
         if detailed:
             url = '/snapshot-instances/detail'

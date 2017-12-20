@@ -30,7 +30,7 @@ cs = fakes.FakeClient(extensions=extensions)
 class ShareSnapshotExportLocationsTest(utils.TestCase):
     def test_list_snapshot(self):
         snapshot_id = '1234'
-        cs.share_snapshot_export_locations.list(snapshot_id)
+        cs.share_snapshot_export_locations.list(snapshot_id, search_opts=None)
         cs.assert_called(
             'GET', '/snapshots/%s/export-locations' % snapshot_id)
 
