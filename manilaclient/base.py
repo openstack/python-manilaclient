@@ -176,9 +176,15 @@ class Manager(utils.HookableMixin):
                 return self.resource_class(self, body)
 
     def _build_query_string(self, search_opts):
-        q_string = parse.urlencode(
-            sorted([(k, v) for (k, v) in search_opts.items() if v]))
-        return "?%s" % q_string if q_string else q_string
+        query_string = ""
+        if search_opts:
+            search_opts = utils.unicode_key_value_to_string(search_opts)
+            params = sorted(
+                [(k, v) for (k, v) in search_opts.items() if v])
+            if params:
+                query_string = "?%s" % parse.urlencode(params)
+
+        return query_string
 
 
 class ManagerWithFind(Manager):
