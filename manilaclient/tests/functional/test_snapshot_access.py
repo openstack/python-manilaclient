@@ -162,6 +162,10 @@ class HDFSSnapshotAccessTest(SnapshotAccessReadBase):
     protocol = 'hdfs'
 
 
+class MAPRFSSnapshotAccessTest(SnapshotAccessReadBase):
+    protocol = 'maprfs'
+
+
 def load_tests(loader, tests, _):
     result = []
     for test_case in tests:

@@ -217,6 +217,16 @@ class HDFSShareROAccessReadWriteTest(ShareAccessReadWriteBase):
     access_level = 'ro'
 
 
+class MAPRFSShareRWAccessReadWriteTest(ShareAccessReadWriteBase):
+    protocol = 'maprfs'
+    access_level = 'rw'
+
+
+class MAPRFSShareROAccessReadWriteTest(ShareAccessReadWriteBase):
+    protocol = 'maprfs'
+    access_level = 'ro'
+
+
 def load_tests(loader, tests, _):
     result = []
     for test_case in tests:

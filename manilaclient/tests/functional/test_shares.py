@@ -227,3 +227,7 @@ class GlusterFSSharesReadWriteTest(SharesReadWriteBase):
 
 class HDFSSharesReadWriteTest(SharesReadWriteBase):
     protocol = 'hdfs'
+
+
+class MAPRFSSharesReadWriteTest(SharesReadWriteBase):
+    protocol = 'maprfs'
