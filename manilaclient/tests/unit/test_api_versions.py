@@ -14,6 +14,7 @@
 
 import ddt
 import mock
+import six
 
 import manilaclient
 from manilaclient import api_versions
@@ -40,6 +41,7 @@ class APIVersionTestCase(utils.TestCase):
     def test_null_version(self):
         v = api_versions.APIVersion()
         self.assertTrue(v.is_null())
+        self.assertEqual(repr(v), "<APIVersion: null>")
 
     @ddt.data(
         "2",
@@ -114,6 +116,22 @@ class APIVersionTestCase(utils.TestCase):
 
         self.assertRaises(ValueError,
                           api_versions.APIVersion().get_string)
+
+    @ddt.data("2.0",
+              "2.5",
+              "2.45",
+              "3.3",
+              "3.23",
+              "2.0",
+              "3.3",
+              "4.0")
+    def test_representation(self, version):
+        version_major, version_minor = version.split('.')
+        api_version = api_versions.APIVersion(version)
+        self.assertEqual(six.text_type(api_version),
+                         ("API Version Major: %s, Minor: %s" %
+                          (version_major, version_minor)))
+        self.assertEqual(repr(api_version), "<APIVersion: %s>" % version)
 
 
 class GetAPIVersionTestCase(utils.TestCase):
