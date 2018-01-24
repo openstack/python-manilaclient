@@ -133,6 +133,12 @@ class APIVersionTestCase(utils.TestCase):
                           (version_major, version_minor)))
         self.assertEqual(repr(api_version), "<APIVersion: %s>" % version)
 
+    def test_is_latest(self):
+        v1 = api_versions.APIVersion("1.0")
+        self.assertFalse(v1.is_latest())
+        v_latest = api_versions.APIVersion(api_versions.MAX_VERSION)
+        self.assertTrue(v_latest.is_latest())
+
 
 class GetAPIVersionTestCase(utils.TestCase):
 
