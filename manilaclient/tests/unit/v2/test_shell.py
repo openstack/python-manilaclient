@@ -503,6 +503,10 @@ class ShellTest(test_utils.TestCase):
             self.run_command('share-instance-force-delete 1234')
             manager_mock.force_delete.assert_called_once_with(share_instance)
 
+    def test_type_show_details(self):
+        self.run_command('type-show 1234')
+        self.assert_called_anytime('GET', '/types/1234')
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_type_list(self):
         self.run_command('type-list')
