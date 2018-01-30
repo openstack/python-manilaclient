@@ -14,14 +14,14 @@
 
 import os
 import sys
-from cStringIO import StringIO
+import cStringIO
 
 
 def _get_cli_output():
     stdout_org = sys.stdout
-    sys.stdout = output = StringIO()
-    from manilaclient.shell import OpenStackManilaShell
-    shell = OpenStackManilaShell()
+    sys.stdout = output = cStringIO.StringIO()
+    from manilaclient import shell
+    shell = shell.OpenStackManilaShell()
     shell.main(None)
     sys.stdout = stdout_org
     output.seek(0)
