@@ -42,6 +42,7 @@ from manilaclient.v2 import shell as shell_v2
 
 DEFAULT_OS_SHARE_API_VERSION = api_versions.MAX_VERSION
 DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
+DEFAULT_MAJOR_OS_SHARE_API_VERSION = "2"
 V1_MAJOR_VERSION = '1'
 V2_MAJOR_VERSION = '2'
 
@@ -496,7 +497,18 @@ class OpenStackManilaShell(object):
             self.do_bash_completion(args)
             return 0
 
+        if not options.os_share_api_version:
+            api_version = api_versions.get_api_version(
+                DEFAULT_MAJOR_OS_SHARE_API_VERSION)
+        else:
+            api_version = api_versions.get_api_version(
+                options.os_share_api_version)
+
+        major_version_string = six.text_type(api_version.ver_major)
         os_service_type = args.service_type
+        if not os_service_type:
+            os_service_type = constants.SERVICE_TYPES[major_version_string]
+
         os_endpoint_type = args.endpoint_type or DEFAULT_MANILA_ENDPOINT_TYPE
 
         client_args = dict(
@@ -509,7 +521,7 @@ class OpenStackManilaShell(object):
             tenant_id=args.os_project_id or args.os_tenant_id,
             endpoint_type=os_endpoint_type,
             extensions=self.extensions,
-            service_type=constants.V1_SERVICE_TYPE,
+            service_type=os_service_type,
             service_name=args.service_name,
             retries=options.retries,
             http_log_debug=args.debug,
