@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fix endpoint not found error when only the manilav2 endpoint is configured.
