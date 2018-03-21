@@ -4289,13 +4289,13 @@ def do_share_group_create(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
@@ -4385,14 +4385,14 @@ def do_share_group_create(cs, args):
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share group name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=str,
+    type=six.text_type,
     default=None,
     help='Filter results matching a share group description pattern. '
          'Available only for microversion >= 2.36.')

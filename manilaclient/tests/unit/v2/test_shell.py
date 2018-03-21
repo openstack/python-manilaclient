@@ -2096,6 +2096,22 @@ class ShellTest(test_utils.TestCase):
                 'GET',
                 '/share-groups/detail?description%7E=fake_description')
 
+    def test_share_group_list_filter_by_inexact_unicode_name(self):
+        for separator in self.separators:
+            self.run_command('share-group-list --name~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/share-groups/detail?name%7E=%D1%84%D1%84%D1%84')
+
+    def test_share_group_list_filter_by_inexact_unicode_description(self):
+        for separator in self.separators:
+            self.run_command('share-group-list --description~' + separator +
+                             u'ффф')
+            self.assert_called(
+                'GET',
+                '/share-groups/detail?description%7E=%D1%84%D1%84%D1%84')
+
     def test_share_group_show(self):
         self.run_command('share-group-show 1234')
 
