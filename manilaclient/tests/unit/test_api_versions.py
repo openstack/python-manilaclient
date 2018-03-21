@@ -79,6 +79,8 @@ class APIVersionTestCase(utils.TestCase):
         self.assertLess(v5, v2)
         self.assertEqual(v_null, v_null)
         self.assertRaises(TypeError, v1.__le__, "2.1")
+        self.assertRaises(TypeError, v1.__eq__, "2.1")
+        self.assertRaises(TypeError, v1.__gt__, "2.1")
 
     def test_version_matches(self):
         v1 = api_versions.APIVersion("2.0")
