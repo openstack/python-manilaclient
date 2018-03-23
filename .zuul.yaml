@@ -22,3 +22,4 @@
       - openstack/manila
       - openstack/neutron
       - openstack/python-manilaclient
+      - openstack/manila-tempest-plugin
