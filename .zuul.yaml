@@ -6,10 +6,12 @@
             voting: false
         - rally-dsvm-manila-multibackend-no-ss:
             voting: false
+        - openstack-tox-lower-constraints
     gate:
       jobs:
         - manilaclient-dsvm-neutron-functional
 
+        - openstack-tox-lower-constraints
 - job:
     name: manilaclient-dsvm-neutron-functional
     parent: legacy-dsvm-base
