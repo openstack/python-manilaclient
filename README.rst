@@ -11,11 +11,11 @@ Python bindings to the OpenStack Manila API
 ===========================================
 
 .. image:: https://img.shields.io/pypi/v/python-manilaclient.svg
-    :target: https://pypi.python.org/pypi/python-manilaclient/
+    :target: https://pypi.org/project/python-manilaclient/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/python-manilaclient.svg
-    :target: https://pypi.python.org/pypi/python-manilaclient/
+    :target: https://pypi.org/project/python-manilaclient/
     :alt: Downloads
 
 This is a client for the OpenStack Manila API. There's a Python API (the
@@ -98,7 +98,7 @@ Quick-start using keystone::
 * `Source`_
 * `How to Contribute`_
 
-.. _PyPi: https://pypi.python.org/pypi/python-manilaclient
+.. _PyPi: https://pypi.org/project/python-manilaclient
 .. _Online Documentation: https://docs.openstack.org/python-manilaclient/latest/
 .. _Launchpad project: https://launchpad.net/python-manilaclient
 .. _Blueprints: https://blueprints.launchpad.net/python-manilaclient
