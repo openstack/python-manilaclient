@@ -33,6 +33,7 @@ auth_opts = [
     cfg.StrOpt("tenant_name",
                help="The non-administrative user's tenant name."),
     cfg.StrOpt("password",
+               secret=True,
                help="The non-administrative user's password."),
     cfg.StrOpt("auth_url",
                help="URL for where to find the OpenStack Identity public "
@@ -57,6 +58,7 @@ auth_opts = [
     cfg.StrOpt("admin_tenant_name",
                help="The administrative user's tenant name."),
     cfg.StrOpt("admin_password",
+               secret=True,
                help="The administrative user's password."),
     cfg.StrOpt("admin_auth_url",
                help="URL for where to find the OpenStack Identity admin "
