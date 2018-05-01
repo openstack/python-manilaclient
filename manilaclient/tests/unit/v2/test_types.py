@@ -150,6 +150,12 @@ class TypesTest(utils.TestCase):
         cs.share_types.list(show_all=False)
         cs.assert_called('GET', '/types')
 
+    def test_list_types_search_by_extra_specs(self):
+        search_opts = {'extra_specs': {'aa': 'bb'}}
+        cs.share_types.list(search_opts=search_opts)
+        expect = '/types?is_public=all&extra_specs=%7B%27aa%27%3A+%27bb%27%7D'
+        cs.assert_called('GET', expect)
+
     @ddt.data(*get_valid_type_create_data_2_0())
     @ddt.unpack
     def test_create_2_7(self, is_public, dhss, snapshot, extra_specs):
