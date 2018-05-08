@@ -22,6 +22,7 @@ future==0.16.0
 hacking==0.12.0
 idna==2.6
 imagesize==0.7.1
+ipaddress==1.0.17
 iso8601==0.1.11
 Jinja2==2.10
 jmespath==0.9.0
@@ -55,7 +56,7 @@ paramiko==2.0.0
 pbr==2.0.0
 pep8==1.5.7
 positional==1.2.1
-prettytable==0.7.2
+prettytable==0.7.1
 pyasn1==0.1.8
 pycparser==2.18
 pyflakes==0.8.1

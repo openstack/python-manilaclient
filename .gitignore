@@ -2,7 +2,6 @@
 *.swp
 .coverage
 .idea
-.testrepository
 .stestr/*
 .tox/*
 .venv
