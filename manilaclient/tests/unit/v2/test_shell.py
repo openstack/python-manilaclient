@@ -285,7 +285,7 @@ class ShellTest(test_utils.TestCase):
                 self.run_command,
                 'list --share-type' + separator + 'not_found_expected',
             )
-            self.assert_called('GET', '/types?is_public=all')
+            self.assert_called('GET', '/types?is_public=all&all_tenants=1')
 
     def test_list_with_limit(self):
         for separator in self.separators:

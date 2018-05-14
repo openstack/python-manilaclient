@@ -3673,7 +3673,19 @@ def _find_share_type(cs, stype):
     dest='all',
     action='store_true',
     default=False,
-    help='Display all share types (Admin only).')
+    help='Display all share types whatever public or private '
+         'OPTIONAL: Default=False. (Admin only).')
+@cliutils.arg(
+    '--extra-specs',
+    '--extra_specs',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    action='single_alias',
+    default=None,
+    help='Filters results by a extra specs key and value of share type that '
+         'was used for share creation. Available only for microversion >= '
+         '2.43. OPTIONAL: Default=None.')
 @cliutils.arg(
     '--columns',
     metavar='<columns>',
@@ -3683,15 +3695,28 @@ def _find_share_type(cs, stype):
          'example --columns "id,name".')
 def do_type_list(cs, args):
     """Print a list of available 'share types'."""
+    search_opts = None
+    show_all = args.all
+    extra_specs = _extract_extra_specs(args)
+    if extra_specs:
+        if cs.api_version < api_versions.APIVersion("2.43"):
+            raise exceptions.CommandError(
+                "Filter by 'extra_specs' is available only starting with "
+                "'2.43' API microversion.")
+        search_opts = {
+            'extra_specs': extra_specs
+        }
+
     try:
         default = cs.share_types.get()
     except exceptions.NotFound:
         default = None
 
-    stypes = cs.share_types.list(show_all=args.all)
+    share_types = cs.share_types.list(show_all=show_all,
+                                      search_opts=search_opts)
     show_des = cs.api_version.matches(
         api_versions.APIVersion("2.41"), api_versions.APIVersion())
-    _print_share_type_list(stypes, default_share_type=default,
+    _print_share_type_list(share_types, default_share_type=default,
                            columns=args.columns, description=show_des)
 
 
