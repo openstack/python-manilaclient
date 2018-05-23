@@ -465,6 +465,12 @@ class OpenStackManilaShell(object):
         self.parser = self.get_subcommand_parser(
             os_api_version.get_major_version())
 
+        if argv and len(argv) > 1 and '--help' in argv:
+            argv = [x for x in argv if x != '--help']
+            if argv[0] in self.subcommands:
+                self.subcommands[argv[0]].print_help()
+                return False
+
         if options.help or not argv:
             self.parser.print_help()
             return False

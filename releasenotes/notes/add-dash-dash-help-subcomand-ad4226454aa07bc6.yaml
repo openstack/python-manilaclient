@@ -1,0 +1,4 @@
+---
+fixes:
+  - Allow --help to print subcomands info. e.g.
+    ``$ manila create --help``

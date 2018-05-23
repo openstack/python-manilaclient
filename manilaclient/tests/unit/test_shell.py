@@ -290,12 +290,13 @@ class OpenstackManilaShellTest(utils.TestCase):
     def test_help_unknown_command(self):
         self.assertRaises(exceptions.CommandError, self.shell, 'help foofoo')
 
-    def test_help_on_subcommand(self):
+    @ddt.data('list --help', '--help list', 'help list')
+    def test_help_on_subcommand(self, cmd):
         required = [
             '.*?^usage: manila list',
             '.*?(?m)^List NAS shares with filters.',
         ]
-        help_text = self.shell('help list')
+        help_text = self.shell(cmd)
         for r in required:
             self.assertThat(help_text,
                             matchers.MatchesRegex(r, re.DOTALL | re.MULTILINE))
