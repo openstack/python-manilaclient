@@ -1302,11 +1302,70 @@ def do_show(cs, args):
     action='single_alias',
     help='Share access level ("rw" and "ro" access levels are supported). '
          'Defaults to rw.')
+@cliutils.arg(
+    '--metadata',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    help='Space Separated list of key=value pairs of metadata items. '
+         'OPTIONAL: Default=None. Available only for microversion >= 2.45.',
+    default=None)
 def do_access_allow(cs, args):
-    """Allow access to the share."""
+    """Allow access to a given share."""
+    access_metadata = None
+    if cs.api_version.matches(api_versions.APIVersion("2.45"),
+                              api_versions.APIVersion()):
+        access_metadata = _extract_metadata(args)
+    elif getattr(args, 'metadata'):
+        raise exceptions.CommandError(
+            "Adding metadata to access rules is supported only beyond "
+            "API version 2.45")
+
     share = _find_share(cs, args.share)
-    access = share.allow(args.access_type, args.access_to, args.access_level)
+    access = share.allow(args.access_type, args.access_to, args.access_level,
+                         access_metadata)
     cliutils.print_dict(access)
+
+
+@api_versions.wraps("2.45")
+@cliutils.arg(
+    'access_id',
+    metavar='<access_id>',
+    help='ID of the NAS share access rule.')
+def do_access_show(cs, args):
+    """Show details about a NAS share access rule."""
+    access = cs.share_access_rules.get(args.access_id)
+    view_data = access._info.copy()
+    cliutils.print_dict(view_data)
+
+
+@api_versions.wraps("2.45")
+@cliutils.arg(
+    'access_id',
+    metavar='<access_id>',
+    help='ID of the NAS share access rule.')
+@cliutils.arg(
+    'action',
+    metavar='<action>',
+    choices=['set', 'unset'],
+    help="Actions: 'set' or 'unset'.")
+@cliutils.arg(
+    'metadata',
+    metavar='<key=value>',
+    nargs='+',
+    default=[],
+    help='Space separated key=value pairs of metadata items to set. '
+         'To unset only keys are required. ')
+def do_access_metadata(cs, args):
+    """Set or delete metadata on a share access rule."""
+    share_access = cs.share_access_rules.get(args.access_id)
+    metadata = _extract_metadata(args)
+
+    if args.action == 'set':
+        cs.share_access_rules.set_metadata(share_access, metadata)
+    elif args.action == 'unset':
+        cs.share_access_rules.unset_metadata(
+            share_access, sorted(list(metadata), reverse=True))
 
 
 @api_versions.wraps("2.32")
@@ -1437,6 +1496,14 @@ def do_access_list(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "access_type,access_to".')
+@cliutils.arg(
+    '--metadata',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    help='Filters results by a metadata key and value. OPTIONAL: '
+         'Default=None. Available only for microversion >= 2.45',
+    default=None)
 def do_access_list(cs, args):
     """Show access list for share."""
     list_of_keys = [
@@ -1444,11 +1511,18 @@ def do_access_list(cs, args):
         'access_key', 'created_at', 'updated_at',
     ]
 
+    share = _find_share(cs, args.share)
+    if cs.api_version < api_versions.APIVersion("2.45"):
+        if getattr(args, 'metadata'):
+            raise exceptions.CommandError(
+                "Filtering access rules by metadata is supported only beyond "
+                "API version 2.45")
+        access_list = share.access_list()
+    else:
+        access_list = cs.share_access_rules.access_list(
+            share, {'metadata': _extract_metadata(args)})
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
-
-    share = _find_share(cs, args.share)
-    access_list = share.access_list()
     cliutils.print_list(access_list, list_of_keys)
 
 

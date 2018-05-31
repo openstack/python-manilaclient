@@ -78,9 +78,10 @@ class Share(common_base.Resource):
         """Delete the specified share ignoring its current state."""
         self.manager.force_delete(self)
 
-    def allow(self, access_type, access, access_level):
+    def allow(self, access_type, access, access_level, metadata=None):
         """Allow access to a share."""
-        return self.manager.allow(self, access_type, access, access_level)
+        return self.manager.allow(
+            self, access_type, access, access_level, metadata)
 
     def deny(self, id):
         """Deny access from IP to a share."""
@@ -505,13 +506,15 @@ class ShareManager(base.ManagerWithFind):
                    ', '.join(valid_access_types))
             raise exceptions.CommandError(msg)
 
-    def _do_allow(self, share, access_type, access, access_level, action_name):
+    def _do_allow(self, share, access_type, access, access_level, action_name,
+                  metadata=None):
         """Allow access to a share.
 
         :param share: either share object or text with its ID.
         :param access_type: string that represents access type ('ip','domain')
         :param access: string that represents access ('127.0.0.1')
         :param access_level: string that represents access level ('rw', 'ro')
+        :param metadata: A dict of key/value pairs to be set
         """
         access_params = {
             'access_type': access_type,
@@ -519,36 +522,46 @@ class ShareManager(base.ManagerWithFind):
         }
         if access_level:
             access_params['access_level'] = access_level
+        if metadata:
+            access_params['metadata'] = metadata
         access = self._action(action_name, share,
                               access_params)[1]["access"]
         return access
 
     @api_versions.wraps("1.0", "2.6")
-    def allow(self, share, access_type, access, access_level):
+    def allow(self, share, access_type, access, access_level, metadata=None):
         self._validate_access(access_type, access)
         return self._do_allow(
             share, access_type, access, access_level, "os-allow_access")
 
     @api_versions.wraps("2.7", "2.12")  # noqa
-    def allow(self, share, access_type, access, access_level):
+    def allow(self, share, access_type, access, access_level, metadata=None):
         self._validate_access(access_type, access)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
     @api_versions.wraps("2.13", "2.37")  # noqa
-    def allow(self, share, access_type, access, access_level):
+    def allow(self, share, access_type, access, access_level, metadata=None):
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
-    @api_versions.wraps("2.38")  # noqa
-    def allow(self, share, access_type, access, access_level):
+    @api_versions.wraps("2.38", "2.44")  # noqa
+    def allow(self, share, access_type, access, access_level, metadata=None):
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types,
                               enable_ipv6=True)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
+
+    @api_versions.wraps("2.45")  # noqa
+    def allow(self, share, access_type, access, access_level, metadata=None):
+        valid_access_types = ('ip', 'user', 'cert', 'cephx')
+        self._validate_access(access_type, access, valid_access_types,
+                              enable_ipv6=True)
+        return self._do_allow(
+            share, access_type, access, access_level, "allow_access", metadata)
 
     def _do_deny(self, share, access_id, action_name):
         """Deny access to a share.
@@ -582,7 +595,7 @@ class ShareManager(base.ManagerWithFind):
     def access_list(self, share):
         return self._do_access_list(share, "os-access_list")
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.44")  # noqa
     def access_list(self, share):
         return self._do_access_list(share, "access_list")
 

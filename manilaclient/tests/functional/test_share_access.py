@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import ast
+
 import ddt
 from tempest.lib import exceptions as tempest_lib_exc
 
@@ -68,16 +70,19 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
             'ipv6': ['2001:db8::%d' % i for i in int_range],
         }
 
-    def _test_create_list_access_rule_for_share(self, microversion):
+    def _test_create_list_access_rule_for_share(
+            self, microversion, metadata=None):
         access_type = self.access_types[0]
 
         access = self.user_client.access_allow(
             self.share['id'], access_type, self.access_to[access_type].pop(),
-            self.access_level, microversion=microversion)
+            self.access_level, metadata=metadata, microversion=microversion)
 
         return access
 
-    @ddt.data("1.0", "2.0", "2.6", "2.7", "2.21", "2.33")
+    @ddt.data(*set([
+        "1.0", "2.0", "2.6", "2.7", "2.21", "2.33", "2.44", "2.45",
+        api_versions.MAX_VERSION]))
     def test_create_list_access_rule_for_share(self, microversion):
         self.skip_if_microversion_not_supported(microversion)
         access = self._test_create_list_access_rule_for_share(
@@ -95,8 +100,9 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
         if (api_versions.APIVersion(microversion) >=
                 api_versions.APIVersion("2.33")):
             self.assertTrue(
-                all(('access_key' and 'created_at' and 'updated_at')
-                    in a for a in access_list))
+                all(all(key in access for key in (
+                    'access_key', 'created_at', 'updated_at'))
+                    for access in access_list))
         elif (api_versions.APIVersion(microversion) >=
                 api_versions.APIVersion("2.21")):
             self.assertTrue(all('access_key' in a for a in access_list))
@@ -155,6 +161,89 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
 
         self.assertRaises(tempest_lib_exc.NotFound,
                           self.user_client.get_access, share_id, access['id'])
+
+    @ddt.data(*set(["2.45", api_versions.MAX_VERSION]))
+    def test_create_list_access_rule_with_metadata(self, microversion):
+        self.skip_if_microversion_not_supported(microversion)
+
+        md1 = {"key1": "value1", "key2": "value2"}
+        md2 = {"key3": "value3", "key4": "value4"}
+        self._test_create_list_access_rule_for_share(
+            metadata=md1, microversion=microversion)
+        access = self._test_create_list_access_rule_for_share(
+            metadata=md2, microversion=microversion)
+        access_list = self.user_client.list_access(
+            self.share['id'], metadata={"key4": "value4"},
+            microversion=microversion)
+        self.assertEqual(1, len(access_list))
+        # Verify share metadata
+        get_access = self.user_client.access_show(
+            access_list[0]['id'], microversion=microversion)
+        metadata = ast.literal_eval(get_access['metadata'])
+        self.assertEqual(2, len(metadata))
+        self.assertIn('key3', metadata)
+        self.assertIn('key4', metadata)
+        self.assertEqual(md2['key3'], metadata['key3'])
+        self.assertEqual(md2['key4'], metadata['key4'])
+        self.assertEqual(access['id'], access_list[0]['id'])
+
+        self.user_client.access_deny(access['share_id'], access['id'])
+        self.user_client.wait_for_access_rule_deletion(access['share_id'],
+                                                       access['id'])
+
+    @ddt.data(*set(["2.45", api_versions.MAX_VERSION]))
+    def test_create_update_show_access_rule_with_metadata(self, microversion):
+        self.skip_if_microversion_not_supported(microversion)
+
+        md1 = {"key1": "value1", "key2": "value2"}
+        md2 = {"key3": "value3", "key2": "value4"}
+        # create a access rule with metadata
+        access = self._test_create_list_access_rule_for_share(
+            metadata=md1, microversion=microversion)
+        # get the access rule
+        get_access = self.user_client.access_show(
+            access['id'], microversion=microversion)
+        # verify access rule
+        self.assertEqual(access['id'], get_access['id'])
+        self.assertEqual(md1, ast.literal_eval(get_access['metadata']))
+
+        # update access rule metadata
+        self.user_client.access_set_metadata(
+            access['id'], metadata=md2, microversion=microversion)
+        get_access = self.user_client.access_show(
+            access['id'], microversion=microversion)
+
+        # verify access rule after update access rule metadata
+        self.assertEqual(
+            {"key1": "value1", "key2": "value4", "key3": "value3"},
+            ast.literal_eval(get_access['metadata']))
+        self.assertEqual(access['id'], get_access['id'])
+
+    @ddt.data(*set(["2.45", api_versions.MAX_VERSION]))
+    def test_delete_access_rule_metadata(self, microversion):
+        self.skip_if_microversion_not_supported(microversion)
+
+        md = {"key1": "value1", "key2": "value2"}
+        # create a access rule with metadata
+        access = self._test_create_list_access_rule_for_share(
+            metadata=md, microversion=microversion)
+        # get the access rule
+        get_access = self.user_client.access_show(
+            access['id'], microversion=microversion)
+
+        # verify access rule
+        self.assertEqual(access['id'], get_access['id'])
+        self.assertEqual(md, ast.literal_eval(get_access['metadata']))
+
+        # delete access rule metadata
+        self.user_client.access_unset_metadata(
+            access['id'], keys=["key1", "key2"], microversion=microversion)
+        get_access = self.user_client.access_show(
+            access['id'], microversion=microversion)
+
+        # verify access rule after delete access rule metadata
+        self.assertEqual({}, ast.literal_eval(get_access['metadata']))
+        self.assertEqual(access['id'], get_access['id'])
 
     @ddt.data("1.0", "2.0", "2.6", "2.7", "2.21", "2.33")
     def test_create_delete_ip_access_rule(self, microversion):

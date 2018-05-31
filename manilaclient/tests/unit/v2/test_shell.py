@@ -23,6 +23,7 @@ from oslo_utils import strutils
 import six
 from six.moves.urllib import parse
 
+from manilaclient import api_versions
 from manilaclient import client
 from manilaclient.common.apiclient import utils as apiclient_utils
 from manilaclient.common import cliutils
@@ -1705,17 +1706,63 @@ class ShellTest(test_utils.TestCase):
         self.assertRaises(SystemExit, self.run_command,
                           "access-allow --access-level fake 1111 ip 10.0.0.6")
 
+    def test_allow_access_with_metadata(self):
+        expected = {
+            "allow_access": {
+                "access_type": "ip",
+                "access_to": "10.0.0.6",
+                "metadata": {"key1": "v1", "key2": "v2"},
+            }
+        }
+
+        self.run_command(
+            "access-allow 2222 ip 10.0.0.6 --metadata key1=v1 key2=v2",
+            version="2.45")
+        self.assert_called("POST", "/shares/2222/action", body=expected)
+
+    def test_set_access_metadata(self):
+        expected = {
+            "metadata": {
+                "key1": "v1",
+                "key2": "v2",
+            }
+        }
+        self.run_command(
+            "access-metadata 9999 set key1=v1 key2=v2",
+            version="2.45")
+        self.assert_called("PUT", "/share-access-rules/9999/metadata",
+                           body=expected)
+
+    def test_unset_access_metadata(self):
+        self.run_command(
+            "access-metadata 9999 unset key1",
+            version="2.45")
+        self.assert_called("DELETE", "/share-access-rules/9999/metadata/key1")
+
+    @ddt.data("1.0", "2.0", "2.44")
+    def test_allow_access_with_metadata_not_support_version(self, version):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            "access-allow 2222 ip 10.0.0.6 --metadata key1=v1",
+            version=version,
+        )
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_access_list(self):
-        self.run_command("access-list 1111")
+    @ddt.data(*set(["2.44", "2.45", api_versions.MAX_VERSION]))
+    def test_access_list(self, version):
+        self.run_command("access-list 1111", version=version)
+        version = api_versions.APIVersion(version)
         cliutils.print_list.assert_called_with(
             mock.ANY,
             ['id', 'access_type', 'access_to', 'access_level', 'state',
              'access_key', 'created_at', 'updated_at'])
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_access_list_select_column(self):
-        self.run_command("access-list 1111 --columns id,access_type")
+    @ddt.data(*set(["2.44", "2.45", api_versions.MAX_VERSION]))
+    def test_access_list_select_column(self, version):
+        self.run_command("access-list 1111 --columns id,access_type",
+                         version=version)
         cliutils.print_list.assert_called_with(
             mock.ANY,
             ['Id', 'Access_Type'])

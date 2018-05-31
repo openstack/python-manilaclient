@@ -982,7 +982,7 @@ class ManilaCLIClient(base.CLIClient):
 
     @not_found_wrapper
     def list_access(self, entity_id, columns=None, microversion=None,
-                    is_snapshot=False):
+                    is_snapshot=False, metadata=None):
         """Returns list of access rules for a share.
 
         :param entity_id: str -- Name or ID of a share or snapshot.
@@ -997,6 +997,12 @@ class ManilaCLIClient(base.CLIClient):
             cmd = 'access-list %s ' % entity_id
         if columns is not None:
             cmd += ' --columns ' + columns
+        if metadata:
+            metadata_cli = ''
+            for k, v in metadata.items():
+                metadata_cli += '%(k)s=%(v)s ' % {'k': k, 'v': v}
+            if metadata_cli:
+                cmd += ' --metadata %s ' % metadata_cli
         access_list_raw = self.manila(cmd, microversion=microversion)
         return output_parser.listing(access_list_raw)
 
@@ -1008,6 +1014,33 @@ class ManilaCLIClient(base.CLIClient):
             if access['id'] == access_id:
                 return access
         raise tempest_lib_exc.NotFound()
+
+    @not_found_wrapper
+    def access_show(self, access_id, microversion=None):
+        raw_access = self.manila("access-show %s" % access_id,
+                                 microversion=microversion)
+        return output_parser.details(raw_access)
+
+    @not_found_wrapper
+    def access_set_metadata(self, access_id, metadata, microversion=None):
+        if not (isinstance(metadata, dict) and metadata):
+            msg = ('Provided invalid metadata for setting of access rule'
+                   ' metadata - %s' % metadata)
+            raise exceptions.InvalidData(message=msg)
+        cmd = "access-metadata %s set " % access_id
+        for k, v in metadata.items():
+            cmd += '%(k)s=%(v)s ' % {'k': k, 'v': v}
+        return self.manila(cmd, microversion=microversion)
+
+    @not_found_wrapper
+    def access_unset_metadata(self, access_id, keys, microversion=None):
+        if not (isinstance(keys, (list, tuple, set)) and keys):
+            raise exceptions.InvalidData(
+                message='Provided invalid keys - %s' % keys)
+        cmd = 'access-metadata %s unset ' % access_id
+        for key in keys:
+            cmd += '%s ' % key
+        return self.manila(cmd, microversion=microversion)
 
     @not_found_wrapper
     def snapshot_access_allow(self, snapshot_id, access_type, access_to,
@@ -1032,16 +1065,20 @@ class ManilaCLIClient(base.CLIClient):
 
     @not_found_wrapper
     def access_allow(self, share_id, access_type, access_to, access_level,
-                     microversion=None):
-        raw_access = self.manila(
-            'access-allow  --access-level %(level)s %(id)s %(type)s '
-            '%(access_to)s' % {
-                'level': access_level,
-                'id': share_id,
-                'type': access_type,
-                'access_to': access_to,
-            },
-            microversion=microversion)
+                     metadata=None, microversion=None):
+        cmd = ('access-allow  --access-level %(level)s %(id)s %(type)s '
+               '%(access_to)s' % {
+                   'level': access_level,
+                   'id': share_id,
+                   'type': access_type,
+                   'access_to': access_to})
+        if metadata:
+            metadata_cli = ''
+            for k, v in metadata.items():
+                metadata_cli += '%(k)s=%(v)s ' % {'k': k, 'v': v}
+            if metadata_cli:
+                cmd += ' --metadata %s ' % metadata_cli
+        raw_access = self.manila(cmd, microversion=microversion)
         return output_parser.details(raw_access)
 
     @not_found_wrapper
