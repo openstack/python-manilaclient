@@ -14,10 +14,6 @@ Python bindings to the OpenStack Manila API
     :target: https://pypi.org/project/python-manilaclient/
     :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/python-manilaclient.svg
-    :target: https://pypi.org/project/python-manilaclient/
-    :alt: Downloads
-
 This is a client for the OpenStack Manila API. There's a Python API (the
 ``manilaclient`` module), and a command-line script (``manila``). Each
 implements 100% of the OpenStack Manila API.
