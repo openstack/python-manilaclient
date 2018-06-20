@@ -63,7 +63,7 @@ class RateLimit(object):
                 self.next_available == other.next_available)
 
     def __repr__(self):
-        return "<RateLimit: method=%s uri=%s>" % (self.method, self.uri)
+        return "<RateLimit: method=%s uri=%s>" % (self.verb, self.uri)
 
 
 class AbsoluteLimit(object):
