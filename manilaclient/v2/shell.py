@@ -1748,7 +1748,7 @@ def do_list(cs, args):
             els = [el.to_dict()['path'] for el in els_objs]
             setattr(share, 'export_locations', els)
             setattr(share, 'export_location', els[0] if els else None)
-    cliutils.print_list(shares, list_of_keys)
+    cliutils.print_list(shares, list_of_keys, sortby_index=None)
     if args.count:
         print("Shares in total: %s" % total_count)
 
@@ -2049,7 +2049,7 @@ def do_snapshot_list(cs, args):
         sort_key=args.sort_key,
         sort_dir=args.sort_dir,
     )
-    cliutils.print_list(snapshots, list_of_keys)
+    cliutils.print_list(snapshots, list_of_keys, sortby_index=None)
 
 
 @cliutils.arg(
@@ -4005,7 +4005,8 @@ def _print_share_group_type_list(share_group_types,
     if columns is not None:
         fields = _split_columns(columns=columns, title=False)
 
-    cliutils.print_list(share_group_types, fields, formatters)
+    cliutils.print_list(share_group_types, fields, formatters,
+                        sortby_index=None)
 
 
 def _print_share_group_type(share_group_type, default_share_type=None):
@@ -4466,7 +4467,8 @@ def do_share_group_list(cs, args):
     share_groups = cs.share_groups.list(
         search_opts=search_opts, sort_key=args.sort_key,
         sort_dir=args.sort_dir)
-    cliutils.print_list(share_groups, fields=list_of_keys)
+    cliutils.print_list(share_groups, fields=list_of_keys,
+                        sortby_index=None)
 
 
 @cliutils.arg(
@@ -4690,7 +4692,8 @@ def do_share_group_snapshot_list(cs, args):
     share_group_snapshots = cs.share_group_snapshots.list(
         detailed=args.detailed, search_opts=search_opts,
         sort_key=args.sort_key, sort_dir=args.sort_dir)
-    cliutils.print_list(share_group_snapshots, fields=list_of_keys)
+    cliutils.print_list(share_group_snapshots, fields=list_of_keys,
+                        sortby_index=None)
 
 
 @cliutils.arg(

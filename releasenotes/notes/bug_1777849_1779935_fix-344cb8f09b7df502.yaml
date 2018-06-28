@@ -1,0 +1,4 @@
+---
+fixes:
+  - Fixed bugs 1777849 and 1779935. Name can be used for the sort option
+    in the list command.
