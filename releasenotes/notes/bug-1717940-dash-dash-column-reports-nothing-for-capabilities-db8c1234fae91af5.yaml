@@ -1,0 +1,4 @@
+---
+fixes:
+  - Fix Manila pool-list --column reports nothing for capabilities, And
+    also format the detail contents.
