@@ -2000,23 +2000,22 @@ class ShellTest(test_utils.TestCase):
     def test_quota_update_with_wrong_combinations(self, cmd):
         self.assertRaises(exceptions.CommandError, self.run_command, cmd)
 
-    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
     def test_pool_list_with_detail(self):
         self.run_command('pool-list --detail')
         self.assert_called(
             'GET',
             '/scheduler-stats/pools/detail?backend=.%2A&host=.%2A&pool=.%2A',
         )
-        cliutils.print_list.assert_called_with(
-            mock.ANY,
-            fields=["Name", "Host", "Backend", "Pool", 'Capabilities'])
+        cliutils.print_dict.assert_called_with(
+            {'name': 'host1@backend1#pool2', 'qos': False})
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_pool_list_select_column(self):
         self.run_command('pool-list --columns name,host')
         self.assert_called(
             'GET',
-            '/scheduler-stats/pools?backend=.%2A&host=.%2A&pool=.%2A',
+            '/scheduler-stats/pools/detail?backend=.%2A&host=.%2A&pool=.%2A',
         )
         cliutils.print_list.assert_called_with(
             mock.ANY,

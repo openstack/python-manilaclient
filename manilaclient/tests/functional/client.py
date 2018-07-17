@@ -1146,7 +1146,7 @@ class ManilaCLIClient(base.CLIClient):
     def pool_list(self, detail=False):
         cmd = 'pool-list'
         if detail:
-            cmd += ' --detail'
+            cmd += ' --column name,host,backend,pool,capabilities'
         response = self.manila(cmd)
         return output_parser.listing(response)
 

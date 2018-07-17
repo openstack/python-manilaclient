@@ -3503,7 +3503,9 @@ def _print_dict(data_dict):
 @cliutils.arg(
     '--detail', '--detailed',
     action='store_true',
-    help='Show detailed information about pools. (Default=False)')
+    help='Show detailed information about pools. If this parameter is set '
+         'to True, --columns parameter will be ignored if present. '
+         '(Default=False)')
 @cliutils.arg(
     '--share-type', '--share_type',
     '--share-type-id', '--share_type_id',
@@ -3528,12 +3530,19 @@ def do_pool_list(cs, args):
     else:
         fields = ["Name", "Host", "Backend", "Pool"]
 
+    pools = cs.pools.list(detailed=args.detail, search_opts=search_opts)
     if args.columns is not None:
         fields = _split_columns(columns=args.columns)
+        pools = cs.pools.list(detailed=True, search_opts=search_opts)
 
-    pools = cs.pools.list(detailed=args.detail, search_opts=search_opts)
-
-    cliutils.print_list(pools, fields=fields)
+    if args.detail:
+        for info in pools:
+            backend = dict()
+            backend['name'] = info.name
+            backend.update(info.capabilities)
+            cliutils.print_dict(backend)
+    else:
+        cliutils.print_list(pools, fields=fields)
 
 
 @cliutils.arg('share', metavar='<share>',
