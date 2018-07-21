@@ -1,0 +1,5 @@
+---
+features:
+  - Added support to create share access rule metadata, update existing share
+    access rule metadata and delete share access rule metadata. Also added a
+    new shell command to show details of a share access rule.

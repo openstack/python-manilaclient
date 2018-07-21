@@ -505,6 +505,45 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
 
+    def get_share_access_rules(self, **kw):
+        access = {
+            'access_list': [{
+                'access_level': 'rw',
+                'state': 'active',
+                'id': '1122',
+                'access_type': 'ip',
+                'access_to': '10.0.0.7',
+                'metadata': {'key1': 'v1'}
+            }]
+        }
+        return (200, {}, access)
+
+    def get_share_access_rules_9999(self, **kw):
+        access = {
+            'access': {
+                'access_level': 'rw',
+                'state': 'active',
+                'id': '9999',
+                'access_type': 'ip',
+                'access_to': '10.0.0.7',
+                'metadata': {'key1': 'v1'}
+            }
+        }
+        return (200, {}, access)
+
+    def put_share_access_rules_9999_metadata(self, **kw):
+        return (200, {}, {'metadata': {'key1': 'v1', 'key2': 'v2'}})
+
+    def delete_share_access_rules_9999_metadata_key1(self, **kw):
+        return (200, {}, None)
+
+    def get_shares_2222(self, **kw):
+        share = {'share': {'id': 2222, 'name': 'sharename'}}
+        return (200, {}, share)
+
+    def post_shares_2222_action(self, body, **kw):
+        return (202, {}, {'access': {}})
+
     def post_share_networks(self, **kwargs):
         return (202, {}, {'share_network': {}})
 

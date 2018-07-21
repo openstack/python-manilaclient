@@ -28,6 +28,7 @@ from manilaclient.v2 import quotas
 from manilaclient.v2 import scheduler_stats
 from manilaclient.v2 import security_services
 from manilaclient.v2 import services
+from manilaclient.v2 import share_access_rules
 from manilaclient.v2 import share_export_locations
 from manilaclient.v2 import share_group_snapshots
 from manilaclient.v2 import share_group_type_access
@@ -237,6 +238,8 @@ class Client(object):
         self.share_servers = share_servers.ShareServerManager(self)
         self.share_replicas = share_replicas.ShareReplicaManager(self)
         self.pools = scheduler_stats.PoolManager(self)
+        self.share_access_rules = (
+            share_access_rules.ShareAccessRuleManager(self))
 
         self._load_extensions(extensions)
 
