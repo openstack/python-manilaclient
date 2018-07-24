@@ -153,7 +153,13 @@ def _find_share_instance(cs, instance):
 
 def _print_type_show(stype, default_share_type=None):
 
-    is_default = 'YES' if stype == default_share_type else 'NO'
+    if hasattr(stype, 'is_default'):
+        is_default = 'YES' if stype.is_default else 'NO'
+    elif default_share_type:
+        is_default = 'YES' if stype.id == default_share_type.id else 'NO'
+    else:
+        is_default = 'NO'
+
     stype_dict = {
         'id': stype.id,
         'name': stype.name,
@@ -3680,8 +3686,11 @@ def _print_share_type_list(stypes, default_share_type=None, columns=None,
                            description=False):
 
     def _is_default(share_type):
-        if share_type == default_share_type:
-            return 'YES'
+        if hasattr(share_type, 'is_default'):
+            return 'YES' if share_type.is_default else '-'
+        elif default_share_type:
+            default = default_share_type.id
+            return 'YES' if share_type.id == default else '-'
         else:
             return '-'
 
@@ -3715,10 +3724,9 @@ def _print_share_type_list(stypes, default_share_type=None, columns=None,
 def _print_share_type(stype, default_share_type=None, show_des=False):
 
     def _is_default(share_type):
-        if share_type == default_share_type:
-            return 'YES'
-        else:
-            return '-'
+        if hasattr(share_type, 'is_default'):
+            return 'YES' if share_type.is_default else '-'
+        return '-'
 
     stype_dict = {
         'ID': stype.id,
@@ -3790,13 +3798,14 @@ def do_type_list(cs, args):
             'extra_specs': extra_specs
         }
 
-    try:
-        default = cs.share_types.get()
-    except exceptions.NotFound:
-        default = None
-
     share_types = cs.share_types.list(show_all=show_all,
                                       search_opts=search_opts)
+    default = None
+    if share_types and not hasattr(share_types[0], 'is_default'):
+        if ((args.columns and 'is_default' in args.columns) or
+                args.columns is None):
+            default = cs.share_types.get()
+
     show_des = cs.api_version.matches(
         api_versions.APIVersion("2.41"), api_versions.APIVersion())
     _print_share_type_list(share_types, default_share_type=default,
@@ -3810,10 +3819,10 @@ def do_type_list(cs, args):
 def do_type_show(cs, args):
     """Show share type details."""
     share_type = cs.share_types.show(args.share_type)
-    try:
+
+    default = None
+    if (share_type and not hasattr(share_type, 'is_default')):
         default = cs.share_types.get()
-    except exceptions.NotFound:
-        default = None
     _print_type_show(share_type, default_share_type=default)
 
 
@@ -4064,9 +4073,12 @@ def do_type_access_remove(cs, args):
 def _print_share_group_type_list(share_group_types,
                                  default_share_group_type=None, columns=None):
 
-    def _is_default(share_group_types):
-        if share_group_types == default_share_group_type:
-            return 'YES'
+    def _is_default(share_group_type):
+        if hasattr(share_group_type, 'is_default'):
+            return 'YES' if share_group_type.is_default else '-'
+        elif default_share_group_type:
+            default = default_share_group_type.id
+            return 'YES' if share_group_type.id == default else '-'
         else:
             return '-'
 
@@ -4094,16 +4106,15 @@ def _print_share_group_type_list(share_group_types,
 def _print_share_group_type(share_group_type, default_share_type=None):
 
     def _is_default(share_group_type):
-        if share_group_type == default_share_type:
-            return 'YES'
-        else:
-            return '-'
+        if hasattr(share_group_type, 'is_default'):
+            return 'YES' if share_group_type.is_default else '-'
+        return '-'
 
     share_group_type_dict = {
         'ID': share_group_type.id,
         'Name': share_group_type.name,
         'Visibility': _is_share_type_public(share_group_type),
-        'is_default': _is_default(share_group_type),
+        'is_default': _is_default
     }
     cliutils.print_dict(share_group_type_dict)
 
@@ -4131,12 +4142,14 @@ def _find_share_group_type(cs, sg_type):
 def do_share_group_type_list(cs, args):
     """Print a list of available 'share group types'."""
 
-    try:
-        default = cs.share_group_types.get()
-    except exceptions.NotFound:
-        default = None
-
     sg_types = cs.share_group_types.list(show_all=args.all)
+
+    default = None
+    if sg_types and not hasattr(sg_types[0], 'is_default'):
+        if ((args.columns and 'is_default' in args.columns) or
+                args.columns is None):
+            default = cs.share_group_types.get()
+
     _print_share_group_type_list(
         sg_types, default_share_group_type=default, columns=args.columns)
 

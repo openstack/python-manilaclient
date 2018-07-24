@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 import manilaclient
+from manilaclient import api_versions
 from manilaclient.tests.unit.v2 import fake_clients as fakes
 from manilaclient.v2 import client
 
@@ -878,7 +879,10 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                            'required_extra_specs': {'test': 'test'}}})
 
     def get_types(self, **kw):
-        return (200, {}, {
+        req_version = self.default_headers['X-Openstack-Manila-Api-Version']
+        if not isinstance(req_version, api_versions.APIVersion):
+            req_version = api_versions.APIVersion(req_version)
+        response_body = {
             'share_types': [{'id': 1,
                              'name': 'test-type-1',
                              'extra_specs': {'test1': 'test1'},
@@ -886,7 +890,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                             {'id': 2,
                              'name': 'test-type-2',
                              'extra_specs': {'test1': 'test1'},
-                             'required_extra_specs': {'test': 'test'}}]})
+                             'required_extra_specs': {'test': 'test'}}]
+        }
+
+        if req_version >= api_versions.APIVersion('2.46'):
+            response_body['share_types'][0]['is_default'] = False
+            response_body['share_types'][1]['is_default'] = False
+
+        return 200, {}, response_body
 
     def get_types_1(self, **kw):
         return (200, {}, {'share_type': {
@@ -932,6 +943,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             'share_type': {
                 'id': 3,
                 'name': 'test-type-3',
+                'is_default': False,
                 'description': 'test description',
                 'extra_specs': share_type['extra_specs'],
                 'required_extra_specs': required_extra_specs,
@@ -1075,6 +1087,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                 },
             ],
         }
+
+        req_version = self.default_headers['X-Openstack-Manila-Api-Version']
+        if req_version >= api_versions.APIVersion('2.46'):
+            share_group_types['share_group_types'][0]['is_default'] = False
+            share_group_types['share_group_types'][1]['is_default'] = False
+
         return 200, {}, share_group_types
 
     def get_share_group_types_1(self, **kw):

@@ -509,15 +509,31 @@ class ShellTest(test_utils.TestCase):
         self.assert_called_anytime('GET', '/types/1234')
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
-    def test_type_list(self):
-        self.run_command('type-list')
+    @ddt.data(*itertools.product(
+        ('type-list --columns id,is_default', 'type-list --columns id,name',
+         'type-list --columns is_default', 'type-list'),
+        {'2.45', '2.46', api_versions.MAX_VERSION}))
+    @ddt.unpack
+    def test_type_list(self, command, version):
+        self.run_command(command, version=version)
 
-        self.assert_called('GET', '/types')
-        cliutils.print_list.assert_called_once_with(
-            mock.ANY,
-            ['ID', 'Name', 'visibility', 'is_default', 'required_extra_specs',
-             'optional_extra_specs', 'Description'],
-            mock.ANY)
+        columns_requested = ['ID', 'Name', 'visibility',
+                             'is_default', 'required_extra_specs',
+                             'optional_extra_specs', 'Description']
+        if 'columns' in command:
+            columns_requested = command.split('--columns ')[1].split(',')
+
+        is_default_in_api = (api_versions.APIVersion(version) >=
+                             api_versions.APIVersion('2.46'))
+
+        if not is_default_in_api and 'is_default' in columns_requested:
+            self.assert_called('GET', '/types/default')
+            self.assert_called_anytime('GET', '/types')
+        else:
+            self.assert_called('GET', '/types')
+
+        cliutils.print_list.assert_called_with(
+            mock.ANY, columns_requested, mock.ANY)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_type_list_select_column(self):
@@ -528,10 +544,6 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             ['id', 'name'],
             mock.ANY)
-
-    def test_type_list_default_volume_type(self):
-        self.run_command('type-list')
-        self.assert_called_anytime('GET', '/types/default')
 
     def test_type_list_all(self):
         self.run_command('type-list --all')
@@ -2436,14 +2448,30 @@ class ShellTest(test_utils.TestCase):
             exceptions.CommandError,
             self.run_command, 'share-group-snapshot-delete fake-sg-snapshot')
 
-    def test_share_group_type_list(self):
+    @ddt.data(*itertools.product(
+        ('--columns id,is_default', '--columns id,name',
+         '--columns is_default', ''),
+        {'2.45', '2.46', api_versions.MAX_VERSION}))
+    @ddt.unpack
+    def test_share_group_type_list(self, command_args, version):
         self.mock_object(shell_v2, '_print_share_group_type_list')
+        command = 'share-group-type-list ' + command_args
+        columns_requested = command_args.split('--columns ')[-1] or None
+        is_default_in_api = (api_versions.APIVersion(version) >=
+                             api_versions.APIVersion('2.46'))
 
-        self.run_command('share-group-type-list')
+        self.run_command(command, version=version)
 
-        self.assert_called('GET', '/share-group-types')
+        if (not is_default_in_api and
+                (not columns_requested or 'is_default' in columns_requested)):
+            self.assert_called('GET', '/share-group-types/default')
+            self.assert_called_anytime('GET', '/share-group-types')
+        else:
+            self.assert_called('GET', '/share-group-types')
+
         shell_v2._print_share_group_type_list.assert_called_once_with(
-            mock.ANY, default_share_group_type=mock.ANY, columns=mock.ANY)
+            mock.ANY, default_share_group_type=mock.ANY,
+            columns=columns_requested)
 
     def test_share_group_type_list_select_column(self):
         self.mock_object(shell_v2, '_print_share_group_type_list')
@@ -2453,11 +2481,6 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/share-group-types')
         shell_v2._print_share_group_type_list.assert_called_once_with(
             mock.ANY, default_share_group_type=mock.ANY, columns='id,name')
-
-    def test_share_group_type_list_default_share_type(self):
-        self.run_command('share-group-type-list')
-
-        self.assert_called_anytime('GET', '/share-group-types/default')
 
     def test_share_group_type_list_all(self):
         self.run_command('share-group-type-list --all')

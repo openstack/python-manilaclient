@@ -1,0 +1,6 @@
+---
+fixes:
+  - The share type and share group type shell commands retrieve
+    the 'is_default' value from the manila API where supported.
+    This fix also addresses the blank 'is_default' field when
+    creating share types and share group types.
