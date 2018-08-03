@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fixed bug 1782672. Name can now be used in type-show command.

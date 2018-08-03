@@ -3818,8 +3818,7 @@ def do_type_list(cs, args):
     help='Name or ID of the share type.')
 def do_type_show(cs, args):
     """Show share type details."""
-    share_type = cs.share_types.show(args.share_type)
-
+    share_type = _find_share_type(cs, args.share_type)
     default = None
     if (share_type and not hasattr(share_type, 'is_default')):
         default = cs.share_types.get()
