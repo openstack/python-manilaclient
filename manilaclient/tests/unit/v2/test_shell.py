@@ -159,7 +159,11 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/shares/detail')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['Id', 'Name'])
+            ['Id', 'Name'], sortby_index=None)
+
+    def test_list_sort_by_name(self):
+        self.run_command('list --sort_key name')
+        self.assert_called('GET', '/shares/detail?sort_key=name')
 
     def test_list_filter_status(self):
         for separator in self.separators:
@@ -178,7 +182,8 @@ class ShellTest(test_utils.TestCase):
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
             ['ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
-             'Share Type Name', 'Host', 'Availability Zone', 'Project ID'])
+             'Share Type Name', 'Host', 'Availability Zone', 'Project ID'],
+            sortby_index=None)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_list_select_column_and_all_tenants(self):
@@ -186,7 +191,7 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/shares/detail?all_tenants=1')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['Id', 'Name'])
+            ['Id', 'Name'], sortby_index=None)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_list_select_column_and_public(self):
@@ -194,7 +199,7 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/shares/detail?is_public=True')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['Id', 'Name'])
+            ['Id', 'Name'], sortby_index=None)
 
     def test_list_all_tenants_key_and_value_1(self):
         for separator in self.separators:
@@ -602,7 +607,8 @@ class ShellTest(test_utils.TestCase):
         ]
         self.run_command('list --public')
         self.assert_called('GET', '/shares/detail?is_public=True')
-        cliutils.print_list.assert_called_with(mock.ANY, listed_fields)
+        cliutils.print_list.assert_called_with(mock.ANY, listed_fields,
+                                               sortby_index=None)
 
     def test_show(self):
         self.run_command('show 1234')
@@ -765,7 +771,7 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/snapshots/detail')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['Id', 'Name'])
+            ['Id', 'Name'], sortby_index=None)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_list_snapshots_all_tenants_only_key(self):
@@ -773,7 +779,8 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('GET', '/snapshots/detail?all_tenants=1')
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
-            ['ID', 'Share ID', 'Status', 'Name', 'Share Size', 'Project ID'])
+            ['ID', 'Share ID', 'Status', 'Name', 'Share Size', 'Project ID'],
+            sortby_index=None)
 
     def test_list_snapshots_all_tenants_key_and_value_1(self):
         for separator in self.separators:
@@ -2128,7 +2135,8 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('GET', '/share-groups/detail')
         cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=('ID', 'Name', 'Status', 'Description'))
+            mock.ANY, fields=('ID', 'Name', 'Status', 'Description'),
+            sortby_index=None)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_group_list_select_column(self):
@@ -2136,7 +2144,7 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('GET', '/share-groups/detail')
         cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=['Id', 'Name', 'Description'])
+            mock.ANY, fields=['Id', 'Name', 'Description'], sortby_index=None)
 
     def test_share_group_list_filter_by_inexact_name(self):
         for separator in self.separators:
@@ -2326,7 +2334,8 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('GET', '/share-group-snapshots/detail')
         cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=('id', 'name', 'status', 'description'))
+            mock.ANY, fields=('id', 'name', 'status', 'description'),
+            sortby_index=None)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_group_snapshot_list_select_column(self):
@@ -2334,7 +2343,7 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('GET', '/share-group-snapshots/detail')
         cliutils.print_list.assert_called_once_with(
-            mock.ANY, fields=['Id', 'Name'])
+            mock.ANY, fields=['Id', 'Name'], sortby_index=None)
 
     def test_share_group_snapshot_list_all_tenants_only_key(self):
         self.run_command('share-group-snapshot-list --all-tenants')
