@@ -1,4 +1,10 @@
 - project:
+    templates:
+      - publish-openstack-sphinx-docs
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - check-requirements
+      - release-notes-jobs
     check:
       jobs:
         - manilaclient-dsvm-neutron-functional
@@ -12,6 +18,9 @@
         - manilaclient-dsvm-neutron-functional
 
         - openstack-tox-lower-constraints
+    post:
+      jobs:
+        - openstack-tox-cover
 - job:
     name: manilaclient-dsvm-neutron-functional
     parent: legacy-dsvm-base
