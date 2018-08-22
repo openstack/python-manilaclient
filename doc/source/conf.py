@@ -25,15 +25,13 @@ import openstackdocstheme
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
 sys.path.insert(0, ROOT)
-# path to local extensions
-sys.path.append(os.path.abspath('exts'))
 
 # -- General configuration ----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'openstackdocstheme', 'clidoc']
+extensions = ['sphinx.ext.autodoc', 'openstackdocstheme', 'sphinxcontrib.programoutput']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
