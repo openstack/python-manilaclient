@@ -1,6 +1,8 @@
 - project:
     templates:
       - publish-openstack-docs-pti
+      - openstack-cover-jobs
+      - openstack-lower-constraints-jobs
       - openstack-python-jobs
       - openstack-python35-jobs
       - openstack-python36-jobs
@@ -13,15 +15,10 @@
             voting: false
         - rally-dsvm-manila-multibackend-no-ss:
             voting: false
-        - openstack-tox-lower-constraints
     gate:
       jobs:
         - manilaclient-dsvm-neutron-functional
 
-        - openstack-tox-lower-constraints
-    post:
-      jobs:
-        - openstack-tox-cover
 - job:
     name: manilaclient-dsvm-neutron-functional
     parent: legacy-dsvm-base
