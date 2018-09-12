@@ -1,0 +1,10 @@
+- project:
+    templates:
+      - publish-openstack-sphinx-docs
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - check-requirements
+      - release-notes-jobs
+    post:
+      jobs:
+        - openstack-tox-cover
