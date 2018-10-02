@@ -48,4 +48,4 @@ Run :program:`manila help` to get a full list of all possible commands,
 and run :program:`manila help <command>` to get detailed help for that
 command.
 
-.. include:: ../cli/manila_cli_output.rst.inc
+.. program-output:: manila --help
