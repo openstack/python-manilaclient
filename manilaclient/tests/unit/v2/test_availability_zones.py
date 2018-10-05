@@ -47,3 +47,9 @@ class AvailabilityZoneTest(utils.TestCase):
         manager._list.assert_called_once_with(
             resource_path, availability_zones.RESOURCE_NAME)
         self.assertEqual(manager._list.return_value, result)
+
+    def test_representation(self):
+        resource = availability_zones.AvailabilityZone(None, {})
+        resource.id = "9d21a755-b5ca-453e-a155-ee9c9066d909"
+        expected = "<AvailabilityZone: 9d21a755-b5ca-453e-a155-ee9c9066d909>"
+        self.assertEqual(repr(resource), expected)
