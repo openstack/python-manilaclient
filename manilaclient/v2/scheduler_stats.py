@@ -12,11 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six.moves.urllib.parse as urlparse
-
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
-
 
 RESOURCES_PATH = '/scheduler-stats/pools'
 RESOURCES_NAME = 'pools'
@@ -37,17 +34,7 @@ class PoolManager(base.Manager):
 
         :rtype: list of :class:`Pool`
         """
-        if search_opts is None:
-            search_opts = {}
-
-        if search_opts:
-            query_string = urlparse.urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % (query_string,)
-        else:
-            query_string = ''
-
+        query_string = self._build_query_string(search_opts)
         if detailed:
             path = '%(resources_path)s/detail%(query)s' % {
                 'resources_path': RESOURCES_PATH,

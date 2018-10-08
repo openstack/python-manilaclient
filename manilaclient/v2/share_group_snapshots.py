@@ -102,8 +102,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         :rtype: list of :class:`ShareGroupSnapshot`
         """
 
-        if not search_opts:
-            search_opts = {}
+        search_opts = search_opts or {}
 
         if sort_key is not None:
             if sort_key in constants.SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES:

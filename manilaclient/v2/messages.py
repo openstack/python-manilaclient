@@ -11,12 +11,6 @@
 #    under the License.
 
 """Asynchronous User Message interface."""
-
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
-
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
@@ -76,13 +70,7 @@ class MessageManager(base.ManagerWithFind):
                 raise ValueError('sort_dir must be one of the following: %s.'
                                  % ', '.join(constants.SORT_DIR_VALUES))
 
-        if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % (query_string,)
-        else:
-            query_string = ''
+        query_string = self._build_query_string(search_opts)
 
         path = RESOURCES_PATH + query_string
         return self._list(path, RESOURCES_NAME)
