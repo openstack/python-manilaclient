@@ -139,8 +139,7 @@ class ShareGroupManager(base.ManagerWithFind):
         :rtype: list of :class:`ShareGroup`
         """
 
-        if not search_opts:
-            search_opts = {}
+        search_opts = search_opts or {}
 
         if sort_key is not None:
             if sort_key in constants.SHARE_GROUP_SORT_KEY_VALUES:

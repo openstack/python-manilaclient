@@ -13,11 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
-
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base

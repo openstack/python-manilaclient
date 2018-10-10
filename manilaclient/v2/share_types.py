@@ -17,13 +17,11 @@
 """
 Share Type interface.
 """
-from six.moves.urllib import parse
 
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
-from manilaclient import utils
 
 
 class ShareType(common_base.Resource):
@@ -114,17 +112,10 @@ class ShareTypeManager(base.ManagerWithFind):
 
         :rtype: list of :class:`ShareType`.
         """
-        query_string = ''
+        search_opts = search_opts or {}
         if show_all:
-            query_string = '?is_public=all'
-        if search_opts:
-            search_opts = utils.unicode_key_value_to_string(search_opts)
-            params = sorted(
-                [(k, v) for (k, v) in list(search_opts.items()) if v])
-            if params and query_string:
-                query_string += "&%s" % parse.urlencode(params)
-            if params and not query_string:
-                query_string += "?%s" % parse.urlencode(params)
+            search_opts['is_public'] = 'all'
+        query_string = self._build_query_string(search_opts)
         return self._list("/types%s" % query_string, "share_types")
 
     def show(self, share_type):

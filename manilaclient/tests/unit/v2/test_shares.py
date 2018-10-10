@@ -297,8 +297,8 @@ class SharesTest(utils.TestCase):
         cs.shares.list(detailed=False, search_opts=search_opts)
         cs.assert_called(
             'GET',
-            '/shares?description%7E=fake_description&fake_int=1&'
-            'fake_str=fake_str_value&is_public=True&name%7E=fake_name')
+            '/shares?description~=fake_description&fake_int=1&'
+            'fake_str=fake_str_value&is_public=True&name~=fake_name')
 
     @ddt.data(('id', 'b4991315-eb7d-43ec-979e-5715d4399827', True),
               ('id', 'b4991315-eb7d-43ec-979e-5715d4399827', False),

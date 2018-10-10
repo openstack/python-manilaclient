@@ -13,11 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
-
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 
@@ -89,10 +84,5 @@ class ShareServerManager(base.ManagerWithFind):
 
         :rtype: list of :class:`ShareServer`
         """
-        query_string = ''
-        if search_opts:
-            opts = sorted(
-                [(k, v) for (k, v) in search_opts.items() if v])
-            query_string = urlencode(opts)
-            query_string = '?' + query_string if query_string else ''
+        query_string = self._build_query_string(search_opts)
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)

@@ -13,11 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
-
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
@@ -46,12 +41,7 @@ class ServiceManager(base.Manager):
 
         :rtype: list of :class:`Service`
         """
-        query_string = ''
-        if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in search_opts.items() if v]))
-            if query_string:
-                query_string = "?%s" % query_string
+        query_string = self._build_query_string(search_opts)
         return self._list(resource_path + query_string, RESOURCE_NAME)
 
     @api_versions.wraps("1.0", "2.6")

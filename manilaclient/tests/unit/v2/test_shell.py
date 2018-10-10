@@ -21,7 +21,6 @@ import itertools
 import mock
 from oslo_utils import strutils
 import six
-from six.moves.urllib import parse
 
 from manilaclient import api_versions
 from manilaclient import client
@@ -32,6 +31,7 @@ from manilaclient import exceptions
 from manilaclient import shell
 from manilaclient.tests.unit import utils as test_utils
 from manilaclient.tests.unit.v2 import fakes
+from manilaclient import utils
 from manilaclient.v2 import messages
 from manilaclient.v2 import security_services
 from manilaclient.v2 import share_instances
@@ -258,7 +258,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_name')
             self.assert_called(
                 'GET',
-                '/shares/detail?name%7E=fake_name')
+                '/shares/detail?name~=fake_name')
 
     def test_list_filter_by_inexact_description(self):
         for separator in self.separators:
@@ -266,7 +266,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_description')
             self.assert_called(
                 'GET',
-                '/shares/detail?description%7E=fake_description')
+                '/shares/detail?description~=fake_description')
 
     def test_list_filter_by_inexact_unicode_name(self):
         for separator in self.separators:
@@ -274,7 +274,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/shares/detail?name%7E=%D1%84%D1%84%D1%84')
+                '/shares/detail?name~=%D1%84%D1%84%D1%84')
 
     def test_list_filter_by_inexact_unicode_description(self):
         for separator in self.separators:
@@ -282,7 +282,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/shares/detail?description%7E=%D1%84%D1%84%D1%84')
+                '/shares/detail?description~=%D1%84%D1%84%D1%84')
 
     def test_list_filter_by_share_type_not_found(self):
         for separator in self.separators:
@@ -291,7 +291,7 @@ class ShellTest(test_utils.TestCase):
                 self.run_command,
                 'list --share-type' + separator + 'not_found_expected',
             )
-            self.assert_called('GET', '/types?is_public=all&all_tenants=1')
+            self.assert_called('GET', '/types?all_tenants=1&is_public=all')
 
     def test_list_with_limit(self):
         for separator in self.separators:
@@ -846,7 +846,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_name')
             self.assert_called(
                 'GET',
-                '/snapshots/detail?name%7E=fake_name')
+                '/snapshots/detail?name~=fake_name')
 
     def test_list_snapshots_filter_by_inexact_description(self):
         for separator in self.separators:
@@ -854,7 +854,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_description')
             self.assert_called(
                 'GET',
-                '/snapshots/detail?description%7E=fake_description')
+                '/snapshots/detail?description~=fake_description')
 
     def test_list_snapshots_filter_by_inexact_unicode_name(self):
         for separator in self.separators:
@@ -862,7 +862,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/snapshots/detail?name%7E=%D1%84%D1%84%D1%84')
+                '/snapshots/detail?name~=%D1%84%D1%84%D1%84')
 
     def test_list_snapshots_filter_by_inexact_unicode_description(self):
         for separator in self.separators:
@@ -870,7 +870,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/snapshots/detail?description%7E=%D1%84%D1%84%D1%84')
+                '/snapshots/detail?description~=%D1%84%D1%84%D1%84')
 
     def test_list_snapshots_with_sort_dir_verify_keys(self):
         aliases = ['--sort_dir', '--sort-dir']
@@ -1520,8 +1520,8 @@ class ShellTest(test_utils.TestCase):
             command_str += ' --%(key)s=%(value)s' % {'key': key,
                                                      'value': value}
         self.run_command(command_str)
-        query = parse.urlencode(sorted([(k.replace('-', '_'), v) for (k, v)
-                                        in list(filters.items())]))
+        query = utils.safe_urlencode(sorted([(k.replace('-', '_'), v) for
+                                             (k, v) in filters.items()]))
         self.assert_called(
             'GET',
             '/share-networks/detail?%s' % query,
@@ -1536,7 +1536,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_name')
             self.assert_called(
                 'GET',
-                '/share-networks/detail?name%7E=fake_name')
+                '/share-networks/detail?name~=fake_name')
 
     def test_share_network_list_filter_by_inexact_description(self):
         for separator in self.separators:
@@ -1544,7 +1544,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_description')
             self.assert_called(
                 'GET',
-                '/share-networks/detail?description%7E=fake_description')
+                '/share-networks/detail?description~=fake_description')
 
     def test_share_network_list_filter_by_inexact_unicode_name(self):
         for separator in self.separators:
@@ -1552,7 +1552,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/share-networks/detail?name%7E=%D1%84%D1%84%D1%84')
+                '/share-networks/detail?name~=%D1%84%D1%84%D1%84')
 
     def test_share_network_list_filter_by_inexact_unicode_description(self):
         for separator in self.separators:
@@ -1560,7 +1560,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/share-networks/detail?description%7E=%D1%84%D1%84%D1%84')
+                '/share-networks/detail?description~=%D1%84%D1%84%D1%84')
 
     def test_share_network_security_service_add(self):
         self.run_command('share-network-security-service-add fake_share_nw '
@@ -2152,7 +2152,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_name')
             self.assert_called(
                 'GET',
-                '/share-groups/detail?name%7E=fake_name')
+                '/share-groups/detail?name~=fake_name')
 
     def test_share_group_list_filter_by_inexact_description(self):
         for separator in self.separators:
@@ -2160,7 +2160,7 @@ class ShellTest(test_utils.TestCase):
                              'fake_description')
             self.assert_called(
                 'GET',
-                '/share-groups/detail?description%7E=fake_description')
+                '/share-groups/detail?description~=fake_description')
 
     def test_share_group_list_filter_by_inexact_unicode_name(self):
         for separator in self.separators:
@@ -2168,7 +2168,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/share-groups/detail?name%7E=%D1%84%D1%84%D1%84')
+                '/share-groups/detail?name~=%D1%84%D1%84%D1%84')
 
     def test_share_group_list_filter_by_inexact_unicode_description(self):
         for separator in self.separators:
@@ -2176,7 +2176,7 @@ class ShellTest(test_utils.TestCase):
                              u'ффф')
             self.assert_called(
                 'GET',
-                '/share-groups/detail?description%7E=%D1%84%D1%84%D1%84')
+                '/share-groups/detail?description~=%D1%84%D1%84%D1%84')
 
     def test_share_group_show(self):
         self.run_command('share-group-show 1234')

@@ -13,11 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-try:
-    from urllib import urlencode  # noqa
-except ImportError:
-    from urllib.parse import urlencode  # noqa
-
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
@@ -152,13 +147,7 @@ class SecurityServiceManager(base.ManagerWithFind):
 
         :rtype: list of :class:`SecurityService`
         """
-        if search_opts:
-            query_string = urlencode(
-                sorted([(k, v) for (k, v) in list(search_opts.items()) if v]))
-            if query_string:
-                query_string = "?%s" % query_string
-        else:
-            query_string = ''
+        query_string = self._build_query_string(search_opts)
 
         if detailed:
             path = RESOURCES_PATH + "/detail" + query_string

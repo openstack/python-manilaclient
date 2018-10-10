@@ -17,20 +17,16 @@
 # limitations under the License.
 """Interface for share access rules extension."""
 
-from six.moves.urllib import parse
-
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
-from manilaclient import utils
-
 
 RESOURCE_PATH = '/share-access-rules/%s'
 RESOURCE_NAME = 'access'
 
 RESOURCES_METADATA_PATH = '/share-access-rules/%s/metadata'
 RESOURCE_METADATA_PATH = '/share-access-rules/%s/metadata/%s'
-RESOURCE_LIST_PATH = '/share-access-rules?share_id=%s'
+RESOURCE_LIST_PATH = '/share-access-rules'
 
 
 class ShareAccessRule(common_base.Resource):
@@ -86,14 +82,9 @@ class ShareAccessRuleManager(base.ManagerWithFind):
             self._delete(url)
 
     @api_versions.wraps("2.45")
-    def access_list(self, share, search_opts):
-        query_string = ""
-        if search_opts:
-            search_opts = utils.unicode_key_value_to_string(search_opts)
-            params = sorted(
-                [(k, v) for (k, v) in list(search_opts.items()) if v])
-            if params:
-                query_string = "&%s" % parse.urlencode(params)
-        url = RESOURCE_LIST_PATH % common_base.getid(share) + query_string
-
+    def access_list(self, share, search_opts=None):
+        search_opts = search_opts or {}
+        search_opts['share_id'] = common_base.getid(share)
+        query_string = self._build_query_string(search_opts)
+        url = RESOURCE_LIST_PATH + query_string
         return self._list(url, 'access_list')

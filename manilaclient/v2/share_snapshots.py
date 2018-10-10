@@ -14,13 +14,10 @@
 #    under the License.
 """Interface for shares extension."""
 
-from six.moves.urllib import parse
-
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
-from manilaclient import utils
 
 
 class ShareSnapshot(common_base.Resource):
@@ -132,8 +129,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param sort_dir: Sort direction, should be 'desc' or 'asc'.
         :rtype: list of :class:`ShareSnapshot`
         """
-        if search_opts is None:
-            search_opts = {}
+        search_opts = search_opts or {}
 
         if sort_key is not None:
             if sort_key in constants.SNAPSHOT_SORT_KEY_VALUES:
@@ -151,13 +147,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
                     'sort_dir must be one of the following: %s.'
                     % ', '.join(constants.SORT_DIR_VALUES))
 
-        query_string = ""
-        if search_opts:
-            search_opts = utils.unicode_key_value_to_string(search_opts)
-            params = sorted(
-                [(k, v) for (k, v) in list(search_opts.items()) if v])
-            if params:
-                query_string = "?%s" % parse.urlencode(params)
+        query_string = self._build_query_string(search_opts)
 
         if detailed:
             path = "/snapshots/detail%s" % (query_string,)
