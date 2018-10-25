@@ -32,6 +32,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
         cls.server = 'fake_server'
         cls.domain = 'fake_domain'
         cls.dns_ip = '1.2.3.4'
+        cls.ou = 'fake_ou'
 
     @ddt.data(
         {'name': 'test_name'},
@@ -41,6 +42,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
         {'server': 'test_server'},
         {'domain': 'test_domain'},
         {'dns_ip': 'test_dns_ip'},
+        {'ou': 'test_ou'},
         {'name': '""'},
         {'description': '""'},
         {'user': '""'},
@@ -48,6 +50,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
         {'server': '""'},
         {'domain': '""'},
         {'dns_ip': '""'},
+        {'ou': '""'},
     )
     def test_create_update_security_service(self, ss_data):
         expected_data = {
@@ -58,6 +61,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
             'server': self.server,
             'domain': self.domain,
             'dns_ip': self.dns_ip,
+            'ou': self.ou,
         }
 
         ss = self.create_security_service(**expected_data)

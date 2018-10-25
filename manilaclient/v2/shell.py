@@ -3100,6 +3100,12 @@ def do_share_network_delete(cs, args):
     default=None,
     help="DNS IP address used inside tenant's network.")
 @cliutils.arg(
+    '--ou',
+    metavar='<ou>',
+    default=None,
+    help="Security service OU (Organizational Unit). Available only for "
+         "microversion >= 2.44.")
+@cliutils.arg(
     '--server',
     metavar='<server>',
     default=None,
@@ -3140,6 +3146,15 @@ def do_security_service_create(cs, args):
         'name': args.name,
         'description': args.description,
     }
+
+    if cs.api_version.matches(api_versions.APIVersion("2.44"),
+                              api_versions.APIVersion()):
+        values['ou'] = args.ou
+    elif args.ou:
+        raise exceptions.CommandError(
+            "Security service Organizational Unit (ou) option "
+            "is only available with manila API version >= 2.44")
+
     security_service = cs.security_services.create(args.type, **values)
     info = security_service._info.copy()
     cliutils.print_dict(info)
@@ -3154,6 +3169,12 @@ def do_security_service_create(cs, args):
     metavar='<dns-ip>',
     default=None,
     help="DNS IP address used inside tenant's network.")
+@cliutils.arg(
+    '--ou',
+    metavar='<ou>',
+    default=None,
+    help="Security service OU (Organizational Unit). Available only for "
+         "microversion >= 2.44.")
 @cliutils.arg(
     '--server',
     metavar='<server>',
@@ -3195,6 +3216,15 @@ def do_security_service_update(cs, args):
         'name': args.name,
         'description': args.description,
     }
+
+    if cs.api_version.matches(api_versions.APIVersion("2.44"),
+                              api_versions.APIVersion()):
+        values['ou'] = args.ou
+    elif args.ou:
+        raise exceptions.CommandError(
+            "Security service Organizational Unit (ou) option "
+            "is only available with manila API version >= 2.44")
+
     security_service = _find_security_service(
         cs, args.security_service).update(**values)
     cliutils.print_dict(security_service._info)
@@ -3255,6 +3285,12 @@ def do_security_service_show(cs, args):
     default=None,
     help="Filter results by DNS IP address used inside tenant's network.")
 @cliutils.arg(
+    '--ou',
+    metavar='<ou>',
+    default=None,
+    help="Filter results by security service OU (Organizational Unit)."
+         " Available only for microversion >= 2.44.")
+@cliutils.arg(
     '--server',
     metavar='<server>',
     default=None,
@@ -3305,6 +3341,15 @@ def do_security_service_list(cs, args):
         'offset': args.offset,
         'limit': args.limit,
     }
+
+    if cs.api_version.matches(api_versions.APIVersion("2.44"),
+                              api_versions.APIVersion()):
+        search_opts['ou'] = args.ou
+    elif args.ou:
+        raise exceptions.CommandError(
+            "Security service Organizational Unit (ou) option "
+            "is only available with manila API version >= 2.44")
+
     if args.share_network:
         search_opts['share_network_id'] = _find_share_network(
             cs, args.share_network).id

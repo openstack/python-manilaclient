@@ -1196,7 +1196,7 @@ class ManilaCLIClient(base.CLIClient):
         return output_parser.listing(response)
 
     def create_security_service(self, type='ldap', name=None, description=None,
-                                dns_ip=None, server=None, domain=None,
+                                dns_ip=None, ou=None, server=None, domain=None,
                                 user=None, password=None, microversion=None):
         """Creates security service.
 
@@ -1204,6 +1204,7 @@ class ManilaCLIClient(base.CLIClient):
         :param name: desired name of new security service.
         :param description: desired description of new security service.
         :param dns_ip: DNS IP address inside tenant's network.
+        :param ou: security service organizational unit
         :param server: security service IP address or hostname.
         :param domain: security service domain.
         :param user: user of the new security service.
@@ -1215,6 +1216,7 @@ class ManilaCLIClient(base.CLIClient):
             name=name,
             description=description,
             dns_ip=dns_ip,
+            ou=ou,
             server=server,
             domain=domain,
             user=user,
@@ -1226,14 +1228,15 @@ class ManilaCLIClient(base.CLIClient):
 
     @not_found_wrapper
     def update_security_service(self, security_service, name=None,
-                                description=None, dns_ip=None, server=None,
-                                domain=None, user=None, password=None,
-                                microversion=None):
+                                description=None, dns_ip=None, ou=None,
+                                server=None, domain=None, user=None,
+                                password=None, microversion=None):
         cmd = 'security-service-update %s ' % security_service
         cmd += self. _combine_security_service_data(
             name=name,
             description=description,
             dns_ip=dns_ip,
+            ou=ou,
             server=server,
             domain=domain,
             user=user,
@@ -1242,8 +1245,8 @@ class ManilaCLIClient(base.CLIClient):
             self.manila(cmd, microversion=microversion))
 
     def _combine_security_service_data(self, name=None, description=None,
-                                       dns_ip=None, server=None, domain=None,
-                                       user=None, password=None):
+                                       dns_ip=None, ou=None, server=None,
+                                       domain=None, user=None, password=None):
         data = ''
         if name is not None:
             data += '--name %s ' % name
@@ -1251,6 +1254,8 @@ class ManilaCLIClient(base.CLIClient):
             data += '--description %s ' % description
         if dns_ip is not None:
             data += '--dns-ip %s ' % dns_ip
+        if ou is not None:
+            data += '--ou %s ' % ou
         if server is not None:
             data += '--server %s ' % server
         if domain is not None:

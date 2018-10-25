@@ -42,13 +42,15 @@ class SecurityServiceManager(base.ManagerWithFind):
 
     resource_class = SecurityService
 
-    def create(self, type, dns_ip=None, server=None, domain=None, user=None,
-               password=None, name=None, description=None):
+    def create(self, type, dns_ip=None, ou=None, server=None, domain=None,
+               user=None, password=None, name=None,
+               description=None):
         """Create security service for NAS.
 
         :param type: security service type - 'ldap', 'kerberos' or
                      'active_directory'
         :param dns_ip: dns ip address used inside tenant's network
+        :param ou: security service organizational unit
         :param server: security service server ip address or hostname
         :param domain: security service domain
         :param user: security identifier used by tenant
@@ -60,6 +62,8 @@ class SecurityServiceManager(base.ManagerWithFind):
         values = {'type': type}
         if dns_ip:
             values['dns_ip'] = dns_ip
+        if ou:
+            values['ou'] = ou
         if server:
             values['server'] = server
         if domain:
@@ -88,12 +92,14 @@ class SecurityServiceManager(base.ManagerWithFind):
             RESOURCE_NAME,
         )
 
-    def update(self, security_service, dns_ip=None, server=None, domain=None,
-               password=None, user=None, name=None, description=None):
+    def update(self, security_service, dns_ip=None, ou=None, server=None,
+               domain=None, password=None, user=None, name=None,
+               description=None):
         """Updates a security service.
 
         :param security_service: security service to update.
         :param dns_ip: dns ip address used inside tenant's network
+        :param ou: security service organizational unit
         :param server: security service server ip address or hostname
         :param domain: security service domain
         :param user: security identifier used by tenant
@@ -106,6 +112,8 @@ class SecurityServiceManager(base.ManagerWithFind):
         values = {}
         if dns_ip is not None:
             values['dns_ip'] = dns_ip
+        if ou is not None:
+            values['ou'] = ou
         if server is not None:
             values['server'] = server
         if domain is not None:

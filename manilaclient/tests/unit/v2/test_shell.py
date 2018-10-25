@@ -1912,6 +1912,7 @@ class ShellTest(test_utils.TestCase):
             'type': 'ldap',
             'user': 'fake-user',
             'dns-ip': '1.1.1.1',
+            'ou': 'fake-ou',
             'server': 'fake-server',
             'domain': 'fake-domain',
             'offset': 10,
@@ -1925,8 +1926,8 @@ class ShellTest(test_utils.TestCase):
         self.assert_called(
             'GET',
             '/security-services?dns_ip=1.1.1.1&domain=fake-domain&limit=20'
-            '&name=fake-name&offset=10&server=fake-server&status=new'
-            '&type=ldap&user=fake-user',
+            '&name=fake-name&offset=10&ou=fake-ou&server=fake-server'
+            '&status=new&type=ldap&user=fake-user',
         )
         cliutils.print_list.assert_called_once_with(
             mock.ANY,
@@ -1943,10 +1944,22 @@ class ShellTest(test_utils.TestCase):
             mock.ANY,
             fields=['id', 'name', 'status', 'type'])
 
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_security_service_list_filter_by_ou_alias(self):
+        self.run_command('security-service-list --ou fake-ou')
+        self.assert_called(
+            'GET',
+            '/security-services?ou=fake-ou',
+        )
+        cliutils.print_list.assert_called_once_with(
+            mock.ANY,
+            fields=['id', 'name', 'status', 'type'])
+
     @ddt.data(
         {'--name': 'fake_name'},
         {'--description': 'fake_description'},
         {'--dns-ip': 'fake_dns_ip'},
+        {'--ou': 'fake_ou'},
         {'--domain': 'fake_domain'},
         {'--server': 'fake_server'},
         {'--user': 'fake_user'},
@@ -1954,6 +1967,7 @@ class ShellTest(test_utils.TestCase):
         {'--name': 'fake_name',
          '--description': 'fake_description',
          '--dns-ip': 'fake_dns_ip',
+         '--ou': 'fake_ou',
          '--domain': 'fake_domain',
          '--server': 'fake_server',
          '--user': 'fake_user',
@@ -1961,6 +1975,7 @@ class ShellTest(test_utils.TestCase):
         {'--name': '""'},
         {'--description': '""'},
         {'--dns-ip': '""'},
+        {'--ou': '""'},
         {'--domain': '""'},
         {'--server': '""'},
         {'--user': '""'},
@@ -1968,6 +1983,7 @@ class ShellTest(test_utils.TestCase):
         {'--name': '""',
          '--description': '""',
          '--dns-ip': '""',
+         '--ou': '""',
          '--domain': '""',
          '--server': '""',
          '--user': '""',
