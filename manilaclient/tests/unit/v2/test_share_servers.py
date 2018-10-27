@@ -13,8 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
 import mock
 
+from manilaclient.common.apiclient import base as common_base
+from manilaclient.common import constants
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_servers
@@ -65,6 +68,7 @@ class ShareServerTest(utils.TestCase):
                             "has not been raised.")
 
 
+@ddt.ddt
 class ShareServerManagerTest(utils.TestCase):
 
     def setUp(self):
@@ -78,6 +82,69 @@ class ShareServerManagerTest(utils.TestCase):
             self.manager._list.assert_called_once_with(
                 share_servers.RESOURCES_PATH,
                 share_servers.RESOURCES_NAME)
+
+    @ddt.data(None, {}, {'opt1': 'fake_opt1', 'opt12': 'fake_opt2'})
+    def test_manage(self, driver_options):
+        host = 'fake_host'
+        share_network_id = 'fake_share_net_id'
+        identifier = 'ff-aa-kk-ee-00'
+        if driver_options is None:
+            driver_options = {}
+        expected_body = {
+            'host': host,
+            'share_network_id': share_network_id,
+            'identifier': identifier,
+            'driver_options': driver_options
+        }
+        with mock.patch.object(self.manager, '_create',
+                               mock.Mock(return_value='fake')):
+            result = self.manager.manage(host, share_network_id, identifier,
+                                         driver_options)
+            self.manager._create.assert_called_once_with(
+                share_servers.RESOURCES_PATH + '/manage',
+                {'share_server': expected_body}, 'share_server'
+            )
+            self.assertEqual('fake', result)
+
+    @ddt.data(True, False)
+    def test_unmanage(self, force):
+        share_server = {'id': 'fake'}
+        with mock.patch.object(self.manager, '_action',
+                               mock.Mock(return_value='fake')):
+            result = self.manager.unmanage(share_server, force)
+            self.manager._action.assert_called_once_with(
+                "unmanage", share_server, {'force': force})
+
+            self.assertEqual('fake', result)
+
+    def test_reset_state(self):
+        share_server = {'id': 'fake'}
+        state = constants.STATUS_AVAILABLE
+        with mock.patch.object(self.manager, '_action',
+                               mock.Mock(return_value='fake')):
+            result = self.manager.reset_state(share_server, state)
+            self.manager._action.assert_called_once_with(
+                "reset_status", share_server, {"status": state})
+            self.assertEqual('fake', result)
+
+    @ddt.data(("reset_status", {"status": constants.STATUS_AVAILABLE}),
+              ("unmanage", {"id": "fake_id"}))
+    @ddt.unpack
+    def test__action(self, action, info):
+        action = ""
+        share_server = {"id": 'fake_id'}
+        expected_url = '/share-servers/%s/action' % share_server['id']
+        expected_body = {action: info}
+
+        with mock.patch.object(self.manager.api.client, 'post',
+                               mock.Mock(return_value='fake')):
+            self.mock_object(common_base, 'getid',
+                             mock.Mock(return_value=share_server['id']))
+            result = self.manager._action(action, share_server, info)
+            self.manager.api.client.post.assert_called_once_with(
+                expected_url, body=expected_body
+            )
+            self.assertEqual('fake', result)
 
     def test_list_with_one_search_opt(self):
         host = 'fake_host'

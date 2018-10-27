@@ -13,13 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
 
-RESOURCES_PATH = '/share-servers'
-RESOURCE_PATH = '/share-servers/%s'
 RESOURCES_NAME = 'share_servers'
+RESOURCES_PATH = '/share-servers'
+RESOURCE_PATH = RESOURCES_PATH + '/%s'
 RESOURCE_NAME = 'share_server'
+ACTION_PATH = RESOURCE_PATH + '/action'
 
 
 class ShareServer(common_base.Resource):
@@ -35,6 +37,14 @@ class ShareServer(common_base.Resource):
     def delete(self):
         """Delete this share server."""
         self.manager.delete(self)
+
+    def unmanage(self, force=False):
+        """Unmanage this share server."""
+        self.manager.unmanage(self, force)
+
+    def reset_state(self, state):
+        """Update the share server with the provided state."""
+        self.manager.reset_state(self, state)
 
 
 class ShareServerManager(base.ManagerWithFind):
@@ -86,3 +96,44 @@ class ShareServerManager(base.ManagerWithFind):
         """
         query_string = self._build_query_string(search_opts)
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)
+
+    @api_versions.wraps("2.49")
+    def manage(self, host, share_network_id, identifier, driver_options=None):
+
+        driver_options = driver_options or {}
+        body = {
+            'host': host,
+            'share_network_id': share_network_id,
+            'identifier': identifier,
+            'driver_options': driver_options,
+        }
+
+        resource_path = RESOURCE_PATH % 'manage'
+        return self._create(resource_path, {'share_server': body},
+                            'share_server')
+
+    @api_versions.wraps("2.49")
+    def unmanage(self, share_server, force=False):
+        return self._action("unmanage", share_server, {'force': force})
+
+    @api_versions.wraps("2.49")
+    def reset_state(self, share_server, state):
+        """Update the provided share server with the provided state.
+
+        :param share_server: either share_server object or text with its ID.
+        :param state: text with new state to set for share.
+        """
+        return self._action("reset_status", share_server, {"status": state})
+
+    def _action(self, action, share_server, info=None):
+        """Perform a share server 'action'.
+
+        :param action: text with action name.
+        :param share_server: either share_server object or text with its ID.
+        :param info: dict with data for specified 'action'.
+        :param kwargs: dict with data to be provided for action hooks.
+        """
+        body = {action: info}
+        self.run_hooks('modify_body_for_action', body)
+        url = ACTION_PATH % common_base.getid(share_server)
+        return self.api.client.post(url, body=body)

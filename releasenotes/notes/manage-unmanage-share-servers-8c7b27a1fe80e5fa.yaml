@@ -1,0 +1,6 @@
+---
+features:
+  - Added CLI commands to manage and unmanage share servers.
+  - Updated CLI command for managing shares to accept
+    ``share_server_id`` parameter.
+

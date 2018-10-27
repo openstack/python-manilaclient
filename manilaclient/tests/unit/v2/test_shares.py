@@ -162,9 +162,11 @@ class SharesTest(utils.TestCase):
         ("2.7", "/shares/manage", None),
         ("2.8", "/shares/manage", True),
         ("2.8", "/shares/manage", False),
+        ("2.49", "/shares/manage", False, '1234'),
     )
     @ddt.unpack
-    def test_manage_share(self, microversion, resource_path, is_public=False):
+    def test_manage_share(self, microversion, resource_path, is_public=False,
+                          share_server_id=None):
         service_host = "fake_service_host"
         protocol = "fake_protocol"
         export_path = "fake_export_path"
@@ -180,6 +182,7 @@ class SharesTest(utils.TestCase):
             "driver_options": driver_options,
             "name": name,
             "description": description,
+            "share_server_id": share_server_id,
         }
         version = api_versions.APIVersion(microversion)
         if version >= api_versions.APIVersion('2.8'):
@@ -190,15 +193,19 @@ class SharesTest(utils.TestCase):
 
         with mock.patch.object(manager, "_create",
                                mock.Mock(return_value="fake")):
-
-            if version >= api_versions.APIVersion('2.8'):
+            if version < api_versions.APIVersion('2.8'):
+                result = manager.manage(
+                    service_host, protocol, export_path, driver_options,
+                    share_type, name, description)
+            elif (api_versions.APIVersion('2.8') <= version
+                    < api_versions.APIVersion('2.49')):
                 result = manager.manage(
                     service_host, protocol, export_path, driver_options,
                     share_type, name, description, is_public)
             else:
                 result = manager.manage(
                     service_host, protocol, export_path, driver_options,
-                    share_type, name, description)
+                    share_type, name, description, is_public, share_server_id)
 
             self.assertEqual(manager._create.return_value, result)
             manager._create.assert_called_once_with(

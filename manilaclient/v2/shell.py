@@ -1120,18 +1120,93 @@ def do_share_export_location_show(cs, args):
     help="Level of visibility for share. Defines whether other tenants are "
          "able to see it or not. Available only for microversion >= 2.8. "
          "(Default=False)")
+@cliutils.arg(
+    '--share_server_id', '--share-server-id',
+    metavar='<share-server-id>',
+    default=None,
+    action='single_alias',
+    help="Share server associated with share when using a share type with "
+         "'driver_handles_share_servers' extra_spec set to True. Available "
+         "only for microversion >= 2.49. (Default=None)")
 def do_manage(cs, args):
     """Manage share not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
-
-    share = cs.shares.manage(
-        args.service_host, args.protocol, args.export_path,
-        driver_options=driver_options, share_type=args.share_type,
-        name=args.name, description=args.description,
-        is_public=args.public,
-    )
+    if cs.api_version.matches(api_versions.APIVersion("2.49"),
+                              api_versions.APIVersion()):
+        share = cs.shares.manage(
+            args.service_host, args.protocol, args.export_path,
+            driver_options=driver_options, share_type=args.share_type,
+            name=args.name, description=args.description,
+            is_public=args.public, share_server_id=args.share_server_id)
+    else:
+        if args.share_server_id:
+            raise exceptions.CommandError("Invalid parameter "
+                                          "--share_server_id specified. This"
+                                          " parameter is only supported on"
+                                          " microversion 2.49 or newer.")
+        share = cs.shares.manage(
+            args.service_host, args.protocol, args.export_path,
+            driver_options=driver_options, share_type=args.share_type,
+            name=args.name, description=args.description,
+            is_public=args.public)
 
     _print_share(cs, share)
+
+
+@api_versions.wraps("2.49")
+@cliutils.arg(
+    'host',
+    metavar='<host>',
+    type=str,
+    help='Backend name as "<node_hostname>@<backend_name>".')
+@cliutils.arg(
+    'share_network',
+    metavar='<share_network>',
+    help="Share network where share server has network allocations in.")
+@cliutils.arg(
+    'identifier',
+    metavar='<identifier>',
+    type=str,
+    help='A driver-specific share server identifier required by the driver to '
+         'manage the share server.')
+@cliutils.arg(
+    '--driver_options', '--driver-options',
+    type=str,
+    nargs='*',
+    metavar='<key=value>',
+    action='single_alias',
+    help='One or more driver-specific key=value pairs that may be necessary to'
+         ' manage the share server (Optional, Default=None).',
+    default=None)
+def do_share_server_manage(cs, args):
+    """Manage share server not handled by Manila (Admin only)."""
+    driver_options = _extract_key_value_options(args, 'driver_options')
+
+    share_network = _find_share_network(cs, args.share_network)
+
+    share_server = cs.share_servers.manage(
+        args.host, share_network.id, args.identifier,
+        driver_options=driver_options)
+
+    cliutils.print_dict(share_server._info)
+
+
+@cliutils.arg(
+    'share_server_id',
+    metavar='<share_server_id>',
+    help='ID of the share server to modify.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default=constants.STATUS_ACTIVE,
+    help=('Indicate which state to assign the share server. Options include '
+          'active, error, creating, deleting, managing, unmanaging, '
+          'manage_error and unmanage_error. If no state is provided, active '
+          'will be used.'))
+@api_versions.wraps("2.49")
+def do_share_server_reset_state(cs, args):
+    """Explicitly update the state of a share server (Admin only)."""
+    cs.share_servers.reset_state(args.share_server_id, args.state)
 
 
 @api_versions.wraps("2.12")
@@ -1186,6 +1261,36 @@ def do_unmanage(cs, args):
     """Unmanage share (Admin only)."""
     share_ref = _find_share(cs, args.share)
     share_ref.unmanage()
+
+
+@api_versions.wraps("2.49")
+@cliutils.arg(
+    'share_server',
+    metavar='<share_server>',
+    nargs='+',
+    help='ID of the share server(s).')
+@cliutils.arg(
+    '--force',
+    dest='force',
+    action="store_true",
+    required=False,
+    default=False,
+    help="Enforces the unmanage share server operation, even if the back-end "
+         "driver does not support it.")
+def do_share_server_unmanage(cs, args):
+    """Unmanage share server (Admin only)."""
+    failure_count = 0
+    for server in args.share_server:
+        try:
+            cs.share_servers.unmanage(server, args.force)
+        except Exception as e:
+            failure_count += 1
+            print("Unmanage for share server %s failed: %s" % (server, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.share_server):
+        raise exceptions.CommandError("Unable to unmanage any of the "
+                                      "specified share servers.")
 
 
 @api_versions.wraps("2.12")

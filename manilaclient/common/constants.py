@@ -86,3 +86,11 @@ MESSAGE_SORT_KEY_VALUES = (
     'detail_id', 'resource_id', 'message_level', 'expires_at',
     'request_id', 'created_at'
 )
+
+STATUS_AVAILABLE = 'available'
+STATUS_ERROR = 'error'
+STATUS_ACTIVE = 'active'
+STATUS_MANAGE_ERROR = 'manage_error'
+STATUS_UNMANAGE_ERROR = 'unmanage_error'
+STATUS_DELETING = 'deleting'
+STATUS_CREATING = 'creating'

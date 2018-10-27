@@ -730,29 +730,30 @@ class ManilaCLIClient(base.CLIClient):
             SHARE, res_id=share, interval=5, timeout=300,
             microversion=microversion)
 
-    def wait_for_share_status(self, share, status, microversion=None):
+    def wait_for_resource_status(self, resource_id, status, microversion=None,
+                                 resource_type="share"):
         """Waits for a share to reach a given status."""
-        body = self.get_share(share, microversion=microversion)
-        share_name = body['name']
+        get_func = getattr(self, 'get_' + resource_type)
+        body = get_func(resource_id, microversion=microversion)
         share_status = body['status']
         start = int(time.time())
 
         while share_status != status:
             time.sleep(self.build_interval)
-            body = self.get_share(share, microversion=microversion)
+            body = get_func(resource_id, microversion=microversion)
             share_status = body['status']
 
             if share_status == status:
                 return
             elif 'error' in share_status.lower():
-                raise exceptions.ShareBuildErrorException(share=share)
+                raise exceptions.ShareBuildErrorException(share=resource_id)
 
             if int(time.time()) - start >= self.build_timeout:
-                message = (
-                    "Share %(share_name)s failed to reach %(status)s status "
-                    "within the required time (%(build_timeout)s s)." % {
-                        "share_name": share_name, "status": status,
-                        "build_timeout": self.build_timeout})
+                message = ("Resource %(resource_id)s failed to reach "
+                           "%(status)s  status within the required time "
+                           "(%(build_timeout)s)." %
+                           {"resource_id": resource_id, "status": status,
+                            "build_timeout": self.build_timeout})
                 raise tempest_lib_exc.TimeoutException(message)
 
     def wait_for_migration_task_state(self, share_id, dest_host,
@@ -1440,6 +1441,32 @@ class ManilaCLIClient(base.CLIClient):
         self.wait_for_resource_deletion(
             SHARE_SERVER, res_id=share_server, interval=3, timeout=60,
             microversion=microversion)
+
+    def unmanage_share(self, server_id):
+        return self.manila('unmanage %s ' % server_id)
+
+    def unmanage_server(self, share_server_id):
+        return self.manila('share-server-unmanage %s ' % share_server_id)
+
+    def share_server_manage(self, host, share_network, identifier,
+                            driver_options=None):
+        if driver_options:
+            command = ('share-server-manage %s %s %s %s' %
+                       (host, share_network, identifier, driver_options))
+        else:
+            command = ('share-server-manage %s %s %s' % (host, share_network,
+                       identifier))
+        managed_share_server_raw = self.manila(command)
+        managed_share_server = output_parser.details(managed_share_server_raw)
+        return managed_share_server['id']
+
+    def manage_share(self, host, protocol, export_location, share_server):
+        managed_share_raw = self.manila(
+            'manage %s %s %s --share-server-id %s' % (host, protocol,
+                                                      export_location,
+                                                      share_server))
+        managed_share = output_parser.details(managed_share_raw)
+        return managed_share['id']
 
     # user messages
 

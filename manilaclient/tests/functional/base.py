@@ -21,6 +21,7 @@ from tempest.lib.cli import base
 from tempest.lib.common.utils import data_utils
 from tempest.lib import exceptions as lib_exc
 
+from manilaclient.common import constants
 from manilaclient import config
 from manilaclient.tests.functional import client
 from manilaclient.tests.functional import utils
@@ -272,7 +273,8 @@ class BaseTestCase(base.ClientTestBase):
         else:
             cls.method_resources.insert(0, resource)
         if wait_for_creation:
-            client.wait_for_share_status(share['id'], 'available')
+            client.wait_for_resource_status(share['id'],
+                                            constants.STATUS_AVAILABLE)
         return share
 
     @classmethod
@@ -369,7 +371,7 @@ class BaseTestCase(base.ClientTestBase):
             cleanup_in_class=cleanup_in_class, microversion=microversion,
             wait_for_creation=False, client=client)
 
-        client.wait_for_share_status(share['id'], "error")
+        client.wait_for_resource_status(share['id'], constants.STATUS_ERROR)
         message = client.wait_for_message(share['id'])
 
         resource = {

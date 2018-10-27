@@ -178,6 +178,12 @@ share_opts = [
                 help="Defines whether to run mountable snapshots tests or "
                      "not. Disable this feature if used driver doesn't "
                      "support it."),
+    cfg.BoolOpt("run_manage_tests",
+                default=False,
+                help="Defines whether to run manage/unmanage tests or "
+                     "not. Disable this feature if used driver does not "
+                     "support it."),
+
 ]
 
 # 2. Generate config

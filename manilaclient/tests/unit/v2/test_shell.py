@@ -637,21 +637,25 @@ class ShellTest(test_utils.TestCase):
                'valid_params': {
                    'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
                    'share_type': 'fake_share_type',
+                   'share_server_id': None,
                }},
               {'cmd_args': '--share_type fake_share_type',
                'valid_params': {
                    'driver_options': {},
                    'share_type': 'fake_share_type',
+                   'share_server_id': None,
                }},
               {'cmd_args': '',
                'valid_params': {
                    'driver_options': {},
                    'share_type': None,
+                   'share_server_id': None,
                }},
               {'cmd_args': '--public',
                'valid_params': {
                    'driver_options': {},
                    'share_type': None,
+                   'share_server_id': None,
                },
                'is_public': True,
                'version': '--os-share-api-version 2.8',
@@ -660,10 +664,38 @@ class ShellTest(test_utils.TestCase):
                'valid_params': {
                    'driver_options': {},
                    'share_type': None,
+                   'share_server_id': None,
                },
                'is_public': False,
                'version': '--os-share-api-version 2.8',
                },
+              {'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
+                           ' --share_type fake_share_type',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+                   'share_type': 'fake_share_type',
+                   'share_server_id': None,
+               },
+               'version': '--os-share-api-version 2.49',
+               },
+              {'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
+                           ' --share_type fake_share_type'
+                           ' --share_server_id fake_server',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+                   'share_type': 'fake_share_type',
+                   'share_server_id': 'fake_server',
+               },
+               'version': '--os-share-api-version 2.49',
+               },
+              {'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
+                           ' --share_type fake_share_type'
+                           ' --share_server_id fake_server',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+                   'share_type': 'fake_share_type',
+                   'share_server_id': 'fake_server',
+               }},
               )
     @ddt.unpack
     def test_manage(self, cmd_args, valid_params, is_public=False,
@@ -685,14 +717,87 @@ class ShellTest(test_utils.TestCase):
                 'name': None,
                 'description': None,
                 'is_public': is_public,
+                'share_server_id': valid_params['share_server_id'],
             }
         }
         expected['share'].update(valid_params)
         self.assert_called('POST', '/shares/manage', body=expected)
 
+    def test_manage_invalid_param_share_server_id(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            '--os-share-api-version 2.48'
+            + ' manage fake_service fake_protocol '
+            + ' fake_export_path '
+            + ' --driver_options opt1=opt1 opt2=opt2'
+            + ' --share_type fake_share_type'
+            + ' --share_server_id fake_server')
+
+    @ddt.data({'driver_args': '--driver_options opt1=opt1 opt2=opt2',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+               },
+               'version': '--os-share-api-version 2.49',
+               },
+              {'driver_args': '--driver_options opt1=opt1 opt2=opt2',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+               },
+               },
+              {'driver_args': "",
+               'valid_params': {
+                   'driver_options': {}
+               },
+               'version': '--os-share-api-version 2.49',
+               })
+    @ddt.unpack
+    def test_share_server_manage(self, driver_args, valid_params,
+                                 version=None):
+        fake_share_network = type(
+            'FakeShareNetwork', (object,), {'id': '3456'})
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(return_value=fake_share_network))
+        command = "" if version is None else version
+        command += (' share-server-manage fake_host fake_share_net_id '
+                    + ' 88-as-23-f3-45 ' + driver_args)
+
+        self.run_command(command)
+
+        expected = {
+            'share_server': {
+                'host': 'fake_host',
+                'share_network_id': fake_share_network.id,
+                'identifier': '88-as-23-f3-45',
+                'driver_options': driver_args
+            }
+        }
+        expected['share_server'].update(valid_params)
+
+        self.assert_called('POST', '/share-servers/manage', body=expected)
+
+    @ddt.data(constants.STATUS_ERROR, constants.STATUS_ACTIVE,
+              constants.STATUS_MANAGE_ERROR, constants.STATUS_UNMANAGE_ERROR,
+              constants.STATUS_DELETING, constants.STATUS_CREATING)
+    def test_share_server_reset_state(self, status):
+        self.run_command('share-server-reset-state 1234 --state %s ' % status)
+        expected = {'reset_status': {'status': status}}
+        self.assert_called('POST', '/share-servers/1234/action', body=expected)
+
     def test_unmanage(self):
         self.run_command('unmanage 1234')
         self.assert_called('POST', '/shares/1234/action')
+
+    def test_share_server_unmanage(self):
+        self.run_command('share-server-unmanage 1234')
+        self.assert_called('POST', '/share-servers/1234/action',
+                           body={'unmanage': {'force': False}})
+
+    def test_share_server_unmanage_force(self):
+        self.run_command('share-server-unmanage 1234 --force')
+        self.assert_called('POST', '/share-servers/1234/action',
+                           body={'unmanage': {'force': True}})
 
     @ddt.data({'cmd_args': '--driver_options opt1=opt1 opt2=opt2',
                'valid_params': {
@@ -3116,3 +3221,18 @@ class ShellTest(test_utils.TestCase):
                 cmd + option + separator + 'fake',
                 version=version
             )
+
+    def test_share_server_unmanage_all_fail(self):
+        # All of 2345, 5678, 9999 throw exception
+        cmd = '--os-share-api-version 2.49'
+        cmd += ' share-server-unmanage'
+        cmd += ' 2345 5678 9999'
+        self.assertRaises(exceptions.CommandError,
+                          self.run_command, cmd)
+
+    def test_share_server_unmanage_some_fail(self):
+        # 5678 and 9999 throw exception
+        self.run_command('share-server-unmanage 1234 5678 9999')
+        expected = {'unmanage': {'force': False}}
+        self.assert_called('POST', '/share-servers/1234/action',
+                           body=expected)

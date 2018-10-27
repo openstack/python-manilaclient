@@ -19,6 +19,7 @@ from tempest.lib.common.utils import data_utils
 from tempest.lib import exceptions
 import testtools
 
+from manilaclient.common import constants
 from manilaclient import config
 from manilaclient.tests.functional import base
 
@@ -151,7 +152,8 @@ class SharesListReadWriteTest(base.BaseTestCase):
 
         for share_id in (cls.private_share['id'], cls.public_share['id'],
                          cls.admin_private_share['id']):
-            cls.get_admin_client().wait_for_share_status(share_id, 'available')
+            cls.get_admin_client().wait_for_resource_status(
+                share_id, constants.STATUS_AVAILABLE)
 
     def _list_shares(self, filters=None):
         filters = filters or dict()

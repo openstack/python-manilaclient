@@ -179,16 +179,17 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_share_servers_1234(self, **kw):
         share_servers = {
-            'share_servers': {
+            'share_server': {
                 'id': 1234,
                 'share_network_id': 'fake_network_id_1',
+                'backend_details': {},
             },
         }
         return (200, {}, share_servers)
 
     def get_share_servers_5678(self, **kw):
         share_servers = {
-            'share_servers': {
+            'share_server': {
                 'id': 5678,
                 'share_network_id': 'fake_network_id_2',
             },
@@ -428,6 +429,36 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return result
 
     post_shares_manage = post_os_share_manage
+
+    def post_share_servers_manage(self, body, **kw):
+        _body = {'share_server': {'id': 'fake'}}
+        resp = 202
+
+        if not ('host' in body['share_server']
+                and 'share_network' in body['share_server']
+                and 'identifier' in body['share_server']):
+            resp = 422
+
+        result = (resp, {}, _body)
+        return result
+
+    def post_share_servers_1234_action(self, body, **kw):
+        _body = None
+        assert len(list(body)) == 1
+        action = list(body)[0]
+
+        if action in ('reset_status', ):
+            assert 'status' in body.get(
+                'reset_status', body.get('os-reset_status'))
+            _body = {
+                'reset_status': {'status': body['reset_status']['status']}
+            }
+        elif action in ('unmanage', ):
+            assert 'force' in body[action]
+
+        resp = 202
+        result = (resp, {}, _body)
+        return result
 
     def post_os_share_unmanage_1234_unmanage(self, **kw):
         _body = None
