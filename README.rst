@@ -93,6 +93,7 @@ Quick-start using keystone::
 * `Bugs`_ - issue tracking
 * `Source`_
 * `How to Contribute`_
+* `Release Notes`_
 
 .. _PyPi: https://pypi.org/project/python-manilaclient
 .. _Online Documentation: https://docs.openstack.org/python-manilaclient/latest/
