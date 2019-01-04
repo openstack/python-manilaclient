@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import re
 import traceback
 
 from oslo_log import log
@@ -110,6 +111,11 @@ class BaseTestCase(base.ClientTestBase):
                         client.delete_snapshot(
                             res_id, microversion=res["microversion"])
                         client.wait_for_snapshot_deletion(
+                            res_id, microversion=res["microversion"])
+                    elif res["type"] is "share_replica":
+                        client.delete_share_replica(
+                            res_id, microversion=res["microversion"])
+                        client.wait_for_share_replica_deletion(
                             res_id, microversion=res["microversion"])
                     else:
                         LOG.warning("Provided unsupported resource type for "
@@ -238,8 +244,7 @@ class BaseTestCase(base.ClientTestBase):
                      public=False, snapshot=None, metadata=None,
                      client=None, cleanup_in_class=False,
                      wait_for_creation=True, microversion=None):
-        if client is None:
-            client = cls.get_admin_client()
+        client = client or cls.get_admin_client()
         data = {
             'share_protocol': share_protocol or client.share_protocol,
             'size': size or 1,
@@ -250,12 +255,13 @@ class BaseTestCase(base.ClientTestBase):
             'metadata': metadata,
             'microversion': microversion,
         }
-        share_network = share_network or client.share_network
+
         share_type = share_type or CONF.share_type
-        if share_network:
-            data['share_network'] = share_network
-        if share_type:
-            data['share_type'] = share_type
+        share_network = share_network or cls._determine_share_network_to_use(
+            client, share_type, microversion=microversion)
+
+        data['share_type'] = share_type
+        data['share_network'] = share_network
         share = client.create_share(**data)
         resource = {
             "type": "share",
@@ -270,6 +276,18 @@ class BaseTestCase(base.ClientTestBase):
         if wait_for_creation:
             client.wait_for_share_status(share['id'], 'available')
         return share
+
+    @classmethod
+    def _determine_share_network_to_use(cls, client, share_type,
+                                        microversion=None):
+        """Determine what share network we need from the share type."""
+
+        # Get share type, determine if we need the share network
+        share_type = client.get_share_type(share_type,
+                                           microversion=microversion)
+        dhss_pattern = re.compile('driver_handles_share_servers : ([a-zA-Z]+)')
+        dhss = dhss_pattern.search(share_type['required_extra_specs']).group(1)
+        return client.share_network if dhss.lower() == 'true' else None
 
     @classmethod
     def create_security_service(cls, type='ldap', name=None, description=None,
@@ -366,3 +384,27 @@ class BaseTestCase(base.ClientTestBase):
         else:
             cls.method_resources.insert(0, resource)
         return message
+
+    @classmethod
+    def create_share_replica(cls, share_id, client=None,
+                             wait_for_creation=True, cleanup_in_class=False,
+                             microversion=None):
+        client = client or cls.get_user_client()
+
+        share_replica = client.create_share_replica(
+            share_id, microversion=microversion)
+        if wait_for_creation:
+            share_replica = client.wait_for_share_replica_status(
+                share_replica['id'])
+
+        resource = {
+            "type": "share_replica",
+            "id": share_replica["id"],
+            "client": client,
+            "microversion": microversion,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        return share_replica

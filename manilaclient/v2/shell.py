@@ -68,14 +68,19 @@ def _find_share(cs, share):
 
 def _transform_export_locations_to_string_view(export_locations):
     export_locations_string_view = ''
+    replica_export_location_ignored_keys = (
+        'replica_state', 'availability_zone', 'share_replica_id')
     for el in export_locations:
         if hasattr(el, '_info'):
             export_locations_dict = el._info
         else:
             export_locations_dict = el
         for k, v in export_locations_dict.items():
-            export_locations_string_view += '\n%(k)s = %(v)s' % {
-                'k': k, 'v': v}
+            # NOTE(gouthamr): We don't want to show replica related info
+            # twice in the output, so ignore those.
+            if k not in replica_export_location_ignored_keys:
+                export_locations_string_view += '\n%(k)s = %(v)s' % {
+                    'k': k, 'v': v}
     return export_locations_string_view
 
 
@@ -195,9 +200,21 @@ def _find_share_replica(cs, replica):
     return apiclient_utils.find_resource(cs.share_replicas, replica)
 
 
+@api_versions.wraps("2.11", "2.46")
 def _print_share_replica(cs, replica):
     info = replica._info.copy()
     info.pop('links', None)
+    cliutils.print_dict(info)
+
+
+@api_versions.wraps("2.47")  # noqa
+def _print_share_replica(cs, replica):
+    info = replica._info.copy()
+    info.pop('links', None)
+    if info.get('export_locations'):
+        info['export_locations'] = (
+            _transform_export_locations_to_string_view(
+                info['export_locations']))
     cliutils.print_dict(info)
 
 
@@ -5006,11 +5023,25 @@ def do_share_replica_create(cs, args):
     'replica',
     metavar='<replica>',
     help='ID of the share replica.')
-@api_versions.wraps("2.11")
+@api_versions.wraps("2.11", "2.46")
 def do_share_replica_show(cs, args):
     """Show details about a replica (Experimental)."""
 
     replica = cs.share_replicas.get(args.replica)
+    _print_share_replica(cs, replica)
+
+
+@api_versions.wraps("2.47")  # noqa
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica.')
+def do_share_replica_show(cs, args):
+    """Show details about a replica (Experimental)."""
+
+    replica = cs.share_replicas.get(args.replica)
+    export_locations = cs.share_replica_export_locations.list(replica)
+    replica._info['export_locations'] = export_locations
     _print_share_replica(cs, replica)
 
 
@@ -5057,6 +5088,55 @@ def do_share_replica_promote(cs, args):
     """Promote specified replica to 'active' replica_state (Experimental)."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.promote(replica)
+
+
+@api_versions.wraps("2.47")
+@api_versions.experimental_api
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica.')
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'example --columns "id,path,replica_state".')
+def do_share_replica_export_location_list(cs, args):
+    """List export locations of a share replica (Experimental)."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = [
+            'ID',
+            'Availability Zone',
+            'Replica State',
+            'Preferred',
+            'Path',
+        ]
+    replica = _find_share_replica(cs, args.replica)
+    export_locations = cs.share_replica_export_locations.list(replica)
+    cliutils.print_list(export_locations, list_of_keys)
+
+
+@api_versions.wraps("2.47")
+@api_versions.experimental_api
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='Name or ID of the share instance.')
+@cliutils.arg(
+    'export_location',
+    metavar='<export_location>',
+    help='ID of the share instance export location.')
+def do_share_replica_export_location_show(cs, args):
+    """Show details of a share replica's export location (Experimental)."""
+    replica = _find_share_replica(cs, args.replica)
+    export_location = cs.share_replica_export_locations.get(
+        replica, args.export_location)
+    view_data = export_location._info.copy()
+    cliutils.print_dict(view_data)
 
 
 @cliutils.arg(

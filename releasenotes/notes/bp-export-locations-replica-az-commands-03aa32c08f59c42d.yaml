@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Share replica export locations APIs are now supported within the v2
+    client and the manilaclient shell. These commands are available with API
+    version 2.47 and beyond.
