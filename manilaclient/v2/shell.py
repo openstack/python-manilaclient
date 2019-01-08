@@ -4114,7 +4114,7 @@ def _print_share_group_type(share_group_type, default_share_type=None):
         'ID': share_group_type.id,
         'Name': share_group_type.name,
         'Visibility': _is_share_type_public(share_group_type),
-        'is_default': _is_default
+        'is_default': _is_default(share_group_type)
     }
     cliutils.print_dict(share_group_type_dict)
 
