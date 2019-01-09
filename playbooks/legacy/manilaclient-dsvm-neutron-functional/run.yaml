@@ -49,6 +49,9 @@
           # Keep localrc to be able to set some vars in pre_test_hook
           export KEEP_LOCALRC=1
 
+          export DEVSTACK_GATE_USE_PYTHON3=True
+          export PYTHON3_VERSION="3.6"
+
           function pre_test_hook {
               source $BASE/new/python-manilaclient/contrib/ci/pre_test_hook.sh
           }
