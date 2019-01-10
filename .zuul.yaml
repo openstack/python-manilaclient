@@ -22,6 +22,7 @@
 - job:
     name: manilaclient-dsvm-neutron-functional
     parent: legacy-dsvm-base
+    nodeset: openstack-single-node-bionic
     run: playbooks/legacy/manilaclient-dsvm-neutron-functional/run.yaml
     post-run: playbooks/legacy/manilaclient-dsvm-neutron-functional/post.yaml
     timeout: 4800
