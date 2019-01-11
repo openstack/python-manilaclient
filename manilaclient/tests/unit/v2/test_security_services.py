@@ -34,6 +34,7 @@ class SecurityServiceTest(utils.TestCase):
         values = {
             'type': 'ldap',
             'dns_ip': 'fake dns ip',
+            'ou': 'fake ou',
             'server': 'fake.ldap.server',
             'domain': 'fake.ldap.domain',
             'user': 'fake user',
@@ -139,6 +140,7 @@ class SecurityServiceTest(utils.TestCase):
         security_service = 'fake service'
         values = {
             'dns_ip': 'new dns ip',
+            'ou': 'new ou',
             'server': 'new.ldap.server',
             'domain': 'new.ldap.domain',
             'user': 'new user',

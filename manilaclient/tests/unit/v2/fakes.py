@@ -658,6 +658,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'domain': 'fake_domain',
                     'server': 'fake_server',
                     'dns_ip': 'fake_dns_ip',
+                    'ou': 'fake_ou',
                     'type': 'fake_type',
                     'status': 'fake_status',
                     'project_id': 'fake_project_id',
