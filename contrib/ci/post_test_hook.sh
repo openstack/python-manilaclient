@@ -101,38 +101,7 @@ CONCURRENCY=${CONCURRENCY:-8}
 sudo -H -u $USER tox -e functional -v -- --concurrency=$CONCURRENCY
 EXIT_CODE=$?
 
-if [ -d ".testrepository" ] ; then
-    if [ -f ".testrepository/0.2" ] ; then
-        cp .testrepository/0.2 ./subunit_log.txt
-    elif [ -f ".testrepository/0" ] ; then
-        .tox/functional/bin/subunit-1to2 < .testrepository/0 > ./subunit_log.txt
-    fi
-    /usr/os-testr-env/bin/subunit2html ./subunit_log.txt testr_results.html
-    SUBUNIT_SIZE=$(du -k ./subunit_log.txt | awk '{print $1}')
-    gzip -9 ./subunit_log.txt
-    gzip -9 ./testr_results.html
-    sudo mv testr_results.html.gz $WORKSPACE/logs
-    sudo mv subunit_log.txt.gz $WORKSPACE/logs
-    sudo cp -R .tox $WORKSPACE
-    sudo cp -R .testrepository $WORKSPACE
+# Copy artifacts into ZUUL's workspace
+sudo -H -u $USER cp -r $MANILACLIENT_DIR $WORKSPACE
 
-    if [[ "$SUBUNIT_SIZE" -gt 50000 ]]; then
-        echo
-        echo "sub_unit.log was greater than 50 MB of uncompressed data!"
-        echo "Something is causing tests for this project to log significant amounts of data."
-        echo "This may be writers to python logging, stdout, or stderr."
-        echo "Failing this test as a result."
-        echo
-        exit 1
-    fi
-
-    rancount=$(.tox/functional/bin/testr last | sed -ne 's/Ran \([0-9]\+\).*tests in.*/\1/p')
-    if [ -z "$rancount" ] || [ "$rancount" -eq "0" ] ; then
-        echo
-        echo "Zero tests were run. At least one test should have been run."
-        echo "Failing this test as a result."
-        echo
-        exit 1
-    fi
-fi
 return $EXIT_CODE
