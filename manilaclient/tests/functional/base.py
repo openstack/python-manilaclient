@@ -41,14 +41,12 @@ class handle_cleanup_exceptions(object):
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        if not (isinstance(exc_value,
-                           (lib_exc.NotFound, lib_exc.Forbidden)) or
-                CONF.suppress_errors_in_cleanup):
-            return False  # Do not suppress error if any
-        if exc_traceback:
-            LOG.error("Suppressed cleanup error: "
-                      "\n%s", traceback.format_exc())
-        return True  # Suppress error if any
+        if isinstance(exc_value, (lib_exc.NotFound, lib_exc.Forbidden)):
+            return True
+        elif CONF.suppress_errors_in_cleanup:
+            LOG.error("Suppressed cleanup error: \n%s", traceback.format_exc())
+            return True
+        return False  # Don't suppress cleanup errors
 
 
 class BaseTestCase(base.ClientTestBase):

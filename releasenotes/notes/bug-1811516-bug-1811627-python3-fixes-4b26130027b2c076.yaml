@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    The shell utility has been fixed to report errors correctly on
+    python3 environments.

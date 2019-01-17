@@ -705,10 +705,7 @@ def main():
         sys.exit(130)
     except Exception as e:
         logger.debug(e, exc_info=1)
-        message = e.message
-        if not isinstance(message, six.string_types):
-            message = str(message)
-        print("ERROR: %s" % encodeutils.safe_encode(message), file=sys.stderr)
+        print("ERROR: %s" % six.text_type(e), file=sys.stderr)
         sys.exit(1)
 
 
