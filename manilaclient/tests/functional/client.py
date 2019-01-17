@@ -44,7 +44,7 @@ def not_found_wrapper(f):
             return f(self, *args, **kwargs)
         except tempest_lib_exc.CommandFailed as e:
             for regexp in ('No (\w+) with a name or ID', 'not(.*){0,5}found'):
-                if re.search(regexp, e.stderr):
+                if re.search(regexp, six.text_type(e.stderr)):
                     # Raise appropriate 'NotFound' error
                     raise tempest_lib_exc.NotFound()
             raise
@@ -58,7 +58,7 @@ def forbidden_wrapper(f):
         try:
             return f(self, *args, **kwargs)
         except tempest_lib_exc.CommandFailed as e:
-            if re.search('HTTP 403', e.stderr):
+            if re.search('HTTP 403', six.text_type(e.stderr)):
                 # Raise appropriate 'Forbidden' error.
                 raise tempest_lib_exc.Forbidden()
             raise

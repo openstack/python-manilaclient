@@ -74,7 +74,7 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
         self.user_client.set_share_metadata(share["id"], md)
 
         # Unset share metadata
-        self.user_client.unset_share_metadata(share["id"], md.keys())
+        self.user_client.unset_share_metadata(share["id"], list(md.keys()))
 
         # Verify deletion of share metadata
         metadata = self.user_client.get_share_metadata(share["id"])
