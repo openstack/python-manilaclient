@@ -73,8 +73,8 @@ USE_SHARE_NETWORK=$(trueorfalse True USE_SHARE_NETWORK)
 if [[ ${USE_SHARE_NETWORK} = True ]]; then
     SHARE_NETWORK_NAME=${SHARE_NETWORK_NAME:-ci}
 
-    DEFAULT_NEUTRON_NET=$(neutron net-show private -c id -f value)
-    DEFAULT_NEUTRON_SUBNET=$(neutron subnet-show private-subnet -c id -f value)
+    DEFAULT_NEUTRON_NET=$(openstack network show private -c id -f value)
+    DEFAULT_NEUTRON_SUBNET=$(openstack subnet show private-subnet -c id -f value)
     NEUTRON_NET=${NEUTRON_NET:-$DEFAULT_NEUTRON_NET}
     NEUTRON_SUBNET=${NEUTRON_SUBNET:-$DEFAULT_NEUTRON_SUBNET}
 
