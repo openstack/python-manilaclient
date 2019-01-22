@@ -2519,7 +2519,7 @@ class ShellTest(test_utils.TestCase):
             'type1,type2 --is-public %s --group-specs '
             'spec1=value1' % six.text_type(public))
 
-        self.assert_called('POST', '/share-group-types', body=expected)
+        self.assert_called_anytime('POST', '/share-group-types', body=expected)
 
     def test_share_group_type_delete(self):
         fake_share_group_type = type(

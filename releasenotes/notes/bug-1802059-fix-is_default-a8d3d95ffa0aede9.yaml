@@ -1,0 +1,3 @@
+---
+fixes:
+  - Fix share_group_type_create returning is_default as a function object instead of value
