@@ -749,7 +749,7 @@ def do_rate_limits(cs, args):
     action='store_true',
     default=False,
     help="Level of visibility for share. Defines whether other tenants are "
-         "able to see it or not.")
+         "able to see it or not. (Default=False)")
 @cliutils.arg(
     '--availability-zone', '--availability_zone', '--az',
     metavar='<availability-zone>',
@@ -1101,7 +1101,8 @@ def do_share_export_location_show(cs, args):
     action='store_true',
     default=False,
     help="Level of visibility for share. Defines whether other tenants are "
-         "able to see it or not. Available only for microversion >= 2.8.")
+         "able to see it or not. Available only for microversion >= 2.8. "
+         "(Default=False)")
 def do_manage(cs, args):
     """Manage share not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
@@ -1698,7 +1699,7 @@ def do_snapshot_access_list(cs, args):
     dest='public',
     action='store_true',
     default=False,
-    help="Add public shares from all tenants to result.")
+    help="Add public shares from all tenants to result. (Default=False)")
 @cliutils.arg(
     '--share-group', '--share_group', '--group',
     metavar='<share_group>',
