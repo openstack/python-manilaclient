@@ -21,8 +21,10 @@ import logging
 
 from oslo_serialization import jsonutils
 from oslo_utils import strutils
+import re
 import requests
 import six
+from six.moves.urllib import parse
 
 from manilaclient import exceptions
 
@@ -78,9 +80,14 @@ class HTTPClient(object):
                 rql.addHandler(ch)
 
     def _get_base_url(self, url):
-        """Truncates url and returns transport, address, and port number."""
-        base_url = '/'.join(url.split('/')[:3]) + '/'
-        return base_url
+        """Truncates url and returns base endpoint"""
+        service_endpoint = parse.urlparse(url)
+        service_endpoint_base_path = re.search(
+            '(.+?)/v([0-9]+|[0-9]+\.[0-9]+)(/.*|$)', service_endpoint.path)
+        base_path = (service_endpoint_base_path.group(1)
+                     if service_endpoint_base_path else '')
+        base_url = service_endpoint._replace(path=base_path)
+        return parse.urlunparse(base_url) + '/'
 
     def _set_request_options(self, insecure, cacert, timeout=None):
         options = {'verify': True}

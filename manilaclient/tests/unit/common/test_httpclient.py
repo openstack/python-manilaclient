@@ -10,7 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import ddt
 import mock
+import re
 import requests
 
 import manilaclient
@@ -71,13 +73,14 @@ retry_after_non_supporting_mock_request = mock.Mock(
     return_value=retry_after_non_supporting_response)
 
 
-def get_authed_client(retries=0):
-    cl = httpclient.HTTPClient("http://example.com", "token", fake_user_agent,
+def get_authed_client(endpoint_url="http://example.com", retries=0):
+    cl = httpclient.HTTPClient(endpoint_url, "token", fake_user_agent,
                                retries=retries, http_log_debug=True,
                                api_version=manilaclient.API_MAX_VERSION)
     return cl
 
 
+@ddt.ddt
 class ClientTest(utils.TestCase):
 
     def setUp(self):
@@ -85,8 +88,19 @@ class ClientTest(utils.TestCase):
         self.max_version = manilaclient.API_MAX_VERSION
         self.max_version_str = self.max_version.get_string()
 
-    def test_get(self):
-        cl = get_authed_client()
+    @ddt.data(
+        "http://manila.example.com/v2/b2d18606-2673-4965-885a-4f5a8b955b9b",
+        "http://manila.example.com/v1",
+        "http://manila.example.com/share/v2.22/",
+        "http://manila.example.com/share/v1/"
+        "b2d18606-2673-4965-885a-4f5a8b955b9b",
+        "http://10.10.10.10:3366/v1",
+        "http://10.10.10.10:3366/v2/b2d18606-2673-4965-885a-4f5a8b955b9b",
+        "http://manila.example.com:3366/v1.1/",
+        "http://manila.example.com:3366/v2/"
+        "b2d18606-2673-4965-885a-4f5a8b955b9b")
+    def test_get(self, endpoint_url):
+        cl = get_authed_client(endpoint_url)
 
         @mock.patch.object(requests, "request", mock_request)
         @mock.patch('time.time', mock.Mock(return_value=1234))
@@ -100,11 +114,13 @@ class ClientTest(utils.TestCase):
             }
             mock_request.assert_called_with(
                 "GET",
-                "http://example.com/hi",
+                endpoint_url + "/hi",
                 headers=headers,
                 **self.TEST_REQUEST_BASE)
             # Automatic JSON parsing
             self.assertEqual(body, {"hi": "there"})
+            self.assertEqual(re.split('/v[0-9]+[\.0-9]*',
+                                      endpoint_url)[0] + "/", cl.base_url)
 
         test_get_call()
 
@@ -185,8 +201,19 @@ class ClientTest(utils.TestCase):
 
         self.assertRaises(exceptions.Unauthorized, test_get_call)
 
-    def test_post(self):
-        cl = get_authed_client()
+    @ddt.data(
+        "http://manila.example.com/v1/b2d18606-2673-4965-885a-4f5a8b955b9b",
+        "http://manila.example.com/v1",
+        "http://manila.example.com/share/v2.1/",
+        "http://manila.example.com/share/v1/"
+        "b2d18606-2673-4965-885a-4f5a8b955b9b",
+        "http://10.10.10.10:3366/v1.1",
+        "http://10.10.10.10:3366/v2/b2d18606-2673-4965-885a-4f5a8b955b9b",
+        "http://manila.example.com:3366/v2.22/",
+        "http://manila.example.com:3366/v1/"
+        "b2d18606-2673-4965-885a-4f5a8b955b9b")
+    def test_post(self, endpoint_url):
+        cl = get_authed_client(endpoint_url)
 
         @mock.patch.object(requests, "request", mock_request)
         def test_post_call():
@@ -200,9 +227,11 @@ class ClientTest(utils.TestCase):
             }
             mock_request.assert_called_with(
                 "POST",
-                "http://example.com/hi",
+                endpoint_url + "/hi",
                 headers=headers,
                 data='[1, 2, 3]',
                 **self.TEST_REQUEST_BASE)
+            self.assertEqual(re.split('/v[0-9]+[\.0-9]*',
+                                      endpoint_url)[0] + "/", cl.base_url)
 
         test_post_call()

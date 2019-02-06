@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    `Launchpad bug 1814094 <https://bugs.launchpad.net/python-manilaclient/+bug/1814094>`_
+    has been fixed and the client now correctly parses the base URL from manila's
+    endpoint url, accounting for proxy URLs.
