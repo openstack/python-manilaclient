@@ -35,6 +35,7 @@ SHARE_TYPE = 'share_type'
 SHARE_NETWORK = 'share_network'
 SHARE_SERVER = 'share_server'
 SNAPSHOT = 'snapshot'
+SHARE_REPLICA = 'share_replica'
 
 
 def not_found_wrapper(f):
@@ -136,6 +137,8 @@ class ManilaCLIClient(base.CLIClient):
             func = self.is_snapshot_deleted
         elif res_type == MESSAGE:
             func = self.is_message_deleted
+        elif res_type == SHARE_REPLICA:
+            func = self.is_share_replica_deleted
         else:
             raise exceptions.InvalidResource(message=res_type)
 
@@ -274,12 +277,15 @@ class ManilaCLIClient(base.CLIClient):
     def get_share_type(self, share_type, microversion=None):
         """Get share type.
 
-        :param share_type: str -- Name or ID of share type
+        :param share_type: str -- Name or ID of share type, or None to
+                    retrieve default share type
         """
         share_types = self.list_share_types(True, microversion=microversion)
-        for st in share_types:
-            if share_type in (st['ID'], st['Name']):
-                return st
+        for stype in share_types:
+            if share_type is None and stype["is_default"] == 'YES':
+                return stype
+            elif share_type in (stype['ID'], stype['Name']):
+                return stype
         raise tempest_lib_exc.NotFound()
 
     def is_share_type_deleted(self, share_type, microversion=None):
@@ -1501,3 +1507,118 @@ class ManilaCLIClient(base.CLIClient):
         self.wait_for_resource_deletion(
             MESSAGE, res_id=message, interval=3, timeout=60,
             microversion=microversion)
+
+    # Share replicas
+
+    def create_share_replica(self, share, microversion=None):
+        """Create a share replica.
+
+        :param share: str -- Name or ID of a share to create a replica of
+        """
+        cmd = "share-replica-create %s" % share
+        replica = self.manila(cmd, microversion=microversion)
+        return output_parser.details(replica)
+
+    @not_found_wrapper
+    def get_share_replica(self, replica, microversion=None):
+        cmd = "share-replica-show %s" % replica
+        replica = self.manila(cmd, microversion=microversion)
+        return output_parser.details(replica)
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def delete_share_replica(self, share_replica, microversion=None):
+        """Deletes share replica by ID."""
+        return self.manila(
+            "share-replica-delete %s" % share_replica,
+            microversion=microversion)
+
+    def is_share_replica_deleted(self, replica, microversion=None):
+        """Indicates whether a share replica is deleted or not.
+
+        :param replica: str -- ID of share replica
+        """
+        try:
+            self.get_share_replica(replica, microversion=microversion)
+            return False
+        except tempest_lib_exc.NotFound:
+            return True
+
+    def wait_for_share_replica_deletion(self, replica, microversion=None):
+        """Wait for share replica deletion by its ID.
+
+        :param replica: text -- ID of share replica
+        """
+        self.wait_for_resource_deletion(
+            SHARE_REPLICA, res_id=replica, interval=3, timeout=60,
+            microversion=microversion)
+
+    def wait_for_share_replica_status(self, share_replica,
+                                      status="available",
+                                      microversion=None):
+        """Waits for a share replica to reach a given status."""
+        replica = self.get_share_replica(share_replica,
+                                         microversion=microversion)
+        share_replica_status = replica['status']
+        start = int(time.time())
+
+        while share_replica_status != status:
+            time.sleep(self.build_interval)
+            replica = self.get_share_replica(share_replica,
+                                             microversion=microversion)
+            share_replica_status = replica['status']
+
+            if share_replica_status == status:
+                return replica
+            elif 'error' in share_replica_status.lower():
+                raise exceptions.ShareReplicaBuildErrorException(
+                    replica=share_replica)
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = (
+                    "Share replica %(id)s failed to reach %(status)s "
+                    "status within the required time "
+                    "(%(build_timeout)s s)." % {
+                        "id": share_replica, "status": status,
+                        "build_timeout": self.build_timeout})
+                raise tempest_lib_exc.TimeoutException(message)
+        return replica
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def list_share_replica_export_locations(self, share_replica,
+                                            columns=None, microversion=None):
+        """List share replica export locations.
+
+        :param share_replica: str -- ID of share replica.
+        :param columns: str -- comma separated string of columns.
+            Example, "--columns id,path".
+        :param microversion: API microversion to be used for request.
+        """
+        cmd = "share-replica-export-location-list %s" % share_replica
+        if columns is not None:
+            cmd += " --columns " + columns
+        export_locations_raw = self.manila(cmd, microversion=microversion)
+        export_locations = utils.listing(export_locations_raw)
+        return export_locations
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def get_share_replica_export_location(self, share_replica,
+                                          export_location_uuid,
+                                          microversion=None):
+        """Returns an export location by share replica and export location ID.
+
+        :param share_replica: str -- ID of share replica.
+        :param export_location_uuid: str -- UUID of an export location.
+        :param microversion: API microversion to be used for request.
+        """
+        export_raw = self.manila(
+            'share-replica-export-location-show '
+            '%(share_replica)s %(el_uuid)s' % {
+                'share_replica': share_replica,
+                'el_uuid': export_location_uuid,
+            },
+            microversion=microversion)
+        export = output_parser.details(export_raw)
+        return export

@@ -2767,7 +2767,7 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command('share-replica-show 5678')
 
-        self.assert_called('GET', '/share-replicas/5678')
+        self.assert_called_anytime('GET', '/share-replicas/5678')
 
     @ddt.data('promote', 'resync')
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
@@ -2781,6 +2781,38 @@ class ShellTest(test_utils.TestCase):
         self.assert_called(
             'POST', '/share-replicas/1234/action',
             body={action.replace('-', '_'): None})
+
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    @ddt.data(None, "replica_state,path")
+    def test_share_replica_export_location_list(self, columns):
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+        cmd = 'share-replica-export-location-list ' + fake_replica.id
+        if columns is not None:
+            cmd = cmd + ' --columns=%s' % columns
+            expected_columns = list(map(lambda x: x.strip().title(),
+                                        columns.split(",")))
+        else:
+            expected_columns = [
+                'ID', 'Availability Zone', 'Replica State',
+                'Preferred', 'Path'
+            ]
+
+        self.run_command(cmd)
+
+        self.assert_called(
+            'GET', '/share-replicas/1234/export-locations')
+        cliutils.print_list.assert_called_with(mock.ANY, expected_columns)
+
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    def test_share_replica_export_location_show(self):
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+        self.run_command(
+            'share-replica-export-location-show 1234 fake-el-uuid')
+        self.assert_called(
+            'GET', '/share-replicas/1234/export-locations/fake-el-uuid')
 
     @ddt.data('reset-state', 'reset-replica-state')
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())

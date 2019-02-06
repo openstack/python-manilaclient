@@ -44,6 +44,11 @@ class ShareBuildErrorException(exceptions.TempestException):
     message = "Share %(share)s failed to build and is in ERROR status."
 
 
+class ShareReplicaBuildErrorException(exceptions.TempestException):
+    message = ("Share replica %(replica)s failed to build and is in ERROR "
+               "status.")
+
+
 class SnapshotBuildErrorException(exceptions.TempestException):
     message = "Snapshot %(snapshot)s failed to build and is in ERROR status."
 

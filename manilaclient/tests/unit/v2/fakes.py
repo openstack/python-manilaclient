@@ -831,6 +831,26 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         replicas = {'share_replica': self.fake_share_replica}
         return (200, {}, replicas)
 
+    def get_share_replicas_5678_export_locations(self, **kw):
+        export_locations = {
+            'export_locations': [
+                get_fake_export_location(),
+            ]
+        }
+        return (200, {}, export_locations)
+
+    def get_share_replicas_1234_export_locations(self, **kw):
+        export_locations = {
+            'export_locations': [
+                get_fake_export_location(),
+            ]
+        }
+        return (200, {}, export_locations)
+
+    def get_share_replicas_1234_export_locations_fake_el_uuid(self, **kw):
+        export_location = {'export_location': get_fake_export_location()}
+        return (200, {}, export_location)
+
     def post_share_replicas(self, **kw):
         return (202, {}, {'share_replica': self.fake_share_replica})
 

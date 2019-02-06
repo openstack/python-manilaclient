@@ -145,6 +145,17 @@ share_opts = [
                default="stack",
                help="Username, that will be used in share access tests for "
                     "user type of access."),
+    cfg.StrOpt("replication_type",
+               default="readable",
+               choices=["readable", "writable", "dr"],
+               help="Replication type to be used when running replication "
+                    "tests. This option is ignored if run_replication_tests "
+                    "is set to False."),
+    cfg.BoolOpt("run_replication_tests",
+                default=True,
+                help="Defines whether to run tests for share replication "
+                     "or not. Disable this feature if manila driver used "
+                     "doesn't support share replication."),
     cfg.BoolOpt("run_snapshot_tests",
                 default=True,
                 help="Defines whether to run tests that use share snapshots "
