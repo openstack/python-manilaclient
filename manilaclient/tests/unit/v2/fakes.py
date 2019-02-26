@@ -225,6 +225,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_shares_detail(self, **kw):
         endpoint = "http://127.0.0.1:8786/v2"
         share_id = '1234'
+
         shares = {
             'shares': [
                 {
@@ -241,8 +242,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     ],
                 },
             ],
-            'count': 2,
         }
+
+        if kw.get('with_count'):
+            shares.update({'count': 2})
+
         return (200, {}, shares)
 
     def get_snapshots_1234(self, **kw):

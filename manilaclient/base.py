@@ -96,14 +96,14 @@ class Manager(utils.HookableMixin):
         """
         base_dir = cliutils.env('manilaclient_UUID_CACHE_DIR',
                                 'MANILACLIENT_UUID_CACHE_DIR',
-                                default="~/.manilaclient")
+                                default="~/.cache/manilaclient")
 
         # NOTE(sirp): Keep separate UUID caches for each username + endpoint
         # pair
         username = cliutils.env('OS_USERNAME', 'MANILA_USERNAME')
         url = cliutils.env('OS_URL', 'MANILA_URL')
-        uniqifier = hashlib.md5(username.encode('utf-8') +
-                                url.encode('utf-8')).hexdigest()
+        uniqifier = hashlib.sha1(username.encode('utf-8') +
+                                 url.encode('utf-8')).hexdigest()
 
         cache_dir = os.path.expanduser(os.path.join(base_dir, uniqifier))
 
@@ -139,7 +139,10 @@ class Manager(utils.HookableMixin):
     def write_to_completion_cache(self, cache_type, val):
         cache = getattr(self, "_%s_cache" % cache_type, None)
         if cache:
-            cache.write("%s\n" % val)
+            try:
+                cache.write("%s\n" % val)
+            except UnicodeEncodeError:
+                pass
 
     def _get(self, url, response_key=None):
         resp, body = self.api.client.get(url)

@@ -7,7 +7,7 @@ _manila()
 
     opts="$(manila bash_completion)"
 
-    COMPLETION_CACHE=~/.manilaclient/*/*-cache
+    COMPLETION_CACHE=~/.cache/manilaclient/*/*-cache
     opts+=" "$(cat $COMPLETION_CACHE 2> /dev/null | tr '\n' ' ')
 
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

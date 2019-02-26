@@ -28,6 +28,7 @@ from manilaclient.common.apiclient import utils as apiclient_utils
 from manilaclient.common import cliutils
 from manilaclient.common import constants
 from manilaclient import exceptions
+import manilaclient.v2.shares
 
 
 def _wait_for_resource_status(cs,
@@ -2304,6 +2305,19 @@ def do_list(cs, args):
     cliutils.print_list(shares, list_of_keys, sortby_index=None)
     if args.count:
         print("Shares in total: %s" % total_count)
+
+    with cs.shares.completion_cache('uuid',
+                                    manilaclient.v2.shares.Share,
+                                    mode="w"):
+        for share in shares:
+            cs.shares.write_to_completion_cache('uuid', share.id)
+
+    with cs.shares.completion_cache('name',
+                                    manilaclient.v2.shares.Share,
+                                    mode="w"):
+        for share in shares:
+            if share.name is not None:
+                cs.shares.write_to_completion_cache('name', share.name)
 
 
 @cliutils.arg(
