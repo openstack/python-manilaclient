@@ -25,7 +25,7 @@
     nodeset: openstack-single-node-bionic
     run: playbooks/legacy/manilaclient-dsvm-neutron-functional/run.yaml
     post-run: playbooks/legacy/manilaclient-dsvm-neutron-functional/post.yaml
-    timeout: 4800
+    timeout: 5400
     required-projects:
       - openstack-infra/devstack-gate
       - openstack/manila
