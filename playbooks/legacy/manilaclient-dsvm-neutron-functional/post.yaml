@@ -1,4 +1,4 @@
-- hosts: controller
+- hosts: primary
 
   roles:
     - role: fetch-tox-output
