@@ -22,9 +22,6 @@ from manilaclient.tests.functional import utils
 CONF = config.CONF
 
 
-@testtools.skipUnless(CONF.run_snapshot_tests and
-                      CONF.run_mount_snapshot_tests,
-                      "Snapshots or mountable snapshots tests are disabled.")
 @utils.skip_if_microversion_not_supported('2.32')
 class SnapshotAccessReadBase(base.BaseTestCase):
     protocol = None
@@ -146,22 +143,37 @@ class SnapshotAccessReadBase(base.BaseTestCase):
             snapshot['id'], 'cert', self.access_to['cert'][0])
 
 
+@testtools.skipUnless(CONF.run_snapshot_tests and
+                      CONF.run_mount_snapshot_tests,
+                      "Snapshots or mountable snapshots tests are disabled.")
 class NFSSnapshotAccessTest(SnapshotAccessReadBase):
     protocol = 'nfs'
 
 
+@testtools.skipUnless(CONF.run_snapshot_tests and
+                      CONF.run_mount_snapshot_tests,
+                      "Snapshots or mountable snapshots tests are disabled.")
 class CIFSSnapshotAccessTest(SnapshotAccessReadBase):
     protocol = 'cifs'
 
 
+@testtools.skipUnless(CONF.run_snapshot_tests and
+                      CONF.run_mount_snapshot_tests,
+                      "Snapshots or mountable snapshots tests are disabled.")
 class GlusterFSSnapshotAccessTest(SnapshotAccessReadBase):
     protocol = 'glusterfs'
 
 
+@testtools.skipUnless(CONF.run_snapshot_tests and
+                      CONF.run_mount_snapshot_tests,
+                      "Snapshots or mountable snapshots tests are disabled.")
 class HDFSSnapshotAccessTest(SnapshotAccessReadBase):
     protocol = 'hdfs'
 
 
+@testtools.skipUnless(CONF.run_snapshot_tests and
+                      CONF.run_mount_snapshot_tests,
+                      "Snapshots or mountable snapshots tests are disabled.")
 class MAPRFSSnapshotAccessTest(SnapshotAccessReadBase):
     protocol = 'maprfs'
 
