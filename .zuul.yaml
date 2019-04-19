@@ -26,7 +26,7 @@
     post-run: playbooks/legacy/manilaclient-dsvm-neutron-functional/post.yaml
     timeout: 5400
     required-projects:
-      - openstack-infra/devstack-gate
+      - openstack/devstack-gate
       - openstack/manila
       - openstack/neutron
       - openstack/python-manilaclient
