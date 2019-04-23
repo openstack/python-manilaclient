@@ -100,6 +100,6 @@ Quick-start using keystone::
 .. _Launchpad project: https://launchpad.net/python-manilaclient
 .. _Blueprints: https://blueprints.launchpad.net/python-manilaclient
 .. _Bugs: https://bugs.launchpad.net/python-manilaclient
-.. _Source: https://git.openstack.org/cgit/openstack/python-manilaclient
+.. _Source: https://opendev.org/openstack/python-manilaclient
 .. _How to Contribute: https://docs.openstack.org/infra/manual/developers.html
 .. _Release Notes: https://docs.openstack.org/releasenotes/python-manilaclient

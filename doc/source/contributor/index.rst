@@ -1,11 +1,11 @@
 Contributing
 ============
 
-Code is hosted at `git.openstack.org`_. Submit bugs to the
+Code is hosted at `opendev.org`_. Submit bugs to the
 python-manilaclient project on `Launchpad`_. Submit code to the
 openstack/python-manilaclient project using `Gerrit`_.
 
-.. _git.openstack.org: https://git.openstack.org/cgit/openstack/python-manilaclient
+.. _opendev.org: https://opendev.org/openstack/python-manilaclient
 .. _Launchpad: https://launchpad.net/python-manilaclient
 .. _Gerrit: https://docs.openstack.org/infra/manual/developers.html#development-workflow
 
@@ -18,7 +18,7 @@ The preferred way to run tests is using ``tox``.
 
 See `Consistent Testing Interface`_ for more details.
 
-.. _Consistent Testing Interface: https://git.openstack.org/cgit/openstack/governance/tree/reference/project-testing-interface.rst
+.. _Consistent Testing Interface: https://opendev.org/openstack/governance/src/branch/master/reference/project-testing-interface.rst
 
 Functional tests
 ----------------
