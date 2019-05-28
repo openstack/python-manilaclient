@@ -927,6 +927,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, {
             'share_type': {'id': 1,
                            'name': 'test-type-1',
+                           'description': "test share type desc",
                            'extra_specs': {'test': 'test'},
                            'required_extra_specs': {'test': 'test'}}})
 

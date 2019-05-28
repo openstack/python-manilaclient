@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    `Launchpad bug 1830677 <https://bugs.launchpad.net/python-manilaclient/+bug/1830677>`_
+    has been fixed and the client now correctly get description of share type
+    instead of ``None``.

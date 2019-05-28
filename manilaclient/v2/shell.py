@@ -170,7 +170,7 @@ def _print_type_show(stype, default_share_type=None):
         'name': stype.name,
         'visibility': _is_share_type_public(stype),
         'is_default': is_default,
-        'description': None,
+        'description': stype.description,
         'required_extra_specs': _print_type_required_extra_specs(stype),
         'optional_extra_specs': _print_type_optional_extra_specs(stype),
     }
