@@ -18,30 +18,9 @@ The preferred way to run tests is using ``tox``.
 
 See `Consistent Testing Interface`_ for more details.
 
+.. toctree::
+    :maxdepth: 3
+
+    functional-tests
+
 .. _Consistent Testing Interface: https://opendev.org/openstack/governance/src/branch/master/reference/project-testing-interface.rst
-
-Functional tests
-----------------
-
-Functional CLI tests require several things to be able to run:
-
-* Deployed and working manila service.
-* Configured config file.
-
-Config file is used to get information like 'auth_url', 'username',
-'tenant_name' and 'password'.
-To get config sample need to run following 'tox' job:
-
-.. code-block:: console
-
-  $ tox -e genconfig
-
-This will create file 'etc/manilaclient/manilaclient.conf.sample' with all
-available config opts.
-Then rename it removing ".sample" and set values for opts there. After it,
-tests can be run using following tox job:
-
-.. code-block:: console
-
-  $ tox -e functional
-
