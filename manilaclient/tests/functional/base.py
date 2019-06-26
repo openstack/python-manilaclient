@@ -76,7 +76,19 @@ class BaseTestCase(base.ClientTestBase):
         if it is not found, assume it was deleted in test itself.
         It is expected, that all resources were added as LIFO
         due to restriction of deletion resources, that are in the chain.
-        :param resources: dict with keys 'type','id','client' and 'deleted'
+        :param resources: dict with keys 'type','id','client',
+            'deletion_params' and 'deleted'. Optional 'deletion_params'
+            contains additional data needed to delete some type of resources.
+            Ex:
+            params = {
+                'type': 'share_network_subnet',
+                'id': 'share-network-subnet-id',
+                'client': None,
+                'deletion_params': {
+                    'share_network': 'share-network-id',
+                },
+                'deleted': False,
+            }
         """
 
         if resources is None:
@@ -89,6 +101,7 @@ class BaseTestCase(base.ClientTestBase):
             if not(res["deleted"]):
                 res_id = res["id"]
                 client = res["client"]
+                deletion_params = res.get("deletion_params")
                 with handle_cleanup_exceptions():
                     # TODO(vponomaryov): add support for other resources
                     if res["type"] is "share_type":
@@ -101,6 +114,15 @@ class BaseTestCase(base.ClientTestBase):
                             res_id, microversion=res["microversion"])
                         client.wait_for_share_network_deletion(
                             res_id, microversion=res["microversion"])
+                    elif res["type"] is "share_network_subnet":
+                        client.delete_share_network_subnet(
+                            share_network_subnet=res_id,
+                            share_network=deletion_params["share_network"],
+                            microversion=res["microversion"])
+                        client.wait_for_share_network_subnet_deletion(
+                            share_network_subnet=res_id,
+                            share_network=deletion_params["share_network"],
+                            microversion=res["microversion"])
                     elif res["type"] is "share":
                         client.delete_share(
                             res_id, microversion=res["microversion"])
@@ -233,7 +255,8 @@ class BaseTestCase(base.ClientTestBase):
     @classmethod
     def create_share_network(cls, name=None, description=None,
                              neutron_net_id=None,
-                             neutron_subnet_id=None, client=None,
+                             neutron_subnet_id=None,
+                             availability_zone=None, client=None,
                              cleanup_in_class=True, microversion=None):
         if client is None:
             client = cls.get_admin_client()
@@ -242,6 +265,7 @@ class BaseTestCase(base.ClientTestBase):
             description=description,
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id,
+            availability_zone=availability_zone,
             microversion=microversion,
         )
         resource = {
@@ -255,6 +279,31 @@ class BaseTestCase(base.ClientTestBase):
         else:
             cls.method_resources.insert(0, resource)
         return share_network
+
+    @classmethod
+    def add_share_network_subnet(cls, share_network,
+                                 neutron_net_id=None, neutron_subnet_id=None,
+                                 availability_zone=None, client=None,
+                                 cleanup_in_class=True, microversion=None):
+        if client is None:
+            client = cls.get_admin_client()
+        share_network_subnet = client.add_share_network_subnet(
+            share_network, neutron_net_id, neutron_subnet_id,
+            availability_zone)
+        resource = {
+            "type": "share_network_subnet",
+            "id": share_network_subnet["id"],
+            "client": client,
+            "deletion_params": {
+                "share_network": share_network,
+            },
+            "microversion": microversion,
+        }
+        if cleanup_in_class:
+            cls.class_resources.insert(0, resource)
+        else:
+            cls.method_resources.insert(0, resource)
+        return share_network_subnet
 
     @classmethod
     def create_share(cls, share_protocol=None, size=None, share_network=None,

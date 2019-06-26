@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ast
 import re
 import time
 
@@ -33,6 +34,7 @@ MESSAGE = 'message'
 SHARE = 'share'
 SHARE_TYPE = 'share_type'
 SHARE_NETWORK = 'share_network'
+SHARE_NETWORK_SUBNET = 'share_network_subnet'
 SHARE_SERVER = 'share_server'
 SNAPSHOT = 'snapshot'
 SHARE_REPLICA = 'share_replica'
@@ -115,20 +117,21 @@ class ManilaCLIClient(base.CLIClient):
             'manila', action, flags, params, fail_ok, merge_stderr)
 
     def wait_for_resource_deletion(self, res_type, res_id, interval=3,
-                                   timeout=180, microversion=None):
+                                   timeout=180, microversion=None, **kwargs):
         """Resource deletion waiter.
 
-        :param res_type: text -- type of resource. Supported only 'share_type'.
-            Other types support is TODO.
+        :param res_type: text -- type of resource
         :param res_id: text -- ID of resource to use for deletion check
         :param interval: int -- interval between requests in seconds
         :param timeout: int -- total time in seconds to wait for deletion
+        :param args: dict -- additional keyword arguments for deletion func
         """
-        # TODO(vponomaryov): add support for other resource types
         if res_type == SHARE_TYPE:
             func = self.is_share_type_deleted
         elif res_type == SHARE_NETWORK:
             func = self.is_share_network_deleted
+        elif res_type == SHARE_NETWORK_SUBNET:
+            func = self.is_share_network_subnet_deleted
         elif res_type == SHARE_SERVER:
             func = self.is_share_server_deleted
         elif res_type == SHARE:
@@ -143,11 +146,11 @@ class ManilaCLIClient(base.CLIClient):
             raise exceptions.InvalidResource(message=res_type)
 
         end_loop_time = time.time() + timeout
-        deleted = func(res_id, microversion=microversion)
+        deleted = func(res_id, microversion=microversion, **kwargs)
 
         while not (deleted or time.time() > end_loop_time):
             time.sleep(interval)
-            deleted = func(res_id, microversion=microversion)
+            deleted = func(res_id, microversion=microversion, **kwargs)
 
         if not deleted:
             raise exceptions.ResourceReleaseFailed(
@@ -451,7 +454,8 @@ class ManilaCLIClient(base.CLIClient):
 
     def create_share_network(self, name=None, description=None,
                              nova_net_id=None, neutron_net_id=None,
-                             neutron_subnet_id=None, microversion=None):
+                             neutron_subnet_id=None, availability_zone=None,
+                             microversion=None):
         """Creates share network.
 
         :param name: text -- desired name of new share network
@@ -468,7 +472,9 @@ class ManilaCLIClient(base.CLIClient):
             description=description,
             nova_net_id=nova_net_id,
             neutron_net_id=neutron_net_id,
-            neutron_subnet_id=neutron_subnet_id)
+            neutron_subnet_id=neutron_subnet_id,
+            availability_zone=availability_zone
+        )
         share_network_raw = self.manila(
             'share-network-create %s' % params, microversion=microversion)
         share_network = output_parser.details(share_network_raw)
@@ -476,7 +482,8 @@ class ManilaCLIClient(base.CLIClient):
 
     def _combine_share_network_data(self, name=None, description=None,
                                     nova_net_id=None, neutron_net_id=None,
-                                    neutron_subnet_id=None):
+                                    neutron_subnet_id=None,
+                                    availability_zone=None):
         """Combines params for share network operations 'create' and 'update'.
 
         :returns: text -- set of CLI parameters
@@ -492,9 +499,11 @@ class ManilaCLIClient(base.CLIClient):
             data['--neutron_net_id'] = neutron_net_id
         if neutron_subnet_id is not None:
             data['--neutron_subnet_id'] = neutron_subnet_id
+        if availability_zone is not None:
+            data['--availability_zone'] = availability_zone
         cmd = ''
         for key, value in data.items():
-            cmd += "%(k)s=%(v)s " % dict(k=key, v=value)
+            cmd += "%(k)s=%(v)s " % {'k': key, 'v': value}
         return cmd
 
     @not_found_wrapper
@@ -597,6 +606,106 @@ class ManilaCLIClient(base.CLIClient):
         self.wait_for_resource_deletion(
             SHARE_NETWORK, res_id=share_network, interval=2, timeout=6,
             microversion=microversion)
+
+    # Share Network Subnets
+
+    def _combine_share_network_subnet_data(self, neutron_net_id=None,
+                                           neutron_subnet_id=None,
+                                           availability_zone=None):
+        """Combines params for share network subnet 'create' operation.
+
+        :returns: text -- set of CLI parameters
+        """
+        data = dict()
+        if neutron_net_id is not None:
+            data['--neutron_net_id'] = neutron_net_id
+        if neutron_subnet_id is not None:
+            data['--neutron_subnet_id'] = neutron_subnet_id
+        if availability_zone is not None:
+            data['--availability_zone'] = availability_zone
+        cmd = ''
+        for key, value in data.items():
+            cmd += "%(k)s=%(v)s " % dict(k=key, v=value)
+        return cmd
+
+    def add_share_network_subnet(self, share_network,
+                                 neutron_net_id=None, neutron_subnet_id=None,
+                                 availability_zone=None, microversion=None):
+        """Create new share network subnet for the given share network."""
+        params = self._combine_share_network_subnet_data(
+            neutron_net_id=neutron_net_id,
+            neutron_subnet_id=neutron_subnet_id,
+            availability_zone=availability_zone)
+        share_network_subnet_raw = self.manila(
+            'share-network-subnet-create %(sn)s %(params)s' %
+            {'sn': share_network, 'params': params}, microversion=microversion)
+        share_network_subnet = output_parser.details(share_network_subnet_raw)
+        return share_network_subnet
+
+    def get_share_network_subnet(self, share_network, share_network_subnet,
+                                 microversion=None):
+        """Returns share network subnet by share network ID and subnet ID."""
+
+        share_network_subnet_raw = self.manila(
+            'share-network-subnet-show %(share_net)s %(share_subnet)s' % {
+                'share_net': share_network,
+                'share_subnet': share_network_subnet,
+            })
+        share_network_subnet = output_parser.details(share_network_subnet_raw)
+        return share_network_subnet
+
+    def get_share_network_subnets(self, share_network, microversion=None):
+        share_network = self.get_share_network(share_network,
+                                               microversion=microversion)
+        raw_subnets = share_network.get('share_network_subnets')
+        subnets = ast.literal_eval(raw_subnets)
+        # NOTE(lseki): convert literal None to string 'None'
+        for subnet in subnets:
+            for k, v in subnet.items():
+                subnet[k] = str(v) if v is None else v
+        return subnets
+
+    @not_found_wrapper
+    def delete_share_network_subnet(self, share_network, share_network_subnet,
+                                    microversion=None):
+        """Delete a share_network."""
+        self.manila(
+            'share-network-subnet-delete %(share_net)s %(share_subnet)s' % {
+                'share_net': share_network,
+                'share_subnet': share_network_subnet,
+            }, microversion=microversion)
+
+    def is_share_network_subnet_deleted(self, share_network_subnet,
+                                        share_network, microversion=None):
+        # NOTE(lseki): the parameter share_network_subnet comes before
+        # share_network, because the wrapper method wait_for_resource_deletion
+        # expects the resource id in first place (subnet ID in this case).
+        """Says whether share network subnet is deleted or not.
+
+        :param share_network_subnet: text -- Name or ID of share network subnet
+        :param share_network: text -- Name or ID of share network the subnet
+            belongs to
+        """
+        subnets = self.get_share_network_subnets(share_network)
+        return not any(subnet['id'] == share_network_subnet
+                       for subnet in subnets)
+
+    def wait_for_share_network_subnet_deletion(self, share_network_subnet,
+                                               share_network,
+                                               microversion=None):
+        # NOTE(lseki): the parameter share_network_subnet comes before
+        # share_network, because the wrapper method wait_for_resource_deletion
+        # expects the resource id in first place (subnet ID in this case).
+        """Wait for share network subnet deletion by its Name or ID.
+
+        :param share_network_subnet: text -- Name or ID of share network subnet
+        :param share_network: text -- Name or ID of share network the subnet
+            belongs to
+        """
+        args = {'share_network': share_network}
+        self.wait_for_resource_deletion(
+            SHARE_NETWORK_SUBNET, res_id=share_network_subnet,
+            interval=2, timeout=6, microversion=microversion, **args)
 
     # Shares
 

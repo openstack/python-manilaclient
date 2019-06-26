@@ -113,9 +113,14 @@ class SharesTestMigration(base.BaseTestCase):
 
         cls.old_share_net = cls.get_user_client().get_share_network(
             cls.get_user_client().share_network)
+        share_net_info = (
+            utils.get_default_subnet(cls.get_user_client(),
+                                     cls.old_share_net['id'])
+            if utils.share_network_subnets_are_supported()
+            else cls.old_share_net)
         cls.new_share_net = cls.create_share_network(
-            neutron_net_id=cls.old_share_net['neutron_net_id'],
-            neutron_subnet_id=cls.old_share_net['neutron_subnet_id'])
+            neutron_net_id=share_net_info['neutron_net_id'],
+            neutron_subnet_id=share_net_info['neutron_subnet_id'])
 
     @utils.skip_if_microversion_not_supported('2.22')
     @ddt.data('migration_error', 'migration_success', 'None')

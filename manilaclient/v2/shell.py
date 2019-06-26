@@ -16,6 +16,7 @@
 from __future__ import print_function
 
 
+from operator import xor
 import os
 import sys
 import time
@@ -1178,15 +1179,32 @@ def do_manage(cs, args):
     help='One or more driver-specific key=value pairs that may be necessary to'
          ' manage the share server (Optional, Default=None).',
     default=None)
+@cliutils.arg(
+    '--share-network-subnet', '--share_network_subnet',
+    type=str,
+    metavar='<share_network_subnet>',
+    help="Share network subnet where share server has network allocations in. "
+         "The default subnet will be used if it's not specified. Available "
+         "for microversion >= 2.51 (Optional, Default=None).",
+    default=None)
 def do_share_server_manage(cs, args):
     """Manage share server not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
 
-    share_network = _find_share_network(cs, args.share_network)
+    manage_kwargs = {
+        'driver_options': driver_options,
+    }
+    if cs.api_version < api_versions.APIVersion("2.51"):
+        if getattr(args, 'share_network_subnet'):
+            raise exceptions.CommandError(
+                "Share network subnet option is only available with manila "
+                "API version >= 2.51")
+    else:
+        manage_kwargs['share_network_subnet_id'] = args.share_network_subnet
 
     share_server = cs.share_servers.manage(
-        args.host, share_network.id, args.identifier,
-        driver_options=driver_options)
+        args.host, args.share_network, args.identifier,
+        **manage_kwargs)
 
     cliutils.print_dict(share_server._info)
 
@@ -2693,6 +2711,16 @@ def do_share_network_create(cs, args):
     metavar='<description>',
     default=None,
     help="Share network description.")
+@cliutils.arg(
+    '--availability-zone', '--availability_zone', '--az',
+    metavar='<availability_zone>',
+    default=None,
+    action='single_alias',
+    help="Availability zone in which the subnet should be created. Share "
+         "networks can have one or more subnets in different availability "
+         "zones when the driver is operating with "
+         "'driver_handles_share_servers' extra_spec set to True. Available "
+         "only for microversion >= 2.51. (Default=None)")
 def do_share_network_create(cs, args):
     """Create description for network used by the tenant."""
     values = {
@@ -2701,6 +2729,12 @@ def do_share_network_create(cs, args):
         'name': args.name,
         'description': args.description,
     }
+    if cs.api_version >= api_versions.APIVersion("2.51"):
+        values['availability_zone'] = args.availability_zone
+    elif args.availability_zone:
+        raise exceptions.CommandError(
+            "Creating share networks with a given az is only "
+            "available with manila API version >= 2.51")
     share_network = cs.share_networks.create(**values)
     info = share_network._info.copy()
     cliutils.print_dict(info)
@@ -2771,9 +2805,8 @@ def do_share_network_update(cs, args):
     metavar='<neutron-net-id>',
     default=None,
     action='single_alias',
-    help="Neutron network ID. Used to set up network for share servers. This "
-         "option is deprecated and will be rejected in newer releases of "
-         "OpenStack Manila.")
+    help="Neutron network ID. Used to set up network for share servers. "
+         "This option is deprecated for microversion >= 2.51.")
 @cliutils.arg(
     '--neutron-subnet-id',
     '--neutron-subnet_id', '--neutron_subnet_id', '--neutron_subnet-id',
@@ -2781,7 +2814,8 @@ def do_share_network_update(cs, args):
     default=None,
     action='single_alias',
     help="Neutron subnet ID. Used to set up network for share servers. "
-         "This subnet should belong to specified neutron network.")
+         "This subnet should belong to specified neutron network. "
+         "This option is deprecated for microversion >= 2.51.")
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -2794,6 +2828,7 @@ def do_share_network_update(cs, args):
     help="Share network description.")
 def do_share_network_update(cs, args):
     """Update share network data."""
+
     values = {
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
@@ -3192,6 +3227,100 @@ def do_share_network_security_service_list(cs, args):
 @cliutils.arg(
     'share_network',
     metavar='<share-network>',
+    help='Share network name or ID.')
+@cliutils.arg(
+    '--neutron-net-id',
+    '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
+    metavar='<neutron-net-id>',
+    default=None,
+    action='single_alias',
+    help="Neutron network ID. Used to set up network for share servers. "
+         "Optional, Default = None.")
+@cliutils.arg(
+    '--neutron-subnet-id',
+    '--neutron-subnet_id', '--neutron_subnet_id', '--neutron_subnet-id',
+    metavar='<neutron-subnet-id>',
+    default=None,
+    action='single_alias',
+    help="Neutron subnet ID. Used to set up network for share servers. "
+         "This subnet should belong to specified neutron network. "
+         "Optional, Default = None.")
+@cliutils.arg(
+    '--availability-zone',
+    '--availability_zone',
+    '--az',
+    default=None,
+    action='single_alias',
+    metavar='<availability-zone>',
+    help='Optional availability zone that the subnet is available within '
+         '(Default=None). If None, the subnet will be considered as being '
+         'available across all availability zones.')
+def do_share_network_subnet_create(cs, args):
+    """Add a new subnet into a share network."""
+    if xor(bool(args.neutron_net_id), bool(args.neutron_subnet_id)):
+        raise exceptions.CommandError(
+            "Both neutron_net_id and neutron_subnet_id should be specified. "
+            "Alternatively, neither of them should be specified.")
+
+    share_network = _find_share_network(cs, args.share_network)
+    values = {
+        'share_network_id': share_network.id,
+        'neutron_net_id': args.neutron_net_id,
+        'neutron_subnet_id': args.neutron_subnet_id,
+        'availability_zone': args.availability_zone,
+    }
+    share_network_subnet = cs.share_network_subnets.create(**values)
+    info = share_network_subnet._info.copy()
+    cliutils.print_dict(info)
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network name or ID.')
+@cliutils.arg(
+    'share_network_subnet',
+    metavar='<share-network-subnet>',
+    nargs='+',
+    help='Name or ID of share network subnet(s) to be deleted.')
+def do_share_network_subnet_delete(cs, args):
+    """Delete one or more share network subnets."""
+    failure_count = 0
+    share_network_ref = _find_share_network(cs, args.share_network)
+
+    for subnet in args.share_network_subnet:
+        try:
+            cs.share_network_subnets.delete(share_network_ref, subnet)
+        except Exception as e:
+            failure_count += 1
+            print("Deletion of share network subnet %s failed: %s" % (
+                subnet, e), file=sys.stderr)
+
+    if failure_count == len(args.share_network_subnet):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "share network subnets.")
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Name or ID of share network(s) to which the subnet belongs.')
+@cliutils.arg(
+    'share_network_subnet',
+    metavar='<share-network-subnet>',
+    help='Share network subnet ID to show.')
+def do_share_network_subnet_show(cs, args):
+    """Show share network subnet."""
+    share_network = _find_share_network(cs, args.share_network)
+    share_network_subnet = cs.share_network_subnets.get(
+        share_network.id, args.share_network_subnet)
+    view_data = share_network_subnet._info.copy()
+    cliutils.print_dict(view_data)
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
     nargs='+',
     help='Name or ID of share network(s) to be deleted.')
 def do_share_network_delete(cs, args):
@@ -3538,6 +3667,14 @@ def do_security_service_delete(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "id,host,status".')
+@cliutils.arg(
+    '--share-network-subnet', '--share_network_subnet',
+    type=str,
+    metavar='<share_network_subnet>',
+    help="Filter results by share network subnet that the share server's "
+         "network allocation exists whithin. Available for micro version "
+         ">= 2.51 (Optional, Default=None).",
+    default=None)
 def do_share_server_list(cs, args):
     """List all share servers (Admin only)."""
     search_opts = {
@@ -3554,6 +3691,15 @@ def do_share_server_list(cs, args):
         "Project Id",
         "Updated_at",
     ]
+
+    if cs.api_version < api_versions.APIVersion("2.51"):
+        if getattr(args, 'share_network_subnet'):
+            raise exceptions.CommandError(
+                "Share network subnet option is only available with manila "
+                "API version >= 2.51")
+    else:
+        search_opts.update({'share_network_subnet': args.share_network_subnet})
+        fields.append("Share Network Subnet Id")
 
     if args.columns is not None:
         fields = _split_columns(columns=args.columns)
@@ -5197,25 +5343,12 @@ def do_share_replica_list(cs, args):
     action='single_alias',
     metavar='<availability-zone>',
     help='Optional Availability zone in which replica should be created.')
-@cliutils.arg(
-    '--share-network',
-    '--share_network',
-    metavar='<network-info>',
-    default=None,
-    action='single_alias',
-    help='Optional network info ID or name.')
 @api_versions.wraps("2.11")
 def do_share_replica_create(cs, args):
     """Create a share replica (Experimental)."""
     share = _find_share(cs, args.share)
 
-    share_network = None
-    if args.share_network:
-        share_network = _find_share_network(cs, args.share_network)
-
-    replica = cs.share_replicas.create(share,
-                                       args.availability_zone,
-                                       share_network)
+    replica = cs.share_replicas.create(share, args.availability_zone)
     _print_share_replica(cs, replica)
 
 

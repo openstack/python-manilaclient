@@ -89,13 +89,18 @@ class ShareServersReadWriteBase(base.BaseTestCase):
 
         common_share_network = self.client.get_share_network(
             self.client.share_network)
+        share_net_info = (
+            utils.get_default_subnet(self.user_client,
+                                     common_share_network['id'])
+            if utils.share_network_subnets_are_supported()
+            else common_share_network)
         neutron_net_id = (
-            common_share_network['neutron_net_id']
-            if 'none' not in common_share_network['neutron_net_id'].lower()
+            share_net_info['neutron_net_id']
+            if 'none' not in share_net_info['neutron_net_id'].lower()
             else None)
         neutron_subnet_id = (
-            common_share_network['neutron_subnet_id']
-            if 'none' not in common_share_network['neutron_subnet_id'].lower()
+            share_net_info['neutron_subnet_id']
+            if 'none' not in share_net_info['neutron_subnet_id'].lower()
             else None)
         share_network = self.client.create_share_network(
             neutron_net_id=neutron_net_id,
@@ -142,6 +147,7 @@ class ShareServersReadWriteBase(base.BaseTestCase):
             self.assertIn(key, server)
 
         self._delete_share_and_share_server(self.share['id'], share_server_id)
+        self.client.delete_share_network(share_network['id'])
 
     @testtools.skipUnless(
         CONF.run_manage_tests, 'Share Manage/Unmanage tests are disabled.')
@@ -189,6 +195,7 @@ class ShareServersReadWriteBase(base.BaseTestCase):
 
         self._delete_share_and_share_server(managed_share_id,
                                             managed_share_server_id)
+        self.client.delete_share_network(share_network['id'])
 
 
 class ShareServersReadWriteNFSTest(ShareServersReadWriteBase):

@@ -70,7 +70,7 @@ class ShareNetworkManager(base.ManagerWithFind):
 
         return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
 
-    @api_versions.wraps("2.26")  # noqa
+    @api_versions.wraps("2.26", "2.50")  # noqa
     def create(self, neutron_net_id=None, neutron_subnet_id=None,
                name=None, description=None):
         """Create share network.
@@ -90,6 +90,26 @@ class ShareNetworkManager(base.ManagerWithFind):
             values['name'] = name
         if description:
             values['description'] = description
+
+        body = {RESOURCE_NAME: values}
+
+        return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
+
+    @api_versions.wraps("2.51")  # noqa
+    def create(self, neutron_net_id=None, neutron_subnet_id=None,
+               name=None, description=None, availability_zone=None):
+        values = {}
+
+        if neutron_net_id:
+            values['neutron_net_id'] = neutron_net_id
+        if neutron_subnet_id:
+            values['neutron_subnet_id'] = neutron_subnet_id
+        if name:
+            values['name'] = name
+        if description:
+            values['description'] = description
+        if availability_zone:
+            values['availability_zone'] = availability_zone
 
         body = {RESOURCE_NAME: values}
 

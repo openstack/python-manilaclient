@@ -87,6 +87,7 @@ class ShareServerManagerTest(utils.TestCase):
     def test_manage(self, driver_options):
         host = 'fake_host'
         share_network_id = 'fake_share_net_id'
+        share_network_subnet_id = 'fake_share_network_subnet_id'
         identifier = 'ff-aa-kk-ee-00'
         if driver_options is None:
             driver_options = {}
@@ -94,12 +95,15 @@ class ShareServerManagerTest(utils.TestCase):
             'host': host,
             'share_network_id': share_network_id,
             'identifier': identifier,
-            'driver_options': driver_options
+            'driver_options': driver_options,
+            'share_network_subnet_id': share_network_subnet_id,
         }
         with mock.patch.object(self.manager, '_create',
                                mock.Mock(return_value='fake')):
-            result = self.manager.manage(host, share_network_id, identifier,
-                                         driver_options)
+            result = self.manager.manage(
+                host, share_network_id, identifier,
+                driver_options=driver_options,
+                share_network_subnet_id=share_network_subnet_id)
             self.manager._create.assert_called_once_with(
                 share_servers.RESOURCES_PATH + '/manage',
                 {'share_server': expected_body}, 'share_server'

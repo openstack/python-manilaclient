@@ -42,14 +42,6 @@ class ShareReplicasTest(utils.TestCase):
         }
         self._create_common(values)
 
-    def test_create_with_share_network(self):
-        values = {
-            'availability_zone': 'az1',
-            'share': 's1',
-            'share_network': 'sn1',
-        }
-        self._create_common(values)
-
     def _create_common(self, values):
 
         with mock.patch.object(self.manager, '_create', fakes.fake_create):

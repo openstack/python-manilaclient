@@ -35,6 +35,7 @@ from manilaclient import utils
 from manilaclient.v2 import messages
 from manilaclient.v2 import security_services
 from manilaclient.v2 import share_instances
+from manilaclient.v2 import share_network_subnets
 from manilaclient.v2 import share_networks
 from manilaclient.v2 import share_servers
 from manilaclient.v2 import share_snapshots
@@ -734,36 +735,96 @@ class ShellTest(test_utils.TestCase):
             + ' --share_type fake_share_type'
             + ' --share_server_id fake_server')
 
+    def test_share_server_manage_unsupported_version(self):
+        self.assertRaises(
+            exceptions.UnsupportedVersion,
+            self.run_command,
+            '--os-share-api-version 2.48 ' +
+            'share-server-manage fake_host fake_share_net_id fake_id')
+
+    def test_share_server_manage_invalid_param_subnet_id(self):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            '--os-share-api-version 2.49 ' +
+            'share-server-manage fake_host fake_share_net_id fake_id ' +
+            '--share-network-subnet fake_subnet_id')
+
     @ddt.data({'driver_args': '--driver_options opt1=opt1 opt2=opt2',
                'valid_params': {
                    'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
-               },
-               'version': '--os-share-api-version 2.49',
-               },
+               }},
+              {'driver_args': '--driver_options opt1=opt1 opt2=opt2',
+               'subnet_id': 'fake_subnet_1',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+               }},
               {'driver_args': '--driver_options opt1=opt1 opt2=opt2',
                'valid_params': {
                    'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
                },
+               'version': '2.51',
+               },
+              {'driver_args': '--driver_options opt1=opt1 opt2=opt2',
+               'subnet_id': 'fake_subnet_1',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+               },
+               'version': '2.51',
                },
               {'driver_args': "",
                'valid_params': {
                    'driver_options': {}
                },
-               'version': '--os-share-api-version 2.49',
-               })
+               'version': '2.51',
+               },
+              {'driver_args': '--driver_options opt1=opt1 opt2=opt2',
+               'valid_params': {
+                   'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
+               },
+               'version': '2.49',
+               },
+              {'driver_args': '',
+               'valid_params': {
+                   'driver_options': {},
+               },
+               'network_id': 'fake_network_id',
+               'version': '2.49',
+               },
+              {'driver_args': "",
+               'valid_params': {
+                   'driver_options': {}
+               },
+               'version': '2.49',
+               },
+              )
     @ddt.unpack
     def test_share_server_manage(self, driver_args, valid_params,
-                                 version=None):
+                                 version=None, network_id=None,
+                                 subnet_id=None):
+        subnet_support = (version is None or
+                          api_versions.APIVersion(version) >=
+                          api_versions.APIVersion('2.51'))
+
+        network_id = '3456' if network_id is None else network_id
         fake_share_network = type(
-            'FakeShareNetwork', (object,), {'id': '3456'})
+            'FakeShareNetwork', (object,), {'id': network_id})
         self.mock_object(
             shell_v2, '_find_share_network',
             mock.Mock(return_value=fake_share_network))
-        command = "" if version is None else version
-        command += (' share-server-manage fake_host fake_share_net_id '
-                    + ' 88-as-23-f3-45 ' + driver_args)
+        command = ('share-server-manage '
+                   '%(host)s '
+                   '%(share_network_id)s '
+                   '%(identifier)s '
+                   '%(driver_args)s ' % {
+                       'host': 'fake_host',
+                       'share_network_id': fake_share_network.id,
+                       'identifier': '88-as-23-f3-45',
+                       'driver_args': driver_args,
+                   })
+        command += '--share-network-subnet %s' % subnet_id if subnet_id else ''
 
-        self.run_command(command)
+        self.run_command(command, version=version)
 
         expected = {
             'share_server': {
@@ -773,6 +834,8 @@ class ShellTest(test_utils.TestCase):
                 'driver_options': driver_args
             }
         }
+        if subnet_support:
+            expected['share_server']['share_network_subnet_id'] = subnet_id
         expected['share_server'].update(valid_params)
 
         self.assert_called('POST', '/share-servers/manage', body=expected)
@@ -1425,25 +1488,39 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('POST', '/share-networks')
 
+    @ddt.unpack
     @ddt.data(
-        {'--name': 'fake_name'},
-        {'--description': 'fake_description'},
-        {'--neutron_net_id': 'fake_neutron_net_id'},
-        {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
-        {'--description': 'fake_description',
-         '--name': 'fake_name',
-         '--neutron_net_id': 'fake_neutron_net_id',
-         '--neutron_subnet_id': 'fake_neutron_subnet_id'},
-        {'--name': '""'},
-        {'--description': '""'},
-        {'--neutron_net_id': '""'},
-        {'--neutron_subnet_id': '""'},
-        {'--description': '""',
-         '--name': '""',
-         '--neutron_net_id': '""',
-         '--neutron_subnet_id': '""',
-         },)
-    def test_share_network_update(self, data):
+        {'data': {'--name': 'fake_name'}},
+        {'data': {'--description': 'fake_description'}},
+        {'data': {'--neutron_net_id': 'fake_neutron_net_id'},
+         'version': '2.49',
+         },
+        {'data': {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
+         'version': '2.49',
+         },
+        {'data': {
+            '--description': 'fake_description',
+            '--name': 'fake_name',
+            '--neutron_net_id': 'fake_neutron_net_id',
+            '--neutron_subnet_id': 'fake_neutron_subnet_id'},
+         'version': '2.49',
+         },
+        {'data': {'--name': '""'}},
+        {'data': {'--description': '""'}},
+        {'data': {'--neutron_net_id': '""'},
+         'version': '2.49',
+         },
+        {'data': {'--neutron_subnet_id': '""'},
+         'version': '2.49',
+         },
+        {'data': {
+            '--description': '""',
+            '--name': '""',
+            '--neutron_net_id': '""',
+            '--neutron_subnet_id': '""'},
+         'version': '2.49',
+         })
+    def test_share_network_update(self, data, version=None):
         cmd = 'share-network-update 1111'
         expected = dict()
         for k, v in data.items():
@@ -1451,7 +1528,7 @@ class ShellTest(test_utils.TestCase):
             expected[k[2:]] = v
         expected = dict(share_network=expected)
 
-        self.run_command(cmd)
+        self.run_command(cmd, version=version)
 
         self.assert_called('PUT', '/share-networks/1111', body=expected)
 
@@ -1722,6 +1799,143 @@ class ShellTest(test_utils.TestCase):
             'GET',
             '/security-services/detail?share_network_id=1111',
         )
+
+    @ddt.data(
+        {},
+        {'--neutron_net_id': 'fake_neutron_net_id',
+         '--neutron_subnet_id': 'fake_neutron_subnet_id'},
+        {'--availability-zone': 'fake_availability_zone_id'},
+        {'--neutron_net_id': 'fake_neutron_net_id',
+         '--neutron_subnet_id': 'fake_neutron_subnet_id',
+         '--availability-zone': 'fake_availability_zone_id'})
+    def test_share_network_subnet_add(self, data):
+        fake_share_network = type(
+            'FakeShareNetwork', (object,), {'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(return_value=fake_share_network))
+
+        cmd = 'share-network-subnet-create'
+        for k, v in data.items():
+            cmd += ' ' + k + ' ' + v
+        cmd += ' ' + fake_share_network.id
+        self.run_command(cmd)
+
+        shell_v2._find_share_network.assert_called_once_with(
+            mock.ANY, fake_share_network.id)
+        self.assert_called('POST', '/share-networks/1234/subnets')
+
+    @ddt.data(
+        {'--neutron_net_id': 'fake_neutron_net_id'},
+        {'--neutron_subnet_id': 'fake_neutron_subnet_id'},
+        {'--neutron_net_id': 'fake_neutron_net_id',
+         '--availability-zone': 'fake_availability_zone_id'},
+        {'--neutron_subnet_id': 'fake_neutron_subnet_id',
+         '--availability-zone': 'fake_availability_zone_id'})
+    def test_share_network_subnet_add_invalid_param(self, data):
+        cmd = 'share-network-subnet-create'
+        for k, v in data.items():
+            cmd += ' ' + k + ' ' + v
+        cmd += ' fake_network_id'
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            cmd)
+
+    def test_share_network_subnet_add_invalid_share_network(self):
+        cmd = 'share-network-subnet-create not-found-id'
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            cmd)
+
+    @ddt.data(('fake_subnet1', ),
+              ('fake_subnet1', 'fake_subnet2'))
+    def test_share_network_subnet_delete(self, subnet_ids):
+        fake_share_network = type(
+            'FakeShareNetwork', (object,), {'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(return_value=fake_share_network))
+        fake_share_network_subnets = [
+            share_network_subnets.ShareNetworkSubnet(
+                'fake', {'id': subnet_id}, True)
+            for subnet_id in subnet_ids
+        ]
+
+        self.run_command(
+            'share-network-subnet-delete %(network_id)s %(subnet_ids)s' % {
+                'network_id': fake_share_network.id,
+                'subnet_ids': ' '.join(subnet_ids)
+            })
+
+        shell_v2._find_share_network.assert_called_once_with(
+            mock.ANY, fake_share_network.id)
+        for subnet in fake_share_network_subnets:
+            self.assert_called_anytime(
+                'DELETE', '/share-networks/1234/subnets/%s' % subnet.id,
+                clear_callstack=False)
+
+    def test_share_network_subnet_delete_invalid_share_network(self):
+        command = 'share-network-subnet-delete %(net_id)s %(subnet_id)s' % {
+            'net_id': 'not-found-id',
+            'subnet_id': '1234',
+        }
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            command)
+
+    def test_share_network_subnet_delete_invalid_share_network_subnet(self):
+        fake_share_network = type(
+            'FakeShareNetwork', (object,), {'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(return_value=fake_share_network))
+        command = 'share-network-subnet-delete %(net_id)s %(subnet_id)s' % {
+            'net_id': fake_share_network.id,
+            'subnet_id': 'not-found-id',
+        }
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            command)
+
+    @mock.patch.object(cliutils, 'print_dict', mock.Mock())
+    def test_share_network_subnet_show(self):
+        fake_share_network = type(
+            'FakeShareNetwork', (object,), {'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_network',
+            mock.Mock(return_value=fake_share_network))
+        args = {
+            'share_net_id': fake_share_network.id,
+            'subnet_id': 'fake_subnet_id',
+        }
+
+        self.run_command(
+            'share-network-subnet-show %(share_net_id)s %(subnet_id)s' % args)
+
+        self.assert_called(
+            'GET',
+            '/share-networks/%(share_net_id)s/subnets/%(subnet_id)s' % args,
+        )
+        cliutils.print_dict.assert_called_once_with(mock.ANY)
+
+    def test_share_network_subnet_show_invalid_share_network(self):
+        command = 'share-network-subnet-show %(net_id)s %(subnet_id)s' % {
+            'net_id': 'not-found-id',
+            'subnet_id': 1234,
+        }
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            command)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_server_list_select_column(self):
@@ -2848,18 +3062,13 @@ class ShellTest(test_utils.TestCase):
 
     @ddt.data(
         'fake-share-id --az fake-az',
-        'fake-share-id --availability-zone fake-az --share-network '
-        'fake-network',
+        'fake-share-id --availability-zone fake-az',
     )
-    @mock.patch.object(shell_v2, '_find_share_network', mock.Mock())
     @mock.patch.object(shell_v2, '_find_share', mock.Mock())
     def test_share_replica_create(self, data):
 
         fshare = type('FakeShare', (object,), {'id': 'fake-share-id'})
         shell_v2._find_share.return_value = fshare
-
-        fnetwork = type('FakeShareNetwork', (object,), {'id': 'fake-network'})
-        shell_v2._find_share_network.return_value = fnetwork
 
         cmd = 'share-replica-create' + ' ' + data
 

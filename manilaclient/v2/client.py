@@ -36,6 +36,7 @@ from manilaclient.v2 import share_group_types
 from manilaclient.v2 import share_groups
 from manilaclient.v2 import share_instance_export_locations
 from manilaclient.v2 import share_instances
+from manilaclient.v2 import share_network_subnets
 from manilaclient.v2 import share_networks
 from manilaclient.v2 import share_replica_export_locations
 from manilaclient.v2 import share_replicas
@@ -207,6 +208,8 @@ class Client(object):
         self.services = services.ServiceManager(self)
         self.security_services = security_services.SecurityServiceManager(self)
         self.share_networks = share_networks.ShareNetworkManager(self)
+        self.share_network_subnets = (
+            share_network_subnets.ShareNetworkSubnetManager(self))
 
         self.quota_classes = quota_classes.QuotaClassSetManager(self)
         self.quotas = quotas.QuotaSetManager(self)

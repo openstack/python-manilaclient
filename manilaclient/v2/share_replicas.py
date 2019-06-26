@@ -89,13 +89,12 @@ class ShareReplicaManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.11")
     @api_versions.experimental_api
-    def create(self, share, availability_zone=None, share_network=None):
+    def create(self, share, availability_zone=None):
         """Create a replica for a share.
 
         :param share: The share to create the replica of. Can be the share
         object or its UUID.
         :param availability_zone: The 'availability_zone' object or its UUID.
-        :param share_network: either share network object or its UUID.
         """
 
         share_id = common_base.getid(share)
@@ -103,9 +102,6 @@ class ShareReplicaManager(base.ManagerWithFind):
 
         if availability_zone:
             body['availability_zone'] = common_base.getid(availability_zone)
-
-        if share_network:
-            body['share_network'] = common_base.getid(share_network)
 
         return self._create(RESOURCES_PATH,
                             {RESOURCE_NAME: body},

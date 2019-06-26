@@ -110,6 +110,9 @@ share_opts = [
                help="Share network Name or ID, that will be used for shares. "
                     "Some backend drivers require a share network for share "
                     "creation."),
+    cfg.StrOpt("share_network_subnet",
+               help="Share network subnet ID. Some backend drivers require a "
+                    "share network for share creation."),
     cfg.StrOpt("admin_share_network",
                help="Share network Name or ID, that will be used for shares "
                     "in admin tenant."),

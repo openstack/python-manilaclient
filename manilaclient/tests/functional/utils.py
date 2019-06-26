@@ -138,3 +138,18 @@ def choose_matching_backend(share, pools, share_type):
         None)
 
     return selected_pool['Name']
+
+
+def share_network_subnets_are_supported():
+    return is_microversion_supported('2.51')
+
+
+def get_subnet_by_availability_zone_name(client, share_network_id, az_name):
+    subnets = client.get_share_network_subnets(share_network_id)
+    return next((subnet for subnet in subnets
+                 if subnet['availability_zone'] == az_name), None)
+
+
+def get_default_subnet(client, share_network_id):
+    return get_subnet_by_availability_zone_name(client, share_network_id,
+                                                'None')

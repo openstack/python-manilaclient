@@ -97,7 +97,7 @@ class ShareServerManager(base.ManagerWithFind):
         query_string = self._build_query_string(search_opts)
         return self._list(RESOURCES_PATH + query_string, RESOURCES_NAME)
 
-    @api_versions.wraps("2.49")
+    @api_versions.wraps("2.49", "2.50")
     def manage(self, host, share_network_id, identifier, driver_options=None):
 
         driver_options = driver_options or {}
@@ -105,6 +105,23 @@ class ShareServerManager(base.ManagerWithFind):
             'host': host,
             'share_network_id': share_network_id,
             'identifier': identifier,
+            'driver_options': driver_options,
+        }
+
+        resource_path = RESOURCE_PATH % 'manage'
+        return self._create(resource_path, {'share_server': body},
+                            'share_server')
+
+    @api_versions.wraps("2.51")  # noqa
+    def manage(self, host, share_network_id, identifier,
+               share_network_subnet_id=None, driver_options=None):
+
+        driver_options = driver_options or {}
+        body = {
+            'host': host,
+            'share_network_id': share_network_id,
+            'identifier': identifier,
+            'share_network_subnet_id': share_network_subnet_id,
             'driver_options': driver_options,
         }
 

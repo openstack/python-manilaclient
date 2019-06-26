@@ -579,6 +579,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def post_share_networks(self, **kwargs):
         return (202, {}, {'share_network': {}})
 
+    def post_share_networks_1234_subnets(self, **kwargs):
+        return (202, {}, {'share_network_subnet': {}})
+
     def post_shares(self, **kwargs):
         return (202, {}, {'share': {}})
 
@@ -607,6 +610,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (202, {}, None)
 
     def delete_share_networks_fake_share_network2(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_networks_1234_subnets_fake_subnet1(self, **kwargs):
+        return (202, {}, None)
+
+    def delete_share_networks_1234_subnets_fake_subnet2(self, **kwargs):
         return (202, {}, None)
 
     def delete_snapshots_fake_snapshot1(self, **kwargs):
@@ -662,6 +671,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             ]
         }
         return (200, {}, share_nw)
+
+    def get_share_networks_1234_subnets_fake_subnet_id(self, **kw):
+        subnet = {
+            'share_network_subnet': {
+                'id': 'fake_subnet_id',
+            },
+        }
+        return (200, {}, subnet)
 
     def get_security_services(self, **kw):
         security_services = {

@@ -1,0 +1,13 @@
+---
+features:
+  - Added CLI commands to get, add and delete share network subnets.
+  - Updated CLI command for managing share servers to accept
+    ``share_network_subnet`` parameter.
+  - Deprecated ``neutron_subnet_id`` parameter from CLI command to update a
+    share network.
+  - Updated CLI command for listing share servers to show a new column
+    ``Share Network Subnet Id``, and to accept a filter parameter
+    ``share_network_subnet``.
+fixes:
+  - Fixed share replica create API to make the replica inherit parent share's
+    share network.
