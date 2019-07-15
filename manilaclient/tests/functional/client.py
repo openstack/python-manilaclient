@@ -244,6 +244,41 @@ class ManilaCLIClient(base.CLIClient):
         share_type = utils.details(share_type_raw)
         return share_type
 
+    def update_share_type(self, share_type_id, name=None,
+                          is_public=None, microversion=None,
+                          description=None):
+        """Update share type.
+
+        :param share_type_id: text -- id of share type.
+        :param name: text -- new name of share type, if not set then
+            it will not be updated.
+        :param description: text -- new description of share type.
+            if not set then it will not be updated.
+        :param is_public: bool/str -- boolean or its string alias.
+            new visibility of the share type.If set to True, share
+            type will be available to all projects in the cloud.
+        """
+
+        cmd = ('type-update %(share_type_id)s ') % {
+            'share_type_id': share_type_id}
+
+        if is_public is not None:
+            if not isinstance(is_public, six.string_types):
+                is_public = six.text_type(is_public)
+            cmd += " --is_public " + is_public
+
+        if description:
+            cmd += " --description " + description
+        elif description == "":
+            cmd += ' --description "" '
+
+        if name:
+            cmd += " --name " + name
+
+        share_type_raw = self.manila(cmd, microversion=microversion)
+        share_type = utils.details(share_type_raw)
+        return share_type
+
     @not_found_wrapper
     def delete_share_type(self, share_type, microversion=None):
         """Deletes share type by its Name or ID."""

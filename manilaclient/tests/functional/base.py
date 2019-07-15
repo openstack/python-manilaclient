@@ -212,6 +212,25 @@ class BaseTestCase(base.ClientTestBase):
         return share_type
 
     @classmethod
+    def update_share_type(cls, share_type_id, name=None,
+                          is_public=None, client=None,
+                          microversion=None, description=None):
+        if client is None:
+            client = cls.get_admin_client()
+        data = {
+            "share_type_id": share_type_id,
+            "microversion": microversion,
+        }
+        if name is not None:
+            data["name"] = name
+        if description is not None:
+            data["description"] = description
+        if is_public is not None:
+            data["is_public"] = is_public
+        share_type = client.update_share_type(**data)
+        return share_type
+
+    @classmethod
     def create_share_network(cls, name=None, description=None,
                              neutron_net_id=None,
                              neutron_subnet_id=None, client=None,

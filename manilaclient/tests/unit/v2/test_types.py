@@ -17,12 +17,17 @@ import itertools
 import mock
 
 from manilaclient import api_versions
+from manilaclient import config
 from manilaclient import exceptions
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_types
 
 cs = fakes.FakeClient()
+
+CONF = config.CONF
+
+LATEST_MICROVERSION = CONF.max_api_microversion
 
 
 def get_valid_type_create_data_2_0():
@@ -429,6 +434,28 @@ class TypesTest(utils.TestCase):
         t = cs.share_types.get(1)
         t.unset_keys(['k'])
         cs.assert_called('DELETE', '/types/1/extra_specs/k')
+
+    @ddt.data(*set(('2.50', LATEST_MICROVERSION)))
+    def test_update(self, microversion):
+        manager = self._get_share_types_manager(microversion)
+        self.mock_object(manager, '_update', mock.Mock(return_value="fake"))
+        share_type = 1234
+        name = "updated-test-type-1234"
+        description = "updated test description"
+        is_public_key_name = "share_type_access:is_public"
+        is_public = False
+        expected_body = {
+            "share_type": {
+                "name": name,
+                is_public_key_name: is_public,
+            }
+        }
+        result = manager.update(
+            share_type, name, is_public, description)
+        expected_body['share_type']['description'] = description
+        manager._update.assert_called_once_with(
+            "/types/%s" % share_type, expected_body, "share_type")
+        self.assertEqual("fake", result)
 
     def test_delete(self):
         cs.share_types.delete(1)

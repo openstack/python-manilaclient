@@ -101,6 +101,10 @@ class ShareType(common_base.Resource):
             if resp is not None:
                 return resp
 
+    def update(self, **kwargs):
+        """Update this share type."""
+        return self.manager.update(self, **kwargs)
+
 
 class ShareTypeManager(base.ManagerWithFind):
     """Manage :class:`ShareType` resources."""
@@ -164,6 +168,30 @@ class ShareTypeManager(base.ManagerWithFind):
             body["share_type"]["description"] = description
         return self._create("/types", body, "share_type")
 
+    def _do_update(self, share_type, name=None, is_public=None,
+                   is_public_keyname="share_type_access:is_public",
+                   description=None):
+        """Update the name and/or description for a share type.
+
+        :param share_type: the ID of the :class: `ShareType` to update.
+        :param name: Descriptive name of the share type.
+        :param description: Description of the share type.
+        :rtype: :class:`ShareType`
+        """
+
+        body = {
+            "share_type": {}
+        }
+
+        if name:
+            body["share_type"]["name"] = name
+        if is_public is not None:
+            body["share_type"][is_public_keyname] = is_public
+        if description or description == "":
+            body["share_type"]["description"] = description
+        return self._update("/types/%s" % common_base.getid(share_type),
+                            body, "share_type")
+
     @api_versions.wraps("1.0", "2.6")
     def create(self, name, spec_driver_handles_share_servers,
                spec_snapshot_support=None, is_public=True, extra_specs=None):
@@ -219,6 +247,11 @@ class ShareTypeManager(base.ManagerWithFind):
         self._handle_spec_snapshot_support(extra_specs, spec_snapshot_support)
 
         return self._do_create(name, extra_specs, is_public,
+                               description=description)
+
+    @api_versions.wraps("2.50")
+    def update(self, share_type, name=None, is_public=None, description=None):
+        return self._do_update(share_type, name, is_public,
                                description=description)
 
     def _handle_spec_driver_handles_share_servers(

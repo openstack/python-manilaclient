@@ -925,8 +925,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_types_1234(self, **kw):
         return (200, {}, {
-            'share_type': {'id': 1,
-                           'name': 'test-type-1',
+            'share_type': {'id': 1234,
+                           'name': 'test-type-1234',
+                           'share_type_access:is_public': True,
                            'description': "test share type desc",
                            'extra_specs': {'test': 'test'},
                            'required_extra_specs': {'test': 'test'}}})

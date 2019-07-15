@@ -4134,6 +4134,55 @@ def do_type_create(cs, args):
 @cliutils.arg(
     'id',
     metavar='<id>',
+    help="Name or ID of the share type to update.")
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    type=str,
+    help="New name of share type.")
+@cliutils.arg(
+    '--description',
+    metavar='<description>',
+    type=str,
+    default=None,
+    help="New description of share type.")
+@cliutils.arg(
+    '--is-public',
+    '--is_public',
+    metavar='<is_public>',
+    action='single_alias',
+    help="New visibility of the share type. If set to True, share type will "
+         "be available to all projects in the cloud.")
+@api_versions.wraps("2.50")
+def do_type_update(cs, args):
+    """Update share type name, description, and/or visibility. (Admin only)."""
+    name = getattr(args, 'name')
+    description = getattr(args, 'description')
+    is_public = getattr(args, 'is_public')
+    if not name and description is None and is_public is None:
+        msg = ("A description and/or non-empty name and/or boolean is_public "
+               "must be supplied to update the respective attributes of the "
+               "share type.")
+        raise exceptions.CommandError(msg)
+    kwargs = {}
+    kwargs['name'] = name
+    if is_public:
+        try:
+            kwargs['is_public'] = strutils.bool_from_string(is_public,
+                                                            strict=True)
+        except ValueError as e:
+            raise exceptions.CommandError("The value of 'is_public' is"
+                                          " invalid: %s", six.text_type(e))
+
+    kwargs['description'] = description
+    stype = _find_share_type(cs, args.id)
+    stype = stype.update(**kwargs)
+    _print_share_type(stype, show_des=True)
+
+
+@cliutils.arg(
+    'id',
+    metavar='<id>',
     nargs='+',
     help="Name or ID of the share type(s) to delete.")
 def do_type_delete(cs, args):
