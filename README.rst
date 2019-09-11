@@ -10,9 +10,11 @@ Team and repository tags
 Python bindings to the OpenStack Manila API
 ===========================================
 
-.. image:: https://img.shields.io/pypi/v/python-manilaclient.svg
-    :target: https://pypi.org/project/python-manilaclient/
-    :alt: Latest Version
+.. only: html
+
+   .. image:: https://img.shields.io/pypi/v/python-manilaclient.svg
+      :target: https://pypi.org/project/python-manilaclient/
+      :alt: Latest Version
 
 This is a client for the OpenStack Manila API. There's a Python API (the
 ``manilaclient`` module), and a command-line script (``manila``). Each
