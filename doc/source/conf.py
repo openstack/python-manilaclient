@@ -82,3 +82,38 @@ bug_project = 'python-manilaclient'
 bug_tag = 'docs'
 html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
+# -- Options for LaTeX output -------------------------------------------------
+
+# Docs job does not install xindy
+latex_use_xindy = False
+
+# The paper size ('letter' or 'a4').
+# latex_paper_size = 'letter'
+
+# The font size ('10pt', '11pt' or '12pt').
+# latex_font_size = '10pt'
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title, author, documentclass
+# [howto/manual]).
+latex_documents = [
+    ('index', 'Manila-client.tex', u'Manila Python Client Documentation',
+     u'Manila contributors', 'manual'),
+]
+
+# The name of an image file (relative to this directory) to place at the top of
+# the title page.
+# latex_logo = None
+
+# For "manual" documents, if this is true, then toplevel headings are parts,
+# not chapters.
+# latex_use_parts = False
+
+# Additional stuff for the LaTeX preamble.
+# latex_preamble = ''
+
+# Documents to append as an appendix to all manuals.
+# latex_appendices = []
+
+# If false, no module index is generated.
+# latex_use_modindex = True
