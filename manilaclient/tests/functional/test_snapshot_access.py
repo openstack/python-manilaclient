@@ -26,25 +26,23 @@ CONF = config.CONF
 class SnapshotAccessReadBase(base.BaseTestCase):
     protocol = None
 
-    @classmethod
-    def setUpClass(cls):
-        super(SnapshotAccessReadBase, cls).setUpClass()
-        if cls.protocol not in CONF.enable_protocols:
-            message = "%s tests are disabled." % cls.protocol
-            raise cls.skipException(message)
-        cls.access_types = CONF.access_types_mapping.get(
-            cls.protocol, '').split(' ')
-        if not cls.access_types:
-            raise cls.skipException("No access types were provided for %s "
-                                    "snapshot access tests." % cls.protocol)
+    def setUp(self):
+        super(SnapshotAccessReadBase, self).setUp()
+        if self.protocol not in CONF.enable_protocols:
+            message = "%s tests are disabled." % self.protocol
+            raise self.skipException(message)
+        self.access_types = CONF.access_types_mapping.get(
+            self.protocol, '').split(' ')
+        if not self.access_types:
+            raise self.skipException("No access types were provided for %s "
+                                     "snapshot access tests." % self.protocol)
 
-        cls.share = cls.create_share(share_protocol=cls.protocol,
-                                     public=True,
-                                     cleanup_in_class=True,
-                                     client=cls.get_user_client())
+        self.share = self.create_share(share_protocol=self.protocol,
+                                       public=True,
+                                       client=self.get_user_client())
         int_range = range(0, 10)
 
-        cls.access_to = {
+        self.access_to = {
             'ip': ['99.88.77.%d' % i for i in int_range],
             'user': ['foo_user_%d' % i for i in int_range],
             'cert': ['tenant_%d.example.com' % i for i in int_range],

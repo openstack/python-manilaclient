@@ -22,17 +22,16 @@ from manilaclient.tests.functional import base
 @ddt.ddt
 class SecurityServiceReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SecurityServiceReadWriteTest, cls).setUpClass()
-        cls.name = data_utils.rand_name('autotest')
-        cls.description = 'fake_description'
-        cls.user = 'fake_user'
-        cls.password = 'fake_password'
-        cls.server = 'fake_server'
-        cls.domain = 'fake_domain'
-        cls.dns_ip = '1.2.3.4'
-        cls.ou = 'fake_ou'
+    def setUp(self):
+        super(SecurityServiceReadWriteTest, self).setUp()
+        self.name = data_utils.rand_name('autotest')
+        self.description = 'fake_description'
+        self.user = 'fake_user'
+        self.password = 'fake_password'
+        self.server = 'fake_server'
+        self.domain = 'fake_domain'
+        self.dns_ip = '1.2.3.4'
+        self.ou = 'fake_ou'
 
     @ddt.data(
         {'name': 'test_name'},

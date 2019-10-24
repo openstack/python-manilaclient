@@ -50,8 +50,7 @@ class QuotasReadWriteTest(base.BaseTestCase):
             name=data_utils.rand_name("manilaclient_functional_test"),
             driver_handles_share_servers=False,
             is_public=True,
-            microversion=self.microversion,
-            cleanup_in_class=False,
+            microversion=self.microversion
         )
         self.st_id = self.share_type["ID"]
 

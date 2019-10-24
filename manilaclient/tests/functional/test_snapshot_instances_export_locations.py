@@ -31,15 +31,12 @@ CONF = config.CONF
 @utils.skip_if_microversion_not_supported('2.32')
 class SnapshotInstanceExportLocationReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SnapshotInstanceExportLocationReadWriteTest, cls).setUpClass()
-        cls.share = cls.create_share(
-            client=cls.get_user_client(),
-            cleanup_in_class=True)
-        cls.snapshot = cls.create_snapshot(share=cls.share['id'],
-                                           client=cls.get_user_client(),
-                                           cleanup_in_class=True)
+    def setUp(self):
+        super(SnapshotInstanceExportLocationReadWriteTest, self).setUp()
+        self.share = self.create_share(
+            client=self.get_user_client())
+        self.snapshot = self.create_snapshot(share=self.share['id'],
+                                             client=self.get_user_client())
 
     def test_get_snapshot_instance_export_location(self):
         client = self.admin_client

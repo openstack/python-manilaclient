@@ -24,19 +24,18 @@ from tempest.lib import exceptions
 @utils.skip_if_microversion_not_supported('2.51')
 class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(ShareNetworkSubnetsReadWriteTest, cls).setUpClass()
-        cls.name = data_utils.rand_name('autotest')
-        cls.description = 'fake_description'
-        cls.neutron_net_id = 'fake_neutron_net_id'
-        cls.neutron_subnet_id = 'fake_neutron_subnet_id'
+    def setUp(self):
+        super(ShareNetworkSubnetsReadWriteTest, self).setUp()
+        self.name = data_utils.rand_name('autotest')
+        self.description = 'fake_description'
+        self.neutron_net_id = 'fake_neutron_net_id'
+        self.neutron_subnet_id = 'fake_neutron_subnet_id'
 
-        cls.sn = cls.create_share_network(
-            name=cls.name,
-            description=cls.description,
-            neutron_net_id=cls.neutron_net_id,
-            neutron_subnet_id=cls.neutron_subnet_id,
+        self.sn = self.create_share_network(
+            name=self.name,
+            description=self.description,
+            neutron_net_id=self.neutron_net_id,
+            neutron_subnet_id=self.neutron_subnet_id,
         )
 
     def test_get_share_network_subnet(self):

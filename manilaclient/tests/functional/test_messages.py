@@ -31,10 +31,9 @@ class MessagesReadOnlyTest(base.BaseTestCase):
 @ddt.ddt
 class MessagesReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(MessagesReadWriteTest, cls).setUpClass()
-        cls.message = cls.create_message(cleanup_in_class=True)
+    def setUp(self):
+        super(MessagesReadWriteTest, self).setUp()
+        self.message = self.create_message()
 
     def test_list_messages(self):
         self.skip_if_microversion_not_supported('2.37')
