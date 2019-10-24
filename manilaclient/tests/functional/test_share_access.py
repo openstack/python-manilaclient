@@ -30,34 +30,32 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
     protocol = None
     access_level = None
 
-    @classmethod
-    def setUpClass(cls):
-        super(ShareAccessReadWriteBase, cls).setUpClass()
-        if cls.protocol not in CONF.enable_protocols:
-            message = "%s tests are disabled." % cls.protocol
-            raise cls.skipException(message)
-        if cls.access_level not in CONF.access_levels_mapping.get(
-                cls.protocol, '').split(' '):
-            raise cls.skipException("%(level)s tests for %(protocol)s share "
-                                    "access are disabled." % {
-                                        'level': cls.access_level,
-                                        'protocol': cls.protocol
-                                    })
-        cls.access_types = CONF.access_types_mapping.get(
-            cls.protocol, '').split(' ')
-        if not cls.access_types:
-            raise cls.skipException("No access levels were provided for %s "
-                                    "share access tests." % cls.protoco)
+    def setUp(self):
+        super(ShareAccessReadWriteBase, self).setUp()
+        if self.protocol not in CONF.enable_protocols:
+            message = "%s tests are disabled." % self.protocol
+            raise self.skipException(message)
+        if self.access_level not in CONF.access_levels_mapping.get(
+                self.protocol, '').split(' '):
+            raise self.skipException("%(level)s tests for %(protocol)s share "
+                                     "access are disabled." % {
+                                         'level': self.access_level,
+                                         'protocol': self.protocol
+                                     })
+        self.access_types = CONF.access_types_mapping.get(
+            self.protocol, '').split(' ')
+        if not self.access_types:
+            raise self.skipException("No access levels were provided for %s "
+                                     "share access tests." % self.protocol)
 
-        cls.share = cls.create_share(share_protocol=cls.protocol,
-                                     public=True,
-                                     cleanup_in_class=True)
-        cls.share_id = cls.share['id']
+        self.share = self.create_share(share_protocol=self.protocol,
+                                       public=True)
+        self.share_id = self.share['id']
 
         # NOTE(vponomaryov): increase following int range when significant
         # amount of new tests is added.
         int_range = range(20, 50)
-        cls.access_to = {
+        self.access_to = {
             # NOTE(vponomaryov): list of unique values is required for ability
             # to create lots of access rules for one share using different
             # API microversions.

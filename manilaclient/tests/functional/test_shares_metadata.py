@@ -21,19 +21,15 @@ from manilaclient.tests.functional import base
 @ddt.ddt
 class SharesMetadataReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SharesMetadataReadWriteTest, cls).setUpClass()
-        cls.share = cls.create_share(
-            client=cls.get_user_client(),
-            cleanup_in_class=True)
+    def setUp(self):
+        super(SharesMetadataReadWriteTest, self).setUp()
+        self.share = self.create_share(client=self.get_user_client())
 
     def test_set_metadata_in_share_creation(self):
         md = {"key1": "value1", "key2": "value2"}
 
         # Create share with metadata
-        share = self.create_share(
-            metadata=md, cleanup_in_class=False, client=self.get_user_client())
+        share = self.create_share(metadata=md, client=self.get_user_client())
 
         # Read share metadata
         metadata = self.user_client.get_share_metadata(share["id"])

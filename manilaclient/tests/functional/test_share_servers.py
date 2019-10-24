@@ -30,10 +30,9 @@ CONF = config.CONF
 @ddt.ddt
 class ShareServersReadOnlyTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(ShareServersReadOnlyTest, cls).setUpClass()
-        cls.client = cls.get_admin_client()
+    def setUp(self):
+        super(ShareServersReadOnlyTest, self).setUp()
+        self.client = self.get_admin_client()
 
     def test_share_server_list(self):
         self.client.list_share_servers()
@@ -68,20 +67,19 @@ class ShareServersReadWriteBase(base.BaseTestCase):
 
     protocol = None
 
-    @classmethod
-    def setUpClass(cls):
-        super(ShareServersReadWriteBase, cls).setUpClass()
+    def setUp(self):
+        super(ShareServersReadWriteBase, self).setUp()
         if not CONF.run_share_servers_tests:
             message = "share-servers tests are disabled."
-            raise cls.skipException(message)
-        if cls.protocol not in CONF.enable_protocols:
-            message = "%s tests are disabled." % cls.protocol
-            raise cls.skipException(message)
+            raise self.skipException(message)
+        if self.protocol not in CONF.enable_protocols:
+            message = "%s tests are disabled." % self.protocol
+            raise self.skipException(message)
 
-        cls.client = cls.get_admin_client()
-        if not cls.client.share_network:
+        self.client = self.get_admin_client()
+        if not self.client.share_network:
             message = "Can run only with DHSS=True mode"
-            raise cls.skipException(message)
+            raise self.skipException(message)
 
     def _create_share_and_share_network(self):
         name = data_utils.rand_name('autotest_share_name')

@@ -26,19 +26,18 @@ from manilaclient.tests.functional import utils
 @ddt.ddt
 class ShareNetworksReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(ShareNetworksReadWriteTest, cls).setUpClass()
-        cls.name = data_utils.rand_name('autotest')
-        cls.description = 'fake_description'
-        cls.neutron_net_id = 'fake_neutron_net_id'
-        cls.neutron_subnet_id = 'fake_neutron_subnet_id'
+    def setUp(self):
+        super(ShareNetworksReadWriteTest, self).setUp()
+        self.name = data_utils.rand_name('autotest')
+        self.description = 'fake_description'
+        self.neutron_net_id = 'fake_neutron_net_id'
+        self.neutron_subnet_id = 'fake_neutron_subnet_id'
 
-        cls.sn = cls.create_share_network(
-            name=cls.name,
-            description=cls.description,
-            neutron_net_id=cls.neutron_net_id,
-            neutron_subnet_id=cls.neutron_subnet_id,
+        self.sn = self.create_share_network(
+            name=self.name,
+            description=self.description,
+            neutron_net_id=self.neutron_net_id,
+            neutron_subnet_id=self.neutron_subnet_id,
         )
 
     @ddt.data(
@@ -125,33 +124,56 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
             self.assertEqual(self.neutron_net_id, get['neutron_net_id'])
             self.assertEqual(self.neutron_subnet_id, get['neutron_subnet_id'])
 
+    def _get_expected_update_data(self, net_data, net_creation_data):
+        # NOTE(dviroel): When subnets are supported, the outputs are converted
+        # from string to literal structures in order to process the content of
+        # 'share_network_subnets' field.
+        default_return_value = (
+            None if utils.share_network_subnets_are_supported() else 'None')
+
+        expected_nn_id = (
+            default_return_value
+            if net_data.get('neutron_net_id')
+            else net_creation_data.get('neutron_net_id', default_return_value))
+        expected_nsn_id = (
+            default_return_value
+            if net_data.get('neutron_subnet_id')
+            else net_creation_data.get('neutron_subnet_id',
+                                       default_return_value))
+        return expected_nn_id, expected_nsn_id
+
     @ddt.data(
-        {'name': data_utils.rand_name('autotest_share_network_name')},
-        {'description': 'fake_description'},
-        {'neutron_net_id': 'fake_neutron_net_id',
-         'neutron_subnet_id': 'fake_neutron_subnet_id'},
-        {'name': '""'},
-        {'description': '""'},
-        {'neutron_net_id': '""'},
-        {'neutron_subnet_id': '""'},
+        ({'name': data_utils.rand_name('autotest_share_network_name')}, {}),
+        ({'description': 'fake_description'}, {}),
+        ({'neutron_net_id': 'fake_neutron_net_id',
+          'neutron_subnet_id': 'fake_neutron_subnet_id'}, {}),
+        ({'name': '""'}, {}),
+        ({'description': '""'}, {}),
+        ({'neutron_net_id': '""'},
+         {'neutron_net_id': 'fake_nn_id', 'neutron_subnet_id': 'fake_nsn_id'}),
+        ({'neutron_subnet_id': '""'},
+         {'neutron_net_id': 'fake_nn_id', 'neutron_subnet_id': 'fake_nsn_id'})
     )
-    def test_create_update_share_network(self, net_data):
-        sn = self.create_share_network(cleanup_in_class=False)
+    @ddt.unpack
+    def test_create_update_share_network(self, net_data, net_creation_data):
+        sn = self.create_share_network(
+            cleanup_in_class=False, **net_creation_data)
 
         update = self.admin_client.update_share_network(sn['id'], **net_data)
+
+        expected_nn_id, expected_nsn_id = self._get_expected_update_data(
+            net_data, net_creation_data)
 
         expected_data = {
             'name': 'None',
             'description': 'None',
-            'neutron_net_id': 'None',
-            'neutron_subnet_id': 'None',
+            'neutron_net_id': expected_nn_id,
+            'neutron_subnet_id': expected_nsn_id,
         }
         subnet_keys = []
         if utils.share_network_subnets_are_supported():
             subnet_keys = ['neutron_net_id', 'neutron_subnet_id']
             subnet = ast.literal_eval(update['share_network_subnets'])
-            expected_data['neutron_net_id'] = None
-            expected_data['neutron_subnet_id'] = None
 
         update_values = dict([(k, v) for k, v in net_data.items()
                               if v != '""'])

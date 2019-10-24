@@ -22,12 +22,10 @@ from manilaclient.tests.functional import base
 @ddt.ddt
 class ExportLocationReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(ExportLocationReadWriteTest, cls).setUpClass()
-        cls.share = cls.create_share(
-            client=cls.get_user_client(),
-            cleanup_in_class=True)
+    def setUp(self):
+        super(ExportLocationReadWriteTest, self).setUp()
+        self.share = self.create_share(
+            client=self.get_user_client())
 
     @ddt.data('admin', 'user')
     def test_list_share_export_locations(self, role):

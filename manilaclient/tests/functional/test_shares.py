@@ -29,24 +29,22 @@ CONF = config.CONF
 class SharesReadWriteBase(base.BaseTestCase):
     protocol = None
 
-    @classmethod
-    def setUpClass(cls):
-        super(SharesReadWriteBase, cls).setUpClass()
-        if cls.protocol not in CONF.enable_protocols:
-            message = "%s tests are disabled" % cls.protocol
-            raise cls.skipException(message)
-        cls.name = data_utils.rand_name('autotest_share_name')
-        cls.description = data_utils.rand_name('autotest_share_description')
+    def setUp(self):
+        super(SharesReadWriteBase, self).setUp()
+        if self.protocol not in CONF.enable_protocols:
+            message = "%s tests are disabled" % self.protocol
+            raise self.skipException(message)
+        self.name = data_utils.rand_name('autotest_share_name')
+        self.description = data_utils.rand_name('autotest_share_description')
 
         # NOTE(vponomaryov): following share is used only in one test
         # until tests for snapshots appear.
-        cls.share = cls.create_share(
-            share_protocol=cls.protocol,
+        self.share = self.create_share(
+            share_protocol=self.protocol,
             size=1,
-            name=cls.name,
-            description=cls.description,
-            client=cls.get_user_client(),
-            cleanup_in_class=True)
+            name=self.name,
+            description=self.description,
+            client=self.get_user_client())
 
     def test_create_delete_share(self):
         name = data_utils.rand_name('autotest_share_name')
@@ -96,29 +94,28 @@ class SharesReadWriteBase(base.BaseTestCase):
 @ddt.ddt
 class SharesTestMigration(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SharesTestMigration, cls).setUpClass()
+    def setUp(self):
+        super(SharesTestMigration, self).setUp()
 
-        cls.old_type = cls.create_share_type(
+        self.old_type = self.create_share_type(
             data_utils.rand_name('test_share_type'),
             driver_handles_share_servers=True)
-        cls.new_type = cls.create_share_type(
+        self.new_type = self.create_share_type(
             data_utils.rand_name('test_share_type'),
             driver_handles_share_servers=True)
-        cls.error_type = cls.create_share_type(
+        self.error_type = self.create_share_type(
             data_utils.rand_name('test_share_type'),
             driver_handles_share_servers=True,
             extra_specs={'cause_error': 'no_valid_host'})
 
-        cls.old_share_net = cls.get_user_client().get_share_network(
-            cls.get_user_client().share_network)
+        self.old_share_net = self.get_user_client().get_share_network(
+            self.get_user_client().share_network)
         share_net_info = (
-            utils.get_default_subnet(cls.get_user_client(),
-                                     cls.old_share_net['id'])
+            utils.get_default_subnet(self.get_user_client(),
+                                     self.old_share_net['id'])
             if utils.share_network_subnets_are_supported()
-            else cls.old_share_net)
-        cls.new_share_net = cls.create_share_network(
+            else self.old_share_net)
+        self.new_share_net = self.create_share_network(
             neutron_net_id=share_net_info['neutron_net_id'],
             neutron_subnet_id=share_net_info['neutron_subnet_id'])
 

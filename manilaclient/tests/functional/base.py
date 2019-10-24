@@ -202,7 +202,7 @@ class BaseTestCase(base.ClientTestBase):
                           snapshot_support=None,
                           create_share_from_snapshot=None,
                           revert_to_snapshot=None, mount_snapshot=None,
-                          is_public=True, client=None, cleanup_in_class=True,
+                          is_public=True, client=None, cleanup_in_class=False,
                           microversion=None, extra_specs=None,
                           description=None):
         if client is None:
@@ -257,7 +257,7 @@ class BaseTestCase(base.ClientTestBase):
                              neutron_net_id=None,
                              neutron_subnet_id=None,
                              availability_zone=None, client=None,
-                             cleanup_in_class=True, microversion=None):
+                             cleanup_in_class=False, microversion=None):
         if client is None:
             client = cls.get_admin_client()
         share_network = client.create_share_network(
@@ -284,7 +284,7 @@ class BaseTestCase(base.ClientTestBase):
     def add_share_network_subnet(cls, share_network,
                                  neutron_net_id=None, neutron_subnet_id=None,
                                  availability_zone=None, client=None,
-                                 cleanup_in_class=True, microversion=None):
+                                 cleanup_in_class=False, microversion=None):
         if client is None:
             client = cls.get_admin_client()
         share_network_subnet = client.add_share_network_subnet(

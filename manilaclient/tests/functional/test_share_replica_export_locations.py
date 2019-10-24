@@ -29,16 +29,11 @@ CONF = config.CONF
 @utils.skip_if_microversion_not_supported('2.47')
 class ShareReplicaExportLocationsTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(ShareReplicaExportLocationsTest, cls).setUpClass()
-
     def _create_share_and_replica(self):
         replication_type = CONF.replication_type
         share_type = self.create_share_type(
             driver_handles_share_servers=False,
-            extra_specs={'replication_type': replication_type},
-            cleanup_in_class=False)
+            extra_specs={'replication_type': replication_type})
         share = self.create_share(share_type=share_type['ID'],
                                   client=self.get_user_client())
         share_replica = self.create_share_replica(share['id'])

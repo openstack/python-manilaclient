@@ -112,47 +112,43 @@ class SharesListReadOnlyTest(base.BaseTestCase):
 @ddt.ddt
 class SharesListReadWriteTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SharesListReadWriteTest, cls).setUpClass()
-        cls.private_name = data_utils.rand_name('autotest_share_name')
-        cls.private_description = data_utils.rand_name(
+    def setUp(self):
+        super(SharesListReadWriteTest, self).setUp()
+        self.private_name = data_utils.rand_name('autotest_share_name')
+        self.private_description = data_utils.rand_name(
             'autotest_share_description')
-        cls.public_name = data_utils.rand_name('autotest_public_share_name')
-        cls.public_description = data_utils.rand_name(
+        self.public_name = data_utils.rand_name('autotest_public_share_name')
+        self.public_description = data_utils.rand_name(
             'autotest_public_share_description')
 
-        cls.admin_private_name = data_utils.rand_name(
+        self.admin_private_name = data_utils.rand_name(
             'autotest_admin_private_share_name')
-        cls.admin_private_description = data_utils.rand_name(
+        self.admin_private_description = data_utils.rand_name(
             'autotest_admin_private_share_description')
 
-        cls.admin_private_share = cls.create_share(
-            name=cls.admin_private_name,
-            description=cls.admin_private_description,
+        self.admin_private_share = self.create_share(
+            name=self.admin_private_name,
+            description=self.admin_private_description,
             public=False,
-            cleanup_in_class=True,
             client=None,
             wait_for_creation=False)
 
-        cls.private_share = cls.create_share(
-            name=cls.private_name,
-            description=cls.private_description,
+        self.private_share = self.create_share(
+            name=self.private_name,
+            description=self.private_description,
             public=False,
-            cleanup_in_class=True,
-            client=cls.get_user_client(),
+            client=self.get_user_client(),
             wait_for_creation=False)
 
-        cls.public_share = cls.create_share(
-            name=cls.public_name,
-            description=cls.public_description,
+        self.public_share = self.create_share(
+            name=self.public_name,
+            description=self.public_description,
             public=True,
-            client=cls.get_user_client(),
-            cleanup_in_class=True)
+            client=self.get_user_client())
 
-        for share_id in (cls.private_share['id'], cls.public_share['id'],
-                         cls.admin_private_share['id']):
-            cls.get_admin_client().wait_for_resource_status(
+        for share_id in (self.private_share['id'], self.public_share['id'],
+                         self.admin_private_share['id']):
+            self.get_admin_client().wait_for_resource_status(
                 share_id, constants.STATUS_AVAILABLE)
 
     def _list_shares(self, filters=None):
@@ -319,8 +315,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
             name=u'共享名称',
             description=u'共享描述',
             public=True,
-            client=self.get_user_client(),
-            cleanup_in_class=True)
+            client=self.get_user_client())
         filters = {'name~': u'名称'}
         shares = self.user_client.list_shares(filters=filters)
         self.assertGreater(len(shares), 0)

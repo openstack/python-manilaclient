@@ -30,15 +30,12 @@ CONF = config.CONF
 @utils.skip_if_microversion_not_supported('2.19')
 class SnapshotInstancesTest(base.BaseTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(SnapshotInstancesTest, cls).setUpClass()
-        cls.share = cls.create_share(
-            client=cls.get_user_client(),
-            cleanup_in_class=True)
-        cls.snapshot = cls.create_snapshot(share=cls.share['id'],
-                                           client=cls.get_user_client(),
-                                           cleanup_in_class=True)
+    def setUp(self):
+        super(SnapshotInstancesTest, self).setUp()
+        self.share = self.create_share(
+            client=self.get_user_client())
+        self.snapshot = self.create_snapshot(share=self.share['id'],
+                                             client=self.get_user_client())
 
     def test_list_all_snapshot_instances(self):
         snapshot_instances = self.admin_client.list_snapshot_instances()
