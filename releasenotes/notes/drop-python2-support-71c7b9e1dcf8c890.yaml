@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    Python 2.7 support has been dropped. The last release of
+    openstack/python-manilaclient to support python 2.7 is OpenStack Train
+    (python-manilaclient version 1.29.x). The minimum version of Python now
+    supported by openstack/python-manilaclient is Python 3.6.
