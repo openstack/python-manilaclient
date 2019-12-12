@@ -15,6 +15,7 @@
 
 import argparse
 import mock
+import uuid
 
 from mock import call
 
@@ -862,3 +863,148 @@ class TestShareShow(TestShare):
         self.assertEqual(
             manila_fakes.FakeShare.get_share_data(self._share),
             data)
+
+
+class TestShareSet(TestShare):
+
+    def setUp(self):
+        super(TestShareSet, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share()
+        self.shares_mock.get.return_value = self._share
+
+        # Get the command object to test
+        self.cmd = osc_shares.SetShare(self.app, None)
+
+    def test_share_set_property(self):
+        arglist = [
+            '--property', 'Zorilla=manila',
+            self._share.id,
+        ]
+        verifylist = [
+            ('property', {'Zorilla': 'manila'}),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.set_metadata.assert_called_with(
+            self._share.id,
+            {'Zorilla': 'manila'})
+
+    def test_share_set_name(self):
+        new_name = uuid.uuid4().hex
+        arglist = [
+            '--name', new_name,
+            self._share.id,
+        ]
+        verifylist = [
+            ('name', new_name),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.update.assert_called_with(
+            self._share.id,
+            display_name=parsed_args.name)
+
+    def test_share_set_description(self):
+        new_description = uuid.uuid4().hex
+        arglist = [
+            '--description', new_description,
+            self._share.id,
+        ]
+        verifylist = [
+            ('description', new_description),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.update.assert_called_with(
+            self._share.id,
+            display_description=parsed_args.description)
+
+    def test_share_set_visibility(self):
+        arglist = [
+            '--public', 'true',
+            self._share.id,
+        ]
+        verifylist = [
+            ('public', 'true'),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.update.assert_called_with(
+            self._share.id,
+            is_public='true')
+
+
+class TestShareUnset(TestShare):
+
+    def setUp(self):
+        super(TestShareUnset, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share()
+        self.shares_mock.get.return_value = self._share
+
+        # Get the command objects to test
+        self.cmd = osc_shares.UnsetShare(self.app, None)
+
+    def test_share_unset_property(self):
+        arglist = [
+            '--property', 'Manila',
+            self._share.id,
+        ]
+        verifylist = [
+            ('property', ['Manila']),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.delete_metadata.assert_called_with(
+            self._share.id,
+            parsed_args.property)
+
+    def test_share_unset_name(self):
+        arglist = [
+            '--name',
+            self._share.id,
+        ]
+        verifylist = [
+            ('name', True),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.update.assert_called_with(
+            self._share.id,
+            display_name=None)
+
+    def test_share_unset_description(self):
+        arglist = [
+            '--description',
+            self._share.id,
+        ]
+        verifylist = [
+            ('description', True),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.update.assert_called_with(
+            self._share.id,
+            display_description=None)
