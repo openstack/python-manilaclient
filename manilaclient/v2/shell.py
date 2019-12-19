@@ -67,24 +67,6 @@ def _find_share(cs, share):
     return apiclient_utils.find_resource(cs.shares, share)
 
 
-def _transform_export_locations_to_string_view(export_locations):
-    export_locations_string_view = ''
-    replica_export_location_ignored_keys = (
-        'replica_state', 'availability_zone', 'share_replica_id')
-    for el in export_locations:
-        if hasattr(el, '_info'):
-            export_locations_dict = el._info
-        else:
-            export_locations_dict = el
-        for k, v in export_locations_dict.items():
-            # NOTE(gouthamr): We don't want to show replica related info
-            # twice in the output, so ignore those.
-            if k not in replica_export_location_ignored_keys:
-                export_locations_string_view += '\n%(k)s = %(v)s' % {
-                    'k': k, 'v': v}
-    return export_locations_string_view
-
-
 @api_versions.wraps("1.0", "2.8")
 def _print_share(cs, share):
     info = share._info.copy()
@@ -142,7 +124,7 @@ def _print_share(cs, share):
     # +-------------------+--------------------------------------------+
     if info.get('export_locations'):
         info['export_locations'] = (
-            _transform_export_locations_to_string_view(
+            cliutils.transform_export_locations_to_string_view(
                 info['export_locations']))
 
     # No need to print both volume_type and share_type to CLI
@@ -191,7 +173,7 @@ def _print_share_instance(cs, instance):
     info.pop('links', None)
     if info.get('export_locations'):
         info['export_locations'] = (
-            _transform_export_locations_to_string_view(
+            cliutils.transform_export_locations_to_string_view(
                 info['export_locations']))
     cliutils.print_dict(info)
 
@@ -214,7 +196,7 @@ def _print_share_replica(cs, replica):
     info.pop('links', None)
     if info.get('export_locations'):
         info['export_locations'] = (
-            _transform_export_locations_to_string_view(
+            cliutils.transform_export_locations_to_string_view(
                 info['export_locations']))
     cliutils.print_dict(info)
 
@@ -267,7 +249,7 @@ def _print_share_snapshot(cs, snapshot):
 
     if info.get('export_locations'):
         info['export_locations'] = (
-            _transform_export_locations_to_string_view(
+            cliutils.transform_export_locations_to_string_view(
                 info['export_locations']))
 
     cliutils.print_dict(info)

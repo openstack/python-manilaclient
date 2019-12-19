@@ -77,6 +77,9 @@ TASK_STATE_DATA_COPYING_COMPLETED = 'data_copying_completed'
 EXPERIMENTAL_HTTP_HEADER = 'X-OpenStack-Manila-API-Experimental'
 V1_SERVICE_TYPE = 'share'
 V2_SERVICE_TYPE = 'sharev2'
+# Service type authority recommends using 'shared-file-system' as
+# the service type. See: https://opendev.org/openstack/service-types-authority
+SFS_SERVICE_TYPE = 'shared-file-system'
 
 SERVICE_TYPES = {'1': V1_SERVICE_TYPE, '2': V2_SERVICE_TYPE}
 

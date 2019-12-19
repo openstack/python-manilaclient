@@ -269,3 +269,21 @@ def exit(msg=''):
     if msg:
         print(msg, file=sys.stderr)
     sys.exit(1)
+
+
+def transform_export_locations_to_string_view(export_locations):
+    export_locations_string_view = ''
+    replica_export_location_ignored_keys = (
+        'replica_state', 'availability_zone', 'share_replica_id')
+    for el in export_locations:
+        if hasattr(el, '_info'):
+            export_locations_dict = el._info
+        else:
+            export_locations_dict = el
+        for k, v in export_locations_dict.items():
+            # NOTE(gouthamr): We don't want to show replica related info
+            # twice in the output, so ignore those.
+            if k not in replica_export_location_ignored_keys:
+                export_locations_string_view += '\n%(k)s = %(v)s' % {
+                    'k': k, 'v': v}
+    return export_locations_string_view
