@@ -31,6 +31,8 @@ class FakeShareClient(object):
         self.management_url = kwargs['endpoint']
         self.shares = mock.Mock()
         self.share_access_rules = mock.Mock()
+        self.share_types = mock.Mock()
+        self.share_type_access = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -199,7 +201,7 @@ class FakeShareType(object):
     """Fake one or more share types"""
 
     @staticmethod
-    def create_one_sharetype(attrs=None):
+    def create_one_sharetype(attrs=None, methods=None):
         """Create a fake share type
 
         :param Dictionary attrs:
@@ -209,6 +211,7 @@ class FakeShareType(object):
         """
 
         attrs = attrs or {}
+        methods = methods or {}
 
         share_type_info = {
             "required_extra_specs": {
@@ -232,8 +235,48 @@ class FakeShareType(object):
         share_type_info.update(attrs)
         share_type = osc_fakes.FakeResource(info=copy.deepcopy(
                                             share_type_info),
+                                            methods=methods,
                                             loaded=True)
         return share_type
+
+    @staticmethod
+    def create_share_types(attrs=None, count=2):
+        """Create multiple fake share types.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_types = []
+        for n in range(0, count):
+            share_types.append(FakeShareType.create_one_sharetype(attrs))
+
+        return share_types
+
+    @staticmethod
+    def get_share_types(share_types=None, count=2):
+        """Get an iterable MagicMock object with a list of faked types.
+
+        If types list is provided, then initialize the Mock object with the
+        list. Otherwise create one.
+
+        :param List types:
+            A list of FakeResource objects faking types
+        :param Integer count:
+            The number of types to be faked
+        :return
+            An iterable Mock object with side_effect set to a list of faked
+            types
+        """
+
+        if share_types is None:
+            share_types = FakeShareType.create_share_types(count)
+
+        return mock.Mock(side_effect=share_types)
 
 
 class FakeShareExportLocation(object):

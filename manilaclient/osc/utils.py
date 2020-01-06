@@ -11,8 +11,11 @@
 #   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #   License for the specific language governing permissions and limitations
 #   under the License.
+import six
 
+from oslo_utils import strutils
 
+from manilaclient.common import constants
 from manilaclient import exceptions
 
 
@@ -37,6 +40,7 @@ def extract_key_value_options(pairs):
 
 def format_properties(properties):
     formatted_data = []
+
     for item in properties:
         formatted_data.append("%s : %s" % (item, properties[item]))
     return "\n".join(formatted_data)
@@ -57,3 +61,22 @@ def extract_properties(properties):
                 "Parsing error, expected format 'key=value' for " + item
             )
     return result_dict
+
+
+def extract_extra_specs(extra_specs, specs_to_add):
+    for item in specs_to_add:
+        (key, value) = item.split('=', 1)
+        if key in extra_specs:
+            msg = ("Argument '%s' value specified twice." % key)
+            raise exceptions.CommandError(msg)
+        elif key in constants.BOOL_SPECS:
+            if strutils.is_valid_boolstr(value):
+                extra_specs[key] = value.capitalize()
+            else:
+                msg = ("Argument '%s' is of boolean "
+                       "type and has invalid value: %s"
+                       % (key, six.text_type(value)))
+                raise exceptions.CommandError(msg)
+        else:
+            extra_specs[key] = value
+    return extra_specs

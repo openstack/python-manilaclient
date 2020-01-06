@@ -97,3 +97,15 @@ STATUS_MANAGE_ERROR = 'manage_error'
 STATUS_UNMANAGE_ERROR = 'unmanage_error'
 STATUS_DELETING = 'deleting'
 STATUS_CREATING = 'creating'
+
+SNAPSHOT_SUPPORT = 'snapshot_support'
+CREATE_SHARE_FROM_SNAPSHOT_SUPPORT = 'create_share_from_snapshot_support'
+REVERT_TO_SNAPSHOT_SUPPORT = 'revert_to_snapshot_support'
+MOUNT_SNAPSHOT_SUPPORT = 'mount_snapshot_support'
+
+BOOL_SPECS = (
+    SNAPSHOT_SUPPORT,
+    CREATE_SHARE_FROM_SNAPSHOT_SUPPORT,
+    REVERT_TO_SNAPSHOT_SUPPORT,
+    MOUNT_SNAPSHOT_SUPPORT
+)
