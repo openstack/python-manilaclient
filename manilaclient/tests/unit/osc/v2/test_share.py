@@ -22,8 +22,8 @@ from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
 
 from manilaclient.common import cliutils
 from manilaclient.osc.v2 import share as osc_shares
-from manilaclient.tests.osc.unit import osc_utils
-from manilaclient.tests.osc.unit.v2 import fakes as manila_fakes
+from manilaclient.tests.unit.osc import osc_utils
+from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestShare(manila_fakes.TestShare):

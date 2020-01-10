@@ -18,8 +18,8 @@ import uuid
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
 
-from manilaclient.tests.osc.unit import osc_fakes
-from manilaclient.tests.osc.unit import osc_utils
+from manilaclient.tests.unit.osc import osc_fakes
+from manilaclient.tests.unit.osc import osc_utils
 
 
 class FakeShareClient(object):
