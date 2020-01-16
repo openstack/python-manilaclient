@@ -12,6 +12,7 @@
 #
 
 import copy
+import datetime
 import mock
 import random
 import uuid
@@ -29,6 +30,7 @@ class FakeShareClient(object):
         self.auth_token = kwargs['token']
         self.management_url = kwargs['endpoint']
         self.shares = mock.Mock()
+        self.share_access_rules = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -66,7 +68,7 @@ class FakeShare(object):
     """Fake one or more shares."""
 
     @staticmethod
-    def create_one_share(attrs=None):
+    def create_one_share(attrs=None, methods=None):
         """Create a fake share.
 
         :param Dictionary attrs:
@@ -76,6 +78,7 @@ class FakeShare(object):
         """
 
         attrs = attrs or {}
+        methods = methods or {}
 
         # set default attributes.
         share_info = {
@@ -113,6 +116,7 @@ class FakeShare(object):
         share_info.update(attrs)
 
         share = osc_fakes.FakeResource(info=copy.deepcopy(share_info),
+                                       methods=methods,
                                        loaded=True)
         return share
 
@@ -261,3 +265,36 @@ class FakeShareExportLocation(object):
             share_export_location_info),
             loaded=True)
         return share_export_location
+
+
+class FakeShareAccessRule(object):
+    """Fake one or more share access rules"""
+
+    @staticmethod
+    def create_one_access_rule(attrs=None):
+        """Create a fake share access rule
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        share_access_rule = {
+            'id': 'access_rule-id-' + uuid.uuid4().hex,
+            'share_id': 'share-id-' + uuid.uuid4().hex,
+            'access_level': 'rw',
+            'access_to': 'demo',
+            'access_type': 'user',
+            'state': 'queued_to_apply',
+            'access_key': None,
+            'created_at': datetime.datetime.now().isoformat(),
+            'updated_at': None,
+            'properties': {}
+        }
+
+        share_access_rule.update(attrs)
+        share_access_rule = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_access_rule),
+            loaded=True)
+        return share_access_rule
