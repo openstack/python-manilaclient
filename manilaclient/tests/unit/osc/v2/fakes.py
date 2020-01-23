@@ -33,6 +33,7 @@ class FakeShareClient(object):
         self.share_access_rules = mock.Mock()
         self.share_types = mock.Mock()
         self.share_type_access = mock.Mock()
+        self.quotas = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -341,3 +342,36 @@ class FakeShareAccessRule(object):
             share_access_rule),
             loaded=True)
         return share_access_rule
+
+
+class FakeQuotaSet(object):
+    """Fake quota set"""
+
+    @staticmethod
+    def create_fake_quotas(attrs=None):
+        """Create a fake quota set
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+
+        quotas_info = {
+            'gigabytes': 1000,
+            'id': 'tenant-id-c96a43119a40ec7d01794cb8',
+            'share_group_snapshots': 50,
+            'share_groups': 50,
+            'share_networks': 10,
+            'shares': 50,
+            'shapshot_gigabytes': 1000,
+            'snapshots': 50
+        }
+
+        quotas_info.update(attrs)
+        quotas = osc_fakes.FakeResource(info=copy.deepcopy(
+                                        quotas_info),
+                                        loaded=True)
+        return quotas
