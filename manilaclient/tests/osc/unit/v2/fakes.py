@@ -30,6 +30,9 @@ class FakeShareClient(object):
         self.management_url = kwargs['endpoint']
         self.shares = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
+        self.share_export_locations = mock.Mock()
+        self.share_export_locations.resource_class = (
+            osc_fakes.FakeResource(None, {}))
 
 
 class ManilaParseException(Exception):
@@ -227,3 +230,34 @@ class FakeShareType(object):
                                             share_type_info),
                                             loaded=True)
         return share_type
+
+
+class FakeShareExportLocation(object):
+    """Fake one or more export locations"""
+
+    @staticmethod
+    def create_one_export_location(attrs=None):
+        """Create a fake share export location
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+
+        share_export_location_info = {
+            "fake_uuid": "foo_el_uuid",
+            "fake_path": "/foo/el/path",
+            "fake_share_instance_id": 'share-instance-id' + uuid.uuid4().hex,
+            "is_admin_only": False,
+            "created_at": 'time-' + uuid.uuid4().hex,
+            "updated_at": 'time-' + uuid.uuid4().hex,
+        }
+
+        share_export_location_info.update(attrs)
+        share_export_location = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_export_location_info),
+            loaded=True)
+        return share_export_location
