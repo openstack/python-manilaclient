@@ -4280,7 +4280,7 @@ def do_type_create(cs, args):
     metavar='<is_public>',
     action='single_alias',
     help="New visibility of the share type. If set to True, share type will "
-         "be available to all projects in the cloud.")
+         "be available to all tenants in the cloud.")
 @api_versions.wraps("2.50")
 def do_type_update(cs, args):
     """Update share type name, description, and/or visibility. (Admin only)."""

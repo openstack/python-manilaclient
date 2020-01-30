@@ -259,7 +259,7 @@ class ManilaCLIClient(base.CLIClient):
             if not set then it will not be updated.
         :param is_public: bool/str -- boolean or its string alias.
             new visibility of the share type.If set to True, share
-            type will be available to all projects in the cloud.
+            type will be available to all tenants in the cloud.
         """
 
         cmd = ('type-update %(share_type_id)s ') % {
@@ -562,7 +562,7 @@ class ManilaCLIClient(base.CLIClient):
         """List share networks.
 
         :param all_tenants: bool -- whether to list share-networks that belong
-            only to current project or for all projects.
+            only to current project or for all tenants.
         :param filters: dict -- filters for listing of share networks.
             Example, input:
                 {'project_id': 'foo'}
@@ -801,7 +801,7 @@ class ManilaCLIClient(base.CLIClient):
         """List shares.
 
         :param all_tenants: bool -- whether to list shares that belong
-            only to current project or for all projects.
+            only to current project or for all tenants.
         :param filters: dict -- filters for listing of shares.
             Example, input:
                 {'project_id': 'foo'}

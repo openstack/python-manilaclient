@@ -288,7 +288,7 @@ class TestShareList(TestShare):
 
     def _get_search_opts(self):
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -320,7 +320,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -363,7 +363,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -382,7 +382,7 @@ class TestShareList(TestShare):
         }
 
         search_opts['project_id'] = self.project.id
-        search_opts['all_projects'] = True
+        search_opts['all_tenants'] = True
 
         self.shares_mock.list.assert_called_once_with(
             search_opts=search_opts,
@@ -411,7 +411,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -430,7 +430,7 @@ class TestShareList(TestShare):
         }
 
         search_opts['project_id'] = self.project.id
-        search_opts['all_projects'] = True
+        search_opts['all_tenants'] = True
 
         self.shares_mock.list.assert_called_once_with(
             search_opts=search_opts,
@@ -457,7 +457,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -503,7 +503,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -548,7 +548,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -593,7 +593,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -623,7 +623,7 @@ class TestShareList(TestShare):
 
         self.assertEqual(data, tuple(cmd_data))
 
-    def test_share_list_all_projects(self):
+    def test_share_list_all_tenants(self):
         arglist = [
             '--all-projects',
         ]
@@ -638,7 +638,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -656,7 +656,7 @@ class TestShareList(TestShare):
             'offset': None,
         }
 
-        search_opts['all_projects'] = True
+        search_opts['all_tenants'] = True
 
         self.shares_mock.list.assert_called_once_with(
             search_opts=search_opts,
@@ -682,7 +682,7 @@ class TestShareList(TestShare):
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},
@@ -789,7 +789,7 @@ class TestShareList(TestShare):
         self.assertEqual(self.columns, cmd_columns)
 
         search_opts = {
-            'all_projects': False,
+            'all_tenants': False,
             'is_public': False,
             'metadata': {},
             'extra_specs': {},

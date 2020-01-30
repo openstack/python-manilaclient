@@ -441,8 +441,8 @@ class ListShare(command.Lister):
                                                 parsed_args.user,
                                                 parsed_args.user_domain).id
 
-        # set value of 'all_projects' when using project option
-        all_projects = bool(parsed_args.project) or parsed_args.all_projects
+        # set value of 'all_tenants' when using project option
+        all_tenants = bool(parsed_args.project) or parsed_args.all_projects
 
         share_type_id = None
         if parsed_args.share_type:
@@ -472,7 +472,7 @@ class ListShare(command.Lister):
                 parsed_args.share_server).id
 
         search_opts = {
-            'all_projects': all_projects,
+            'all_tenants': all_tenants,
             'is_public': parsed_args.public,
             'metadata': utils.extract_key_value_options(
                 parsed_args.property),
