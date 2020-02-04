@@ -11,11 +11,21 @@ Manila API in order to use the manila client.
 
 Command-Line Reference
 ~~~~~~~~~~~~~~~~~~~~~~
+There are two shell implementations supported by python-manilaclient.
+The "manila" client supports full feature parity with the manila API:
 
 .. toctree::
    :maxdepth: 2
 
    user/shell
+
+From version 2.0.0, there is a growing support for the OpenStack client.
+It does not yet have full feature parity with the manila API:
+
+.. toctree::
+   :maxdepth: 1
+
+   cli/osc_plugin_cli
 
 Using the python module
 ~~~~~~~~~~~~~~~~~~~~~~~
