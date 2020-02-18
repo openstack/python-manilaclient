@@ -24,6 +24,7 @@ RESOURCE_PATH = '/share-group-snapshots/%s'
 RESOURCE_PATH_ACTION = '/share-group-snapshots/%s/action'
 RESOURCES_NAME = 'share_group_snapshots'
 RESOURCE_NAME = 'share_group_snapshot'
+SG_GRADUATION_VERSION = "2.55"
 
 
 class ShareGroupSnapshot(common_base.Resource):
@@ -49,9 +50,8 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
     """Manage :class:`ShareGroupSnapshot` resources."""
     resource_class = ShareGroupSnapshot
 
-    @api_versions.wraps("2.31")
-    @api_versions.experimental_api
-    def create(self, share_group, name=None, description=None):
+    def _create_share_group_snapshot(self, share_group, name=None,
+                                     description=None):
         """Create a share group snapshot.
 
         :param share_group: either ShareGroup object or text with its UUID
@@ -69,9 +69,18 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         return self._create(
             RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def get(self, share_group_snapshot):
+    def create(self, share_group, name=None, description=None):
+        return self._create_share_group_snapshot(share_group, name,
+                                                 description)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def create(self, share_group, name=None, description=None):
+        return self._create_share_group_snapshot(share_group, name,
+                                                 description)
+
+    def _get_share_group_snapshot(self, share_group_snapshot):
         """Get a share group snapshot.
 
         :param share_group_snapshot: either share group snapshot object or text
@@ -82,10 +91,17 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         url = RESOURCE_PATH % share_group_snapshot_id
         return self._get(url, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None):
+    def get(self, share_group_snapshot):
+        return self._get_share_group_snapshot(share_group_snapshot)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def get(self, share_group_snapshot):
+        return self._get_share_group_snapshot(share_group_snapshot)
+
+    def _list_share_group_snapshots(self, detailed=True, search_opts=None,
+                                    sort_key=None, sort_dir=None):
         """Get a list of all share group snapshots.
 
         :param detailed: Whether to return detailed snapshot info or not.
@@ -129,9 +145,22 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
 
         return self._list(url, RESOURCES_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def update(self, share_group_snapshot, **kwargs):
+    def list(self, detailed=True, search_opts=None,
+             sort_key=None, sort_dir=None):
+        return self._list_share_group_snapshots(
+            detailed=detailed, search_opts=search_opts,
+            sort_key=sort_key, sort_dir=sort_dir)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def list(self, detailed=True, search_opts=None,
+             sort_key=None, sort_dir=None):
+        return self._list_share_group_snapshots(
+            detailed=detailed, search_opts=search_opts,
+            sort_key=sort_key, sort_dir=sort_dir)
+
+    def _update_share_group_snapshot(self, share_group_snapshot, **kwargs):
         """Updates a share group snapshot.
 
         :param share_group_snapshot: either ShareGroupSnapshot object or text
@@ -146,9 +175,18 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             body = {RESOURCE_NAME: kwargs}
             return self._update(url, body, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def delete(self, share_group_snapshot, force=False):
+    def update(self, share_group_snapshot, **kwargs):
+        return self._update_share_group_snapshot(share_group_snapshot,
+                                                 **kwargs)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def update(self, share_group_snapshot, **kwargs):
+        return self._update_share_group_snapshot(share_group_snapshot,
+                                                 **kwargs)
+
+    def _delete_share_group_snapshot(self, share_group_snapshot, force=False):
         """Delete a share group snapshot.
 
         :param share_group_snapshot: either ShareGroupSnapshot object or text
@@ -164,9 +202,16 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             url = RESOURCE_PATH % share_group_snapshot_id
             self._delete(url)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def reset_state(self, share_group_snapshot, state):
+    def delete(self, share_group_snapshot, force=False):
+        self._delete_share_group_snapshot(share_group_snapshot, force=force)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def delete(self, share_group_snapshot, force=False):
+        self._delete_share_group_snapshot(share_group_snapshot, force=force)
+
+    def _share_group_snapshot_reset_state(self, share_group_snapshot, state):
         """Update the specified share group snapshot.
 
         :param share_group_snapshot: either ShareGroupSnapshot object or text
@@ -177,3 +222,12 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         url = RESOURCE_PATH_ACTION % share_group_snapshot_id
         body = {'reset_status': {'status': state}}
         self.api.client.post(url, body=body)
+
+    @api_versions.wraps("2.31", "2.54")
+    @api_versions.experimental_api
+    def reset_state(self, share_group_snapshot, state):
+        self._share_group_snapshot_reset_state(share_group_snapshot, state)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def reset_state(self, share_group_snapshot, state):
+        self._share_group_snapshot_reset_state(share_group_snapshot, state)

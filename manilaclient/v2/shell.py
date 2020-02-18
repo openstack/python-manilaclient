@@ -200,7 +200,6 @@ def _print_share_replica(cs, replica):
     cliutils.print_dict(info)
 
 
-@api_versions.experimental_api
 @api_versions.wraps("2.31")
 def _find_share_group(cs, share_group):
     """Get a share group ID."""
@@ -217,7 +216,6 @@ def _print_share_group(cs, share_group):
     cliutils.print_dict(info)
 
 
-@api_versions.experimental_api
 @api_versions.wraps("2.31")
 def _find_share_group_snapshot(cs, share_group_snapshot):
     """Get a share group snapshot by name or ID."""
@@ -802,7 +800,7 @@ def do_rate_limits(cs, args):
     metavar='<share-group>',
     action='single_alias',
     help='Optional share group name or ID in which to create the share '
-         '(Experimental, Default=None).',
+         '(Default=None).',
     default=None)
 @cliutils.service_type('sharev2')
 def do_create(cs, args):
@@ -1380,7 +1378,7 @@ def do_revert_to_snapshot(cs, args):
     metavar='<share-group>',
     action='single_alias',
     help='Optional share group name or ID which contains the share '
-         '(Experimental, Default=None).',
+         '(Default=None).',
     default=None)
 @cliutils.service_type('sharev2')
 def do_delete(cs, args):
@@ -1869,8 +1867,7 @@ def do_snapshot_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Filter results by share group name or ID (Experimental, '
-         'Default=None).')
+    help='Filter results by share group name or ID (Default=None).')
 @cliutils.arg(
     '--columns',
     metavar='<columns>',
@@ -4524,7 +4521,6 @@ def _find_share_group_type(cs, sg_type):
     help='Comma separated list of columns to be displayed '
          'example --columns "id,name".')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_type_list(cs, args):
     """Print a list of available 'share group types'."""
 
@@ -4548,7 +4544,6 @@ def do_share_group_type_list(cs, args):
     help='Comma separated list of columns to be displayed '
          'example --columns "id,name".')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_type_specs_list(cs, args):
     """Print a list of 'share group types specs' (Admin Only)."""
 
@@ -4583,7 +4578,6 @@ def do_share_group_type_specs_list(cs, args):
          'OPTIONAL: Default=None. '
          'Example: "--group-specs consistent_snapshot_support=host".',)
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_type_create(cs, args):
     """Create a new share group type (Admin only)."""
 
@@ -4607,7 +4601,6 @@ def do_share_group_type_create(cs, args):
     metavar='<id>',
     help="Name or ID of the share group type to delete.")
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_type_delete(cs, args):
     """Delete a specific share group type (Admin only)."""
     share_group_type = _find_share_group_type(cs, args.id)
@@ -4630,7 +4623,6 @@ def do_share_group_type_delete(cs, args):
     default=None,
     help='Group specs to set or unset (key is only necessary on unset).')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_type_key(cs, args):
     """Set or unset group_spec for a share group type (Admin only)."""
     sg_type = _find_share_group_type(cs, args.share_group_type)
@@ -4746,9 +4738,8 @@ def do_share_group_type_access_remove(cs, args):
     help='Optional availability zone in which group should be created. '
          '(Default=None)')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_create(cs, args):
-    """Creates a new share group (Experimental)."""
+    """Creates a new share group."""
 
     share_types = []
     if args.share_types:
@@ -4904,9 +4895,8 @@ def do_share_group_create(cs, args):
     help='Filter results matching a share group description pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_list(cs, args):
-    """List share groups with filters (Experimental)."""
+    """List share groups with filters."""
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
     else:
@@ -4957,9 +4947,8 @@ def do_share_group_list(cs, args):
     metavar='<share_group>',
     help='Name or ID of the share group.')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_show(cs, args):
-    """Show details about a share group (Experimental)."""
+    """Show details about a share group."""
     share_group = _find_share_group(cs, args.share_group)
     _print_share_group(cs, share_group)
 
@@ -4979,9 +4968,8 @@ def do_share_group_show(cs, args):
     help='Optional share group description. (Default=None)',
     default=None)
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_update(cs, args):
-    """Update a share group (Experimental)."""
+    """Update a share group."""
     kwargs = {}
 
     if args.name is not None:
@@ -5009,9 +4997,8 @@ def do_share_group_update(cs, args):
     help='Attempt to force delete the share group (Default=False)'
          ' (Admin only).')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_delete(cs, args):
-    """Remove one or more share groups (Experimental)."""
+    """Remove one or more share groups."""
     failure_count = 0
     kwargs = {}
 
@@ -5045,11 +5032,10 @@ def do_share_group_delete(cs, args):
           'error_deleting. If no state is provided, '
           'available will be used.'))
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_reset_state(cs, args):
     """Explicitly update the state of a share group
 
-    (Admin only, Experimental).
+    (Admin only).
     """
     share_group = _find_share_group(cs, args.share_group)
     cs.share_groups.reset_state(share_group, args.state)
@@ -5077,9 +5063,8 @@ def do_share_group_reset_state(cs, args):
     help='Optional share group snapshot description. (Default=None)',
     default=None)
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_create(cs, args):
-    """Creates a new share group snapshot (Experimental)."""
+    """Creates a new share group snapshot."""
     kwargs = {'name': args.name, 'description': args.description}
     share_group = _find_share_group(cs, args.share_group)
     sg_snapshot = cs.share_group_snapshots.create(share_group.id, **kwargs)
@@ -5152,9 +5137,8 @@ def do_share_group_snapshot_create(cs, args):
     help='Comma separated list of columns to be displayed '
          'example --columns "id,name".')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_list(cs, args):
-    """List share group snapshots with filters (Experimental)."""
+    """List share group snapshots with filters."""
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
     else:
@@ -5182,9 +5166,8 @@ def do_share_group_snapshot_list(cs, args):
     metavar='<share_group_snapshot>',
     help='Name or ID of the share group snapshot.')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_show(cs, args):
-    """Show details about a share group snapshot (Experimental)."""
+    """Show details about a share group snapshot."""
     sg_snapshot = _find_share_group_snapshot(cs, args.share_group_snapshot)
     _print_share_group_snapshot(cs, sg_snapshot)
 
@@ -5201,9 +5184,8 @@ def do_share_group_snapshot_show(cs, args):
     help='Comma separated list of columns to be displayed '
          'example --columns "id,name".')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_list_members(cs, args):
-    """List members of a share group snapshot (Experimental)."""
+    """List members of a share group snapshot."""
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
     else:
@@ -5228,11 +5210,10 @@ def do_share_group_snapshot_list_members(cs, args):
     metavar='<share_group_snapshot>',
     help='Name or ID of the share group snapshot.')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_reset_state(cs, args):
     """Explicitly update the state of a share group snapshot
 
-    (Admin only, Experimental).
+    (Admin only).
     """
     sg_snapshot = _find_share_group_snapshot(cs, args.share_group_snapshot)
     cs.share_group_snapshots.reset_state(sg_snapshot, args.state)
@@ -5253,9 +5234,8 @@ def do_share_group_snapshot_reset_state(cs, args):
     help='Optional share group snapshot description. (Default=None)',
     default=None)
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_update(cs, args):
-    """Update a share group snapshot (Experimental)."""
+    """Update a share group snapshot."""
     kwargs = {}
 
     if args.name is not None:
@@ -5283,9 +5263,8 @@ def do_share_group_snapshot_update(cs, args):
     help='Attempt to force delete the share group snapshot(s) (Default=False)'
          ' (Admin only).')
 @cliutils.service_type('sharev2')
-@api_versions.experimental_api
 def do_share_group_snapshot_delete(cs, args):
-    """Remove one or more share group snapshots (Experimental)."""
+    """Remove one or more share group snapshots."""
     failure_count = 0
     kwargs = {}
 

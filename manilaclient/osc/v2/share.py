@@ -170,7 +170,7 @@ class CreateShare(command.ShowOne):
             metavar='<share-group>',
             default=None,
             help=_('Optional share group name or ID in which to create '
-                   'the share. (Experimental, Default=None).')
+                   'the share. (Default=None).')
         )
         return parser
 

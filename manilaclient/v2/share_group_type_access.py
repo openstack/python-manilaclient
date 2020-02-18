@@ -21,6 +21,7 @@ RESOURCES_PATH = '/share-group-types'
 RESOURCE_PATH = '/share-group-types/%s/access'
 RESOURCE_PATH_ACTION = '/share-group-types/%s/action'
 RESOURCE_NAME = 'share_group_type_access'
+SG_GRADUATION_VERSION = "2.55"
 
 
 class ShareGroupTypeAccess(common_base.Resource):
@@ -32,24 +33,46 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
     """Manage :class:`ShareGroupTypeAccess` resources."""
     resource_class = ShareGroupTypeAccess
 
-    @api_versions.wraps("2.31")
-    @api_versions.experimental_api
-    def list(self, share_group_type, search_opts=None):
+    def _list_share_group_type_access(self, share_group_type,
+                                      search_opts=None):
         if share_group_type.is_public:
             return None
         share_group_type_id = common_base.getid(share_group_type)
         url = RESOURCE_PATH % share_group_type_id
         return self._list(url, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
+    @api_versions.experimental_api
+    def list(self, share_group_type, search_opts=None):
+        return self._list_share_group_type_access(share_group_type,
+                                                  search_opts)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def list(self, share_group_type, search_opts=None):
+        return self._list_share_group_type_access(share_group_type,
+                                                  search_opts)
+
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
     def add_project_access(self, share_group_type, project):
         """Add a project to the given share group type access list."""
         info = {'project': project}
         self._action('addProjectAccess', share_group_type, info)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def add_project_access(self, share_group_type, project):
+        """Add a project to the given share group type access list."""
+        info = {'project': project}
+        self._action('addProjectAccess', share_group_type, info)
+
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
+    def remove_project_access(self, share_group_type, project):
+        """Remove a project from the given share group type access list."""
+        info = {'project': project}
+        self._action('removeProjectAccess', share_group_type, info)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
     def remove_project_access(self, share_group_type, project):
         """Remove a project from the given share group type access list."""
         info = {'project': project}

@@ -27,6 +27,7 @@ RESOURCE_NAME = 'share_group_type'
 GROUP_SPECS_RESOURCES_PATH = '/share-group-types/%s/group-specs'
 GROUP_SPECS_RESOURCE_PATH = '/share-group-types/%s/group-specs/%s'
 GROUP_SPECS_RESOURCES_NAME = 'group_specs'
+SG_GRADUATION_VERSION = "2.55"
 
 
 class ShareGroupType(common_base.Resource):
@@ -91,9 +92,8 @@ class ShareGroupTypeManager(base.ManagerWithFind):
     """Manage :class:`ShareGroupType` resources."""
     resource_class = ShareGroupType
 
-    @api_versions.wraps("2.31")
-    @api_versions.experimental_api
-    def create(self, name, share_types, is_public=False, group_specs=None):
+    def _create_share_group_type(self, name, share_types, is_public=False,
+                                 group_specs=None):
         """Create a share group type.
 
         :param name: Descriptive name of the share group type
@@ -116,9 +116,18 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         return self._create(
             RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def get(self, share_group_type="default"):
+    def create(self, name, share_types, is_public=False, group_specs=None):
+        return self._create_share_group_type(name, share_types, is_public,
+                                             group_specs)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def create(self, name, share_types, is_public=False, group_specs=None):
+        return self._create_share_group_type(name, share_types, is_public,
+                                             group_specs)
+
+    def _get_share_group_type(self, share_group_type="default"):
         """Get a specific share group type.
 
         :param share_group_type: either instance of ShareGroupType, or text
@@ -129,9 +138,16 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         url = RESOURCE_PATH % share_group_type_id
         return self._get(url, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def list(self, show_all=True, search_opts=None):
+    def get(self, share_group_type="default"):
+        return self._get_share_group_type(share_group_type)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def get(self, share_group_type="default"):
+        return self._get_share_group_type(share_group_type)
+
+    def _list_share_group_types(self, show_all=True, search_opts=None):
         """Get a list of all share group types.
 
         :rtype: list of :class:`ShareGroupType`.
@@ -140,9 +156,16 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         url = RESOURCES_PATH + query_string
         return self._list(url, RESOURCES_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def delete(self, share_group_type):
+    def list(self, show_all=True, search_opts=None):
+        return self._list_share_group_types(show_all, search_opts)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def list(self, show_all=True, search_opts=None):
+        return self._list_share_group_types(show_all, search_opts)
+
+    def _delete_share_group_type(self, share_group_type):
         """Delete a specific share group type.
 
         :param share_group_type: either instance of ShareGroupType, or text
@@ -151,3 +174,12 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         share_group_type_id = common_base.getid(share_group_type)
         url = RESOURCE_PATH % share_group_type_id
         self._delete(url)
+
+    @api_versions.wraps("2.31", "2.54")
+    @api_versions.experimental_api
+    def delete(self, share_group_type):
+        self._delete_share_group_type(share_group_type)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def delete(self, share_group_type):
+        self._delete_share_group_type(share_group_type)

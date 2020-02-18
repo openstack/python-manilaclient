@@ -25,6 +25,7 @@ RESOURCE_PATH = '/share-groups/%s'
 RESOURCE_PATH_ACTION = '/share-groups/%s/action'
 RESOURCES_NAME = 'share_groups'
 RESOURCE_NAME = 'share_group'
+SG_GRADUATION_VERSION = "2.55"
 
 
 class ShareGroup(common_base.Resource):
@@ -50,11 +51,10 @@ class ShareGroupManager(base.ManagerWithFind):
     """Manage :class:`ShareGroup` resources."""
     resource_class = ShareGroup
 
-    @api_versions.wraps("2.31")
-    @api_versions.experimental_api
-    def create(self, share_group_type=None, share_types=None,
-               share_network=None, name=None, description=None,
-               source_share_group_snapshot=None, availability_zone=None):
+    def _create_share_group(
+            self, share_group_type=None, share_types=None, share_network=None,
+            name=None, description=None, source_share_group_snapshot=None,
+            availability_zone=None):
         """Create a Share Group.
 
         :param share_group_type: either instance of ShareGroupType or text
@@ -102,9 +102,28 @@ class ShareGroupManager(base.ManagerWithFind):
         return self._create(
             RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def get(self, share_group):
+    def create(self, share_group_type=None, share_types=None,
+               share_network=None, name=None, description=None,
+               source_share_group_snapshot=None, availability_zone=None):
+        return self._create_share_group(
+            share_group_type=share_group_type, share_types=share_types,
+            share_network=share_network, name=name, description=description,
+            source_share_group_snapshot=source_share_group_snapshot,
+            availability_zone=availability_zone)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def create(self, share_group_type=None, share_types=None,
+               share_network=None, name=None, description=None,
+               source_share_group_snapshot=None, availability_zone=None):
+        return self._create_share_group(
+            share_group_type=share_group_type, share_types=share_types,
+            share_network=share_network, name=name, description=description,
+            source_share_group_snapshot=source_share_group_snapshot,
+            availability_zone=availability_zone)
+
+    def _get_share_group(self, share_group):
         """Get a share group.
 
         :param share_group: either ShareGroup object or text with its UUID
@@ -114,10 +133,17 @@ class ShareGroupManager(base.ManagerWithFind):
         url = RESOURCE_PATH % share_group_id
         return self._get(url, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None):
+    def get(self, share_group):
+        return self._get_share_group(share_group)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def get(self, share_group):
+        return self._get_share_group(share_group)
+
+    def _list_share_groups(self, detailed=True, search_opts=None,
+                           sort_key=None, sort_dir=None):
         """Get a list of all share groups.
 
         :param detailed: Whether to return detailed share group info or not.
@@ -170,9 +196,22 @@ class ShareGroupManager(base.ManagerWithFind):
 
         return self._list(url, RESOURCES_NAME)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def update(self, share_group, **kwargs):
+    def list(self, detailed=True, search_opts=None,
+             sort_key=None, sort_dir=None):
+        return self._list_share_groups(
+            detailed=detailed, search_opts=search_opts,
+            sort_key=sort_key, sort_dir=sort_dir)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def list(self, detailed=True, search_opts=None,
+             sort_key=None, sort_dir=None):
+        return self._list_share_groups(
+            detailed=detailed, search_opts=search_opts, sort_key=sort_key,
+            sort_dir=sort_dir)
+
+    def _update_share_group(self, share_group, **kwargs):
         """Updates a share group.
 
         :param share_group: either ShareGroup object or text with its UUID
@@ -186,9 +225,15 @@ class ShareGroupManager(base.ManagerWithFind):
             body = {RESOURCE_NAME: kwargs}
             return self._update(url, body, RESOURCE_NAME)
 
-    @api_versions.wraps("2.31")
-    @api_versions.experimental_api
-    def delete(self, share_group, force=False):
+    @api_versions.wraps("2.31", "2.54")
+    def update(self, share_group, **kwargs):
+        return self._update_share_group(share_group, **kwargs)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def update(self, share_group, **kwargs):
+        return self._update_share_group(share_group, **kwargs)
+
+    def _delete_share_group(self, share_group, force=False):
         """Delete a share group.
 
         :param share_group: either ShareGroup object or text with its UUID
@@ -203,9 +248,16 @@ class ShareGroupManager(base.ManagerWithFind):
             url = RESOURCE_PATH % share_group_id
             self._delete(url)
 
-    @api_versions.wraps("2.31")
+    @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def reset_state(self, share_group, state):
+    def delete(self, share_group, force=False):
+        self._delete_share_group(share_group, force=force)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def delete(self, share_group, force=False):
+        self._delete_share_group(share_group, force=force)
+
+    def _share_group_reset_state(self, share_group, state):
         """Update the specified share group with the provided state.
 
         :param share_group: either ShareGroup object or text with its UUID
@@ -216,3 +268,12 @@ class ShareGroupManager(base.ManagerWithFind):
         url = RESOURCE_PATH_ACTION % share_group_id
         body = {'reset_status': {'status': state}}
         self.api.client.post(url, body=body)
+
+    @api_versions.wraps("2.31", "2.54")
+    @api_versions.experimental_api
+    def reset_state(self, share_group, state):
+        self._share_group_reset_state(share_group, state)
+
+    @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
+    def reset_state(self, share_group, state):
+        self._share_group_reset_state(share_group, state)

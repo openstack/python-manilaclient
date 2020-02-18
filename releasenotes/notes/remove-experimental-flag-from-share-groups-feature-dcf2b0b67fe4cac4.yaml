@@ -1,0 +1,10 @@
+---
+prelude: >
+    Since the share group APIs have graduated from their `experimental feature
+    state <https://docs.openstack.org/manila/latest/contributor/experimental_apis.html>`_
+    in API version ``2.55``, the client was updated to fit into those changes,
+    and the share group commands will no longer include the
+    `X-OpenStack-Manila-API-Experimental`` header in the request. Share group
+    types can be created to encompass one or more share types, share groups
+    can be created, updated, snapshotted and deleted, and shares can be created
+    within share groups.
