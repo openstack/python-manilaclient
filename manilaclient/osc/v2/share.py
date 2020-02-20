@@ -146,9 +146,11 @@ class CreateShare(command.ShowOne):
         )
         parser.add_argument(
             '--public',
+            metavar='<public>',
             default=False,
             help=_('Level of visibility for share. '
-                   'Defines whether other tenants are able to see it or not.')
+                   'Defines whether other tenants are able to see it or not. '
+                   '(Default = False)')
         )
         parser.add_argument(
             '--share-type',
@@ -543,3 +545,146 @@ class ShowShare(command.ShowOne):
         data.pop("shares_type", None)
 
         return self.dict2columns(data)
+
+
+class SetShare(command.Command):
+    """Set share properties."""
+    _description = _("Set share properties")
+
+    def get_parser(self, prog_name):
+        parser = super(SetShare, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Share to modify (name or ID)')
+        )
+        # 'metadata' --> 'properties'
+        parser.add_argument(
+            "--property",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_("Set a property to this share "
+                   "(repeat option to set multiple properties)"),
+        )
+        parser.add_argument(
+            '--name',
+            metavar="<name>",
+            default=None,
+            help=_('New share name. (Default=None)')
+        )
+        parser.add_argument(
+            '--description',
+            metavar='<description>',
+            default=None,
+            help=_('New share description. (Default=None)')
+        )
+        parser.add_argument(
+            '--public',
+            metavar='<public>',
+            help=_('Level of visibility for share. '
+                   'Defines whether other tenants are able to see it or not. ')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share_obj = apiutils.find_resource(share_client.shares,
+                                           parsed_args.share)
+        result = 0
+
+        if parsed_args.property:
+            try:
+                share_client.shares.set_metadata(
+                    share_obj.id, parsed_args.property)
+            except Exception as e:
+                LOG.error(_("Failed to set share properties "
+                            "'%(properties)s': %(exception)s"),
+                          {'properties': parsed_args.property,
+                           'exception': e})
+                result += 1
+
+        kwargs = {}
+        if parsed_args.name is not None:
+            kwargs['display_name'] = parsed_args.name
+        if parsed_args.description is not None:
+            kwargs['display_description'] = parsed_args.description
+        if parsed_args.public is not None:
+            kwargs['is_public'] = parsed_args.public
+        if kwargs:
+            try:
+                share_client.shares.update(share_obj.id, **kwargs)
+            except Exception as e:
+                LOG.error(_("Failed to update share display name, visibility "
+                          "or display description: %s"), e)
+                result += 1
+
+        if result > 0:
+            raise exceptions.CommandError(_("One or more of the "
+                                          "set operations failed"))
+
+
+class UnsetShare(command.Command):
+    """Unset share properties."""
+    _description = _("Unset share properties")
+
+    def get_parser(self, prog_name):
+        parser = super(UnsetShare, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Share to modify (name or ID)')
+        )
+        # 'metadata' --> 'properties'
+        parser.add_argument(
+            '--property',
+            metavar='<key>',
+            action='append',
+            help=_('Remove a property from share '
+                   '(repeat option to remove multiple properties)'),
+        )
+        parser.add_argument(
+            '--name',
+            action='store_true',
+            help=_('Unset share name.')
+        )
+        parser.add_argument(
+            '--description',
+            action='store_true',
+            help=_('Unset share description.')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share_obj = apiutils.find_resource(share_client.shares,
+                                           parsed_args.share)
+        result = 0
+        kwargs = {}
+        if parsed_args.name:
+            kwargs['display_name'] = None
+        if parsed_args.description:
+            kwargs['display_description'] = None
+        if kwargs:
+            try:
+                share_client.shares.update(share_obj.id, **kwargs)
+            except Exception as e:
+                LOG.error(_("Failed to unset share display name "
+                            "or display description"), e)
+                result += 1
+
+        if parsed_args.property:
+            for key in parsed_args.property:
+                try:
+                    share_client.shares.delete_metadata(
+                        share_obj.id, [key])
+                except Exception as e:
+                    LOG.error(_("Failed to unset share property "
+                                "'%(key)s': %(e)s"),
+                              {'key': key, 'e': e})
+                    result += 1
+
+        if result > 0:
+            raise exceptions.CommandError(_(
+                "One or more of the "
+                "unset operations failed"))
