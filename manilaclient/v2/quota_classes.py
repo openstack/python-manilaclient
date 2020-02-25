@@ -19,6 +19,7 @@ from manilaclient.common.apiclient import base as common_base
 
 RESOURCE_PATH_LEGACY = '/os-quota-class-sets'
 RESOURCE_PATH = '/quota-class-sets'
+REPLICA_QUOTAS_MICROVERSION = "2.53"
 
 
 class QuotaClassSet(common_base.Resource):
@@ -52,7 +53,8 @@ class QuotaClassSetManager(base.ManagerWithFind):
 
     def _do_update(self, class_name, shares=None, gigabytes=None,
                    snapshots=None, snapshot_gigabytes=None,
-                   share_networks=None, resource_path=RESOURCE_PATH):
+                   share_networks=None, share_replicas=None,
+                   replica_gigabytes=None, resource_path=RESOURCE_PATH):
         body = {
             'quota_class_set': {
                 'class_name': class_name,
@@ -61,6 +63,8 @@ class QuotaClassSetManager(base.ManagerWithFind):
                 'gigabytes': gigabytes,
                 'snapshot_gigabytes': snapshot_gigabytes,
                 'share_networks': share_networks,
+                "share_replicas": share_replicas,
+                "replica_gigabytes": replica_gigabytes
             }
         }
 
@@ -78,12 +82,24 @@ class QuotaClassSetManager(base.ManagerWithFind):
     def update(self, class_name, shares=None, gigabytes=None,
                snapshots=None, snapshot_gigabytes=None, share_networks=None):
         return self._do_update(
-            class_name, shares, gigabytes, snapshots, snapshot_gigabytes,
-            share_networks, RESOURCE_PATH_LEGACY)
+            class_name, shares=shares, gigabytes=gigabytes,
+            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks, resource_path=RESOURCE_PATH_LEGACY)
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.52")  # noqa
     def update(self, class_name, shares=None, gigabytes=None,
                snapshots=None, snapshot_gigabytes=None, share_networks=None):
         return self._do_update(
-            class_name, shares, gigabytes, snapshots, snapshot_gigabytes,
-            share_networks, RESOURCE_PATH)
+            class_name, shares=shares, gigabytes=gigabytes,
+            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks, resource_path=RESOURCE_PATH)
+
+    @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION)  # noqa
+    def update(self, class_name, shares=None, gigabytes=None,
+               snapshots=None, snapshot_gigabytes=None, share_networks=None,
+               share_replicas=None, replica_gigabytes=None):
+        return self._do_update(
+            class_name, shares=shares, gigabytes=gigabytes,
+            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks, share_replicas=share_replicas,
+            replica_gigabytes=replica_gigabytes, resource_path=RESOURCE_PATH)

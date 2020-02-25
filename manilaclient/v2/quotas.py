@@ -19,6 +19,7 @@ from manilaclient.common.apiclient import base as common_base
 
 RESOURCE_PATH_LEGACY = '/os-quota-sets'
 RESOURCE_PATH = '/quota-sets'
+REPLICA_QUOTAS_MICROVERSION = "2.53"
 
 
 class QuotaSet(common_base.Resource):
@@ -93,6 +94,7 @@ class QuotaSetManager(base.ManagerWithFind):
                    share_networks=None,
                    force=None, user_id=None, share_type=None,
                    share_groups=None, share_group_snapshots=None,
+                   share_replicas=None, replica_gigabytes=None,
                    resource_path=RESOURCE_PATH):
         self._check_user_id_and_share_type_args(user_id, share_type)
         body = {
@@ -106,6 +108,8 @@ class QuotaSetManager(base.ManagerWithFind):
                 'share_groups': share_groups,
                 'share_group_snapshots': share_group_snapshots,
                 'force': force,
+                'share_replicas': share_replicas,
+                'replica_gigabytes': replica_gigabytes,
             },
         }
 
@@ -145,14 +149,17 @@ class QuotaSetManager(base.ManagerWithFind):
             share_networks, force, user_id, resource_path=RESOURCE_PATH,
         )
 
-    @api_versions.wraps("2.39", "2.39")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,
-               shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None, force=None):
+    def _validate_st_and_sn_in_same_request(self, share_type, share_networks):
         if share_type and share_networks:
             raise ValueError(
                 "'share_networks' quota can be set only for project or user, "
                 "not share type.")
+
+    @api_versions.wraps("2.39", "2.39")  # noqa
+    def update(self, tenant_id, user_id=None, share_type=None,
+               shares=None, snapshots=None, gigabytes=None,
+               snapshot_gigabytes=None, share_networks=None, force=None):
+        self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
             tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
             share_networks, force, user_id,
@@ -160,16 +167,13 @@ class QuotaSetManager(base.ManagerWithFind):
             resource_path=RESOURCE_PATH,
         )
 
-    @api_versions.wraps("2.40")  # noqa
+    @api_versions.wraps("2.40", "2.52")  # noqa
     def update(self, tenant_id, user_id=None, share_type=None,
                shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None,
                share_groups=None, share_group_snapshots=None,
                force=None):
-        if share_type and share_networks:
-            raise ValueError(
-                "'share_networks' quota can be set only for project or user, "
-                "not share type.")
+        self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
             tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
             share_networks, force, user_id,
@@ -177,6 +181,24 @@ class QuotaSetManager(base.ManagerWithFind):
             share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
             resource_path=RESOURCE_PATH,
+        )
+
+    @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION)  # noqa
+    def update(self, tenant_id, user_id=None, share_type=None,
+               shares=None, snapshots=None, gigabytes=None,
+               snapshot_gigabytes=None, share_networks=None,
+               share_groups=None, share_group_snapshots=None,
+               share_replicas=None, replica_gigabytes=None, force=None):
+        self._validate_st_and_sn_in_same_request(share_type, share_networks)
+        return self._do_update(
+            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
+            share_networks, force, user_id,
+            share_type=share_type,
+            share_groups=share_groups,
+            share_group_snapshots=share_group_snapshots,
+            share_replicas=share_replicas,
+            replica_gigabytes=replica_gigabytes,
+            resource_path=RESOURCE_PATH
         )
 
     @api_versions.wraps("1.0", "2.6")

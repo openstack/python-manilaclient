@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    Added support for two new quotas for share replicas:
+    `share_replicas` and `replica_gigabytes`.
+upgrade:
+  - |
+    Due to the new 'share_replicas' and 'replica_gigabytes' quotas for
+    share replicas, it is now possible to hit an 'over limit' error
+    while creating replicated shares and share replicas.
