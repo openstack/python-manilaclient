@@ -669,7 +669,7 @@ class UnsetShare(command.Command):
                 share_client.shares.update(share_obj.id, **kwargs)
             except Exception as e:
                 LOG.error(_("Failed to unset share display name "
-                            "or display description"), e)
+                            "or display description: %s"), e)
                 result += 1
 
         if parsed_args.property:

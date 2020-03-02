@@ -18,8 +18,9 @@ from unittest import mock
 import uuid
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
-from osc_lib import exceptions
+from osc_lib import exceptions as osc_exceptions
 
+from manilaclient.common.apiclient import exceptions
 from manilaclient.common import cliutils
 from manilaclient.osc.v2 import share as osc_shares
 from manilaclient.tests.unit.osc import osc_utils
@@ -227,6 +228,10 @@ class TestShareDelete(TestShare):
         result = self.cmd.take_action(parsed_args)
 
         self.assertIsNone(result)
+
+        self.shares_mock.delete.side_effect = exceptions.CommandError()
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
 
     def test_share_delete_no_name(self):
         # self.setup_shares_mock(count=1)
@@ -945,6 +950,51 @@ class TestShareSet(TestShare):
             self._share.id,
             is_public='true')
 
+    def test_share_set_visibility_exception(self):
+        arglist = [
+            '--public', 'not_a_boolean_value',
+            self._share.id,
+        ]
+        verifylist = [
+            ('public', 'not_a_boolean_value'),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.update.assert_called_with(
+            self._share.id,
+            is_public='not_a_boolean_value')
+
+        # '--public' takes only boolean value, would raise a BadRequest
+        self.shares_mock.update.side_effect = exceptions.BadRequest()
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_share_set_property_exception(self):
+        arglist = [
+            '--property', 'key=',
+            self._share.id,
+        ]
+        verifylist = [
+            ('property', {'key': ''}),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.set_metadata.assert_called_with(
+            self._share.id,
+            {'key': ''})
+
+        # '--property' takes key=value arguments
+        # missing a value would raise a BadRequest
+        self.shares_mock.set_metadata.side_effect = exceptions.BadRequest()
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+
 
 class TestShareUnset(TestShare):
 
@@ -1008,6 +1058,44 @@ class TestShareUnset(TestShare):
             self._share.id,
             display_description=None)
 
+    def test_share_unset_name_exception(self):
+        arglist = [
+            '--name',
+            self._share.id,
+        ]
+        verifylist = [
+            ('name', True),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.shares_mock.update.side_effect = exceptions.BadRequest()
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_share_unset_property_exception(self):
+        arglist = [
+            '--property', 'Manila',
+            self._share.id,
+        ]
+        verifylist = [
+            ('property', ['Manila']),
+            ('share', self._share.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.delete_metadata.assert_called_with(
+            self._share.id,
+            parsed_args.property)
+
+        # 404 Not Found would be raised, if property 'Manila' doesn't exist
+        self.shares_mock.delete_metadata.side_effect = exceptions.NotFound()
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+
 
 class TestResizeShare(TestShare):
 
@@ -1051,7 +1139,7 @@ class TestResizeShare(TestShare):
 
         self.shares_mock.shrink.side_effect = Exception()
         self.assertRaises(
-            exceptions.CommandError,
+            osc_exceptions.CommandError,
             self.cmd.take_action,
             parsed_args)
 
@@ -1086,7 +1174,7 @@ class TestResizeShare(TestShare):
 
         self.shares_mock.extend.side_effect = Exception()
         self.assertRaises(
-            exceptions.CommandError,
+            osc_exceptions.CommandError,
             self.cmd.take_action,
             parsed_args)
 
@@ -1102,7 +1190,7 @@ class TestResizeShare(TestShare):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            exceptions.CommandError,
+            osc_exceptions.CommandError,
             self.cmd.take_action,
             parsed_args
         )
