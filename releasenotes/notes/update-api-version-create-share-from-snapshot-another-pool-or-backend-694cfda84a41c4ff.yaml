@@ -1,0 +1,6 @@
+---
+features:
+  - Added ``progress`` field for shares and share replicas. This field
+    allows the user to check the progress of the create share from snapshot
+    operation. The field will show a percentage of completion between
+    ``0`` and ``100`` percent.
