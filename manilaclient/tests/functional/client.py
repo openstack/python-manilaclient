@@ -46,7 +46,8 @@ def not_found_wrapper(f):
         try:
             return f(self, *args, **kwargs)
         except tempest_lib_exc.CommandFailed as e:
-            for regexp in ('No (\w+) with a name or ID', 'not(.*){0,5}found'):
+            for regexp in (r'No (\w+) with a name or ID',
+                           r'not(.*){0,5}found'):
                 if re.search(regexp, six.text_type(e.stderr)):
                     # Raise appropriate 'NotFound' error
                     raise tempest_lib_exc.NotFound()

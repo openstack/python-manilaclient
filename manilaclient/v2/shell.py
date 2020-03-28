@@ -384,6 +384,7 @@ def do_credentials(cs, args):
         }
     cliutils.print_dict(data, "Token")
 
+
 _quota_resources = [
     'shares',
     'snapshots',

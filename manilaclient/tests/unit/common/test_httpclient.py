@@ -119,7 +119,7 @@ class ClientTest(utils.TestCase):
                 **self.TEST_REQUEST_BASE)
             # Automatic JSON parsing
             self.assertEqual(body, {"hi": "there"})
-            self.assertEqual(re.split('/v[0-9]+[\.0-9]*',
+            self.assertEqual(re.split(r'/v[0-9]+[\.0-9]*',
                                       endpoint_url)[0] + "/", cl.base_url)
 
         test_get_call()
@@ -231,7 +231,7 @@ class ClientTest(utils.TestCase):
                 headers=headers,
                 data='[1, 2, 3]',
                 **self.TEST_REQUEST_BASE)
-            self.assertEqual(re.split('/v[0-9]+[\.0-9]*',
+            self.assertEqual(re.split(r'/v[0-9]+[\.0-9]*',
                                       endpoint_url)[0] + "/", cl.base_url)
 
         test_post_call()

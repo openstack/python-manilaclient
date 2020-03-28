@@ -83,7 +83,7 @@ class HTTPClient(object):
         """Truncates url and returns base endpoint"""
         service_endpoint = parse.urlparse(url)
         service_endpoint_base_path = re.search(
-            '(.+?)/v([0-9]+|[0-9]+\.[0-9]+)(/.*|$)', service_endpoint.path)
+            r'(.+?)/v([0-9]+|[0-9]+\.[0-9]+)(/.*|$)', service_endpoint.path)
         base_path = (service_endpoint_base_path.group(1)
                      if service_endpoint_base_path else '')
         base_url = service_endpoint._replace(path=base_path)

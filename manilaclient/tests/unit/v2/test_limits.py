@@ -31,15 +31,16 @@ def _get_default_RateLimit(verb="verb1", uri="uri1", regex="regex1",
 class TestLimits(utils.TestCase):
 
     def test_repr(self):
-        l = limits.Limits(None, {"foo": "bar"})
-        self.assertEqual("<Limits>", repr(l))
+        li = limits.Limits(None, {"foo": "bar"})
+        self.assertEqual("<Limits>", repr(li))
 
     def test_absolute(self):
-        l = limits.Limits(None,
-                          {"absolute": {"name1": "value1", "name2": "value2"}})
+        li = limits.Limits(None,
+                           {"absolute": {"name1": "value1",
+                                         "name2": "value2"}})
         l1 = limits.AbsoluteLimit("name1", "value1")
         l2 = limits.AbsoluteLimit("name2", "value2")
-        for item in l.absolute:
+        for item in li.absolute:
             self.assertIn(item, [l1, l2])
 
     def test_rate(self):
@@ -67,12 +68,12 @@ class TestLimits(utils.TestCase):
                 }]
             }]
         }
-        l = limits.Limits(None, limit_param)
+        li = limits.Limits(None, limit_param)
         l1 = limits.RateLimit("verb1", "uri1", "regex1", "value1", "remain1",
                               "unit1", "next1")
         l2 = limits.RateLimit("verb2", "uri2", "regex2", "value2", "remain2",
                               "unit2", "next2")
-        for item in l.rate:
+        for item in li.rate:
             self.assertIn(item, [l1, l2])
 
 

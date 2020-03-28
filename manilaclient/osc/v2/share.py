@@ -492,7 +492,6 @@ class ListShare(command.Lister):
             'project_id': project_id,
             'user_id': user_id,
             'offset': parsed_args.marker,
-            'limit': parsed_args.limit,
         }
 
         # NOTE(vkmc) We implemented sorting and filtering in manilaclient

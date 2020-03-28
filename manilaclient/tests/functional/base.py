@@ -104,17 +104,17 @@ class BaseTestCase(base.ClientTestBase):
                 deletion_params = res.get("deletion_params")
                 with handle_cleanup_exceptions():
                     # TODO(vponomaryov): add support for other resources
-                    if res["type"] is "share_type":
+                    if res["type"] == "share_type":
                         client.delete_share_type(
                             res_id, microversion=res["microversion"])
                         client.wait_for_share_type_deletion(
                             res_id, microversion=res["microversion"])
-                    elif res["type"] is "share_network":
+                    elif res["type"] == "share_network":
                         client.delete_share_network(
                             res_id, microversion=res["microversion"])
                         client.wait_for_share_network_deletion(
                             res_id, microversion=res["microversion"])
-                    elif res["type"] is "share_network_subnet":
+                    elif res["type"] == "share_network_subnet":
                         client.delete_share_network_subnet(
                             share_network_subnet=res_id,
                             share_network=deletion_params["share_network"],
@@ -123,17 +123,17 @@ class BaseTestCase(base.ClientTestBase):
                             share_network_subnet=res_id,
                             share_network=deletion_params["share_network"],
                             microversion=res["microversion"])
-                    elif res["type"] is "share":
+                    elif res["type"] == "share":
                         client.delete_share(
                             res_id, microversion=res["microversion"])
                         client.wait_for_share_deletion(
                             res_id, microversion=res["microversion"])
-                    elif res["type"] is "snapshot":
+                    elif res["type"] == "snapshot":
                         client.delete_snapshot(
                             res_id, microversion=res["microversion"])
                         client.wait_for_snapshot_deletion(
                             res_id, microversion=res["microversion"])
-                    elif res["type"] is "share_replica":
+                    elif res["type"] == "share_replica":
                         client.delete_share_replica(
                             res_id, microversion=res["microversion"])
                         client.wait_for_share_replica_deletion(

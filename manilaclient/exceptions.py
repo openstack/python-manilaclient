@@ -20,7 +20,7 @@ Exception definitions.
 from manilaclient.common.apiclient.exceptions import *  # noqa
 
 
-class NoTokenLookupException(ClientException):
+class NoTokenLookupException(ClientException):  # noqa: F405
     """No support for looking up endpoints.
 
     This form of authentication does not support looking up

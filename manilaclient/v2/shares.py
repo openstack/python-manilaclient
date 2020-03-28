@@ -461,8 +461,8 @@ class ShareManager(base.ManagerWithFind):
     '''
     @staticmethod
     def _validate_username(access):
-        sole_periods_spaces_re = '[\s|\.]+$'
-        valid_username_re = '.[^\"\/\\\[\]\:\;\|\=\,\+\*\?\<\>]{3,254}$'
+        sole_periods_spaces_re = r'[\s|\.]+$'
+        valid_username_re = r'.[^\"\/\\\[\]\:\;\|\=\,\+\*\?\<\>]{3,254}$'
         username = access
 
         if re.match(sole_periods_spaces_re, username):
@@ -473,7 +473,7 @@ class ShareManager(base.ManagerWithFind):
         if not re.match(valid_username_re, username):
             exc_str = ('Invalid user or group name. Must be 4-255 characters '
                        'and consist of alphanumeric characters and '
-                       'exclude special characters "/\[]:;|=,+*?<>')
+                       'exclude special characters "/\\[]:;|=,+*?<>')
             raise exceptions.CommandError(exc_str)
 
     @staticmethod

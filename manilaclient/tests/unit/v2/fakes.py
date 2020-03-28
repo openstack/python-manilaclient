@@ -38,6 +38,7 @@ class FakeClient(fakes.FakeClient):
         )
         self.client = FakeHTTPClient(**kwargs)
 
+
 fake_share_instance = {
     'id': 1234,
     'share_id': 'fake',
