@@ -3355,6 +3355,22 @@ class ShellTest(test_utils.TestCase):
                               'Created At'], sortby_index=None)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_message_list_created_before_aliases(self):
+        self.run_command('message-list --before 2001-01-01')
+        self.assert_called(
+            'GET',
+            '/messages?created_before=2001-01-01',
+        )
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_share_message_list_created_since_aliases(self):
+        self.run_command('message-list --since 2001-01-01')
+        self.assert_called(
+            'GET',
+            '/messages?created_since=2001-01-01',
+        )
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_message_list_select_column(self):
         self.run_command('message-list --columns id,resource_type')
 

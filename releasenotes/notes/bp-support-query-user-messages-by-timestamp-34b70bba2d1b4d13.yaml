@@ -1,0 +1,4 @@
+---
+features:
+  - Added ``since`` and ``before`` to messages list API. User messages can be
+    queried by stimestamp with API version ``2.52`` and beyond.

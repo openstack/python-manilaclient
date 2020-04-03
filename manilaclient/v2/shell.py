@@ -5602,6 +5602,20 @@ def do_share_replica_resync(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "resource_id,user_message".')
+@cliutils.arg(
+    '--since',
+    metavar='<since>',
+    default=None,
+    help='Return only user messages created since given date. '
+         'The date format must be conforming to ISO8601. '
+         'Available only for microversion >= 2.52.')
+@cliutils.arg(
+    '--before',
+    metavar='<before>',
+    default=None,
+    help='Return only user messages created before given date. '
+         'The date format must be conforming to ISO8601. '
+         'Available only for microversion >= 2.52.')
 def do_message_list(cs, args):
     """Lists all messages."""
     if args.columns is not None:
@@ -5620,6 +5634,15 @@ def do_message_list(cs, args):
         'detail_id': args.detail_id,
         'message_level': args.level
     }
+    if cs.api_version < api_versions.APIVersion("2.52"):
+        msg = ("Filtering messages by 'since' and 'before' is possible only "
+               "with Manila API version >=2.52")
+        if getattr(args, 'since') or getattr(args, 'before'):
+            raise exceptions.CommandError(msg)
+    else:
+        search_opts['created_since'] = args.since
+        search_opts['created_before'] = args.before
+
     messages = cs.messages.list(
         search_opts=search_opts, sort_key=args.sort_key,
         sort_dir=args.sort_dir)
