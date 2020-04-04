@@ -46,15 +46,6 @@ master_doc = 'index'
 project = u'python-manilaclient'
 copyright = u'Rackspace, based on work by Jacob Kaplan-Moss'
 
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The short X.Y version.
-version = '2.6'
-# The full version, including alpha/beta/rc tags.
-release = '2.6.10'
-
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
 exclude_trees = []
@@ -80,7 +71,6 @@ html_theme_path = [openstackdocstheme.get_html_theme_path()]
 repository_name = 'openstack/python-manilaclient'
 bug_project = 'python-manilaclient'
 bug_tag = 'docs'
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # -- Options for LaTeX output -------------------------------------------------
 
