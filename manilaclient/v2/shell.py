@@ -414,10 +414,13 @@ def _quota_update(manager, identifier, args):
 
 
 @cliutils.arg(
-    '--tenant-id',
-    metavar='<tenant-id>',
+    '--tenant-id', '--tenant',
+    '--project', '--project-id',
+    action='single_alias',
+    dest='project_id',
+    metavar='<project-id>',
     default=None,
-    help='ID of tenant to list the quotas for.')
+    help='ID of project to list the quotas for.')
 @cliutils.arg(
     '--user-id',
     metavar='<user-id>',
@@ -441,10 +444,10 @@ def _quota_update(manager, identifier, args):
          'Default false, available only for microversion >= 2.25.')
 @api_versions.wraps("1.0")
 def do_quota_show(cs, args):
-    """List the quotas for a tenant/user."""
-    project = args.tenant_id or cs.keystone_client.project_id
+    """List the quotas for a project, user or share type."""
+    project_id = args.project_id or cs.keystone_client.project_id
     kwargs = {
-        "tenant_id": project,
+        "tenant_id": project_id,
         "user_id": args.user_id,
         "detail": args.detail,
     }
@@ -458,20 +461,23 @@ def do_quota_show(cs, args):
 
 
 @cliutils.arg(
-    '--tenant-id',
-    metavar='<tenant-id>',
+    '--tenant-id', '--tenant',
+    '--project', '--project-id',
+    action='single_alias',
+    dest='project_id',
+    metavar='<project-id>',
     default=None,
-    help='ID of tenant to list the default quotas for.')
+    help='ID of the project to list the default quotas for.')
 def do_quota_defaults(cs, args):
-    """List the default quotas for a tenant."""
-    project = args.tenant_id or cs.keystone_client.project_id
+    """List the default quotas for a project."""
+    project = args.project_id or cs.keystone_client.project_id
     _quota_set_pretty_show(cs.quotas.defaults(project))
 
 
 @cliutils.arg(
-    'tenant_id',
-    metavar='<tenant_id>',
-    help='UUID of tenant to set the quotas for.')
+    'project_id',
+    metavar='<project-id>',
+    help='UUID of project to set the quotas for.')
 @cliutils.arg(
     '--user-id',
     metavar='<user-id>',
@@ -548,7 +554,7 @@ def do_quota_defaults(cs, args):
 def do_quota_update(cs, args):
     """Update the quotas for a project/user and/or share type (Admin only)."""
     kwargs = {
-        "tenant_id": args.tenant_id,
+        "tenant_id": args.project_id,
         "user_id": args.user_id,
         "shares": args.shares,
         "gigabytes": args.gigabytes,
@@ -578,9 +584,12 @@ def do_quota_update(cs, args):
 
 
 @cliutils.arg(
-    '--tenant-id',
-    metavar='<tenant-id>',
-    help='ID of tenant to delete quota for.')
+    '--tenant-id', '--tenant',
+    '--project', '--project-id',
+    action='single_alias',
+    dest='project_id',
+    metavar='<project-id>',
+    help='ID of the project to delete quota for.')
 @cliutils.arg(
     '--user-id',
     metavar='<user-id>',
@@ -598,11 +607,11 @@ def do_quota_update(cs, args):
          "Available only for microversion >= 2.39")
 @api_versions.wraps("1.0")
 def do_quota_delete(cs, args):
-    """Delete quota for a tenant/user or tenant/share-type.
+    """Delete quota for a project, or project/user or project/share-type.
 
     The quota will revert back to default (Admin only).
     """
-    project_id = args.tenant_id or cs.keystone_client.project_id
+    project_id = args.project_id or cs.keystone_client.project_id
     kwargs = {
         "tenant_id": project_id,
         "user_id": args.user_id,
@@ -749,7 +758,7 @@ def do_rate_limits(cs, args):
     dest='public',
     action='store_true',
     default=False,
-    help="Level of visibility for share. Defines whether other tenants are "
+    help="Level of visibility for share. Defines whether other projects are "
          "able to see it or not. (Default=False)")
 @cliutils.arg(
     '--availability-zone', '--availability_zone', '--az',
@@ -1101,7 +1110,7 @@ def do_share_export_location_show(cs, args):
     dest='public',
     action='store_true',
     default=False,
-    help="Level of visibility for share. Defines whether other tenants are "
+    help="Level of visibility for share. Defines whether other projects are "
          "able to see it or not. Available only for microversion >= 2.8. "
          "(Default=False)")
 @cliutils.arg(
@@ -1681,14 +1690,15 @@ def do_snapshot_access_list(cs, args):
 
 
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -1816,13 +1826,13 @@ def do_snapshot_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help="Filter results by project id. Useful with set key '--all-tenants'.")
+    help="Filter results by project id. Useful with set key '--all-projects'.")
 @cliutils.arg(
     '--public',
     dest='public',
     action='store_true',
     default=False,
-    help="Add public shares from all tenants to result. (Default=False)")
+    help="Add public shares from all projects to result. (Default=False)")
 @cliutils.arg(
     '--share-group', '--share_group', '--group',
     metavar='<share_group>',
@@ -1859,7 +1869,11 @@ def do_list(cs, args):
     """List NAS shares with filters."""
 
     columns = args.columns
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
     if columns is not None:
         list_of_keys = _split_columns(columns=columns)
     else:
@@ -1867,7 +1881,7 @@ def do_list(cs, args):
             'ID', 'Name', 'Size', 'Share Proto', 'Status', 'Is Public',
             'Share Type Name', 'Host', 'Availability Zone'
         ]
-        if all_tenants or args.public:
+        if all_projects or args.public:
             list_of_keys.append('Project ID')
 
     empty_obj = type('Empty', (object,), {'id': None})
@@ -1887,7 +1901,7 @@ def do_list(cs, args):
     search_opts = {
         'offset': args.offset,
         'limit': args.limit,
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'name': args.name,
         'status': args.status,
         'host': args.host,
@@ -2118,14 +2132,15 @@ def do_share_instance_export_location_show(cs, args):
 
 
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -2216,14 +2231,18 @@ def do_share_instance_export_location_show(cs, args):
          'Available only for microversion >= 2.36.')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
     else:
         list_of_keys = [
             'ID', 'Share ID', 'Status', 'Name', 'Share Size',
         ]
-        if all_tenants:
+        if all_projects:
             list_of_keys.append('Project ID')
 
     empty_obj = type('Empty', (object,), {'id': None})
@@ -2231,7 +2250,7 @@ def do_snapshot_list(cs, args):
     search_opts = {
         'offset': args.offset,
         'limit': args.limit,
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'name': args.name,
         'status': args.status,
         'share_id': share.id,
@@ -2414,7 +2433,7 @@ def do_snapshot_create(cs, args):
     default=None,
     type=str,
     action="single_alias",
-    help='Public share is visible for all tenants.')
+    help='Public share is visible for all projects.')
 def do_update(cs, args):
     """Rename a share."""
     kwargs = {}
@@ -2655,7 +2674,7 @@ def do_reset_state(cs, args):
     default=None,
     help="Share network description.")
 def do_share_network_create(cs, args):
-    """Create description for network used by the tenant."""
+    """Create a share network to export shares to."""
     values = {
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
@@ -2705,7 +2724,7 @@ def do_share_network_create(cs, args):
          "'driver_handles_share_servers' extra_spec set to True. Available "
          "only for microversion >= 2.51. (Default=None)")
 def do_share_network_create(cs, args):
-    """Create description for network used by the tenant."""
+    """Create a share network to export shares to."""
     values = {
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
@@ -2829,7 +2848,7 @@ def do_share_network_update(cs, args):
     metavar='<share-network>',
     help='Name or ID of the share network to show.')
 def do_share_network_show(cs, args):
-    """Get a description for network used by the tenant."""
+    """Retrieve details for a share network."""
     share_network = _find_share_network(cs, args.share_network)
     info = share_network._info.copy()
     cliutils.print_dict(info)
@@ -2837,14 +2856,15 @@ def do_share_network_show(cs, args):
 
 @api_versions.wraps("1.0", "2.25")
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--project-id',
     '--project_id',  # alias
@@ -2952,9 +2972,13 @@ def do_share_network_show(cs, args):
          'example --columns "id".')
 def do_share_network_list(cs, args):
     """Get a list of network info."""
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
     search_opts = {
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'project_id': args.project_id,
         'name': args.name,
         'created_since': args.created_since,
@@ -2983,14 +3007,15 @@ def do_share_network_list(cs, args):
 
 @api_versions.wraps("2.26")  # noqa
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--project-id',
     '--project_id',  # alias
@@ -3111,10 +3136,14 @@ def do_share_network_list(cs, args):
     help='Filter results matching a share network description pattern. '
          'Available only for microversion >= 2.36.')
 def do_share_network_list(cs, args):
-    """Get a list of network info."""
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    """Get a list of share networks"""
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
     search_opts = {
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'project_id': args.project_id,
         'name': args.name,
         'created_since': args.created_since,
@@ -3333,7 +3362,7 @@ def do_share_network_delete(cs, args):
     '--dns-ip',
     metavar='<dns_ip>',
     default=None,
-    help="DNS IP address used inside tenant's network.")
+    help="DNS IP address used inside project's network.")
 @cliutils.arg(
     '--ou',
     metavar='<ou>',
@@ -3354,7 +3383,7 @@ def do_share_network_delete(cs, args):
     '--user',
     metavar='<user>',
     default=None,
-    help="Security service user or group used by tenant.")
+    help="Security service user or group used by project.")
 @cliutils.arg(
     '--password',
     metavar='<password>',
@@ -3371,7 +3400,7 @@ def do_share_network_delete(cs, args):
     default=None,
     help="Security service description.")
 def do_security_service_create(cs, args):
-    """Create security service used by tenant."""
+    """Create security service used by project."""
     values = {
         'dns_ip': args.dns_ip,
         'server': args.server,
@@ -3403,7 +3432,7 @@ def do_security_service_create(cs, args):
     '--dns-ip',
     metavar='<dns-ip>',
     default=None,
-    help="DNS IP address used inside tenant's network.")
+    help="DNS IP address used inside project's network.")
 @cliutils.arg(
     '--ou',
     metavar='<ou>',
@@ -3424,7 +3453,7 @@ def do_security_service_create(cs, args):
     '--user',
     metavar='<user>',
     default=None,
-    help="Security service user or group used by tenant.")
+    help="Security service user or group used by project.")
 @cliutils.arg(
     '--password',
     metavar='<password>',
@@ -3477,14 +3506,15 @@ def do_security_service_show(cs, args):
 
 
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--share-network',
     '--share_network',  # alias
@@ -3511,14 +3541,14 @@ def do_security_service_show(cs, args):
     '--user',
     metavar='<user>',
     default=None,
-    help='Filter results by user or group used by tenant.')
+    help='Filter results by user or group used by projects.')
 @cliutils.arg(
     '--dns-ip',
     '--dns_ip',  # alias
     metavar='<dns_ip>',
     action='single_alias',
     default=None,
-    help="Filter results by DNS IP address used inside tenant's network.")
+    help="Filter results by DNS IP address used inside project's network.")
 @cliutils.arg(
     '--ou',
     metavar='<ou>',
@@ -3563,9 +3593,13 @@ def do_security_service_show(cs, args):
          'example --columns "name,type".')
 def do_security_service_list(cs, args):
     """Get a list of security services."""
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
     search_opts = {
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'status': args.status,
         'name': args.name,
         'type': args.type,
@@ -4281,7 +4315,7 @@ def do_type_create(cs, args):
     metavar='<is_public>',
     action='single_alias',
     help="New visibility of the share type. If set to True, share type will "
-         "be available to all tenants in the cloud.")
+         "be available to all projects in the cloud.")
 @api_versions.wraps("2.50")
 def do_type_update(cs, args):
     """Update share type name, description, and/or visibility. (Admin only)."""
@@ -4745,14 +4779,15 @@ def do_share_group_create(cs, args):
 
 
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -4814,7 +4849,7 @@ def do_share_group_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help="Filter results by project ID. Useful with set key '--all-tenants'.")
+    help="Filter results by project ID. Useful with set key '--all-projects'.")
 @cliutils.arg(
     '--limit',
     metavar='<limit>',
@@ -4872,7 +4907,11 @@ def do_share_group_list(cs, args):
     else:
         list_of_keys = ('ID', 'Name', 'Status', 'Description')
 
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
     empty_obj = type('Empty', (object,), {'id': None})
     sg_type = (_find_share_group_type(cs, args.share_group_type)
                if args.share_group_type else empty_obj)
@@ -4884,7 +4923,7 @@ def do_share_group_list(cs, args):
     search_opts = {
         'offset': args.offset,
         'limit': args.limit,
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'name': args.name,
         'status': args.status,
         'share_server_id': args.share_server_id,
@@ -5047,14 +5086,15 @@ def do_share_group_snapshot_create(cs, args):
 
 
 @cliutils.arg(
-    '--all-tenants',
-    dest='all_tenants',
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
     metavar='<0|1>',
     nargs='?',
     type=int,
     const=1,
     default=0,
-    help='Display information from all tenants (Admin only).')
+    help='Display information from all projects (Admin only).')
 @cliutils.arg(
     '--name',
     metavar='<name>',
@@ -5120,12 +5160,16 @@ def do_share_group_snapshot_list(cs, args):
     else:
         list_of_keys = ('id', 'name', 'status', 'description')
 
-    all_tenants = int(os.environ.get("ALL_TENANTS", args.all_tenants))
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
 
     search_opts = {
         'offset': args.offset,
         'limit': args.limit,
-        'all_tenants': all_tenants,
+        'all_tenants': all_projects,
         'name': args.name,
         'status': args.status,
         'share_group_id': args.share_group_id,
