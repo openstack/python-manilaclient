@@ -29,7 +29,6 @@ from manilaclient.common.apiclient import utils as apiclient_utils
 from manilaclient.common import cliutils
 from manilaclient.common import constants
 from manilaclient import exceptions
-from manilaclient.v2 import quotas
 
 
 def _poll_for_status(poll_fn, obj_id, action, final_ok_states,
@@ -391,10 +390,12 @@ _quota_resources = [
     'gigabytes',
     'snapshot_gigabytes',
     'share_networks',
+    'share_replicas',
+    'replica_gigabytes'
 ]
 
 
-def _quota_update(manager, identifier, args):
+def _quota_class_update(manager, identifier, args):
     updates = {}
     for resource in _quota_resources:
         val = getattr(args, resource, None)
@@ -402,15 +403,7 @@ def _quota_update(manager, identifier, args):
             updates[resource] = val
 
     if updates:
-        # default value of force is None to make sure this client
-        # will be compatible with old nova server
-        force_update = getattr(args, 'force', None)
-        user_id = getattr(args, 'user', None)
-        if isinstance(manager, quotas.QuotaSetManager):
-            manager.update(identifier, force=force_update, user_id=user_id,
-                           **updates)
-        else:
-            manager.update(identifier, **updates)
+        manager.update(identifier, **updates)
 
 
 @cliutils.arg(
@@ -538,6 +531,23 @@ def do_quota_defaults(cs, args):
          "Mutually exclusive with '--user-id'. "
          "Available only for microversion >= 2.39")
 @cliutils.arg(
+    '--share-replicas',
+    '--share_replicas',
+    '--replicas',
+    metavar='<share-replicas>',
+    type=int,
+    default=None,
+    help='New value for the "share_replicas" quota. Available only for '
+         'microversion >= 2.53')
+@cliutils.arg(
+    '--replica-gigabytes',
+    '--replica_gigabytes',
+    metavar='<replica-gigabytes>',
+    type=int,
+    default=None,
+    help='New value for the "replica_gigabytes" quota. Available only for '
+         'microversion >= 2.53')
+@cliutils.arg(
     '--force',
     dest='force',
     action="store_true",
@@ -570,10 +580,16 @@ def do_quota_update(cs, args):
                 "'2.40' API microversion.")
         elif args.share_type is not None:
             raise exceptions.CommandError(
-                "Share type quotas handle only 'shares', 'gigabytes', "
-                "'snapshots' and 'snapshot_gigabytes' resources.")
+                "Share type quotas cannot be used to constrain share groups.")
         kwargs["share_groups"] = args.share_groups
         kwargs["share_group_snapshots"] = args.share_group_snapshots
+    if args.share_replicas is not None or args.replica_gigabytes is not None:
+        if cs.api_version < api_versions.APIVersion("2.53"):
+            raise exceptions.CommandError(
+                "'share replica' quotas are available only starting with "
+                "'2.53' API microversion.")
+        kwargs["share_replicas"] = args.share_replicas
+        kwargs["replica_gigabytes"] = args.replica_gigabytes
     cs.quotas.update(**kwargs)
 
 
@@ -665,10 +681,34 @@ def do_quota_class_show(cs, args):
     default=None,
     action='single_alias',
     help='New value for the "share_networks" quota.')
+@cliutils.arg(
+    '--share-replicas',
+    '--share_replicas',  # alias
+    '--replicas',  # alias
+    metavar='<share-replicas>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "share_replicas" quota. Available only for '
+         'microversion >= 2.53')
+@cliutils.arg(
+    '--replica-gigabytes',
+    '--replica_gigabytes',  # alias
+    metavar='<replica-gigabytes>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "replica_gigabytes" quota. Available only for '
+         'microversion >= 2.53')
 def do_quota_class_update(cs, args):
     """Update the quotas for a quota class (Admin only)."""
+    if args.share_replicas is not None or args.replica_gigabytes is not None:
+        if cs.api_version < api_versions.APIVersion("2.53"):
+            raise exceptions.CommandError(
+                "'share replica' quotas are available only starting with "
+                "'2.53' API microversion.")
 
-    _quota_update(cs.quota_classes, args.class_name, args)
+    _quota_class_update(cs.quota_classes, args.class_name, args)
 
 
 def do_absolute_limits(cs, args):

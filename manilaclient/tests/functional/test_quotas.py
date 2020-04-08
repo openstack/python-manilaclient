@@ -24,6 +24,8 @@ from manilaclient import api_versions
 from manilaclient.tests.functional import base
 from manilaclient.tests.functional import utils
 
+REPLICA_QUOTAS_MICROVERSION = '2.53'
+
 
 def _get_share_type_quota_values(project_quota_value):
     project_quota_value = int(project_quota_value)
@@ -153,6 +155,16 @@ class QuotasReadWriteTest(base.BaseTestCase):
             self.admin_client.manila,
             cmd, microversion='2.39')
 
+    @ddt.data('--share-replicas', '--replica-gigabytes')
+    @utils.skip_if_microversion_not_supported("2.52")
+    def test_update_quotas_for_share_replicas_using_too_old_microversion(self,
+                                                                         arg):
+        cmd = 'quota-update %s %s 10' % (self.project_id, arg)
+        self.assertRaises(
+            exceptions.CommandFailed,
+            self.admin_client.manila,
+            cmd, microversion='2.52')
+
     @ddt.data('--share-groups', '--share-group-snapshots')
     @utils.skip_if_microversion_not_supported("2.40")
     def test_update_share_type_quotas_for_share_groups(self, arg):
@@ -164,7 +176,7 @@ class QuotasReadWriteTest(base.BaseTestCase):
             cmd, microversion='2.40')
 
     @ddt.data(*set([
-        "2.39", "2.40", api_versions.MAX_VERSION,
+        "2.39", "2.40", REPLICA_QUOTAS_MICROVERSION, api_versions.MAX_VERSION,
     ]))
     def test_update_share_type_quotas_positive(self, microversion):
         if not utils.is_microversion_supported(microversion):
@@ -184,6 +196,20 @@ class QuotasReadWriteTest(base.BaseTestCase):
             'snapshot_gigabytes': _get_share_type_quota_values(
                 p_quotas['snapshot_gigabytes']),
         }
+        supports_share_replica_quotas = (
+            api_versions.APIVersion(microversion) >= api_versions.APIVersion(
+                REPLICA_QUOTAS_MICROVERSION))
+
+        if supports_share_replica_quotas:
+            st_custom_quotas['share_replicas'] = _get_share_type_quota_values(
+                p_quotas['share_replicas']
+            )
+            st_custom_quotas['replica_gigabytes'] = (
+                _get_share_type_quota_values(p_quotas['replica_gigabytes']))
+            replica_params = (' --share-replicas %s '
+                              '--replica-gigabytes %s') % (
+                st_custom_quotas['share_replicas'],
+                st_custom_quotas['replica_gigabytes'])
 
         # Update quotas for share type
         cmd = ('quota-update %s --share-type %s '
@@ -194,6 +220,9 @@ class QuotasReadWriteTest(base.BaseTestCase):
                    st_custom_quotas['gigabytes'],
                    st_custom_quotas['snapshots'],
                    st_custom_quotas['snapshot_gigabytes'])
+
+        if supports_share_replica_quotas:
+            cmd += replica_params
         self.admin_client.manila(cmd, microversion=microversion)
 
         # Verify share type quotas
