@@ -12,9 +12,10 @@
 # limitations under the License.
 
 import copy
-import ddt
 import itertools
-import mock
+from unittest import mock
+
+import ddt
 
 from manilaclient import api_versions
 from manilaclient import config

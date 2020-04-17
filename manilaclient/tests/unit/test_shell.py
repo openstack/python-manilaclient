@@ -12,10 +12,10 @@
 
 import re
 import sys
+from unittest import mock
 
 import ddt
 import fixtures
-import mock
 from six import moves
 from tempest.lib.cli import output_parser
 from testtools import matchers

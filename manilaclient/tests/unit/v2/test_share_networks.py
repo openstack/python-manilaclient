@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import ddt
 import itertools
-import mock
+from unittest import mock
+
+import ddt
 
 from manilaclient import api_versions
 from manilaclient import exceptions

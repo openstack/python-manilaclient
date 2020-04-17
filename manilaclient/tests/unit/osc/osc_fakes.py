@@ -13,11 +13,11 @@
 #   under the License.
 #
 
-import mock
-from oslo_serialization import jsonutils
 import sys
+from unittest import mock
 
 from keystoneauth1 import fixture
+from oslo_serialization import jsonutils
 import requests
 
 AUTH_TOKEN = "foobar"

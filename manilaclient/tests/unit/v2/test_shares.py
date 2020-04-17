@@ -15,8 +15,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from unittest import mock
+
 import ddt
-import mock
 
 from manilaclient import api_versions
 from manilaclient.common.apiclient import exceptions as client_exceptions

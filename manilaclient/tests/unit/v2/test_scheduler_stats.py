@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import mock
+from unittest import mock
 
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes

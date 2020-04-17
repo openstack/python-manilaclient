@@ -15,10 +15,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import itertools
+from unittest import mock
+
 import ddt
 import fixtures
-import itertools
-import mock
 from oslo_utils import strutils
 import six
 

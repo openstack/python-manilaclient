@@ -14,10 +14,8 @@
 #
 
 import argparse
-import mock
+from unittest import mock
 import uuid
-
-from mock import call
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
 
@@ -189,7 +187,7 @@ class TestShareDelete(TestShare):
 
         result = self.cmd.take_action(parsed_args)
 
-        calls = [call(s, None) for s in shares]
+        calls = [mock.call(s, None) for s in shares]
         self.shares_mock.delete.assert_has_calls(calls)
         self.assertIsNone(result)
 
