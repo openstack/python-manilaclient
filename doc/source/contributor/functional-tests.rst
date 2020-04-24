@@ -1,8 +1,9 @@
 Functional tests
 ================
 
-Manila contains a suite of functional tests under the
-python-manilaclient/tests/functional directory.
+There is a suite of functional tests under the
+python-manilaclient/tests/functional directory. Unlike unit tests, these
+tests perform API calls to Manila and are designed to run on a DevStack.
 
 Adding functional tests to your changes is not mandatory but it's certainly
 a good practice and it's encouraged.
@@ -10,10 +11,22 @@ a good practice and it's encouraged.
 Prerequisite
 ------------
 
-You need to have manila running somewhere. If you are using devstack, you can enable
-manila by enabling the manila plugin and selecting the backend you want to use.
+You need to have manila running somewhere. If you wish to use DevStack to
+run manila, a good place to start would be the `manila contributor guide`_.
 
-As an example, you can use the following local.conf file
+.. note::
+
+    We absolutely recommend using a ``fake shared file system back end`` as
+    opposed to a real storage system, because our tests are written with the
+    assumption that all APIs manila exposes are usable. In reality,
+    different real world storage back ends have `different capabilities`_ and
+    this project doesn't need to worry about them to provide a general purpose
+    interface to Manila. A fake driver provides fake storage, so don't
+    expect to be able to mount or use the shared file systems that you
+    create with it.
+
+You can use the following local.conf file to configure DevStack including
+Manila using a few fake back ends:
 
 .. code-block:: console
 
@@ -21,25 +34,21 @@ As an example, you can use the following local.conf file
 
     # auth
     ADMIN_PASSWORD=nomoresecret
-    DATABASE_PASSWORD=stackdb
-    RABBIT_PASSWORD=stackqueue
+    DATABASE_PASSWORD=$ADMIN_PASSWORD
+    RABBIT_PASSWORD=$ADMIN_PASSWORD
     SERVICE_PASSWORD=$ADMIN_PASSWORD
 
-    # enable logging
+    # enable logging for DevStack
     LOGFILE=/opt/stack/logs/stack.sh.log
+
+    # Logging mode for DevStack services
     VERBOSE=True
-    LOG_COLOR=True
-    LOGDIR=/opt/stack/logs
 
     # manila
     enable_plugin manila https://opendev.org/openstack/manila
 
     # python-manilaclient
     LIBS_FROM_GIT=python-manilaclient
-
-    # versioning
-    PYTHON3_VERSION=3.6
-    IDENTITY_API_VERSION=3
 
     # share driver
     SHARE_DRIVER=manila.tests.share.drivers.dummy.DummyDriver
@@ -96,24 +105,23 @@ As an example, you can use the following local.conf file
     MANILA_OPTGROUP_adminnet_standalone_network_plugin_allowed_ip_ranges=11.0.0.10-11.0.0.19,11.0.0.30-11.0.0.39,11.0.0.50-11.0.0.199
     MANILA_OPTGROUP_adminnet_network_plugin_ipv4_enabled=True
 
-In this example we enable manila with the DummyDriver.
-
 Configuration
 -------------
 
-The functional tests require a couple of configuration files, so you will need to generate them yourself.
+The functional tests require a couple of configuration files, so you will need
+to generate them before running the tests.
 
-For devstack
+For DevStack
 ^^^^^^^^^^^^
 
-If you are using devstack, you can run the following script
+On your DevStack machine, you can run the following script. It assumes that
+``devstack`` is cloned onto your base folder.
 
 .. code-block:: console
 
-    export HOME=${LOCAL:-/home/<user>}
-    export DEST=${DEST:-/opt/stack}
-    export MANILACLIENT_DIR=${MANILACLIENT_DIR:-$DEST/python-manilaclient}
-    export MANILACLIENT_CONF="$MANILACLIENT_DIR/etc/manilaclient/manilaclient.conf"
+    DEST=${DEST:-/opt/stack}
+    MANILACLIENT_DIR=${MANILACLIENT_DIR:-$DEST/python-manilaclient}
+    MANILACLIENT_CONF="$MANILACLIENT_DIR/etc/manilaclient/manilaclient.conf"
     # Go to the manilaclient dir
     cd $MANILACLIENT_DIR
     # Give permissions
@@ -177,15 +185,18 @@ If you are using devstack, you can run the following script
 
     fi
 
-Change <user> to the correct user value.
-
 Running the tests
 -----------------
 
-To run all functional tests make sure you are in the top level of your python-manilaclient
-module (e.g. /opt/stack/python-manilaclient/) and simply run::
+To run all functional tests make sure you are in the top level of your
+python-manilaclient module (e.g. /opt/stack/python-manilaclient/) and simply
+run::
 
     tox -e functional
 
 This will create a virtual environment, load all the packages from
 test-requirements.txt and run all functional tests.
+
+
+.. _manila contributor guide: https://docs.openstack.org/manila/latest/contributor/development-environment-devstack.html
+.. _different capabilities: https://docs.openstack.org/manila/latest/admin/share_back_ends_feature_support_mapping.html

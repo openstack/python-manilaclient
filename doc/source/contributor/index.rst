@@ -1,13 +1,13 @@
 Contributing
 ============
 
-Code is hosted at `opendev.org`_. Submit bugs to the
-python-manilaclient project on `Launchpad`_. Submit code to the
-openstack/python-manilaclient project using `Gerrit`_.
+Basic Information
+-----------------
 
-.. _opendev.org: https://opendev.org/openstack/python-manilaclient
-.. _Launchpad: https://launchpad.net/python-manilaclient
-.. _Gerrit: https://docs.openstack.org/infra/manual/developers.html#development-workflow
+.. toctree::
+   :maxdepth: 3
+
+   contributing
 
 Testing
 -------

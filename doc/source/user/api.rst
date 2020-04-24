@@ -22,7 +22,7 @@ done so, you can use the API like so::
     ce06d0a8-5c1b-4e2c-81d2-39eca6bbfb70
     >>> manila.shares.list()
     [<Share: ce06d0a8-5c1b-4e2c-81d2-39eca6bbfb70>]
-    >>>share.delete
+    >>> share.delete
 
 In addition to creating and deleting shares, the manilaclient can manage
 share-types, access controls, and more! Using CephFS with Ganesha for NFS
