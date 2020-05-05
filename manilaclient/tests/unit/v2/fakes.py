@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import manilaclient
 from manilaclient import api_versions
 from manilaclient.tests.unit.v2 import fake_clients as fakes
