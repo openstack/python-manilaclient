@@ -18,8 +18,6 @@ wrong the tests might raise AssertionError. I've indicated in comments the
 places where actual behavior differs from the spec.
 """
 
-from __future__ import print_function
-
 
 def assert_has_keys(dictonary, required=None, optional=None):
     if required is None:
