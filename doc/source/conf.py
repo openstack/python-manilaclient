@@ -16,8 +16,6 @@
 import os
 import sys
 
-import openstackdocstheme
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -43,7 +41,6 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'python-manilaclient'
 copyright = u'Rackspace, based on work by Jacob Kaplan-Moss'
 
 # List of directories, relative to source directory, that shouldn't be searched
@@ -58,19 +55,19 @@ add_function_parentheses = True
 add_module_names = True
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # -- Options for HTML output --------------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'python-manilaclientdoc'
 html_theme = 'openstackdocs'
-html_theme_path = [openstackdocstheme.get_html_theme_path()]
 
 # openstackdocstheme options
-repository_name = 'openstack/python-manilaclient'
-bug_project = 'python-manilaclient'
-bug_tag = 'docs'
+openstackdocs_repo_name = 'openstack/python-manilaclient'
+openstackdocs_pdf_link = True
+openstackdocs_bug_project = 'python-manilaclient'
+openstackdocs_bug_tag = 'docs'
 
 # -- Options for LaTeX output -------------------------------------------------
 

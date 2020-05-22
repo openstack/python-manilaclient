@@ -30,8 +30,6 @@
 
 # -- General configuration ------------------------------------------------
 
-import openstackdocstheme
-
 # If your documentation needs a minimal Sphinx version, state it here.
 # needs_sphinx = '1.0'
 
@@ -44,10 +42,10 @@ extensions = [
 ]
 
 # openstackdocstheme options
-repository_name = 'openstack/python-manilaclient'
-bug_project = 'python-manilaclient'
-bug_tag = 'release notes'
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
+openstackdocs_repo_name = 'openstack/python-manilaclient'
+openstackdocs_bug_project = 'python-manilaclient'
+openstackdocs_bug_tag = 'release notes'
+openstackdocs_auto_name = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -100,7 +98,7 @@ exclude_patterns = []
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -119,9 +117,6 @@ html_theme = 'openstackdocs'
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [openstackdocstheme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -148,10 +143,6 @@ html_static_path = ['_static']
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
 # html_extra_path = []
-
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-# html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
