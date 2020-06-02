@@ -687,3 +687,49 @@ class UnsetShare(command.Command):
             raise exceptions.CommandError(_(
                 "One or more of the "
                 "unset operations failed"))
+
+
+class ResizeShare(command.Command):
+    """Resize a share"""
+    _description = _("Resize a share")
+
+    def get_parser(self, prog_name):
+        parser = super(ResizeShare, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of share to resize')
+        )
+        parser.add_argument(
+            'new_size',
+            metavar="<new-size>",
+            type=int,
+            help=_('New size of share, in GiBs')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share = apiutils.find_resource(share_client.shares,
+                                       parsed_args.share)
+        share_size = share._info['size']
+        new_size = parsed_args.new_size
+
+        if share_size > new_size:
+            try:
+                share_client.shares.shrink(share, new_size)
+            except Exception as e:
+                raise exceptions.CommandError(_(
+                    "Share resize failed: %s" % e
+                ))
+        elif share_size < new_size:
+            try:
+                share_client.shares.extend(share, new_size)
+            except Exception as e:
+                raise exceptions.CommandError(_(
+                    "Share resize failed: %s" % e
+                ))
+        else:
+            raise exceptions.CommandError(_(
+                "Share size is already at %s GiBs" % new_size
+            ))
