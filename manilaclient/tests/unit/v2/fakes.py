@@ -454,6 +454,33 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             }
         elif action in ('unmanage', ):
             assert 'force' in body[action]
+        elif action in (
+                'migration_cancel', 'migration_complete',
+                'migration_get_progress'):
+            assert body[action] is None
+            if 'migration_get_progress' == action:
+                _body = {'total_progress': 50,
+                         'task_state': 'fake_task_state',
+                         'destination_share_server_id': 'fake_dest_id'}
+                return 200, {}, _body
+            elif 'migration_complete' == action:
+                _body = {'destination_share_server_id': 'fake_dest_id'}
+                return 200, {}, _body
+        elif action in (
+                'migration_start', 'migration_check'):
+            assert 'host' in body[action]
+            if 'migration-check':
+                _body = {
+                    'compatible': True,
+                    'capacity': True,
+                    'capability': True,
+                    'writable': True,
+                    'nondisruptive': True,
+                    'preserve_snapshots': True,
+                }
+                return 200, {}, _body
+        elif action == 'reset_task_state':
+            assert 'task_state' in body[action]
 
         resp = 202
         result = (resp, {}, _body)

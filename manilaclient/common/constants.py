@@ -97,6 +97,7 @@ STATUS_MANAGE_ERROR = 'manage_error'
 STATUS_UNMANAGE_ERROR = 'unmanage_error'
 STATUS_DELETING = 'deleting'
 STATUS_CREATING = 'creating'
+STATUS_SERVER_MIGRATING = 'server_migrating'
 
 SNAPSHOT_SUPPORT = 'snapshot_support'
 CREATE_SHARE_FROM_SNAPSHOT_SUPPORT = 'create_share_from_snapshot_support'

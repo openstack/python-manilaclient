@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added support for performing the share server migration. The new commands
+    are: `share-server-migration-start`, `share-server-migration-complete`,
+    `share-server-migration-cancel`, `share-server-migration-get-progress`,
+    `share-server-migration-check` and `share-server-reset-task-state`.
