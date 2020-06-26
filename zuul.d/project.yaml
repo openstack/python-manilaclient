@@ -1,0 +1,15 @@
+- project:
+    templates:
+      - publish-openstack-sphinx-docs
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - check-requirements
+      - release-notes-jobs
+    check:
+      jobs:
+        - python-manilaclient-functional
+        - openstack-tox-cover:
+            voting: false
+    gate:
+      jobs:
+        - python-manilaclient-functional
