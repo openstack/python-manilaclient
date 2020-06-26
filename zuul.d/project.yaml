@@ -1,0 +1,20 @@
+- project:
+    templates:
+      - publish-openstack-docs-pti
+      - openstack-cover-jobs
+      - openstack-lower-constraints-jobs
+      - openstack-python-jobs
+      - openstack-python36-jobs
+      - openstack-python37-jobs
+      - check-requirements
+      - release-notes-jobs-python3
+    check:
+      jobs:
+        - python-manilaclient-functional
+        - rally-dsvm-manila-multibackend:
+            voting: false
+        - rally-dsvm-manila-multibackend-no-ss:
+            voting: false
+    gate:
+      jobs:
+        - python-manilaclient-functional
