@@ -1,0 +1,53 @@
+- name: create the manilaclient config file
+  file:
+    path: "{{ manilaclient_config }}"
+    state: touch
+- name: Set OS_ env variables to config
+  shell:
+    cmd: |
+      source {{ base_dir }}/devstack/functions
+
+      source {{ base_dir }}/devstack/openrc demo demo &>/dev/null
+      iniset {{ manilaclient_config }} DEFAULT username $OS_USERNAME
+      iniset {{ manilaclient_config }} DEFAULT tenant_name $OS_PROJECT_NAME
+      iniset {{ manilaclient_config }} DEFAULT password $OS_PASSWORD
+      iniset {{ manilaclient_config }} DEFAULT auth_url $OS_AUTH_URL
+      iniset {{ manilaclient_config }} DEFAULT project_domain_id $OS_PROJECT_DOMAIN_ID
+      iniset {{ manilaclient_config }} DEFAULT user_domain_id $OS_USER_DOMAIN_ID
+
+      source {{ base_dir }}/devstack/openrc admin demo &>/dev/null
+      iniset {{ manilaclient_config }} DEFAULT admin_username $OS_USERNAME
+      iniset {{ manilaclient_config }} DEFAULT admin_tenant_name $OS_TENANT_NAME
+      iniset {{ manilaclient_config }} DEFAULT admin_password $OS_PASSWORD
+      iniset {{ manilaclient_config }} DEFAULT admin_auth_url $OS_AUTH_URL
+      iniset {{ manilaclient_config }} DEFAULT admin_project_domain_id $OS_PROJECT_DOMAIN_ID
+      iniset {{ manilaclient_config }} DEFAULT admin_user_domain_id $OS_USER_DOMAIN_ID
+
+      iniset {{ manilaclient_config }} DEFAULT access_types_mapping "nfs:ip,cifs:user"
+
+      # Tests
+      iniset {{ manilaclient_config }} DEFAULT suppress_errors_in_cleanup false
+      iniset {{ manilaclient_config }} DEFAULT run_migration_tests true
+      iniset {{ manilaclient_config }} DEFAULT run_manage_tests true
+      iniset {{ manilaclient_config }} DEFAULT run_mount_snapshot_tests true
+  args:
+    executable: "/bin/bash"
+
+- name: create a share network
+  shell:
+    cmd: |
+      source {{ base_dir }}/devstack/functions
+      source {{ base_dir }}/devstack/openrc demo demo &>/dev/null
+
+      NEUTRON_NET=$(openstack network show {{ neutron_network_name }} -c id -f value)
+      NEUTRON_SUBNET=$(openstack subnet show {{ neutron_subnet_name }} -c id -f value)
+
+      manila share-network-create \
+              --name {{ share_network_name }} \
+              --neutron-net $NEUTRON_NET \
+              --neutron-subnet $NEUTRON_SUBNET
+
+      iniset {{ manilaclient_config }} DEFAULT share_network {{ share_network_name }}
+      iniset {{ manilaclient_config }} DEFAULT admin_share_network {{ share_network_name }}
+  args:
+    executable: "/bin/bash"
