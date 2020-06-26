@@ -1,0 +1,6 @@
+---
+base_dir: /opt/stack
+manilaclient_config: "{{ zuul.project.src_dir }}/etc/manilaclient/manilaclient.conf"
+neutron_network_name: private
+neutron_subnet_name: private-subnet
+share_network_name: ci

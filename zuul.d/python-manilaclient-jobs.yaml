@@ -1,0 +1,82 @@
+- job:
+    name: python-manilaclient-functional
+    parent: devstack-minimal
+    irrelevant-files:
+      - ^manilaclient/tests/unit/.*$
+      - ^setup.cfg$
+      - ^tools/.*$
+      - ^tox.ini$
+    required-projects:
+      - openstack/keystone
+      - openstack/manila
+      - openstack/neutron
+      - openstack/python-manilaclient
+    timeout: 5400
+    run: playbooks/python-manilaclient-functional/run.yaml
+    post-run: playbooks/python-manilaclient-functional/post.yaml
+    vars:
+      zuul_copy_output:
+        "{{ zuul.project.src_dir }}/etc/manilaclient/manilaclient.conf": logs
+      tox_environment:
+        PYTHONUNBUFFERED: 'true'
+      tox_envlist: functional
+      devstack_plugins:
+        manila: https://opendev.org/openstack/manila
+      devstack_localrc:
+        USE_PYTHON3: false
+        INSTALL_TEMPEST: false
+        # Enable manila with a fake driver that supports all capabilities
+        MANILA_CONFIGURE_DEFAULT_TYPES: true
+        MANILA_OPTGROUP_DEFAULT_quota_share_networks: 50
+        MANILA_DEFAULT_SHARE_TYPE_EXTRA_SPECS: 'snapshot_support=True create_share_from_snapshot_support=True revert_to_snapshot_support=True mount_snapshot_support=True'
+        MANILA_INSTALL_TEMPEST_PLUGIN_SYSTEMWIDE: false
+        MANILA_SERVICE_IMAGE_ENABLED: false
+        MANILA_SHARE_MIGRATION_PERIOD_TASK_INTERVAL: 1
+        SHARE_DRIVER: manila.tests.share.drivers.dummy.DummyDriver
+        MANILA_REPLICA_STATE_UPDATE_INTERVAL: 10
+        MANILA_ENABLED_BACKENDS: alpha,beta,gamma,delta
+        MANILA_CONFIGURE_GROUPS: alpha,beta,gamma,delta,membernet,adminnet
+        MANILA_OPTGROUP_alpha_share_driver: manila.tests.share.drivers.dummy.DummyDriver
+        MANILA_OPTGROUP_alpha_driver_handles_share_servers: true
+        MANILA_OPTGROUP_alpha_share_backend_name: ALPHA
+        MANILA_OPTGROUP_alpha_network_config_group: membernet
+        MANILA_OPTGROUP_alpha_admin_network_config_group: adminnet
+        MANILA_OPTGROUP_alpha_replication_domain: DUMMY_DOMAIN_2
+        MANILA_OPTGROUP_beta_share_driver: manila.tests.share.drivers.dummy.DummyDriver
+        MANILA_OPTGROUP_beta_driver_handles_share_servers: true
+        MANILA_OPTGROUP_beta_share_backend_name: BETA
+        MANILA_OPTGROUP_beta_network_config_group: membernet
+        MANILA_OPTGROUP_beta_admin_network_config_group: adminnet
+        MANILA_OPTGROUP_beta_replication_domain: DUMMY_DOMAIN_2
+        MANILA_OPTGROUP_gamma_share_driver: manila.tests.share.drivers.dummy.DummyDriver
+        MANILA_OPTGROUP_gamma_driver_handles_share_servers: false
+        MANILA_OPTGROUP_gamma_share_backend_name: GAMMA
+        MANILA_OPTGROUP_gamma_replication_domain: DUMMY_DOMAIN
+        MANILA_OPTGROUP_delta_share_driver: manila.tests.share.drivers.dummy.DummyDriver
+        MANILA_OPTGROUP_delta_driver_handles_share_servers: false
+        MANILA_OPTGROUP_delta_share_backend_name: DELTA
+        MANILA_OPTGROUP_delta_replication_domain: DUMMY_DOMAIN
+        MANILA_OPTGROUP_membernet_network_api_class: manila.network.standalone_network_plugin.StandaloneNetworkPlugin
+        MANILA_OPTGROUP_membernet_standalone_network_plugin_gateway: 10.0.0.1
+        MANILA_OPTGROUP_membernet_standalone_network_plugin_mask: 24
+        MANILA_OPTGROUP_membernet_standalone_network_plugin_network_type: vlan
+        MANILA_OPTGROUP_membernet_standalone_network_plugin_segmentation_id: 1010
+        MANILA_OPTGROUP_membernet_standalone_network_plugin_allowed_ip_ranges: 10.0.0.10-10.0.0.209
+        MANILA_OPTGROUP_membernet_network_plugin_ipv4_enabled: true
+        MANILA_OPTGROUP_adminnet_network_api_class: manila.network.standalone_network_plugin.StandaloneNetworkPlugin
+        MANILA_OPTGROUP_adminnet_standalone_network_plugin_gateway: 11.0.0.1
+        MANILA_OPTGROUP_adminnet_standalone_network_plugin_mask: 24
+        MANILA_OPTGROUP_adminnet_standalone_network_plugin_network_type: vlan
+        MANILA_OPTGROUP_adminnet_standalone_network_plugin_segmentation_id: 1011
+        MANILA_OPTGROUP_adminnet_standalone_network_plugin_allowed_ip_ranges: 11.0.0.10-11.0.0.19,11.0.0.30-11.0.0.39,11.0.0.50-11.0.0.199
+        MANILA_OPTGROUP_adminnet_network_plugin_ipv4_enabled: true
+      devstack_services:
+        # Keystone
+        key: true
+        # Neutron
+        q-agt: true
+        q-dhcp: true
+        q-l3: true
+        q-meta: true
+        q-metering: true
+        q-svc: true
