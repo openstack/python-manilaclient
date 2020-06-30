@@ -34,6 +34,8 @@ class FakeShareClient(object):
         self.share_types = mock.Mock()
         self.share_type_access = mock.Mock()
         self.quotas = mock.Mock()
+        self.share_snapshots = mock.Mock()
+        self.share_snapshot_export_locations = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -375,3 +377,61 @@ class FakeQuotaSet(object):
                                         quotas_info),
                                         loaded=True)
         return quotas
+
+
+class FakeShareSnapshot(object):
+    """Fake a share snapshot"""
+
+    @staticmethod
+    def create_one_snapshot(attrs=None, methods=None):
+        """Create a fake share snapshot
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+
+        share_snapshot = {
+            'created_at': datetime.datetime.now().isoformat(),
+            'description': 'description-' + uuid.uuid4().hex,
+            'id': 'snapshot-id-' + uuid.uuid4().hex,
+            'name': 'name-' + uuid.uuid4().hex,
+            'project_id': 'project-id-' + uuid.uuid4().hex,
+            'provider_location': None,
+            'share_id': 'share-id-' + uuid.uuid4().hex,
+            'share_proto': 'NFS',
+            'share_size': 1,
+            'size': 1,
+            'status': None,
+            'user_id': 'user-id-' + uuid.uuid4().hex
+        }
+
+        share_snapshot.update(attrs)
+        share_snapshot = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_snapshot),
+            methods=methods,
+            loaded=True)
+        return share_snapshot
+
+    @staticmethod
+    def create_share_snapshots(attrs=None, count=2):
+        """Create multiple fake snapshots.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_snapshots = []
+        for n in range(0, count):
+            share_snapshots.append(
+                FakeShareSnapshot.create_one_snapshot(attrs))
+
+        return share_snapshots
