@@ -30,7 +30,6 @@ jsonschema==2.6.0
 keystoneauth1==3.4.0
 linecache2==1.0.0
 MarkupSafe==1.0
-mock==2.0.0
 monotonic==0.6
 msgpack-python==0.4.0
 munch==2.1.0
@@ -85,3 +84,8 @@ unittest2==1.1.0
 urllib3==1.21.1
 warlock==1.2.0
 wrapt==1.7.0
+
+# Can be removed in Victoria cycle, when we raise the requirement of
+# python-openstackclient in test-requirements to a version that no longer
+# requires mock. See: https://review.opendev.org/#/c/717410/
+mock==2.0.0

@@ -10,15 +10,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from unittest import mock
 
 import ddt
-import mock
+from oslo_utils import uuidutils
 
 import manilaclient
 from manilaclient import exceptions
 from manilaclient.tests.unit import utils
 from manilaclient.v2 import client
-from oslo_utils import uuidutils
 
 
 @ddt.ddt

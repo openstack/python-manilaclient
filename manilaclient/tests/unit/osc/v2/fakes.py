@@ -13,8 +13,8 @@
 
 import copy
 import datetime
-import mock
 import random
+from unittest import mock
 import uuid
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes

@@ -11,7 +11,7 @@
 #   under the License.
 #
 
-from mock import call
+from unittest import mock
 
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
@@ -278,7 +278,7 @@ class TestShareTypeDelete(TestShareType):
 
         calls = []
         for t in self.share_types:
-            calls.append(call(t))
+            calls.append(mock.call(t))
         self.shares_mock.delete.assert_has_calls(calls)
         self.assertIsNone(result)
 

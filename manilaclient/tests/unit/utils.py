@@ -11,9 +11,9 @@
 # under the License.
 
 import os
+from unittest import mock
 
 import fixtures
-import mock
 import requests
 import testtools
 
