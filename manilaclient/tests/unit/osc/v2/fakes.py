@@ -435,3 +435,101 @@ class FakeShareSnapshot(object):
                 FakeShareSnapshot.create_one_snapshot(attrs))
 
         return share_snapshots
+
+
+class FakeSnapshotAccessRule(object):
+    """Fake one or more snapshot access rules"""
+
+    @staticmethod
+    def create_one_access_rule(attrs={}):
+        """Create a fake snapshot access rule
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        snapshot_access_rule = {
+            'access_to': 'demo',
+            'access_type': 'user',
+            'id': 'access_rule-id-' + uuid.uuid4().hex,
+            'state': 'queued_to_apply'
+        }
+
+        snapshot_access_rule.update(attrs)
+        snapshot_access_rule = osc_fakes.FakeResource(info=copy.deepcopy(
+            snapshot_access_rule),
+            loaded=True)
+        return snapshot_access_rule
+
+    @staticmethod
+    def create_access_rules(attrs={}, count=2):
+        """Create multiple fake snapshots.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        access_rules = []
+        for n in range(0, count):
+            access_rules.append(
+                FakeSnapshotAccessRule.create_one_access_rule(attrs))
+
+        return access_rules
+
+
+class FakeSnapshotExportLocation(object):
+    """Fake one or more export locations"""
+
+    @staticmethod
+    def create_one_export_location(attrs=None):
+        """Create a fake snapshot export location
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+
+        snapshot_export_location_info = {
+            "created_at": 'time-' + uuid.uuid4().hex,
+            "id": "id-" + uuid.uuid4().hex,
+            "is_admin_only": False,
+            "links": [],
+            "path": "/path/to/fake/snapshot/snapshot",
+            "share_snapshot_instance_id": 'instance-id' + uuid.uuid4().hex,
+            "updated_at": 'time-' + uuid.uuid4().hex,
+        }
+
+        snapshot_export_location_info.update(attrs)
+        snapshot_export_location = osc_fakes.FakeResource(info=copy.deepcopy(
+            snapshot_export_location_info),
+            loaded=True)
+        return snapshot_export_location
+
+    @staticmethod
+    def create_export_locations(attrs={}, count=2):
+        """Create multiple fake export locations.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        export_locations = []
+        for n in range(0, count):
+            export_locations.append(
+                FakeSnapshotExportLocation.create_one_export_location(
+                    attrs))
+
+        return export_locations

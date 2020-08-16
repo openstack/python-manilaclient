@@ -55,6 +55,10 @@ class TestShareSnapshot(manila_fakes.TestShare):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             "2.51")
 
+        self.export_locations_mock = (
+            self.app.client_manager.share.share_snapshot_export_locations)
+        self.export_locations_mock.reset_mock()
+
 
 class TestShareSnapshotCreate(TestShareSnapshot):
 
@@ -630,3 +634,438 @@ class TestShareSnapshotList(TestShareSnapshot):
 
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(values), list(data))
+
+
+class TestShareSnapshotAdopt(TestShareSnapshot):
+
+    def setUp(self):
+        super(TestShareSnapshotAdopt, self).setUp()
+
+        self.share = manila_fakes.FakeShare.create_one_share()
+        self.shares_mock.get.return_value = self.share
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.export_location = (
+            manila_fakes.FakeShareExportLocation.create_one_export_location())
+
+        self.snapshots_mock.manage.return_value = self.share_snapshot
+
+        self.cmd = osc_share_snapshots.AdoptShareSnapshot(self.app, None)
+
+        self.data = tuple(self.share_snapshot._info.values())
+        self.columns = tuple(self.share_snapshot._info.keys())
+
+    def test_share_snapshot_adopt_missing_args(self):
+        arglist = []
+        verifylist = []
+
+        self.assertRaises(osc_utils.ParserException,
+                          self.check_parser, self.cmd, arglist, verifylist)
+
+    def test_snapshot_adopt(self):
+        arglist = [
+            self.share.id,
+            self.export_location.fake_path
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('provider_location', self.export_location.fake_path)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.manage.assert_called_with(
+            share=self.share,
+            provider_location=self.export_location.fake_path,
+            driver_options={},
+            name=None,
+            description=None
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+    def test_snapshot_adopt_name(self):
+        name = 'name-' + uuid.uuid4().hex
+        arglist = [
+            self.share.id,
+            self.export_location.fake_path,
+            '--name', name,
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('provider_location', self.export_location.fake_path),
+            ('name', name)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.manage.assert_called_with(
+            share=self.share,
+            provider_location=self.export_location.fake_path,
+            driver_options={},
+            name=name,
+            description=None
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+    def test_snapshot_adopt_driver_option(self):
+        arglist = [
+            self.share.id,
+            self.export_location.fake_path,
+            '--driver-option', 'key1=value1',
+            '--driver-option', 'key2=value2'
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('provider_location', self.export_location.fake_path),
+            ('driver_option', {'key1': 'value1', 'key2': 'value2'})
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.manage.assert_called_with(
+            share=self.share,
+            provider_location=self.export_location.fake_path,
+            driver_options={
+                'key1': 'value1',
+                'key2': 'value2'
+            },
+            name=None,
+            description=None
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+
+class TestShareSnapshotAbandon(TestShareSnapshot):
+
+    def setUp(self):
+        super(TestShareSnapshotAbandon, self).setUp()
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.snapshots_mock.get.return_value = self.share_snapshot
+
+        self.cmd = osc_share_snapshots.AbandonShareSnapshot(self.app, None)
+
+    def test_share_snapshot_abandon_missing_args(self):
+        arglist = []
+        verifylist = []
+
+        self.assertRaises(osc_utils.ParserException,
+                          self.check_parser, self.cmd, arglist, verifylist)
+
+    def test_share_snapshot_abandon(self):
+        arglist = [
+            self.share_snapshot.id
+        ]
+        verifylist = [
+            ('snapshot', [self.share_snapshot.id])
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.unmanage.assert_called_with(self.share_snapshot)
+        self.assertIsNone(result)
+
+    def test_share_snapshot_abandon_multiple(self):
+        share_snapshots = (
+            manila_fakes.FakeShareSnapshot.create_share_snapshots(
+                count=2))
+        arglist = [
+            share_snapshots[0].id,
+            share_snapshots[1].id
+        ]
+        verifylist = [
+            ('snapshot', [share_snapshots[0].id, share_snapshots[1].id])
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.assertEqual(self.snapshots_mock.unmanage.call_count,
+                         len(share_snapshots))
+        self.assertIsNone(result)
+
+
+class TestShareSnapshotAccessAllow(TestShareSnapshot):
+
+    def setUp(self):
+        super(TestShareSnapshotAccessAllow, self).setUp()
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.snapshots_mock.get.return_value = self.share_snapshot
+
+        self.access_rule = (
+            manila_fakes.FakeSnapshotAccessRule.create_one_access_rule())
+        self.snapshots_mock.allow.return_value = self.access_rule._info
+
+        self.cmd = osc_share_snapshots.ShareSnapshotAccessAllow(
+            self.app, None)
+
+    def test_share_snapshot_access_allow(self):
+        arglist = [
+            self.share_snapshot.id,
+            'user',
+            'demo'
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('access_type', 'user'),
+            ('access_to', 'demo')
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.allow.assert_called_with(
+            snapshot=self.share_snapshot,
+            access_type='user',
+            access_to='demo'
+        )
+        self.assertEqual(tuple(self.access_rule._info.keys()), columns)
+        self.assertCountEqual(self.access_rule._info.values(), data)
+
+    def test_share_snapshot_access_allow_exception(self):
+        arglist = [
+            self.share_snapshot.id,
+            'user',
+            'demo'
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('access_type', 'user'),
+            ('access_to', 'demo')
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.snapshots_mock.allow.side_effect = exceptions.CommandError()
+        self.assertRaises(exceptions.CommandError,
+                          self.cmd.take_action,
+                          parsed_args)
+
+
+class TestShareSnapshotAccessDeny(TestShareSnapshot):
+
+    def setUp(self):
+        super(TestShareSnapshotAccessDeny, self).setUp()
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.snapshots_mock.get.return_value = self.share_snapshot
+
+        self.access_rule = (
+            manila_fakes.FakeSnapshotAccessRule.create_one_access_rule())
+
+        self.cmd = osc_share_snapshots.ShareSnapshotAccessDeny(
+            self.app, None)
+
+    def test_share_snapshot_access_deny(self):
+        arglist = [
+            self.share_snapshot.id,
+            self.access_rule.id,
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('id', [self.access_rule.id]),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.deny.assert_called_with(
+            snapshot=self.share_snapshot,
+            id=self.access_rule.id
+        )
+        self.assertIsNone(result)
+
+    def test_share_snapshot_access_deny_multiple(self):
+        access_rules = (
+            manila_fakes.FakeSnapshotAccessRule.create_access_rules(
+                count=2))
+
+        arglist = [
+            self.share_snapshot.id,
+            access_rules[0].id,
+            access_rules[1].id,
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('id', [access_rules[0].id, access_rules[1].id]),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.assertEqual(self.snapshots_mock.deny.call_count,
+                         len(access_rules))
+        self.assertIsNone(result)
+
+    def test_share_snapshot_access_deny_exception(self):
+        arglist = [
+            self.share_snapshot.id,
+            self.access_rule.id,
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('id', [self.access_rule.id]),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.snapshots_mock.deny.side_effect = exceptions.CommandError()
+        self.assertRaises(exceptions.CommandError,
+                          self.cmd.take_action,
+                          parsed_args)
+
+
+class TestShareSnapshotAccessList(TestShareSnapshot):
+
+    access_rules_columns = [
+        'id',
+        'access_type',
+        'access_to',
+        'state',
+    ]
+
+    def setUp(self):
+        super(TestShareSnapshotAccessList, self).setUp()
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.snapshots_mock.get.return_value = self.share_snapshot
+
+        self.access_rules = (
+            manila_fakes.FakeSnapshotAccessRule.create_access_rules(
+                count=2))
+
+        self.snapshots_mock.access_list.return_value = self.access_rules
+        self.cmd = osc_share_snapshots.ShareSnapshotAccessList(
+            self.app, None)
+
+        self.values = (oscutils.get_dict_properties(
+            a._info, self.access_rules_columns) for a in self.access_rules)
+
+    def test_share_snapshot_access_list(self):
+        arglist = [
+            self.share_snapshot.id
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.access_list.assert_called_with(
+            self.share_snapshot)
+
+        self.assertEqual(self.access_rules_columns, columns)
+        self.assertCountEqual(self.values, data)
+
+
+class TestShareSnapshotExportLocationList(TestShareSnapshot):
+
+    columns = ["id", "path"]
+
+    def setUp(self):
+        super(TestShareSnapshotExportLocationList, self).setUp()
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.snapshots_mock.get.return_value = self.share_snapshot
+
+        self.export_locations = (
+            manila_fakes.FakeSnapshotExportLocation.create_export_locations()
+        )
+
+        self.export_locations_mock.list.return_value = self.export_locations
+        self.values = (oscutils.get_dict_properties(
+            e._info, self.columns) for e in self.export_locations)
+
+        self.cmd = osc_share_snapshots.ShareSnapshotListExportLocation(
+            self.app, None)
+
+    def test_snapshot_export_locations_list(self):
+        arglist = [
+            self.share_snapshot.id
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.export_locations_mock.list.assert_called_with(
+            snapshot=self.share_snapshot)
+
+        self.assertEqual(self.columns, columns)
+        self.assertCountEqual(self.values, data)
+
+
+class TestShareSnapshotExportLocationShow(TestShareSnapshot):
+
+    def setUp(self):
+        super(TestShareSnapshotExportLocationShow, self).setUp()
+
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+
+        self.snapshots_mock.get.return_value = self.share_snapshot
+
+        self.export_location = (
+            manila_fakes.FakeSnapshotExportLocation.create_one_export_location()  # noqa E501
+        )
+
+        self.export_locations_mock.get.return_value = self.export_location
+
+        self.cmd = osc_share_snapshots.ShareSnapshotShowExportLocation(
+            self.app, None)
+
+    def test_snapshot_export_locations_list(self):
+        arglist = [
+            self.share_snapshot.id,
+            self.export_location.id
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('export_location', self.export_location.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.export_locations_mock.get.assert_called_with(
+            export_location=self.export_location.id,
+            snapshot=self.share_snapshot)
+
+        self.assertEqual(tuple(self.export_location._info.keys()), columns)
+        self.assertCountEqual(self.export_location._info.values(), data)

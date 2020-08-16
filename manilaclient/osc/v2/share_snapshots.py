@@ -425,3 +425,301 @@ class ListShareSnapshot(command.Lister):
 
         return (columns,
                 (utils.get_item_properties(s, columns) for s in snapshots))
+
+
+class AdoptShareSnapshot(command.ShowOne):
+    """Adopt a share snapshot not handled by Manila (Admin only)."""
+
+    _description = _("Adopt a share snapshot")
+
+    def get_parser(self, prog_name):
+        parser = super(AdoptShareSnapshot, self).get_parser(prog_name)
+        parser.add_argument(
+            "share",
+            metavar="<share>",
+            help=_("Name or ID of the share that owns the snapshot "
+                   "to be adopted.")
+        )
+        parser.add_argument(
+            "provider_location",
+            metavar="<provider-location>",
+            help=_("Provider location of the snapshot on the backend.")
+        )
+        parser.add_argument(
+            "--name",
+            metavar="<name>",
+            default=None,
+            help=_("Optional snapshot name (Default=None).")
+        )
+        parser.add_argument(
+            "--description",
+            metavar="<description>",
+            default=None,
+            help=_("Optional snapshot description (Default=None).")
+        )
+        parser.add_argument(
+            "--driver-option",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_(
+                "Set driver options as key=value pairs."
+                "(repeat option to set multiple key=value pairs)")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        share = utils.find_resource(share_client.shares,
+                                    parsed_args.share)
+
+        snapshot = share_client.share_snapshots.manage(
+            share=share,
+            provider_location=parsed_args.provider_location,
+            driver_options=parsed_args.driver_option,
+            name=parsed_args.name,
+            description=parsed_args.description
+        )
+        snapshot._info.pop('links', None)
+
+        return self.dict2columns(snapshot._info)
+
+
+class AbandonShareSnapshot(command.Command):
+    """Abandon one or more share snapshots (Admin only)."""
+
+    _description = _("Abandon share snapshot(s)")
+
+    def get_parser(self, prog_name):
+        parser = super(AbandonShareSnapshot, self).get_parser(prog_name)
+        parser.add_argument(
+            "snapshot",
+            metavar="<snapshot>",
+            nargs='+',
+            help=_("Name or ID of the snapshot(s) to be abandoned.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        result = 0
+
+        for snapshot in parsed_args.snapshot:
+            snapshot_obj = utils.find_resource(
+                share_client.share_snapshots,
+                snapshot)
+            try:
+                share_client.share_snapshots.unmanage(snapshot_obj)
+            except Exception as e:
+                result += 1
+                LOG.error(_(
+                    "Failed to abandon share snapshot with "
+                    "name or ID '%(snapshot)s': %(e)s"),
+                    {'snapshot': snapshot, 'e': e})
+
+        if result > 0:
+            total = len(parsed_args.snapshot)
+            msg = (_("%(result)s of %(total)s snapshots failed "
+                   "to abandon.") % {'result': result, 'total': total})
+            raise exceptions.CommandError(msg)
+
+
+class ShareSnapshotAccessAllow(command.ShowOne):
+    """Allow read only access to a snapshot."""
+
+    _description = _("Allow access to a snapshot")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareSnapshotAccessAllow, self).get_parser(prog_name)
+        parser.add_argument(
+            "snapshot",
+            metavar="<snapshot>",
+            help=_("Name or ID of the snapshot")
+        )
+        parser.add_argument(
+            'access_type',
+            metavar="<access_type>",
+            help=_('Access rule type (only "ip", "user" (user or group), '
+                   '"cert" or "cephx" are supported).')
+        )
+        parser.add_argument(
+            'access_to',
+            metavar="<access_to>",
+            help=_('Value that defines access.')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        snapshot_obj = utils.find_resource(
+            share_client.share_snapshots,
+            parsed_args.snapshot)
+
+        try:
+            snapshot_access = share_client.share_snapshots.allow(
+                snapshot=snapshot_obj,
+                access_type=parsed_args.access_type,
+                access_to=parsed_args.access_to
+            )
+            return self.dict2columns(snapshot_access)
+
+        except Exception as e:
+            raise exceptions.CommandError(
+                "Failed to create access to share snapshot "
+                "'%s': %s" % (snapshot_obj, e))
+
+
+class ShareSnapshotAccessDeny(command.Command):
+    """Delete access to a snapshot"""
+
+    _description = _(
+        "Delete access to a snapshot")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareSnapshotAccessDeny, self).get_parser(prog_name)
+        parser.add_argument(
+            "snapshot",
+            metavar="<snapshot>",
+            help=_("Name or ID of the share snapshot to deny access to.")
+        )
+        parser.add_argument(
+            "id",
+            metavar="<id>",
+            nargs="+",
+            help=_("ID(s) of the access rule(s) to be deleted.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        result = 0
+
+        snapshot_obj = utils.find_resource(
+            share_client.share_snapshots,
+            parsed_args.snapshot)
+
+        for access_id in parsed_args.id:
+            try:
+                share_client.share_snapshots.deny(
+                    snapshot=snapshot_obj,
+                    id=access_id
+                )
+            except Exception as e:
+                result += 1
+                LOG.error(_(
+                    "Failed to delete access to share snapshot "
+                    "for an access rule with ID '%(access)s': %(e)s"),
+                    {'access': access_id, 'e': e})
+
+        if result > 0:
+            total = len(parsed_args.id)
+            msg = (_("Failed to delete access to a share snapshot for "
+                     "%(result)s out of %(total)s access rule ID's ")
+                   % {'result': result, 'total': total})
+            raise exceptions.CommandError(msg)
+
+
+class ShareSnapshotAccessList(command.Lister):
+    """Show access list for a snapshot"""
+
+    _description = _(
+        "Show access list for a snapshot")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareSnapshotAccessList, self).get_parser(prog_name)
+        parser.add_argument(
+            "snapshot",
+            metavar="<snapshot>",
+            help=_("Name or ID of the share snapshot to show access list for.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        snapshot_obj = utils.find_resource(
+            share_client.share_snapshots,
+            parsed_args.snapshot)
+
+        access_rules = share_client.share_snapshots.access_list(
+            snapshot_obj)
+
+        columns = [
+            "id",
+            "access_type",
+            "access_to",
+            "state"
+        ]
+
+        return (columns,
+                (utils.get_item_properties(s, columns) for s in access_rules))
+
+
+class ShareSnapshotListExportLocation(command.Lister):
+    """List export locations of a given snapshot"""
+
+    _description = _(
+        "List export locations of a given snapshot")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareSnapshotListExportLocation, self).get_parser(
+            prog_name)
+        parser.add_argument(
+            "snapshot",
+            metavar="<snapshot>",
+            help=_("Name or ID of the share snapshot.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        snapshot_obj = utils.find_resource(
+            share_client.share_snapshots,
+            parsed_args.snapshot)
+
+        export_locations = share_client.share_snapshot_export_locations.list(
+            snapshot=snapshot_obj)
+
+        columns = ["id", "path"]
+
+        return (
+            columns,
+            (utils.get_item_properties(s, columns) for s in export_locations))
+
+
+class ShareSnapshotShowExportLocation(command.ShowOne):
+    """Show export location of the share snapshot"""
+
+    _description = _(
+        "Show export location of the share snapshot")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareSnapshotShowExportLocation, self).get_parser(
+            prog_name)
+        parser.add_argument(
+            "snapshot",
+            metavar="<snapshot>",
+            help=_("Name or ID of the share snapshot.")
+        )
+        parser.add_argument(
+            "export_location",
+            metavar="<export-location>",
+            help=_("ID of the share snapshot export location.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        snapshot_obj = utils.find_resource(
+            share_client.share_snapshots,
+            parsed_args.snapshot)
+
+        export_location = share_client.share_snapshot_export_locations.get(
+            export_location=parsed_args.export_location,
+            snapshot=snapshot_obj)
+
+        return self.dict2columns(export_location._info)
