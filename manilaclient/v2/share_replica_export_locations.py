@@ -15,6 +15,7 @@
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
+from manilaclient.common import constants
 
 
 class ShareReplicaExportLocation(common_base.Resource):
@@ -31,7 +32,7 @@ class ShareReplicaExportLocationManager(base.ManagerWithFind):
     """Manage :class:`ShareInstanceExportLocation` resources."""
     resource_class = ShareReplicaExportLocation
 
-    @api_versions.wraps("2.47")
+    @api_versions.wraps("2.47", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def list(self, share_replica, search_opts=None):
         """List all share replica export locations."""
@@ -40,9 +41,26 @@ class ShareReplicaExportLocationManager(base.ManagerWithFind):
             "/share-replicas/%s/export-locations" % share_replica_id,
             "export_locations")
 
-    @api_versions.wraps("2.47")
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def list(self, share_replica, search_opts=None):
+        """List all share replica export locations."""
+        share_replica_id = common_base.getid(share_replica)
+        return self._list(
+            "/share-replicas/%s/export-locations" % share_replica_id,
+            "export_locations")
+
+    @api_versions.wraps("2.47", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def get(self, share_replica, export_location):
+        return self._get_replica_export_location(
+            share_replica, export_location)
+
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def get(self, share_replica, export_location):
+        return self._get_replica_export_location(
+            share_replica, export_location)
+
+    def _get_replica_export_location(self, share_replica, export_location):
         """Get a share replica export location."""
         share_replica_id = common_base.getid(share_replica)
         export_location_id = common_base.getid(export_location)

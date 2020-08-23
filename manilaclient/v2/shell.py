@@ -5351,7 +5351,7 @@ def do_share_group_snapshot_delete(cs, args):
          'example --columns "replica_state,id".')
 @api_versions.wraps("2.11")
 def do_share_replica_list(cs, args):
-    """List share replicas (Experimental)."""
+    """List share replicas."""
     share = _find_share(cs, args.share_id) if args.share_id else None
 
     if args.columns is not None:
@@ -5389,7 +5389,7 @@ def do_share_replica_list(cs, args):
     help='Optional Availability zone in which replica should be created.')
 @api_versions.wraps("2.11")
 def do_share_replica_create(cs, args):
-    """Create a share replica (Experimental)."""
+    """Create a share replica."""
     share = _find_share(cs, args.share)
 
     replica = cs.share_replicas.create(share, args.availability_zone)
@@ -5402,7 +5402,7 @@ def do_share_replica_create(cs, args):
     help='ID of the share replica.')
 @api_versions.wraps("2.11", "2.46")
 def do_share_replica_show(cs, args):
-    """Show details about a replica (Experimental)."""
+    """Show details about a replica."""
 
     replica = cs.share_replicas.get(args.replica)
     _print_share_replica(cs, replica)
@@ -5414,7 +5414,7 @@ def do_share_replica_show(cs, args):
     metavar='<replica>',
     help='ID of the share replica.')
 def do_share_replica_show(cs, args):  # noqa
-    """Show details about a replica (Experimental)."""
+    """Show details about a replica."""
 
     replica = cs.share_replicas.get(args.replica)
     export_locations = cs.share_replica_export_locations.list(replica)
@@ -5436,7 +5436,7 @@ def do_share_replica_show(cs, args):  # noqa
          'is not cleaned up on the backend. Defaults to False.')
 @api_versions.wraps("2.11")
 def do_share_replica_delete(cs, args):
-    """Remove one or more share replicas (Experimental)."""
+    """Remove one or more share replicas."""
     failure_count = 0
     kwargs = {
         "force": args.force
@@ -5462,13 +5462,12 @@ def do_share_replica_delete(cs, args):
     help='ID of the share replica.')
 @api_versions.wraps("2.11")
 def do_share_replica_promote(cs, args):
-    """Promote specified replica to 'active' replica_state (Experimental)."""
+    """Promote specified replica to 'active' replica_state."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.promote(replica)
 
 
 @api_versions.wraps("2.47")
-@api_versions.experimental_api
 @cliutils.arg(
     'replica',
     metavar='<replica>',
@@ -5481,7 +5480,7 @@ def do_share_replica_promote(cs, args):
     help='Comma separated list of columns to be displayed '
          'example --columns "id,path,replica_state".')
 def do_share_replica_export_location_list(cs, args):
-    """List export locations of a share replica (Experimental)."""
+    """List export locations of a share replica."""
     if args.columns is not None:
         list_of_keys = _split_columns(columns=args.columns)
     else:
@@ -5498,7 +5497,6 @@ def do_share_replica_export_location_list(cs, args):
 
 
 @api_versions.wraps("2.47")
-@api_versions.experimental_api
 @cliutils.arg(
     'replica',
     metavar='<replica>',
@@ -5508,7 +5506,7 @@ def do_share_replica_export_location_list(cs, args):
     metavar='<export_location>',
     help='ID of the share instance export location.')
 def do_share_replica_export_location_show(cs, args):
-    """Show details of a share replica's export location (Experimental)."""
+    """Show details of a share replica's export location."""
     replica = _find_share_replica(cs, args.replica)
     export_location = cs.share_replica_export_locations.get(
         replica, args.export_location)
@@ -5529,7 +5527,7 @@ def do_share_replica_export_location_show(cs, args):
           'state is provided, available will be used.'))
 @api_versions.wraps("2.11")
 def do_share_replica_reset_state(cs, args):
-    """Explicitly update the 'status' of a share replica (Experimental)."""
+    """Explicitly update the 'status' of a share replica."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.reset_state(replica, args.state)
 
@@ -5550,10 +5548,7 @@ def do_share_replica_reset_state(cs, args):
           'state is provided, out_of_sync will be used.'))
 @api_versions.wraps("2.11")
 def do_share_replica_reset_replica_state(cs, args):
-    """Explicitly update the 'replica_state' of a share replica
-
-    (Experimental).
-    """
+    """Explicitly update the 'replica_state' of a share replica."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.reset_replica_state(replica, args.replica_state)
 
@@ -5564,10 +5559,7 @@ def do_share_replica_reset_replica_state(cs, args):
     help='ID of the share replica to resync.')
 @api_versions.wraps("2.11")
 def do_share_replica_resync(cs, args):
-    """Attempt to update the share replica with its 'active' mirror
-
-     (Experimental).
-     """
+    """Attempt to update the share replica with its 'active' mirror."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.resync(replica)
 

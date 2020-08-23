@@ -16,6 +16,7 @@
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common.apiclient import base as common_base
+from manilaclient.common import constants
 
 RESOURCES_PATH = '/share-replicas'
 RESOURCE_PATH = '/share-replicas/%s'
@@ -50,9 +51,16 @@ class ShareReplicaManager(base.ManagerWithFind):
     """Manage :class:`ShareReplica` resources."""
     resource_class = ShareReplica
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def get(self, replica):
+        return self._get_share_replica(replica)
+
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def get(self, replica):
+        return self._get_share_replica(replica)
+
+    def _get_share_replica(self, replica):
         """Get a share replica.
 
         :param replica: either replica object or its UUID.
@@ -61,9 +69,16 @@ class ShareReplicaManager(base.ManagerWithFind):
         replica_id = common_base.getid(replica)
         return self._get(RESOURCE_PATH % replica_id, RESOURCE_NAME)
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def list(self, share=None, search_opts=None):
+        return self._list_share_replicas(share=share, search_opts=search_opts)
+
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def list(self, share=None, search_opts=None):
+        return self._list_share_replicas(share=share, search_opts=search_opts)
+
+    def _list_share_replicas(self, share=None, search_opts=None):
         """List all share replicas or list replicas belonging to a share.
 
         :param share: either share object or its UUID.
@@ -78,7 +93,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         else:
             return self._list(RESOURCES_PATH + '/detail', RESOURCES_NAME)
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def promote(self, replica):
         """Promote the provided replica.
@@ -87,9 +102,26 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
         return self._action('promote', replica)
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def promote(self, replica):
+        """Promote the provided replica.
+
+        :param replica: either replica object or its UUID.
+        """
+        return self._action('promote', replica)
+
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def create(self, share, availability_zone=None):
+        return self._create_share_replica(
+            share, availability_zone=availability_zone)
+
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def create(self, share, availability_zone=None):
+        return self._create_share_replica(
+            share, availability_zone=availability_zone)
+
+    def _create_share_replica(self, share, availability_zone=None):
         """Create a replica for a share.
 
         :param share: The share to create the replica of. Can be the share
@@ -107,7 +139,7 @@ class ShareReplicaManager(base.ManagerWithFind):
                             {RESOURCE_NAME: body},
                             RESOURCE_NAME)
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def delete(self, replica, force=False):
         """Delete a replica.
@@ -117,7 +149,16 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
         self._do_delete(replica, force=force)
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def delete(self, replica, force=False):
+        """Delete a replica.
+
+        :param replica: either replica object or its UUID.
+        :param force: optional 'force' flag.
+        """
+        self._do_delete(replica, force=force)
+
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def reset_state(self, replica, state):
         """Reset the 'status' attr of the replica.
@@ -127,7 +168,16 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
         return self._do_reset_state(replica, state, "reset_status")
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def reset_state(self, replica, state):
+        """Reset the 'status' attr of the replica.
+
+        :param replica: either replica object or its UUID.
+        :param state: state to set the replica's 'status' attr to.
+        """
+        return self._do_reset_state(replica, state, "reset_status")
+
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
     def reset_replica_state(self, replica, state):
         """Reset the 'replica_state' attr of the replica.
@@ -137,8 +187,25 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
         return self._do_reset_state(replica, state, "reset_replica_state")
 
-    @api_versions.wraps("2.11")
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    def reset_replica_state(self, replica, state):
+        """Reset the 'replica_state' attr of the replica.
+
+        :param replica: either replica object or its UUID.
+        :param state: state to set the replica's 'replica_state' attr to.
+        """
+        return self._do_reset_state(replica, state, "reset_replica_state")
+
+    @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api
+    def resync(self, replica):
+        """Re-sync the provided replica.
+
+        :param replica: either replica object or its UUID.
+        """
+        return self._action('resync', replica)
+
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
     def resync(self, replica):
         """Re-sync the provided replica.
 
