@@ -20,7 +20,7 @@ Command-line interface to the OpenStack Manila API.
 
 import argparse
 import glob
-import imp
+from importlib import util as importlib_util
 import itertools
 import logging
 import os
@@ -393,6 +393,14 @@ class OpenStackManilaShell(object):
                 module = module_loader.load_module(name)
                 yield name, module
 
+    def _load_module(self, name, path):
+        module_spec = importlib_util.spec_from_file_location(
+            name, path
+        )
+        module = importlib_util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
+        return module
+
     def _discover_via_contrib_path(self, api_version):
         module_path = os.path.dirname(os.path.abspath(__file__))
         version_str = 'v' + api_version.get_major_version()
@@ -405,7 +413,7 @@ class OpenStackManilaShell(object):
             if name == "__init__":
                 continue
 
-            module = imp.load_source(name, ext_path)
+            module = self._load_module(name, ext_path)
             yield name, module
 
     def _add_bash_completion_subparser(self, subparsers):
