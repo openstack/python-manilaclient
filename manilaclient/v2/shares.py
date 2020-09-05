@@ -254,7 +254,7 @@ class ShareManager(base.ManagerWithFind):
             resource_path="/os-share-manage")
 
     @api_versions.wraps("2.7", "2.7")  # noqa
-    def manage(self, service_host, protocol, export_path, driver_options=None,
+    def manage(self, service_host, protocol, export_path, driver_options=None,  # noqa
                share_type=None, name=None, description=None):
         return self._do_manage(
             service_host, protocol, export_path, driver_options=driver_options,
@@ -262,7 +262,7 @@ class ShareManager(base.ManagerWithFind):
             resource_path="/shares/manage")
 
     @api_versions.wraps("2.8", "2.48")  # noqa
-    def manage(self, service_host, protocol, export_path, driver_options=None,
+    def manage(self, service_host, protocol, export_path, driver_options=None,  # noqa
                share_type=None, name=None, description=None, is_public=False):
         return self._do_manage(
             service_host, protocol, export_path, driver_options=driver_options,
@@ -270,7 +270,7 @@ class ShareManager(base.ManagerWithFind):
             is_public=is_public, resource_path="/shares/manage")
 
     @api_versions.wraps("2.49")  # noqa
-    def manage(self, service_host, protocol, export_path, driver_options=None,
+    def manage(self, service_host, protocol, export_path, driver_options=None,  # noqa
                share_type=None, name=None, description=None, is_public=False,
                share_server_id=None):
         return self._do_manage(
@@ -289,7 +289,7 @@ class ShareManager(base.ManagerWithFind):
             "/os-share-unmanage/%s/unmanage" % common_base.getid(share))
 
     @api_versions.wraps("2.7")  # noqa
-    def unmanage(self, share):
+    def unmanage(self, share):   # noqa
         """Unmanage a share.
 
         :param share: either share object or text with its ID.
@@ -341,7 +341,7 @@ class ShareManager(base.ManagerWithFind):
                             sort_key=sort_key, sort_dir=sort_dir)
 
     @api_versions.wraps("2.35")   # noqa
-    def list(self, detailed=True, search_opts=None,
+    def list(self, detailed=True, search_opts=None,   # noqa
              sort_key=None, sort_dir=None):
         """Get a list of all shares."""
         return self.do_list(detailed=detailed, search_opts=search_opts,
@@ -442,7 +442,7 @@ class ShareManager(base.ManagerWithFind):
         return self._do_force_delete(share, "os-force_delete")
 
     @api_versions.wraps("2.7")  # noqa
-    def force_delete(self, share):
+    def force_delete(self, share):   # noqa
         return self._do_force_delete(share, "force_delete")
 
     @staticmethod
@@ -555,20 +555,20 @@ class ShareManager(base.ManagerWithFind):
             share, access_type, access, access_level, "os-allow_access")
 
     @api_versions.wraps("2.7", "2.12")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):
+    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
         self._validate_access(access_type, access)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
     @api_versions.wraps("2.13", "2.37")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):
+    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types)
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
     @api_versions.wraps("2.38", "2.44")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):
+    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types,
                               enable_ipv6=True)
@@ -576,7 +576,7 @@ class ShareManager(base.ManagerWithFind):
             share, access_type, access, access_level, "allow_access")
 
     @api_versions.wraps("2.45")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):
+    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types,
                               enable_ipv6=True)
@@ -596,7 +596,7 @@ class ShareManager(base.ManagerWithFind):
         return self._do_deny(share, access_id, "os-deny_access")
 
     @api_versions.wraps("2.7")  # noqa
-    def deny(self, share, access_id):
+    def deny(self, share, access_id):   # noqa
         return self._do_deny(share, access_id, "deny_access")
 
     def _do_access_list(self, share, action_name):
@@ -616,7 +616,7 @@ class ShareManager(base.ManagerWithFind):
         return self._do_access_list(share, "os-access_list")
 
     @api_versions.wraps("2.7", "2.44")  # noqa
-    def access_list(self, share):
+    def access_list(self, share):   # noqa
         return self._do_access_list(share, "access_list")
 
     def get_metadata(self, share):
@@ -684,7 +684,7 @@ class ShareManager(base.ManagerWithFind):
         return self._do_reset_state(share, state, "os-reset_status")
 
     @api_versions.wraps("2.7")  # noqa
-    def reset_state(self, share, state):
+    def reset_state(self, share, state):  # noqa
         return self._do_reset_state(share, state, "reset_status")
 
     def _do_extend(self, share, new_size, action_name):
@@ -700,7 +700,7 @@ class ShareManager(base.ManagerWithFind):
         return self._do_extend(share, new_size, "os-extend")
 
     @api_versions.wraps("2.7")  # noqa
-    def extend(self, share, new_size):
+    def extend(self, share, new_size):  # noqa
         return self._do_extend(share, new_size, "extend")
 
     def _do_shrink(self, share, new_size, action_name):
@@ -716,7 +716,7 @@ class ShareManager(base.ManagerWithFind):
         return self._do_shrink(share, new_size, "os-shrink")
 
     @api_versions.wraps("2.7")  # noqa
-    def shrink(self, share, new_size):
+    def shrink(self, share, new_size):   # noqa
         return self._do_shrink(share, new_size, "shrink")
 
     def list_instances(self, share):

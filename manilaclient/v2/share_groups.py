@@ -114,7 +114,7 @@ class ShareGroupManager(base.ManagerWithFind):
             availability_zone=availability_zone)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def create(self, share_group_type=None, share_types=None,
+    def create(self, share_group_type=None, share_types=None,  # noqa
                share_network=None, name=None, description=None,
                source_share_group_snapshot=None, availability_zone=None):
         return self._create_share_group(
@@ -139,7 +139,7 @@ class ShareGroupManager(base.ManagerWithFind):
         return self._get_share_group(share_group)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def get(self, share_group):
+    def get(self, share_group):  # noqa
         return self._get_share_group(share_group)
 
     def _list_share_groups(self, detailed=True, search_opts=None,
@@ -205,7 +205,7 @@ class ShareGroupManager(base.ManagerWithFind):
             sort_key=sort_key, sort_dir=sort_dir)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def list(self, detailed=True, search_opts=None,
+    def list(self, detailed=True, search_opts=None,  # noqa
              sort_key=None, sort_dir=None):
         return self._list_share_groups(
             detailed=detailed, search_opts=search_opts, sort_key=sort_key,
@@ -230,7 +230,7 @@ class ShareGroupManager(base.ManagerWithFind):
         return self._update_share_group(share_group, **kwargs)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def update(self, share_group, **kwargs):
+    def update(self, share_group, **kwargs):  # noqa
         return self._update_share_group(share_group, **kwargs)
 
     def _delete_share_group(self, share_group, force=False):
@@ -254,7 +254,7 @@ class ShareGroupManager(base.ManagerWithFind):
         self._delete_share_group(share_group, force=force)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def delete(self, share_group, force=False):
+    def delete(self, share_group, force=False):  # noqa
         self._delete_share_group(share_group, force=force)
 
     def _share_group_reset_state(self, share_group, state):
@@ -275,5 +275,5 @@ class ShareGroupManager(base.ManagerWithFind):
         self._share_group_reset_state(share_group, state)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def reset_state(self, share_group, state):
+    def reset_state(self, share_group, state):  # noqa
         self._share_group_reset_state(share_group, state)

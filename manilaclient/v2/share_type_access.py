@@ -44,7 +44,7 @@ class ShareTypeAccessManager(base.ManagerWithFind):
         return self._do_list(share_type, "os-share-type-access")
 
     @api_versions.wraps("2.7")  # noqa
-    def list(self, share_type, search_opts=None):
+    def list(self, share_type, search_opts=None):  # noqa
         return self._do_list(share_type, "share_type_access")
 
     def add_project_access(self, share_type, project):

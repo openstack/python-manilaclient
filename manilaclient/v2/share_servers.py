@@ -113,7 +113,7 @@ class ShareServerManager(base.ManagerWithFind):
                             'share_server')
 
     @api_versions.wraps("2.51")  # noqa
-    def manage(self, host, share_network_id, identifier,
+    def manage(self, host, share_network_id, identifier,  # noqa
                share_network_subnet_id=None, driver_options=None):
 
         driver_options = driver_options or {}

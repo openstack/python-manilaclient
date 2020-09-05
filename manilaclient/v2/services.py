@@ -50,7 +50,7 @@ class ServiceManager(base.Manager):
             search_opts=search_opts, resource_path=RESOURCE_PATH_LEGACY)
 
     @api_versions.wraps("2.7")  # noqa
-    def list(self, search_opts=None):
+    def list(self, search_opts=None):  # noqa
         return self._do_list(
             search_opts=search_opts, resource_path=RESOURCE_PATH)
 
@@ -64,7 +64,7 @@ class ServiceManager(base.Manager):
         return self._do_enable(host, binary, RESOURCE_PATH_LEGACY)
 
     @api_versions.wraps("2.7")  # noqa
-    def enable(self, host, binary):
+    def enable(self, host, binary):  # noqa
         return self._do_enable(host, binary, RESOURCE_PATH)
 
     def _do_disable(self, host, binary, resource_path=RESOURCE_PATH):
@@ -77,7 +77,7 @@ class ServiceManager(base.Manager):
         return self._do_disable(host, binary, RESOURCE_PATH_LEGACY)
 
     @api_versions.wraps("2.7")  # noqa
-    def disable(self, host, binary):
+    def disable(self, host, binary):  # noqa
         return self._do_disable(host, binary, RESOURCE_PATH)
 
     def server_api_version(self, url_append=""):

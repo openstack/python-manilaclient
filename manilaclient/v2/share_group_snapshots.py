@@ -76,7 +76,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
                                                  description)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def create(self, share_group, name=None, description=None):
+    def create(self, share_group, name=None, description=None):  # noqa
         return self._create_share_group_snapshot(share_group, name,
                                                  description)
 
@@ -97,7 +97,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         return self._get_share_group_snapshot(share_group_snapshot)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def get(self, share_group_snapshot):
+    def get(self, share_group_snapshot):  # noqa
         return self._get_share_group_snapshot(share_group_snapshot)
 
     def _list_share_group_snapshots(self, detailed=True, search_opts=None,
@@ -154,7 +154,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             sort_key=sort_key, sort_dir=sort_dir)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def list(self, detailed=True, search_opts=None,
+    def list(self, detailed=True, search_opts=None,   # noqa
              sort_key=None, sort_dir=None):
         return self._list_share_group_snapshots(
             detailed=detailed, search_opts=search_opts,
@@ -182,7 +182,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
                                                  **kwargs)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def update(self, share_group_snapshot, **kwargs):
+    def update(self, share_group_snapshot, **kwargs):  # noqa
         return self._update_share_group_snapshot(share_group_snapshot,
                                                  **kwargs)
 
@@ -208,7 +208,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         self._delete_share_group_snapshot(share_group_snapshot, force=force)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def delete(self, share_group_snapshot, force=False):
+    def delete(self, share_group_snapshot, force=False):  # noqa
         self._delete_share_group_snapshot(share_group_snapshot, force=force)
 
     def _share_group_snapshot_reset_state(self, share_group_snapshot, state):
@@ -229,5 +229,5 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         self._share_group_snapshot_reset_state(share_group_snapshot, state)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def reset_state(self, share_group_snapshot, state):
+    def reset_state(self, share_group_snapshot, state):   # noqa
         self._share_group_snapshot_reset_state(share_group_snapshot, state)

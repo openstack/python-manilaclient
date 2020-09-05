@@ -45,7 +45,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
             "quota_class_set")
 
     @api_versions.wraps("2.7")  # noqa
-    def get(self, class_name):
+    def get(self, class_name):  # noqa
         return self._get(
             "%(resource_path)s/%(class_name)s" % {
                 "resource_path": RESOURCE_PATH, "class_name": class_name},
@@ -87,7 +87,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
             share_networks=share_networks, resource_path=RESOURCE_PATH_LEGACY)
 
     @api_versions.wraps("2.7", "2.52")  # noqa
-    def update(self, class_name, shares=None, gigabytes=None,
+    def update(self, class_name, shares=None, gigabytes=None,  # noqa
                snapshots=None, snapshot_gigabytes=None, share_networks=None):
         return self._do_update(
             class_name, shares=shares, gigabytes=gigabytes,
@@ -95,7 +95,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
             share_networks=share_networks, resource_path=RESOURCE_PATH)
 
     @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION)  # noqa
-    def update(self, class_name, shares=None, gigabytes=None,
+    def update(self, class_name, shares=None, gigabytes=None,  # noqa
                snapshots=None, snapshot_gigabytes=None, share_networks=None,
                share_replicas=None, replica_gigabytes=None):
         return self._do_update(

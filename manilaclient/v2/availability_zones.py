@@ -37,5 +37,5 @@ class AvailabilityZoneManager(base.Manager):
         return self._list(RESOURCE_PATH_LEGACY, RESOURCE_NAME)
 
     @api_versions.wraps("2.7")  # noqa
-    def list(self):
+    def list(self):  # noqa
         return self._list(RESOURCE_PATH, RESOURCE_NAME)

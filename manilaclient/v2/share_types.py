@@ -209,7 +209,7 @@ class ShareTypeManager(base.ManagerWithFind):
             is_public_keyname="os-share-type-access:is_public")
 
     @api_versions.wraps("2.7", "2.23")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,
+    def create(self, name, spec_driver_handles_share_servers,  # noqa
                spec_snapshot_support=None, is_public=True, extra_specs=None):
 
         if extra_specs is None:
@@ -223,7 +223,7 @@ class ShareTypeManager(base.ManagerWithFind):
         return self._do_create(name, extra_specs, is_public)
 
     @api_versions.wraps("2.24", "2.40")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,
+    def create(self, name, spec_driver_handles_share_servers,  # noqa
                spec_snapshot_support=None, is_public=True, extra_specs=None):
 
         if extra_specs is None:
@@ -236,7 +236,7 @@ class ShareTypeManager(base.ManagerWithFind):
         return self._do_create(name, extra_specs, is_public)
 
     @api_versions.wraps("2.41")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,
+    def create(self, name, spec_driver_handles_share_servers,  # noqa
                spec_snapshot_support=None, is_public=True, extra_specs=None,
                description=None):
         if extra_specs is None:

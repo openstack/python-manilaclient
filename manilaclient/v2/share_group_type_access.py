@@ -48,7 +48,7 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
                                                   search_opts)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def list(self, share_group_type, search_opts=None):
+    def list(self, share_group_type, search_opts=None):  # noqa
         return self._list_share_group_type_access(share_group_type,
                                                   search_opts)
 
@@ -60,7 +60,7 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
         self._action('addProjectAccess', share_group_type, info)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def add_project_access(self, share_group_type, project):
+    def add_project_access(self, share_group_type, project):  # noqa
         """Add a project to the given share group type access list."""
         info = {'project': project}
         self._action('addProjectAccess', share_group_type, info)
@@ -73,7 +73,7 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
         self._action('removeProjectAccess', share_group_type, info)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def remove_project_access(self, share_group_type, project):
+    def remove_project_access(self, share_group_type, project):  # noqa
         """Remove a project from the given share group type access list."""
         info = {'project': project}
         self._action('removeProjectAccess', share_group_type, info)

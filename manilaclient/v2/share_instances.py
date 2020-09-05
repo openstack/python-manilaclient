@@ -54,7 +54,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         return self.do_list()
 
     @api_versions.wraps("2.35")   # noqa
-    def list(self, export_location=None, search_opts=None):
+    def list(self, export_location=None, search_opts=None):  # noqa
         """List all share instances."""
         return self.do_list(export_location)
 
@@ -94,7 +94,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         return self._do_force_delete(instance, "os-force_delete")
 
     @api_versions.wraps("2.7")  # noqa
-    def force_delete(self, instance):
+    def force_delete(self, instance):  # noqa
         return self._do_force_delete(instance, "force_delete")
 
     def _do_reset_state(self, instance, state, action_name):
@@ -110,5 +110,5 @@ class ShareInstanceManager(base.ManagerWithFind):
         return self._do_reset_state(instance, state, "os-reset_status")
 
     @api_versions.wraps("2.7")  # noqa
-    def reset_state(self, instance, state):
+    def reset_state(self, instance, state):  # noqa
         return self._do_reset_state(instance, state, "reset_status")

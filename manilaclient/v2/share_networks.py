@@ -71,7 +71,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
 
     @api_versions.wraps("2.26", "2.50")  # noqa
-    def create(self, neutron_net_id=None, neutron_subnet_id=None,
+    def create(self, neutron_net_id=None, neutron_subnet_id=None,   # noqa
                name=None, description=None):
         """Create share network.
 
@@ -96,7 +96,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
 
     @api_versions.wraps("2.51")  # noqa
-    def create(self, neutron_net_id=None, neutron_subnet_id=None,
+    def create(self, neutron_net_id=None, neutron_subnet_id=None,   # noqa
                name=None, description=None, availability_zone=None):
         values = {}
 
@@ -195,7 +195,7 @@ class ShareNetworkManager(base.ManagerWithFind):
                             RESOURCE_NAME)
 
     @api_versions.wraps("2.26")  # noqa
-    def update(self, share_network, neutron_net_id=None,
+    def update(self, share_network, neutron_net_id=None,   # noqa
                neutron_subnet_id=None, name=None,
                description=None):
         """Updates a share network.

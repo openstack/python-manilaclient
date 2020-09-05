@@ -74,17 +74,17 @@ class QuotaSetManager(base.ManagerWithFind):
                             resource_path=RESOURCE_PATH_LEGACY)
 
     @api_versions.wraps("2.7", "2.24")  # noqa
-    def get(self, tenant_id, user_id=None, detail=False):
+    def get(self, tenant_id, user_id=None, detail=False):  # noqa
         return self._do_get(tenant_id, user_id,
                             resource_path=RESOURCE_PATH)
 
     @api_versions.wraps("2.25", "2.38")  # noqa
-    def get(self, tenant_id, user_id=None, detail=False):
+    def get(self, tenant_id, user_id=None, detail=False):  # noqa
         return self._do_get(tenant_id, user_id, detail=detail,
                             resource_path=RESOURCE_PATH)
 
     @api_versions.wraps("2.39")  # noqa
-    def get(self, tenant_id, user_id=None, share_type=None, detail=False):
+    def get(self, tenant_id, user_id=None, share_type=None, detail=False):   # noqa
         return self._do_get(
             tenant_id, user_id, share_type=share_type, detail=detail,
             resource_path=RESOURCE_PATH)
@@ -141,7 +141,7 @@ class QuotaSetManager(base.ManagerWithFind):
         )
 
     @api_versions.wraps("2.7", "2.38")  # noqa
-    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,
+    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,  # noqa
                snapshot_gigabytes=None, share_networks=None, force=None,
                user_id=None):
         return self._do_update(
@@ -156,7 +156,7 @@ class QuotaSetManager(base.ManagerWithFind):
                 "not share type.")
 
     @api_versions.wraps("2.39", "2.39")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,
+    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
                shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None, force=None):
         self._validate_st_and_sn_in_same_request(share_type, share_networks)
@@ -168,7 +168,7 @@ class QuotaSetManager(base.ManagerWithFind):
         )
 
     @api_versions.wraps("2.40", "2.52")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,
+    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
                shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None,
                share_groups=None, share_group_snapshots=None,
@@ -184,7 +184,7 @@ class QuotaSetManager(base.ManagerWithFind):
         )
 
     @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION)  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,
+    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
                shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None,
                share_groups=None, share_group_snapshots=None,
@@ -209,7 +209,7 @@ class QuotaSetManager(base.ManagerWithFind):
             "quota_set")
 
     @api_versions.wraps("2.7")  # noqa
-    def defaults(self, tenant_id):
+    def defaults(self, tenant_id):  # noqa
         return self._get(
             "%(resource_path)s/%(tenant_id)s/defaults" % {
                 "resource_path": RESOURCE_PATH, "tenant_id": tenant_id},
@@ -238,10 +238,10 @@ class QuotaSetManager(base.ManagerWithFind):
             tenant_id, user_id, resource_path=RESOURCE_PATH_LEGACY)
 
     @api_versions.wraps("2.7", "2.38")  # noqa
-    def delete(self, tenant_id, user_id=None):
+    def delete(self, tenant_id, user_id=None):  # noqa
         return self._do_delete(tenant_id, user_id, resource_path=RESOURCE_PATH)
 
     @api_versions.wraps("2.39")  # noqa
-    def delete(self, tenant_id, user_id=None, share_type=None):
+    def delete(self, tenant_id, user_id=None, share_type=None):   # noqa
         return self._do_delete(
             tenant_id, user_id, share_type, resource_path=RESOURCE_PATH)

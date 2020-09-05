@@ -123,7 +123,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
                                              group_specs)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def create(self, name, share_types, is_public=False, group_specs=None):
+    def create(self, name, share_types, is_public=False, group_specs=None):  # noqa
         return self._create_share_group_type(name, share_types, is_public,
                                              group_specs)
 
@@ -144,7 +144,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         return self._get_share_group_type(share_group_type)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def get(self, share_group_type="default"):
+    def get(self, share_group_type="default"):  # noqa
         return self._get_share_group_type(share_group_type)
 
     def _list_share_group_types(self, show_all=True, search_opts=None):
@@ -162,7 +162,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         return self._list_share_group_types(show_all, search_opts)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def list(self, show_all=True, search_opts=None):
+    def list(self, show_all=True, search_opts=None):  # noqa
         return self._list_share_group_types(show_all, search_opts)
 
     def _delete_share_group_type(self, share_group_type):
@@ -181,5 +181,5 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         self._delete_share_group_type(share_group_type)
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def delete(self, share_group_type):
+    def delete(self, share_group_type):  # noqa
         self._delete_share_group_type(share_group_type)

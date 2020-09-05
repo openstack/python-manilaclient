@@ -172,7 +172,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         return self._do_force_delete(snapshot, "os-force_delete")
 
     @api_versions.wraps("2.7")  # noqa
-    def force_delete(self, snapshot):
+    def force_delete(self, snapshot):  # noqa
         return self._do_force_delete(snapshot, "force_delete")
 
     def update(self, snapshot, **kwargs):
@@ -198,7 +198,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         return self._do_reset_state(snapshot, state, "os-reset_status")
 
     @api_versions.wraps("2.7")  # noqa
-    def reset_state(self, snapshot, state):
+    def reset_state(self, snapshot, state):  # noqa
         return self._do_reset_state(snapshot, state, "reset_status")
 
     def _do_allow(self, snapshot, access_type, access_to):

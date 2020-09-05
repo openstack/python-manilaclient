@@ -96,7 +96,7 @@ def _print_share(cs, share):
 
 
 @api_versions.wraps("2.9")  # noqa
-def _print_share(cs, share):
+def _print_share(cs, share):  # noqa
     info = share._info.copy()
     info.pop('links', None)
 
@@ -165,7 +165,7 @@ def _print_share_instance(cs, instance):
 
 
 @api_versions.wraps("2.9")  # noqa
-def _print_share_instance(cs, instance):
+def _print_share_instance(cs, instance):  # noqa
     info = instance._info.copy()
     info.pop('links', None)
     if info.get('export_locations'):
@@ -188,7 +188,7 @@ def _print_share_replica(cs, replica):
 
 
 @api_versions.wraps("2.47")  # noqa
-def _print_share_replica(cs, replica):
+def _print_share_replica(cs, replica):  # noqa
     info = replica._info.copy()
     info.pop('links', None)
     if info.get('export_locations'):
@@ -1446,7 +1446,7 @@ def do_show(cs, args):
     'share',
     metavar='<share>',
     help='Name or ID of the NAS share.')
-def do_show(cs, args):
+def do_show(cs, args):  # noqa
     """Show details about a NAS share."""
     share = _find_share(cs, args.share)
     export_locations = cs.share_export_locations.list(share)
@@ -1644,7 +1644,7 @@ def do_access_list(cs, args):
     default=None,
     help='Comma separated list of columns to be displayed '
          'example --columns "access_type,access_to".')
-def do_access_list(cs, args):
+def do_access_list(cs, args):  # noqa
     """Show access list for share."""
     list_of_keys = [
         'id', 'access_type', 'access_to', 'access_level', 'state',
@@ -1679,7 +1679,7 @@ def do_access_list(cs, args):
     help='Filters results by a metadata key and value. OPTIONAL: '
          'Default=None. Available only for microversion >= 2.45',
     default=None)
-def do_access_list(cs, args):
+def do_access_list(cs, args):  # noqa
     """Show access list for share."""
     list_of_keys = [
         'id', 'access_type', 'access_to', 'access_level', 'state',
@@ -2073,7 +2073,7 @@ def do_share_instance_show(cs, args):
     'instance',
     metavar='<instance>',
     help='Name or ID of the share instance.')
-def do_share_instance_show(cs, args):
+def do_share_instance_show(cs, args):  # noqa
     """Show details about a share instance (Admin only)."""
     instance = _find_share_instance(cs, args.instance)
     export_locations = cs.share_instance_export_locations.list(instance)
@@ -2758,7 +2758,7 @@ def do_share_network_create(cs, args):
          "zones when the driver is operating with "
          "'driver_handles_share_servers' extra_spec set to True. Available "
          "only for microversion >= 2.51. (Default=None)")
-def do_share_network_create(cs, args):
+def do_share_network_create(cs, args):  # noqa
     """Create a share network to export shares to."""
     values = {
         'neutron_net_id': args.neutron_net_id,
@@ -2863,7 +2863,7 @@ def do_share_network_update(cs, args):
     metavar='<description>',
     default=None,
     help="Share network description.")
-def do_share_network_update(cs, args):
+def do_share_network_update(cs, args):   # noqa
     """Update share network data."""
 
     values = {
@@ -3170,7 +3170,7 @@ def do_share_network_list(cs, args):
     default=None,
     help='Filter results matching a share network description pattern. '
          'Available only for microversion >= 2.36.')
-def do_share_network_list(cs, args):
+def do_share_network_list(cs, args):   # noqa
     """Get a list of share networks"""
     all_projects = int(
         os.environ.get("ALL_TENANTS",
@@ -5413,7 +5413,7 @@ def do_share_replica_show(cs, args):
     'replica',
     metavar='<replica>',
     help='ID of the share replica.')
-def do_share_replica_show(cs, args):
+def do_share_replica_show(cs, args):  # noqa
     """Show details about a replica (Experimental)."""
 
     replica = cs.share_replicas.get(args.replica)
