@@ -57,7 +57,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._get_share_replica(replica)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def get(self, replica):
+    def get(self, replica):  # noqa F811
         return self._get_share_replica(replica)
 
     def _get_share_replica(self, replica):
@@ -75,7 +75,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._list_share_replicas(share=share, search_opts=search_opts)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def list(self, share=None, search_opts=None):
+    def list(self, share=None, search_opts=None):  # noqa F811
         return self._list_share_replicas(share=share, search_opts=search_opts)
 
     def _list_share_replicas(self, share=None, search_opts=None):
@@ -103,7 +103,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._action('promote', replica)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def promote(self, replica):
+    def promote(self, replica):  # noqa F811
         """Promote the provided replica.
 
         :param replica: either replica object or its UUID.
@@ -117,7 +117,7 @@ class ShareReplicaManager(base.ManagerWithFind):
             share, availability_zone=availability_zone)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def create(self, share, availability_zone=None):
+    def create(self, share, availability_zone=None):  # noqa F811
         return self._create_share_replica(
             share, availability_zone=availability_zone)
 
@@ -150,7 +150,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         self._do_delete(replica, force=force)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def delete(self, replica, force=False):
+    def delete(self, replica, force=False):  # noqa F811
         """Delete a replica.
 
         :param replica: either replica object or its UUID.
@@ -169,7 +169,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._do_reset_state(replica, state, "reset_status")
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def reset_state(self, replica, state):
+    def reset_state(self, replica, state):  # noqa F811
         """Reset the 'status' attr of the replica.
 
         :param replica: either replica object or its UUID.
@@ -188,7 +188,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._do_reset_state(replica, state, "reset_replica_state")
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def reset_replica_state(self, replica, state):
+    def reset_replica_state(self, replica, state):  # noqa F811
         """Reset the 'replica_state' attr of the replica.
 
         :param replica: either replica object or its UUID.
@@ -206,7 +206,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._action('resync', replica)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def resync(self, replica):
+    def resync(self, replica):  # noqa F811
         """Re-sync the provided replica.
 
         :param replica: either replica object or its UUID.

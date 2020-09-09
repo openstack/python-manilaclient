@@ -42,7 +42,7 @@ class ShareReplicaExportLocationManager(base.ManagerWithFind):
             "export_locations")
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def list(self, share_replica, search_opts=None):
+    def list(self, share_replica, search_opts=None):  # noqa F811
         """List all share replica export locations."""
         share_replica_id = common_base.getid(share_replica)
         return self._list(
@@ -56,7 +56,7 @@ class ShareReplicaExportLocationManager(base.ManagerWithFind):
             share_replica, export_location)
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
-    def get(self, share_replica, export_location):
+    def get(self, share_replica, export_location):  # noqa F811
         return self._get_replica_export_location(
             share_replica, export_location)
 
