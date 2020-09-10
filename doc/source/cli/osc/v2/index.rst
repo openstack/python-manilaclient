@@ -42,3 +42,10 @@ share types
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share type *
+
+============
+share quotas
+============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share quota *
