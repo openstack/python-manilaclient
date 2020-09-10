@@ -49,3 +49,10 @@ share quotas
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share quota *
+
+===============
+share snapshots
+===============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share snapshot *
