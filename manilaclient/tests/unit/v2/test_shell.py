@@ -3464,3 +3464,38 @@ class ShellTest(test_utils.TestCase):
         expected = {'unmanage': {'force': False}}
         self.assert_called('POST', '/share-servers/1234/action',
                            body=expected)
+
+    @ddt.data('migration-start', 'migration-check')
+    def test_share_server_migration_start_and_check(self, method):
+        command = ("share-server-%s "
+                   "1234 host@backend --new-share-network 1111 "
+                   "--writable False --nondisruptive True "
+                   "--preserve-snapshots True" %
+                   method)
+        self.run_command(command)
+        method = method.replace('-', '_')
+        expected = {method: {
+            'host': 'host@backend',
+            'writable': 'False',
+            'nondisruptive': 'True',
+            'preserve_snapshots': 'True',
+            'new_share_network_id': 1111
+        }}
+        self.assert_called('POST', '/share-servers/1234/action', body=expected)
+
+    @ddt.data('migration-complete', 'migration-get-progress',
+              'migration-cancel')
+    def test_share_server_migration_others(self, method):
+        command = 'share-server-' + ' '.join((method, '1234'))
+        self.run_command(command)
+        expected = {method.replace('-', '_'): None}
+        self.assert_called('POST', '/share-servers/1234/action', body=expected)
+
+    @ddt.data('migration_error', 'migration_success', None)
+    def test_share_server_reset_task_state(self, param):
+        command = ' '.join(('share-server-reset-task-state --state',
+                            six.text_type(param),
+                            '1234'))
+        self.run_command(command)
+        expected = {'reset_task_state': {'task_state': param}}
+        self.assert_called('POST', '/share-servers/1234/action', body=expected)

@@ -186,6 +186,11 @@ share_opts = [
                 help="Defines whether to run manage/unmanage tests or "
                      "not. Disable this feature if used driver does not "
                      "support it."),
+    cfg.BoolOpt("run_share_servers_migration_tests",
+                default=False,
+                help="Defines whether to run share server migration tests or "
+                     "not. Disable this feature if used driver does not "
+                     "support it."),
 
 ]
 

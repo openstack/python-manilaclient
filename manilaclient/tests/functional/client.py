@@ -1613,6 +1613,83 @@ class ManilaCLIClient(base.CLIClient):
         managed_share = output_parser.details(managed_share_raw)
         return managed_share['id']
 
+    def share_server_migration_check(self, server_id, dest_host, writable,
+                                     nondisruptive, preserve_snapshots,
+                                     new_share_network=None):
+        cmd = ('share-server-migration-check %(server_id)s %(host)s '
+               '--writable %(writable)s --nondisruptive %(nondisruptive)s '
+               '--preserve-snapshots %(preserve_snapshots)s') % {
+            'server_id': server_id,
+            'host': dest_host,
+            'writable': writable,
+            'nondisruptive': nondisruptive,
+            'preserve_snapshots': preserve_snapshots,
+        }
+        if new_share_network:
+            cmd += ' --new-share-network %s' % new_share_network
+        result = self.manila(cmd)
+        return output_parser.details(result)
+
+    def share_server_migration_start(self, server_id, dest_host,
+                                     writable=False, nondisruptive=False,
+                                     preserve_snapshots=False,
+                                     new_share_network=None):
+        cmd = ('share-server-migration-start %(server_id)s %(host)s '
+               '--writable %(writable)s --nondisruptive %(nondisruptive)s '
+               '--preserve-snapshots %(preserve_snapshots)s') % {
+            'server_id': server_id,
+            'host': dest_host,
+            'writable': writable,
+            'nondisruptive': nondisruptive,
+            'preserve_snapshots': preserve_snapshots,
+        }
+        if new_share_network:
+            cmd += ' --new-share-network %s' % new_share_network
+        return self.manila(cmd)
+
+    def share_server_migration_complete(self, server_id):
+        return self.manila('share-server-migration-complete %s' % server_id)
+
+    def share_server_migration_cancel(self, server_id):
+        return self.manila('share-server-migration-cancel %s' % server_id)
+
+    def share_server_migration_get_progress(self, server_id):
+        result = self.manila('share-server-migration-get-progress %s'
+                             % server_id)
+        return output_parser.details(result)
+
+    def wait_for_server_migration_task_state(self, share_server_id, dest_host,
+                                             task_state_to_wait,
+                                             microversion=None):
+        """Waits for a certain server task state. """
+        statuses = ((task_state_to_wait,)
+                    if not isinstance(task_state_to_wait, (tuple, list, set))
+                    else task_state_to_wait)
+        server = self.get_share_server(share_server=share_server_id,
+                                       microversion=microversion)
+        start = int(time.time())
+        while server['task_state'] not in statuses:
+            time.sleep(self.build_interval)
+            server = self.get_share_server(share_server=share_server_id,
+                                           microversion=microversion)
+            if server['task_state'] in statuses:
+                return server
+            elif server['task_state'] == constants.TASK_STATE_MIGRATION_ERROR:
+                raise exceptions.ShareServerMigrationException(
+                    server_id=server['id'])
+            elif int(time.time()) - start >= self.build_timeout:
+                message = ('Server %(share_server_id)s failed to reach the '
+                           'status in %(status)s while migrating from host '
+                           '%(src)s to host %(dest)s within the required time '
+                           '%(timeout)s.' % {
+                               'src': server['host'],
+                               'dest': dest_host,
+                               'share_server_id': server['id'],
+                               'timeout': self.build_timeout,
+                               'status': six.text_type(statuses),
+                           })
+                raise tempest_lib_exc.TimeoutException(message)
+
     # user messages
 
     def wait_for_message(self, resource_id):

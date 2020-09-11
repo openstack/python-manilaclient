@@ -201,3 +201,101 @@ class ShareServerManagerTest(utils.TestCase):
             self.manager._get.assert_called_once_with(
                 "%s/%s/details" % (share_servers.RESOURCES_PATH,
                                    share_server_id), 'details')
+
+    def test_migration_check(self):
+        share_server = "fake_share_server"
+        host = "fake_host"
+        returned = {
+            'compatible': True,
+            'capacity': True,
+            'capability': True,
+            'writable': True,
+            'nondisruptive': True,
+            'preserve_snapshots': True,
+        }
+
+        with mock.patch.object(self.manager, "_action",
+                               mock.Mock(return_value=['200', returned])):
+            result = self.manager.migration_check(
+                share_server, host, writable=True, nondisruptive=True,
+                preserve_snapshots=True)
+            self.manager._action.assert_called_once_with(
+                'migration_check', share_server, {
+                    "host": host,
+                    "writable": True,
+                    "nondisruptive": True,
+                    "preserve_snapshots": True,
+                    "new_share_network_id": None,
+                })
+
+            self.assertEqual(returned, result)
+
+    def test_migration_start(self):
+        share_server = "fake_share_server"
+        host = "fake_host"
+        returned = "fake"
+
+        with mock.patch.object(self.manager, "_action",
+                               mock.Mock(return_value=returned)):
+            result = self.manager.migration_start(
+                share_server, host, writable=True, nondisruptive=True,
+                preserve_snapshots=True)
+            self.manager._action.assert_called_once_with(
+                'migration_start', share_server, {
+                    "host": host,
+                    "writable": True,
+                    "nondisruptive": True,
+                    "preserve_snapshots": True,
+                    "new_share_network_id": None,
+                })
+
+            self.assertEqual(returned, result)
+
+    def test_migration_complete(self):
+        share_server = "fake_share_server"
+        returned = "fake"
+
+        with mock.patch.object(self.manager, "_action",
+                               mock.Mock(return_value=['200', returned])):
+            result = self.manager.migration_complete(share_server)
+
+            self.manager._action.assert_called_once_with(
+                "migration_complete", share_server)
+            self.assertEqual(returned, result)
+
+    def test_migration_get_progress(self):
+        share_server = "fake_share_server"
+        returned = "fake"
+
+        with mock.patch.object(self.manager, "_action",
+                               mock.Mock(return_value=['200', returned])):
+            result = self.manager.migration_get_progress(share_server)
+
+            self.manager._action.assert_called_once_with(
+                "migration_get_progress", share_server)
+            self.assertEqual(returned, result)
+
+    def test_reset_task_state(self):
+        share_server = "fake_share_server"
+        state = "fake_state"
+        returned = "fake"
+
+        with mock.patch.object(self.manager, "_action",
+                               mock.Mock(return_value=returned)):
+            result = self.manager.reset_task_state(share_server, state)
+
+            self.manager._action.assert_called_once_with(
+                "reset_task_state", share_server, {'task_state': state})
+            self.assertEqual(returned, result)
+
+    def test_migration_cancel(self):
+        share_server = "fake_share_server"
+        returned = "fake"
+
+        with mock.patch.object(self.manager, "_action",
+                               mock.Mock(return_value=returned)):
+            result = self.manager.migration_cancel(share_server)
+
+            self.manager._action.assert_called_once_with(
+                "migration_cancel", share_server)
+            self.assertEqual(returned, result)

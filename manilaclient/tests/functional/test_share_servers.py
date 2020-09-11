@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ast
 import ddt
 import testtools
 
@@ -70,12 +71,11 @@ class ShareServersReadWriteBase(base.BaseTestCase):
     def setUp(self):
         super(ShareServersReadWriteBase, self).setUp()
         if not CONF.run_share_servers_tests:
-            message = "share-servers tests are disabled."
+            message = "share-server tests are disabled."
             raise self.skipException(message)
         if self.protocol not in CONF.enable_protocols:
             message = "%s tests are disabled." % self.protocol
             raise self.skipException(message)
-
         self.client = self.get_admin_client()
         if not self.client.share_network:
             message = "Can run only with DHSS=True mode"
@@ -204,10 +204,152 @@ class ShareServersReadWriteCIFSTest(ShareServersReadWriteBase):
     protocol = 'cifs'
 
 
+@ddt.ddt
+@utils.skip_if_microversion_not_supported('2.57')
+class ShareServersMigrationBase(base.BaseTestCase):
+
+    protocol = None
+
+    def setUp(self):
+        super(ShareServersMigrationBase, self).setUp()
+        if not CONF.run_share_servers_tests:
+            message = "Share-server tests are disabled."
+            raise self.skipException(message)
+        if self.protocol not in CONF.enable_protocols:
+            message = "%s tests are disabled." % self.protocol
+            raise self.skipException(message)
+        self.client = self.get_admin_client()
+        if not self.client.share_network:
+            message = "Can run only with DHSS=True mode"
+            raise self.skipException(message)
+        if not CONF.run_share_servers_migration_tests:
+            message = "Share server migration tests are disabled."
+            raise self.skipException(message)
+
+    def _create_share_and_share_network(self):
+        name = data_utils.rand_name('autotest_share_name')
+        description = data_utils.rand_name('autotest_share_description')
+
+        common_share_network = self.client.get_share_network(
+            self.client.share_network)
+        share_net_info = utils.get_default_subnet(self.client,
+                                                  common_share_network['id'])
+
+        neutron_net_id = (
+            share_net_info['neutron_net_id']
+            if 'none' not in share_net_info['neutron_net_id'].lower()
+            else None)
+        neutron_subnet_id = (
+            share_net_info['neutron_subnet_id']
+            if 'none' not in share_net_info['neutron_subnet_id'].lower()
+            else None)
+        share_network = self.client.create_share_network(
+            neutron_net_id=neutron_net_id,
+            neutron_subnet_id=neutron_subnet_id,
+        )
+        share_type = self.create_share_type(
+            data_utils.rand_name('test_share_type'),
+            driver_handles_share_servers=True)
+
+        share = self.create_share(
+            share_protocol=self.protocol,
+            size=1,
+            name=name,
+            description=description,
+            share_type=share_type['ID'],
+            share_network=share_network['id'],
+            client=self.client,
+            wait_for_creation=True
+        )
+        share = self.client.get_share(share['id'])
+        return share, share_network
+
+    @ddt.data('cancel', 'complete')
+    def test_share_server_migration(self, operation):
+
+        # Create a share and share network to be used in the tests.
+        share, share_network = self._create_share_and_share_network()
+        share_server_id = share['share_server_id']
+        src_host = share['host'].split('#')[0]
+        pools = self.admin_client.pool_list(detail=True)
+
+        host_list = list()
+        # Filter the backends DHSS True and different
+        # than the source host.
+        for hosts in pools:
+            host_name = hosts['Name'].split('#')[0]
+            if (ast.literal_eval(hosts['Capabilities']).get(
+                'driver_handles_share_servers') and
+                    host_name != src_host):
+                host_list.append(host_name)
+
+        host_list = list(set(host_list))
+        # If not found any host we need skip the test.
+        if len(host_list) == 0:
+            raise self.skipException("No hosts available for "
+                                     "share server migration.")
+
+        dest_backend = None
+        # If found at least one host, we still need to verify the
+        # share server migration compatibility with the destination host.
+        for host in host_list:
+            compatibility = self.admin_client.share_server_migration_check(
+                server_id=share_server_id, dest_host=host,
+                writable=False, nondisruptive=False, preserve_snapshots=False,
+                new_share_network=None)
+            # If found at least one compatible host, we will use it.
+            if compatibility['compatible']:
+                dest_host = host
+        # If not found, we need skip the test.
+        if dest_backend is not None:
+            raise self.skipException("No hosts compatible to perform a "
+                                     "share server migration.")
+
+        # Start the share server migration
+        self.admin_client.share_server_migration_start(
+            share_server_id, dest_host)
+
+        server = self.admin_client.get_share_server(share_server_id)
+        share = self.admin_client.get_share(share['id'])
+        self.assertEqual(constants.STATUS_SERVER_MIGRATING, share['status'])
+
+        # Wait for the share server migration driver phase 1 done.
+        task_state = constants.TASK_STATE_MIGRATION_DRIVER_PHASE1_DONE
+        server = self.admin_client.wait_for_server_migration_task_state(
+            share_server_id, dest_host, task_state)
+
+        # Call share server migration complete or cancel operations
+        # according the ddt.
+        if operation == 'complete':
+            self.admin_client.share_server_migration_complete(
+                share_server_id)
+            task_state = constants.TASK_STATE_MIGRATION_SUCCESS
+        else:
+            self.admin_client.share_server_migration_cancel(server['id'])
+            task_state = constants.TASK_STATE_MIGRATION_CANCELLED
+
+        # Wait for the respectives task state for each operation above.
+        server = self.admin_client.wait_for_server_migration_task_state(
+            server['id'], dest_host, task_state)
+        # Check if the share is available again.
+        share = self.admin_client.get_share(share['id'])
+        self.assertEqual('available', share['status'])
+
+
+class ShareServersMigrationNFSTest(ShareServersMigrationBase):
+    protocol = 'nfs'
+
+
+class ShareServersMigrationCIFSTest(ShareServersMigrationBase):
+    protocol = 'cifs'
+
+
 def load_tests(loader, tests, _):
     result = []
     for test_case in tests:
         if type(test_case._tests[0]) is ShareServersReadWriteBase:
+            continue
+        if type(test_case._tests[0]) is ShareServersMigrationBase:
             continue
         result.append(test_case)
     return loader.suiteClass(result)

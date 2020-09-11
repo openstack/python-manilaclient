@@ -46,6 +46,36 @@ class ShareServer(common_base.Resource):
         """Update the share server with the provided state."""
         self.manager.reset_state(self, state)
 
+    def migration_check(self, host, writable, nondisruptive,
+                        preserve_snapshots, new_share_network_id=None):
+        """Check if the new host is suitable for migration."""
+        return self.manager.migration_check(
+            self, host, writable, nondisruptive,
+            preserve_snapshots, new_share_network_id=new_share_network_id)
+
+    def migration_start(self, host, writable, nondisruptive,
+                        preserve_snapshots, new_share_network_id=None):
+        """Migrate the share server to a new host."""
+        self.manager.migration_start(
+            self, host, writable, nondisruptive,
+            preserve_snapshots, new_share_network_id=new_share_network_id)
+
+    def migration_complete(self):
+        """Complete migration of a share server."""
+        return self.manager.migration_complete(self)
+
+    def migration_cancel(self):
+        """Attempts to cancel migration of a share server."""
+        self.manager.migration_cancel(self)
+
+    def migration_get_progress(self):
+        """Obtain progress of migration of a share server."""
+        return self.manager.migration_get_progress(self)
+
+    def reset_task_state(self, task_state):
+        """Reset the task state of a given share server."""
+        self.manager.reset_task_state(self, task_state)
+
 
 class ShareServerManager(base.ManagerWithFind):
     """Manage :class:`ShareServer` resources."""
@@ -148,9 +178,97 @@ class ShareServerManager(base.ManagerWithFind):
         :param action: text with action name.
         :param share_server: either share_server object or text with its ID.
         :param info: dict with data for specified 'action'.
-        :param kwargs: dict with data to be provided for action hooks.
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body)
         url = ACTION_PATH % common_base.getid(share_server)
         return self.api.client.post(url, body=body)
+
+    @api_versions.wraps("2.57")
+    @api_versions.experimental_api
+    def migration_check(self, share_server, host, writable, nondisruptive,
+                        preserve_snapshots, new_share_network_id=None):
+        """Check the share server migration to a new host
+
+        :param share_server: either share_server object or text with its ID.
+        :param host: Destination host where share server will be migrated.
+        :param writable: Enforces migration to keep the shares writable.
+        :param nondisruptive: Enforces migration to be nondisruptive.
+        :param preserve_snapshots: Enforces migration to preserve snapshots.
+        :param new_share_network_id: Specify the new share network id.
+        """
+        result = self._action(
+            "migration_check", share_server, {
+                "host": host,
+                "preserve_snapshots": preserve_snapshots,
+                "writable": writable,
+                "nondisruptive": nondisruptive,
+                "new_share_network_id": new_share_network_id,
+            })
+        return result[1]
+
+    @api_versions.wraps("2.57")
+    @api_versions.experimental_api
+    def migration_start(self, share_server, host, writable,
+                        nondisruptive, preserve_snapshots,
+                        new_share_network_id=None):
+        """Migrates share server to a new host
+
+        :param share_server: either share_server object or text with its ID.
+        :param host: Destination host where share server will be migrated.
+        :param writable: Enforces migration to keep the shares writable.
+        :param nondisruptive: Enforces migration to be nondisruptive.
+        :param preserve_snapshots: Enforces migration to preserve snapshots.
+        :param new_share_network_id: Specify the new share network id.
+        """
+        return self._action(
+            "migration_start", share_server, {
+                "host": host,
+                "writable": writable,
+                "nondisruptive": nondisruptive,
+                "preserve_snapshots": preserve_snapshots,
+                "new_share_network_id": new_share_network_id,
+            })
+
+    @api_versions.wraps("2.57")
+    @api_versions.experimental_api
+    def reset_task_state(self, share_server, task_state):
+        """Update the provided share server with the provided task state.
+
+        :param share_server: either share_server object or text with its ID.
+        :param task_state: text with new task state to set for share.
+        """
+        return self._action('reset_task_state', share_server,
+                            {"task_state": task_state})
+
+    @api_versions.wraps("2.57")
+    @api_versions.experimental_api
+    def migration_complete(self, share_server):
+        """Completes migration for a given share server.
+
+        :param share_server: either share_server object or text with its ID.
+        """
+        result = self._action('migration_complete', share_server)
+        # NOTE(dviroel): result[0] is response code, result[1] is dict body
+        return result[1]
+
+    @api_versions.wraps("2.57")
+    @api_versions.experimental_api
+    def migration_cancel(self, share_server):
+        """Attempts to cancel migration for a given share server.
+
+        :param share_server: either share_server object or text with its ID.
+        """
+        return self._action('migration_cancel',
+                            share_server)
+
+    @api_versions.wraps("2.57")
+    @api_versions.experimental_api
+    def migration_get_progress(self, share_server):
+        """Obtains progress of share migration for a given share server.
+
+        :param share_server: either share_server object or text with its ID.
+        """
+        result = self._action('migration_get_progress', share_server)
+        # NOTE(felipefutty): result[0] is response code, result[1] is dict body
+        return result[1]

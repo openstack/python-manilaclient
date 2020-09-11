@@ -30,6 +30,7 @@
       iniset {{ manilaclient_config }} DEFAULT run_migration_tests true
       iniset {{ manilaclient_config }} DEFAULT run_manage_tests true
       iniset {{ manilaclient_config }} DEFAULT run_mount_snapshot_tests true
+      iniset {{ manilaclient_config }} DEFAULT run_share_servers_migration_tests true
   args:
     executable: "/bin/bash"
 
