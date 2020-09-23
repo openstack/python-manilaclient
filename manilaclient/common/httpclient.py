@@ -18,13 +18,13 @@
 
 import copy
 import logging
+from urllib import parse
 
 from oslo_serialization import jsonutils
 from oslo_utils import strutils
 import re
 import requests
 import six
-from six.moves.urllib import parse
 
 from manilaclient import exceptions
 
