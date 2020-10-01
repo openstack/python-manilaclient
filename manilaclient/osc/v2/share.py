@@ -206,11 +206,12 @@ class CreateShare(command.ShowOne):
         if parsed_args.snapshot_id:
             snapshot = apiutils.find_resource(share_client.share_snapshots,
                                               parsed_args.snapshot_id)
+            snapshot_id = snapshot.id
             size = max(size or 0, snapshot.size)
 
         body = {
             'share_proto': parsed_args.share_proto,
-            'size': parsed_args.size,
+            'size': size,
             'snapshot_id': snapshot_id,
             'name': parsed_args.name,
             'description': parsed_args.description,

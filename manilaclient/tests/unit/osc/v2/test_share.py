@@ -41,6 +41,9 @@ class TestShare(manila_fakes.TestShare):
         self.users_mock = self.app.client_manager.identity.users
         self.users_mock.reset_mock()
 
+        self.snapshots_mock = self.app.client_manager.share.share_snapshots
+        self.snapshots_mock.reset_mock()
+
     def setup_shares_mock(self, count):
         shares = manila_fakes.FakeShare.create_shares(count=count)
 
@@ -61,6 +64,9 @@ class TestShareCreate(TestShare):
         self.shares_mock.create.return_value = self.new_share
 
         self.shares_mock.get.return_value = self.new_share
+        self.share_snapshot = (
+            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+        self.snapshots_mock.get.return_value = self.share_snapshot
 
         # Get the command object to test
         self.cmd = osc_shares.CreateShare(self.app, None)
@@ -146,9 +152,41 @@ class TestShareCreate(TestShare):
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.datalist, data)
 
-    # TODO(vkmc) Add test with snapshot when
-    # we implement snapshot support in OSC
-    # def test_share_create_with_snapshot(self):
+    def test_share_create_with_snapshot(self):
+        """Verifies create share from snapshot."""
+
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+            '--snapshot-id', self.share_snapshot.id
+
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+            ('snapshot_id', self.share_snapshot.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.shares_mock.create.assert_called_with(
+            availability_zone=None,
+            description=None,
+            is_public=False,
+            metadata={},
+            name=None,
+            share_group_id=None,
+            share_network=None,
+            share_proto=self.new_share.share_proto,
+            share_type=None,
+            size=self.new_share.size,
+            snapshot_id=self.share_snapshot.id
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.datalist, data)
 
     def test_share_create_wait(self):
 
