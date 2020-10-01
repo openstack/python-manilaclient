@@ -16,6 +16,7 @@
 
 from operator import xor
 import os
+import re
 import sys
 import time
 
@@ -29,34 +30,84 @@ from manilaclient.common import constants
 from manilaclient import exceptions
 
 
-def _poll_for_status(poll_fn, obj_id, action, final_ok_states,
-                     poll_period=5, show_progress=True):
-    """Block while action is performed, periodically printing progress."""
-    def print_progress(progress):
-        if show_progress:
-            msg = ('\rInstance %(action)s... %(progress)s%% complete'
-                   % dict(action=action, progress=progress))
-        else:
-            msg = '\rInstance %(action)s...' % dict(action=action)
+def _wait_for_resource_status(cs,
+                              resource,
+                              expected_status,
+                              resource_type='share',
+                              status_attr='status',
+                              poll_timeout=900,
+                              poll_interval=2):
+    """Waiter for resource status changes
 
-        sys.stdout.write(msg)
-        sys.stdout.flush()
+    :param cs: command shell control
+    :param expected_status: a string or a list of strings containing expected
+       states to wait for
+    :param resource_type: 'share', 'snapshot', 'share_replica', 'share_group',
+       or 'share_group_snapshot'
+    :param status_attr: 'status', 'task_state', 'access_rules_status' or any
+       other status field that is expected to have the "expected_status"
+    :param poll_timeout: how long to wait for in seconds
+    :param poll_interval: how often to try in seconds
+    """
+    find_resource = {
+        'share': _find_share,
+        'snapshot': _find_share_snapshot,
+        'share_replica': _find_share_replica,
+        'share_group': _find_share_group,
+        'share_group_snapshot': _find_share_group_snapshot,
+    }
 
-    print()
+    print_resource = {
+        'share': _print_share,
+        'snapshot': _print_share_snapshot,
+        'share_replica': _print_share_replica,
+        'share_group': _print_share_group,
+        'share_group_snapshot': _print_share_group_snapshot,
+    }
+
+    expected_status = expected_status or ('available', )
+    if not isinstance(expected_status, (list, tuple, set)):
+        expected_status = (expected_status, )
+
+    time_elapsed = 0
+    timeout_message = ("%(resource_type)s %(resource)s did not reach "
+                       "%(expected_states)s within %(seconds)d seconds.")
+    error_message = ("%(resource_type)s %(resource)s has reached a failed "
+                     "state.")
+    deleted_message = ("%(resource_type)s %(resource)s has been successfully "
+                       "deleted.")
+    message_payload = {
+        'resource_type': resource_type.capitalize(),
+        'resource': resource.id,
+    }
+    not_found_regex = "no %s .* exists" % resource_type
     while True:
-        obj = poll_fn(obj_id)
-        status = obj.status.lower()
-        progress = getattr(obj, 'progress', None) or 0
-        if status in final_ok_states:
-            print_progress(100)
-            print("\nFinished")
+        if time_elapsed > poll_timeout:
+            print_resource[resource_type](cs, resource)
+            message_payload.update({'expected_states': expected_status,
+                                    'seconds': poll_timeout})
+            raise exceptions.TimeoutException(
+                message=timeout_message % message_payload)
+        try:
+            resource = find_resource[resource_type](cs, resource.id)
+        except exceptions.CommandError as e:
+            if (re.search(not_found_regex, str(e), flags=re.IGNORECASE)
+                    and 'deleted' in expected_status):
+                print(deleted_message % message_payload)
+                break
+            else:
+                raise e
+
+        if getattr(resource, status_attr) in expected_status:
             break
-        elif status == "error":
-            print("\nError %(action)s instance" % {'action': action})
-            break
-        else:
-            print_progress(progress)
-            time.sleep(poll_period)
+        elif 'error' in getattr(resource, status_attr):
+            print_resource[resource_type](cs, resource)
+            raise exceptions.ResourceInErrorState(
+                message=error_message % message_payload)
+        time.sleep(poll_interval)
+        time_elapsed += poll_interval
+
+    return resource
 
 
 def _find_share(cs, share):
@@ -129,6 +180,11 @@ def _print_share(cs, share):  # noqa
         info.pop('volume_type', None)
 
     cliutils.print_dict(info)
+
+
+def _wait_for_share_status(cs, share, expected_status='available'):
+    return _wait_for_resource_status(
+        cs, share, expected_status, resource_type='share')
 
 
 def _find_share_instance(cs, instance):
@@ -809,6 +865,10 @@ def do_rate_limits(cs, args):
     help='Optional share group name or ID in which to create the share '
          '(Default=None).',
     default=None)
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share creation')
 @cliutils.service_type('sharev2')
 def do_create(cs, args):
     """Creates a new share (NFS, CIFS, CephFS, GlusterFS, HDFS or MAPRFS)."""
@@ -832,6 +892,10 @@ def do_create(cs, args):
                              is_public=args.public,
                              availability_zone=args.availability_zone,
                              share_group_id=share_group)
+
+    if args.wait:
+        share = _wait_for_share_status(cs, share)
+
     _print_share(cs, share)
 
 
@@ -1581,19 +1645,25 @@ def do_revert_to_snapshot(cs, args):
     help='Optional share group name or ID which contains the share '
          '(Default=None).',
     default=None)
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share deletion')
 @cliutils.service_type('sharev2')
 def do_delete(cs, args):
     """Remove one or more shares."""
     failure_count = 0
+    shares_to_delete = []
 
     for share in args.share:
         try:
             share_ref = _find_share(cs, share)
+            shares_to_delete.append(share_ref)
             if args.share_group:
                 share_group_id = _find_share_group(cs, args.share_group).id
-                share_ref.delete(share_group_id=share_group_id)
+                cs.shares.delete(share_ref, share_group_id=share_group_id)
             else:
-                share_ref.delete()
+                cs.shares.delete(share_ref)
         except Exception as e:
             failure_count += 1
             print("Delete for share %s failed: %s" % (share, e),
@@ -1602,6 +1672,13 @@ def do_delete(cs, args):
     if failure_count == len(args.share):
         raise exceptions.CommandError("Unable to delete any of the specified "
                                       "shares.")
+
+    if args.wait:
+        for share in shares_to_delete:
+            try:
+                _wait_for_share_status(cs, share, expected_status='deleted')
+            except exceptions.CommandError as e:
+                print(e, file=sys.stderr)
 
 
 @cliutils.arg(

@@ -173,7 +173,13 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, body)
 
     def get_shares_1234(self, **kw):
-        share = {'share': {'id': 1234, 'name': 'sharename'}}
+        share = {
+            'share': {
+                'id': 1234,
+                'name': 'sharename',
+                'status': 'available',
+            },
+        }
         return (200, {}, share)
 
     def get_share_servers_1234(self, **kw):
@@ -609,12 +615,18 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (202, {}, {'share_network_subnet': {}})
 
     def post_shares(self, **kwargs):
-        return (202, {}, {'share': {}})
+        return (202, {}, {'share': {'id': '1234', 'status': 'creating'}})
 
     def post_snapshots(self, **kwargs):
         return (202, {}, {'snapshot': {}})
 
     def delete_shares_1234(self, **kw):
+        return (202, {}, None)
+
+    def delete_shares_share_abc(self, **kw):
+        return (202, {}, None)
+
+    def delete_shares_share_xyz(self, **kw):
         return (202, {}, None)
 
     def delete_snapshots_1234(self, **kwargs):

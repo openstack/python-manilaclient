@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    The commands "manila create" and "manila delete" now
+    accept an optional "--wait" option that allows users
+    to let the client poll for the completion of the
+    operation.
