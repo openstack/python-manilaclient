@@ -10,8 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from urllib import parse
+
 import six
-from six.moves.urllib import parse
 
 
 class HookableMixin(object):
