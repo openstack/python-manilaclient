@@ -510,30 +510,6 @@ class TestShareTypeList(TestShareType):
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(self.values), list(data))
 
-    def test_share_type_list_columns(self):
-        arglist = [
-            '--columns', 'id,name'
-        ]
-        verifylist = [
-            ('columns', 'id,name')
-        ]
-
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-
-        arg_columns = [
-            'id',
-            'name'
-        ]
-        arg_columns_data = (oscutils.get_item_properties(
-            s, arg_columns) for s in self.share_types)
-
-        columns, data = self.cmd.take_action(parsed_args)
-        self.shares_mock.list.assert_called_once_with(
-            search_opts={},
-            show_all=False)
-        self.assertEqual(arg_columns, columns)
-        self.assertEqual(list(arg_columns_data), list(data))
-
     def test_share_type_list_api_versions_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             "2.42")
@@ -546,19 +522,6 @@ class TestShareTypeList(TestShareType):
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
-
-    def test_share_type_list_columns_invalid_value(self):
-        arglist = [
-            '--columns', 'invalid_column_name'
-        ]
-        verifylist = [
-            ('columns', 'invalid_column_name')
-        ]
-
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 

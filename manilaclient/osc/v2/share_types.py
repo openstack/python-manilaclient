@@ -392,12 +392,6 @@ class ListShareType(command.Lister):
                    'Available only for API microversion >= 2.43. '
                    'OPTIONAL: Default=None.'),
         )
-        parser.add_argument(
-            '--columns',
-            metavar='<columns>',
-            help=_('Comma separated list of columns to be displayed '
-                   'example --columns "id,name".'),
-        )
         return parser
 
     def take_action(self, parsed_args):
@@ -420,26 +414,14 @@ class ListShareType(command.Lister):
             search_opts=search_opts,
             show_all=parsed_args.all)
 
-        if parsed_args.columns:
-            columns = parsed_args.columns.split(',')
-            for column in columns:
-                if column not in ATTRIBUTES:
-                    msg = ("No column named '%s'. "
-                           "Possible columns are: 'id', 'name', 'visibility', "
-                           "is_default', 'required_extra_specs', "
-                           "'optional_extra_specs', 'description'." % column)
-                    raise exceptions.CommandError(msg)
-        else:
-            columns = ATTRIBUTES
-
         formatted_types = []
         for share_type in share_types:
             formatted_types.append(format_share_type(share_type))
 
         values = (oscutils.get_dict_properties(
-            s._info, columns) for s in formatted_types)
+            s._info, ATTRIBUTES) for s in formatted_types)
 
-        return (columns, values)
+        return (ATTRIBUTES, values)
 
 
 class ShowShareType(command.ShowOne):

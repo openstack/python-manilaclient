@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    The commands "openstack share type list" and
+    "openstack share access list" no longer support
+    the "--columns" option.
+    Use "--column" to filter the output.
+

@@ -164,13 +164,7 @@ class ListShareAccess(command.Lister):
             metavar="<share>",
             help=_('Name or ID of the share.')
         )
-        parser.add_argument(
-            '--columns',
-            metavar="<columns>",
-            default=None,
-            help=_('Comma separated list of columns to be displayed. '
-                   'Example --columns "access_type,access_to".')
-        )
+
         # metadata --> properties in osc
         parser.add_argument(
             '--properties',
@@ -222,25 +216,10 @@ class ListShareAccess(command.Lister):
             list_of_keys.append('created_at')
             list_of_keys.append('updated_at')
 
-        if parsed_args.columns:
-            columns = parsed_args.columns.split(',')
-            for column in columns:
-                if column not in list_of_keys:
-                    msg = ("No column named '%s'. Possible columns are: "
-                           "'id', 'access_type', 'access_to', "
-                           "'access_level', 'state', "
-                           "'access_key'(API microversion 2.21 and beyond), "
-                           "'created_at'(API microversion 2.33 and beyond), "
-                           "'updated_at'(API microversion 2.33 and beyond)."
-                           % column)
-                    raise exceptions.CommandError(msg)
-        else:
-            columns = list_of_keys
-
         values = (oscutils.get_item_properties(
-            a, columns) for a in access_list)
+            a, list_of_keys) for a in access_list)
 
-        return (columns, values)
+        return (list_of_keys, values)
 
 
 class ShowShareAccess(command.ShowOne):

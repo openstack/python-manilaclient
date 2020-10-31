@@ -236,33 +236,6 @@ class TestShareAccessList(TestShareAccess):
         self.assertEqual(self.access_rules_columns, columns)
         self.assertEqual(tuple(self.values_list), tuple(data))
 
-    def test_access_rules_list_columns(self):
-        expected_columns = [
-            'id',
-            'access_to'
-        ]
-
-        expected_data = (oscutils.get_dict_properties(
-            a._info, expected_columns) for a in self.access_rules)
-
-        arglist = [
-            self.share.id,
-            '--columns', 'id,access_to'
-        ]
-        verifylist = [
-            ("share", self.share.id),
-            ('columns', 'id,access_to')
-        ]
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        columns, data = self.cmd.take_action(parsed_args)
-
-        self.shares_mock.get.assert_called_with(self.share.id)
-        self.access_rules_mock.access_list.assert_called_with(
-            self.share,
-            {})
-        self.assertEqual(expected_columns, columns)
-        self.assertEqual(tuple(expected_data), tuple(data))
-
 
 class TestShareAccessShow(TestShareAccess):
 
