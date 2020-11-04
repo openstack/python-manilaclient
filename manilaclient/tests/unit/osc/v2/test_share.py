@@ -19,6 +19,7 @@ import uuid
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
 from osc_lib import exceptions as osc_exceptions
+from osc_lib import utils as oscutils
 
 from manilaclient import api_versions
 from manilaclient.api_versions import MAX_VERSION
@@ -36,6 +37,11 @@ class TestShare(manila_fakes.TestShare):
 
         self.shares_mock = self.app.client_manager.share.shares
         self.shares_mock.reset_mock()
+
+        self.export_locations_mock = (
+            self.app.client_manager.share.share_export_locations
+        )
+        self.export_locations_mock.reset_mock()
 
         self.projects_mock = self.app.client_manager.identity.projects
         self.projects_mock.reset_mock()
@@ -1657,3 +1663,81 @@ class TestAbandonShare(TestShare):
                 self.cmd.take_action,
                 parsed_args
             )
+
+
+class TestShareExportLocationShow(TestShare):
+
+    def setUp(self):
+        super(TestShareExportLocationShow, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share()
+        self.shares_mock.get.return_value = self._share
+
+        self._export_location = (
+            manila_fakes.FakeShareExportLocation.create_one_export_location())
+
+        self.export_locations_mock.get.return_value = (
+            self._export_location
+        )
+
+        # Get the command object to test
+        self.cmd = osc_shares.ShareExportLocationShow(self.app, None)
+
+    def test_share_show_export_location(self):
+        arglist = [
+            self._share.id,
+            self._export_location.fake_uuid
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('export_location', self._export_location.fake_uuid)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        self.export_locations_mock.get.assert_called_with(
+            share=self._share,
+            export_location=self._export_location.fake_uuid
+        )
+
+        self.assertEqual(tuple(self._export_location._info.keys()), columns)
+        self.assertCountEqual(self._export_location._info.values(), data)
+
+
+class TestShareExportLocationList(TestShare):
+
+    columns = ['ID', 'Path', 'Preferred']
+
+    def setUp(self):
+        super(TestShareExportLocationList, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share()
+        self.shares_mock.get.return_value = self._share
+
+        self._export_locations = [
+            manila_fakes.FakeShareExportLocation.create_one_export_location()]
+
+        self.export_locations_mock.list.return_value = (
+            self._export_locations
+        )
+
+        self.values = (oscutils.get_dict_properties(
+            e._info, self.columns) for e in self._export_locations)
+
+        # Get the command object to test
+        self.cmd = osc_shares.ShareExportLocationList(self.app, None)
+
+    def test_share_list_export_location(self):
+        arglist = [
+            self._share.id
+        ]
+        verifylist = [
+            ('share', self._share.id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        self.export_locations_mock.list.assert_called_with(
+            share=self._share
+        )
+
+        self.assertEqual(self.columns, columns)
+        self.assertCountEqual(self.values, data)

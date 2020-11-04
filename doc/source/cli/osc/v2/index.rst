@@ -35,6 +35,12 @@ shares
 .. autoprogram-cliff:: openstack.share.v2
     :command: share abandon
 
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share export location show
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share export location list
+
 ==================
 share access rules
 ==================
