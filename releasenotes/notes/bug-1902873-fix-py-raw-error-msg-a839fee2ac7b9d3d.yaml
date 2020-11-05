@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    `Bug #1902873 <https://bugs.launchpad.net/python-manilaclient/+bug/1902873>`_:
+    Fixed raw Python error message when using ``manila`` without
+    a subcommand while passing an optional argument, such as
+    ``--os-cache``.
