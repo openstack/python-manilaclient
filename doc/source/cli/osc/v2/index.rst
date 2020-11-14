@@ -29,6 +29,12 @@ shares
 .. autoprogram-cliff:: openstack.share.v2
     :command: share resize
 
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share adopt
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share abandon
+
 ==================
 share access rules
 ==================
