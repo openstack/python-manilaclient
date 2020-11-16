@@ -27,6 +27,9 @@ shares
     :command: share unset
 
 .. autoprogram-cliff:: openstack.share.v2
+    :command: share properties show
+
+.. autoprogram-cliff:: openstack.share.v2
     :command: share resize
 
 .. autoprogram-cliff:: openstack.share.v2
@@ -40,6 +43,7 @@ shares
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share export location list
+
 
 ==================
 share access rules

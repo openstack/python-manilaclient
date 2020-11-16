@@ -1004,6 +1004,7 @@ class ShareExportLocationList(command.Lister):
     def get_parser(self, prog_name):
         parser = super(ShareExportLocationList, self).get_parser(
             prog_name)
+
         parser.add_argument(
             'share',
             metavar="<share>",
@@ -1028,3 +1029,25 @@ class ShareExportLocationList(command.Lister):
 
         return (list_of_keys, (oscutils.get_item_properties
                 (s, list_of_keys) for s in export_locations))
+
+
+class ShowShareProperties(command.ShowOne):
+    """Show properties of a share"""
+    _description = _("Show share properties")
+
+    def get_parser(self, prog_name):
+        parser = super(ShowShareProperties, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of share')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share = apiutils.find_resource(
+            share_client.shares, parsed_args.share)
+        share_properties = share_client.shares.get_metadata(share)
+
+        return self.dict2columns(share_properties._info)

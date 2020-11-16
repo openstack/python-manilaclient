@@ -26,6 +26,7 @@ from manilaclient.api_versions import MAX_VERSION
 from manilaclient.common.apiclient import exceptions
 from manilaclient.common import cliutils
 from manilaclient.osc.v2 import share as osc_shares
+from manilaclient.tests.unit.osc import osc_fakes
 from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
@@ -1741,3 +1742,46 @@ class TestShareExportLocationList(TestShare):
 
         self.assertEqual(self.columns, columns)
         self.assertCountEqual(self.values, data)
+
+
+class TestShowShareProperties(TestShare):
+
+    properties = {
+        'key1': 'value1',
+        'key2': 'value2'
+    }
+
+    def setUp(self):
+        super(TestShowShareProperties, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share(
+            attrs={
+                'metadata': osc_fakes.FakeResource(
+                    info=self.properties)
+            }
+        )
+        self.shares_mock.get.return_value = self._share
+
+        self.shares_mock.get_metadata.return_value = self._share.metadata
+
+        # Get the command object to test
+        self.cmd = osc_shares.ShowShareProperties(self.app, None)
+
+        self.datalist = tuple(self._share.metadata._info.values())
+        self.columns = tuple(self._share.metadata._info.keys())
+
+    def test_share_show_properties(self):
+        arglist = [
+            self._share.id
+        ]
+        verifylist = [
+            ("share", self._share.id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+        self.shares_mock.get.assert_called_with(self._share.id)
+        self.shares_mock.get_metadata.assert_called_with(self._share)
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.datalist, data)
