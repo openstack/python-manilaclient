@@ -347,6 +347,9 @@ class OpenStackManilaShell(object):
         parser.add_argument('--os_cert',
                             help=argparse.SUPPRESS)
 
+        parser.set_defaults(func=self.do_help)
+        parser.set_defaults(command='')
+
         return parser
 
     def get_subcommand_parser(self, version):
