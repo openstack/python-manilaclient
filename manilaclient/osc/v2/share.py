@@ -172,6 +172,12 @@ class CreateShare(command.ShowOne):
             help=_('Optional share group name or ID in which to create '
                    'the share. (Default=None).')
         )
+        parser.add_argument(
+            '--wait',
+            action='store_true',
+            default=False,
+            help=_('Wait for share creation')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -218,6 +224,17 @@ class CreateShare(command.ShowOne):
 
         share = share_client.shares.create(**body)
 
+        if parsed_args.wait:
+            if not oscutils.wait_for_status(
+                status_f=share_client.shares.get,
+                res_id=share.id,
+                success_status=['available']
+            ):
+                LOG.error(_("ERROR: Share is in error state."))
+
+            share = apiutils.find_resource(share_client.shares,
+                                           share.id)
+
         printable_share = share._info
         printable_share.pop('links', None)
         printable_share.pop('shares_type', None)
@@ -251,6 +268,12 @@ class DeleteShare(command.Command):
             help=_("Attempt forced removal of share(s), regardless of state "
                    "(defaults to False)")
         )
+        parser.add_argument(
+            "--wait",
+            action='store_true',
+            default=False,
+            help=_("Wait for share deletion")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -269,6 +292,12 @@ class DeleteShare(command.Command):
                 else:
                     share_client.shares.delete(share_obj,
                                                share_group_id)
+                if parsed_args.wait:
+                    if not oscutils.wait_for_delete(
+                            manager=share_client.shares,
+                            res_id=share_obj.id):
+                        result += 1
+
             except Exception as exc:
                 result += 1
                 LOG.error(_("Failed to delete share with "
@@ -706,6 +735,12 @@ class ResizeShare(command.Command):
             type=int,
             help=_('New size of share, in GiBs')
         )
+        parser.add_argument(
+            '--wait',
+            action='store_true',
+            default=False,
+            help=_('Wait for share resize')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -733,3 +768,11 @@ class ResizeShare(command.Command):
             raise exceptions.CommandError(_(
                 "Share size is already at %s GiBs" % new_size
             ))
+        if parsed_args.wait:
+            if not oscutils.wait_for_status(
+                status_f=share_client.shares.get,
+                res_id=share.id,
+                success_status=['available']
+            ):
+                raise exceptions.CommandError(_(
+                    "Share not available after resize attempt."))

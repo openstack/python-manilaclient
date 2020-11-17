@@ -55,8 +55,12 @@ class TestShareCreate(TestShare):
     def setUp(self):
         super(TestShareCreate, self).setUp()
 
-        self.new_share = manila_fakes.FakeShare.create_one_share()
+        self.new_share = manila_fakes.FakeShare.create_one_share(
+            attrs={'status': 'available'}
+        )
         self.shares_mock.create.return_value = self.new_share
+
+        self.shares_mock.get.return_value = self.new_share
 
         # Get the command object to test
         self.cmd = osc_shares.CreateShare(self.app, None)
@@ -145,6 +149,81 @@ class TestShareCreate(TestShare):
     # TODO(vkmc) Add test with snapshot when
     # we implement snapshot support in OSC
     # def test_share_create_with_snapshot(self):
+
+    def test_share_create_wait(self):
+
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+            '--wait'
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.shares_mock.create.assert_called_with(
+            availability_zone=None,
+            description=None,
+            is_public=False,
+            metadata={},
+            name=None,
+            share_group_id=None,
+            share_network=None,
+            share_proto=self.new_share.share_proto,
+            share_type=None,
+            size=self.new_share.size,
+            snapshot_id=None
+        )
+
+        self.shares_mock.get.assert_called_with(self.new_share.id)
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.datalist, data)
+
+    @mock.patch('manilaclient.osc.v2.share.LOG')
+    def test_share_create_wait_error(self, mock_logger):
+
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+            '--wait'
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_status', return_value=False):
+            columns, data = self.cmd.take_action(parsed_args)
+
+            self.shares_mock.create.assert_called_with(
+                availability_zone=None,
+                description=None,
+                is_public=False,
+                metadata={},
+                name=None,
+                share_group_id=None,
+                share_network=None,
+                share_proto=self.new_share.share_proto,
+                share_type=None,
+                size=self.new_share.size,
+                snapshot_id=None
+            )
+
+            mock_logger.error.assert_called_with(
+                "ERROR: Share is in error state.")
+
+            self.shares_mock.get.assert_called_with(self.new_share.id)
+            self.assertCountEqual(self.columns, columns)
+            self.assertCountEqual(self.datalist, data)
 
 
 class TestShareDelete(TestShare):
@@ -245,6 +324,51 @@ class TestShareDelete(TestShare):
 
         self.assertRaises(osc_utils.ParserException,
                           self.check_parser, self.cmd, arglist, verifylist)
+
+    def test_share_delete_wait(self):
+        shares = self.setup_shares_mock(count=1)
+
+        arglist = [
+            shares[0].name,
+            '--wait'
+        ]
+        verifylist = [
+            ("force", False),
+            ("share_group", None),
+            ('shares', [shares[0].name]),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=True):
+            result = self.cmd.take_action(parsed_args)
+            self.shares_mock.delete.assert_called_with(shares[0], None)
+            self.shares_mock.get.assert_called_with(shares[0].name)
+            self.assertIsNone(result)
+
+    def test_share_delete_wait_error(self):
+        shares = self.setup_shares_mock(count=1)
+
+        arglist = [
+            shares[0].name,
+            '--wait'
+        ]
+        verifylist = [
+            ("force", False),
+            ("share_group", None),
+            ('shares', [shares[0].name]),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
+            self.assertRaises(
+                osc_exceptions.CommandError,
+                self.cmd.take_action,
+                parsed_args
+            )
 
 
 class TestShareList(TestShare):
@@ -1103,7 +1227,8 @@ class TestResizeShare(TestShare):
         super(TestResizeShare, self).setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={'size': 2})
+            attrs={'size': 2,
+                   'status': 'available'})
         self.shares_mock.get.return_value = self._share
 
         # Get the command objects to test
@@ -1205,3 +1330,44 @@ class TestResizeShare(TestShare):
 
         self.assertRaises(osc_utils.ParserException,
                           self.check_parser, self.cmd, arglist, verifylist)
+
+    def test_share_resize_wait(self):
+        arglist = [
+            self._share.id,
+            '3',
+            '--wait'
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('new_size', 3),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        self.shares_mock.extend.assert_called_with(
+            self._share,
+            3
+        )
+        self.shares_mock.get.assert_called_with(self._share.id)
+
+    def test_share_resize_wait_error(self):
+        arglist = [
+            self._share.id,
+            '3',
+            '--wait'
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('new_size', 3),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_status', return_value=False):
+            self.assertRaises(
+                osc_exceptions.CommandError,
+                self.cmd.take_action,
+                parsed_args
+            )
