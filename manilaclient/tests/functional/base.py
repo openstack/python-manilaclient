@@ -309,8 +309,9 @@ class BaseTestCase(base.ClientTestBase):
     def create_share(cls, share_protocol=None, size=None, share_network=None,
                      share_type=None, name=None, description=None,
                      public=False, snapshot=None, metadata=None,
-                     client=None, cleanup_in_class=False,
-                     wait_for_creation=True, microversion=None):
+                     client=None, use_wait_option=False,
+                     cleanup_in_class=False, wait_for_creation=True,
+                     microversion=None):
         client = client or cls.get_admin_client()
         data = {
             'share_protocol': share_protocol or client.share_protocol,
@@ -321,6 +322,7 @@ class BaseTestCase(base.ClientTestBase):
             'snapshot': snapshot,
             'metadata': metadata,
             'microversion': microversion,
+            'wait': use_wait_option,
         }
 
         share_type = share_type or CONF.share_type
@@ -340,10 +342,17 @@ class BaseTestCase(base.ClientTestBase):
             cls.class_resources.insert(0, resource)
         else:
             cls.method_resources.insert(0, resource)
-        if wait_for_creation:
+        if wait_for_creation and not use_wait_option:
             client.wait_for_resource_status(share['id'],
                                             constants.STATUS_AVAILABLE)
         return share
+
+    @classmethod
+    def delete_share(cls, shares_to_delete, share_group_id=None,
+                     wait=False, client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        client.delete_share(shares_to_delete, share_group_id=share_group_id,
+                            wait=wait, microversion=microversion)
 
     @classmethod
     def _determine_share_network_to_use(cls, client, share_type,

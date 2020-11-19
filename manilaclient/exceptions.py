@@ -17,7 +17,29 @@
 Exception definitions.
 """
 
+from manilaclient.common._i18n import _
 from manilaclient.common.apiclient.exceptions import *  # noqa
+
+
+class ManilaclientException(Exception):
+    """A generic client error."""
+    message = _("An unexpected error occured.")
+
+    def __init__(self, message):
+        self.message = message or self.message
+
+    def __str__(self):
+        return self.message
+
+
+class ResourceInErrorState(ManilaclientException):
+    """A resource is in an unexpected 'error' state."""
+    message = _("Resource is in error state")
+
+
+class TimeoutException(ManilaclientException):
+    """A request has timed out"""
+    message = _("Request has timed out")
 
 
 class NoTokenLookupException(ClientException):  # noqa: F405

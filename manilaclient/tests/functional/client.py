@@ -712,7 +712,7 @@ class ManilaCLIClient(base.CLIClient):
 
     def create_share(self, share_protocol, size, share_network=None,
                      share_type=None, name=None, description=None,
-                     public=False, snapshot=None, metadata=None,
+                     public=False, snapshot=None, metadata=None, wait=False,
                      microversion=None):
         """Creates a share.
 
@@ -726,6 +726,7 @@ class ManilaCLIClient(base.CLIClient):
             Default is False.
         :param snapshot: str -- Name or ID of a snapshot to use as source.
         :param metadata: dict -- key-value data to provide with share creation.
+        :param wait: bool - the client must wait for "available" state
         :param microversion: str -- API microversion that should be used.
         """
         cmd = 'create %(share_protocol)s %(size)s ' % {
@@ -741,7 +742,7 @@ class ManilaCLIClient(base.CLIClient):
             description = data_utils.rand_name('autotest_share_description')
         cmd += '--description %s ' % description
         if public:
-            cmd += '--public'
+            cmd += '--public '
         if snapshot is not None:
             cmd += '--snapshot %s ' % snapshot
         if metadata:
@@ -750,6 +751,8 @@ class ManilaCLIClient(base.CLIClient):
                 metadata_cli += '%(k)s=%(v)s ' % {'k': k, 'v': v}
             if metadata_cli:
                 cmd += '--metadata %s ' % metadata_cli
+        if wait:
+            cmd += '--wait '
         share_raw = self.manila(cmd, microversion=microversion)
         share = output_parser.details(share_raw)
         return share
@@ -784,17 +787,25 @@ class ManilaCLIClient(base.CLIClient):
 
     @not_found_wrapper
     @forbidden_wrapper
-    def delete_share(self, shares, microversion=None):
+    def delete_share(self, shares, share_group_id=None, wait=False,
+                     microversion=None):
         """Deletes share[s] by Names or IDs.
 
         :param shares: either str or list of str that can be either Name
             or ID of a share(s) that should be deleted.
+        :param share_group_id: a common share group ID for the shares being
+          deleted
+        :param wait: bool -- whether to wait for the shares to be deleted
         """
         if not isinstance(shares, list):
             shares = [shares]
         cmd = 'delete '
         for share in shares:
             cmd += '%s ' % share
+        if share_group_id:
+            cmd += '--share-group-id %s ' % share_group_id
+        if wait:
+            cmd += '--wait '
         return self.manila(cmd, microversion=microversion)
 
     def list_shares(self, all_tenants=False, filters=None, columns=None,

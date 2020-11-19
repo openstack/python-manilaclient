@@ -41,6 +41,7 @@ from manilaclient.v2 import share_networks
 from manilaclient.v2 import share_servers
 from manilaclient.v2 import share_snapshots
 from manilaclient.v2 import share_types
+from manilaclient.v2 import shares
 from manilaclient.v2 import shell as shell_v2
 
 
@@ -929,6 +930,31 @@ class ShellTest(test_utils.TestCase):
             self.run_command,
             'delete fake-not-found'
         )
+
+    @ddt.data(('share_xyz', ), ('share_abc', 'share_xyz'))
+    def test_delete_wait(self, shares_to_delete):
+        fake_shares = [
+            shares.Share('fake', {'id': share})
+            for share in shares_to_delete
+        ]
+        share_not_found_error = ("Delete for share %s failed: No share with "
+                                 "a name or ID of '%s' exists.")
+        shares_are_not_found_errors = [
+            exceptions.CommandError(share_not_found_error % (share, share))
+            for share in shares_to_delete
+        ]
+        self.mock_object(
+            shell_v2, '_find_share',
+            mock.Mock(side_effect=(fake_shares + shares_are_not_found_errors)))
+
+        self.run_command('delete %s --wait' % ' '.join(shares_to_delete))
+
+        shell_v2._find_share.assert_has_calls([
+            mock.call(self.shell.cs, share) for share in shares_to_delete
+        ])
+        for share in fake_shares:
+            uri = '/shares/%s' % share.id
+            self.assert_called_anytime('DELETE', uri, clear_callstack=False)
 
     def test_list_snapshots(self):
         self.run_command('snapshot-list')
@@ -1974,6 +2000,13 @@ class ShellTest(test_utils.TestCase):
         expected = self.create_share_body.copy()
         expected['share']['metadata'] = {"key1": "value1", "key2": "value2"}
         self.assert_called("POST", "/shares", body=expected)
+
+    def test_create_with_wait(self):
+        self.run_command("create nfs 1 --wait")
+        expected = self.create_share_body.copy()
+        self.assert_called_anytime(
+            "POST", "/shares", body=expected, clear_callstack=False)
+        self.assert_called("GET", "/shares/1234")
 
     def test_allow_access_cert(self):
         self.run_command("access-allow 1234 cert client.example.com")
