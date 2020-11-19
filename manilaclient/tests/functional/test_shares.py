@@ -54,6 +54,7 @@ class SharesReadWriteBase(base.BaseTestCase):
         create = self.create_share(
             self.protocol, name=name, client=self.user_client)
 
+        self.assertEqual("creating", create['status'])
         self.assertEqual(name, create['name'])
         self.assertEqual('1', create['size'])
         self.assertEqual(self.protocol.upper(), create['share_proto'])
@@ -92,32 +93,29 @@ class SharesReadWriteBase(base.BaseTestCase):
         self.assertEqual('1', get['size'])
         self.assertEqual(self.protocol.upper(), get['share_proto'])
 
-    @ddt.data(True, False)
-    def test_create_delete_with_wait(self, use_wait_option):
+    def test_create_delete_with_wait(self):
         name = data_utils.rand_name('share-with-wait-%s')
         description = data_utils.rand_name('we-wait-until-share-is-ready')
 
         share_1, share_2 = (
             self.create_share(self.protocol, name=(name % num),
                               description=description,
-                              use_wait_option=use_wait_option,
+                              use_wait_option=True,
                               client=self.user_client)
             for num in range(0, 2)
         )
 
-        expected_status = "available" if use_wait_option else "creating"
-        self.assertEqual(expected_status, share_1['status'])
-        self.assertEqual(expected_status, share_2['status'])
+        self.assertEqual("available", share_1['status'])
+        self.assertEqual("available", share_2['status'])
 
-        if use_wait_option:
-            self.delete_share([share_1['id'], share_2['id']],
-                              wait=use_wait_option,
-                              client=self.user_client)
+        self.delete_share([share_1['id'], share_2['id']],
+                          wait=True,
+                          client=self.user_client)
 
-            for share in (share_1, share_2):
-                self.assertRaises(
-                    exceptions.NotFound,
-                    self.user_client.get_share, share['id'])
+        for share in (share_1, share_2):
+            self.assertRaises(exceptions.NotFound,
+                              self.user_client.get_share,
+                              share['id'])
 
 
 @ddt.ddt
