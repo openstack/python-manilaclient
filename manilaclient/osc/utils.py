@@ -80,3 +80,11 @@ def extract_extra_specs(extra_specs, specs_to_add):
         else:
             extra_specs[key] = value
     return extra_specs
+
+
+def format_column_headers(columns):
+    column_headers = []
+    for column in columns:
+        column_headers.append(
+            column.replace('_', ' ').title().replace('Id', 'ID'))
+    return column_headers

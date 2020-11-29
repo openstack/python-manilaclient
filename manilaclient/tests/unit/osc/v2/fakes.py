@@ -36,6 +36,7 @@ class FakeShareClient(object):
         self.quotas = mock.Mock()
         self.share_snapshots = mock.Mock()
         self.share_snapshot_export_locations = mock.Mock()
+        self.share_replicas = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -592,3 +593,59 @@ class FakeMessage(object):
                 FakeMessage.create_one_message(attrs))
 
         return messages
+
+
+class FakeShareReplica(object):
+    """Fake a share replica"""
+
+    @staticmethod
+    def create_one_replica(attrs=None, methods=None):
+        """Create a fake share replica
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+
+        share_replica = {
+            'availability_zone': None,
+            'cast_rules_to_readonly': True,
+            'created_at': datetime.datetime.now().isoformat(),
+            'host': None,
+            'id': 'replica-id-' + uuid.uuid4().hex,
+            'replica_state': None,
+            'share_id': 'share-id-' + uuid.uuid4().hex,
+            'share_network_id': None,
+            'share_server_id': None,
+            'status': None,
+            'updated_at': None
+        }
+
+        share_replica.update(attrs)
+        share_replica = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_replica),
+            methods=methods,
+            loaded=True)
+        return share_replica
+
+    @staticmethod
+    def create_share_replicas(attrs=None, count=2):
+        """Create multiple fake replicas.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_replicas = []
+        for n in range(0, count):
+            share_replicas.append(
+                FakeShareReplica.create_one_replica(attrs))
+        return share_replicas
