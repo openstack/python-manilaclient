@@ -145,35 +145,30 @@ class ShareNetworkTest(utils.TestCase):
     def test_add_security_service(self):
         security_service = 'fake security service'
         share_nw = 'fake share nw'
-        expected_path = (share_networks.RESOURCE_PATH + '/action') % share_nw
+        expected_path = 'add_security_service'
         expected_body = {
-            'add_security_service': {
-                'security_service_id': security_service,
-            },
+            'security_service_id': security_service,
         }
-        with mock.patch.object(self.manager, '_create', mock.Mock()):
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.add_security_service(share_nw, security_service)
-            self.manager._create.assert_called_once_with(
+            self.manager._action.assert_called_once_with(
                 expected_path,
-                expected_body,
-                share_networks.RESOURCE_NAME)
+                share_nw,
+                expected_body)
 
     def test_add_security_service_to_share_nw_object(self):
         security_service = self._FakeSecurityService()
         share_nw = self._FakeShareNetwork()
-        expected_path = ((share_networks.RESOURCE_PATH +
-                          '/action') % share_nw.id)
+        expected_path = 'add_security_service'
         expected_body = {
-            'add_security_service': {
-                'security_service_id': security_service.id,
-            },
+            'security_service_id': security_service.id,
         }
-        with mock.patch.object(self.manager, '_create', mock.Mock()):
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.add_security_service(share_nw, security_service)
-            self.manager._create.assert_called_once_with(
+            self.manager._action.assert_called_once_with(
                 expected_path,
-                expected_body,
-                share_networks.RESOURCE_NAME)
+                share_nw,
+                expected_body)
 
     def test_remove_security_service(self):
         security_service = 'fake security service'
@@ -207,3 +202,80 @@ class ShareNetworkTest(utils.TestCase):
                 expected_path,
                 expected_body,
                 share_networks.RESOURCE_NAME)
+
+    def test_update_share_network_security_service(self):
+        current_security_service = self._FakeSecurityService()
+        new_security_service = self._FakeSecurityService()
+        share_nw = self._FakeShareNetwork()
+
+        expected_path = 'update_security_service'
+
+        expected_body = {
+            'current_service_id': current_security_service.id,
+            'new_service_id': new_security_service.id
+        }
+
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
+            self.manager.update_share_network_security_service(
+                share_nw, current_security_service, new_security_service)
+            self.manager._action.assert_called_once_with(
+                expected_path,
+                share_nw,
+                expected_body)
+
+    def test_share_network_reset_state(self):
+        share_nw = self._FakeShareNetwork()
+        state = 'active'
+
+        expected_path = 'reset_status'
+        expected_body = {
+            'status': state,
+        }
+
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
+            self.manager.reset_state(
+                share_nw, state)
+            self.manager._action.assert_called_once_with(
+                expected_path,
+                share_nw,
+                expected_body)
+
+    def test_share_network_security_service_update_check(self):
+        current_security_service = self._FakeSecurityService()
+        new_security_service = self._FakeSecurityService()
+        share_nw = self._FakeShareNetwork()
+
+        expected_path = 'update_security_service_check'
+
+        expected_body = {
+            'current_service_id': current_security_service.id,
+            'new_service_id': new_security_service.id,
+            'reset_operation': False
+        }
+
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
+            self.manager.update_share_network_security_service_check(
+                share_nw, current_security_service, new_security_service)
+            self.manager._action.assert_called_once_with(
+                expected_path,
+                share_nw,
+                expected_body)
+
+    def test_add_security_service_check(self):
+        current_security_service = self._FakeSecurityService()
+        share_nw = self._FakeShareNetwork()
+
+        expected_path = 'add_security_service_check'
+
+        expected_body = {
+            'security_service_id': current_security_service.id,
+            'reset_operation': False
+        }
+
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
+            self.manager.add_security_service_check(
+                share_nw, current_security_service, False)
+            self.manager._action.assert_called_once_with(
+                expected_path,
+                share_nw,
+                expected_body)

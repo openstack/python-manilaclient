@@ -3560,6 +3560,33 @@ def do_share_network_security_service_add(cs, args):
 @cliutils.arg(
     'security_service',
     metavar='<security-service>',
+    help='Security service name or ID to associate with.')
+@cliutils.arg(
+    '--reset',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    default=False,
+    help='Reset and restart the check operation.'
+         '(Optional, Default=False)')
+@api_versions.wraps("2.63")
+def do_share_network_security_service_add_check(cs, args):
+    """Associate security service with share network."""
+    share_network = _find_share_network(cs, args.share_network)
+    security_service = _find_security_service(cs, args.security_service)
+    add_sec_service_result = cs.share_networks.add_security_service_check(
+        share_network, security_service, reset_operation=args.reset)
+    # result[0] is response code, result[1] is dict body
+    cliutils.print_dict(add_sec_service_result[1])
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network name or ID.')
+@cliutils.arg(
+    'security_service',
+    metavar='<security-service>',
     help='Security service name or ID to dissociate.')
 def do_share_network_security_service_remove(cs, args):
     """Dissociate security service from share network."""
@@ -3592,6 +3619,87 @@ def do_share_network_security_service_list(cs, args):
         fields = _split_columns(columns=args.columns)
 
     cliutils.print_list(security_services, fields=fields)
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network name or ID.')
+@cliutils.arg(
+    'current_security_service',
+    metavar='<current-security-service>',
+    help='Current security service name or ID.')
+@cliutils.arg(
+    'new_security_service',
+    metavar='<new-security-service>',
+    help='New security service name or ID.')
+@api_versions.wraps("2.63")
+def do_share_network_security_service_update(cs, args):
+    """Update a current security service to a new security service."""
+    share_network = _find_share_network(cs, args.share_network)
+    current_security_service = _find_security_service(
+        cs, args.current_security_service)
+    new_security_service = _find_security_service(
+        cs, args.new_security_service)
+    cs.share_networks.update_share_network_security_service(
+        share_network, current_security_service, new_security_service)
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network name or ID.')
+@cliutils.arg(
+    'current_security_service',
+    metavar='<current-security-service>',
+    help='Current security service name or ID.')
+@cliutils.arg(
+    'new_security_service',
+    metavar='<new-security-service>',
+    help='New security service name or ID.')
+@cliutils.arg(
+    '--reset',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    required=False,
+    default=False,
+    help='Reset and start again the check operation.'
+         '(Optional, Default=False)')
+@api_versions.wraps("2.63")
+def do_share_network_security_service_update_check(cs, args):
+    """Check if a security service update on the share network is supported.
+
+    This call can be repeated until a successful result is obtained.
+    """
+    share_network = _find_share_network(cs, args.share_network)
+    current_security_service = _find_security_service(
+        cs, args.current_security_service)
+    new_security_service = _find_security_service(
+        cs, args.new_security_service)
+    share_network_update_check = (
+        cs.share_networks.update_share_network_security_service_check(
+            share_network, current_security_service, new_security_service,
+            reset_operation=args.reset))
+    # result[0] is response code, result[1] is dict body
+    cliutils.print_dict(share_network_update_check[1])
+
+
+@cliutils.arg(
+    'share_network',
+    metavar='<share-network>',
+    help='Share network name or ID.')
+@cliutils.arg(
+    '--state',
+    metavar='<state>',
+    default=constants.STATUS_ACTIVE,
+    help=('Indicate which state to assign the share network. Options include '
+          'active, error, network change. If no state is provided, active '
+          'will be used.'))
+@api_versions.wraps("2.63")
+def do_share_network_reset_state(cs, args):
+    """Explicitly update the state of a share network (Admin only)."""
+    share_network = _find_share_network(cs, args.share_network)
+    cs.share_networks.reset_state(share_network, args.state)
 
 
 @cliutils.arg(

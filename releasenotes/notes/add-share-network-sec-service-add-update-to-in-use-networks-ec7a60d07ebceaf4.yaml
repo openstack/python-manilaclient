@@ -1,0 +1,14 @@
+---
+features:
+  - |
+    Added support for updating and adding security services to in use share
+    networks. The command ``share-network-security-service-update`` was
+    added to the client. Before each of these commands is executed, make
+    sure to run the correspondent check command, being either
+    ``share-network-security-service-add-check`` or
+    ``share-network-security-service-update-check``. These commands will
+    check if the desired share network can have security services added or
+    updated, based on the cloud support. Also, these commands can be used
+    for both to request a check and to check the outcome.
+    The command ``share-network-reset-state`` was also implemented in case
+    there is need to update the share network ``status`` field.

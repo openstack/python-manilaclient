@@ -587,6 +587,71 @@ class ManilaCLIClient(base.CLIClient):
         share_networks = utils.listing(share_networks_raw)
         return share_networks
 
+    def share_network_reset_state(self, id=None, state=None,
+                                  microversion=None):
+        cmd = 'share-network-reset-state %s ' % id
+        if state:
+            cmd += '--state %s' % state
+        share_network_raw = self.manila(cmd, microversion=microversion)
+        share_network = utils.listing(share_network_raw)
+        return share_network
+
+    def share_network_security_service_add(
+            self, share_network_id, security_service_id, microversion=None):
+        cmd = ('share-network-security-service-add %(network_id)s '
+               '%(service_id)s' % {'network_id': share_network_id,
+                                   'service_id': security_service_id})
+        self.manila(cmd, microversion=microversion)
+
+    def share_network_security_service_update(
+            self, share_network_id, current_security_service_id,
+            new_security_service_id, microversion=None):
+        cmd = (
+            'share-network-security-service-update %(network_id)s '
+            '%(current_service_id)s %(new_security_service_id)s' % {
+                'network_id': share_network_id,
+                'current_service_id': current_security_service_id,
+                'new_security_service_id': new_security_service_id})
+        self.manila(cmd, microversion=microversion)
+
+    def share_network_security_service_add_check(
+            self, share_network_id, security_service_id,
+            reset=False, microversion=None):
+        cmd = (
+            'share-network-security-service-add-check %(network_id)s '
+            '%(security_service_id)s' % {
+                'network_id': share_network_id,
+                'security_service_id': security_service_id})
+
+        if reset:
+            cmd += '--reset %s' % reset
+
+        return output_parser.details(
+            self.manila(cmd, microversion=microversion))
+
+    def share_network_security_service_update_check(
+            self, share_network_id, current_security_service_id,
+            new_security_service_id, reset=False, microversion=None):
+        cmd = (
+            'share-network-security-service-update-check %(network_id)s '
+            '%(current_security_service_id)s %(new_security_service_id)s ' % {
+                'network_id': share_network_id,
+                'current_security_service_id': current_security_service_id,
+                'new_security_service_id': new_security_service_id})
+
+        if reset:
+            cmd += '--reset %s' % reset
+
+        return output_parser.details(
+            self.manila(cmd, microversion=microversion))
+
+    def share_network_security_service_list(
+            self, share_network_id, microversion=None):
+        cmd = ('share-network-security-service-list %s' % share_network_id)
+        share_networks_raw = self.manila(cmd, microversion=microversion)
+        network_services = utils.listing(share_networks_raw)
+        return network_services
+
     def is_share_network_deleted(self, share_network, microversion=None):
         """Says whether share network is deleted or not.
 
