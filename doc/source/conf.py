@@ -44,7 +44,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-copyright = u'Rackspace, based on work by Jacob Kaplan-Moss'
+copyright = 'Rackspace, based on work by Jacob Kaplan-Moss'
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
@@ -87,8 +87,8 @@ latex_use_xindy = False
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-    ('index', 'Manila-client.tex', u'Manila Python Client Documentation',
-     u'Manila contributors', 'manual'),
+    ('index', 'Manila-client.tex', 'Manila Python Client Documentation',
+     'Manila contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
