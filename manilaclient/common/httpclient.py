@@ -21,6 +21,7 @@ import logging
 from urllib import parse
 
 from oslo_serialization import jsonutils
+from oslo_utils import importutils
 from oslo_utils import strutils
 import re
 import requests
@@ -32,6 +33,11 @@ try:
     from eventlet import sleep
 except ImportError:
     from time import sleep  # noqa
+
+try:
+    osprofiler_web = importutils.try_import("osprofiler.web")
+except Exception:
+    pass
 
 
 class HTTPClient(object):
@@ -107,6 +113,9 @@ class HTTPClient(object):
         headers.update(kwargs.get('headers', {}))
 
         options = copy.deepcopy(self.request_options)
+
+        if osprofiler_web:
+            headers.update(osprofiler_web.get_trace_id_headers())
 
         if 'body' in kwargs:
             headers['Content-Type'] = 'application/json'

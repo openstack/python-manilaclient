@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    OS profiler is now supported within the v2 client and the
+    manilaclient shell.
+

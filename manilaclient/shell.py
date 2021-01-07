@@ -28,12 +28,14 @@ import pkgutil
 import sys
 
 from oslo_utils import encodeutils
+from oslo_utils import importutils
 import six
 
 from manilaclient import api_versions
 from manilaclient import client
 from manilaclient.common import cliutils
 from manilaclient.common import constants
+
 from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.v2 import shell as shell_v2
@@ -43,6 +45,11 @@ DEFAULT_MANILA_ENDPOINT_TYPE = 'publicURL'
 DEFAULT_MAJOR_OS_SHARE_API_VERSION = "2"
 V1_MAJOR_VERSION = '1'
 V2_MAJOR_VERSION = '2'
+
+try:
+    osprofiler_profiler = importutils.try_import("osprofiler.profiler")
+except Exception:
+    pass
 
 
 logger = logging.getLogger(__name__)
@@ -347,6 +354,19 @@ class OpenStackManilaShell(object):
         parser.add_argument('--os_cert',
                             help=argparse.SUPPRESS)
 
+        if osprofiler_profiler:
+            parser.add_argument('--profile',
+                                metavar='HMAC_KEY',
+                                default=cliutils.env('OS_PROFILE'),
+                                help='HMAC key to use for encrypting '
+                                'context data for performance profiling '
+                                'of operation. This key needs to match the '
+                                'one configured on the manila api server. '
+                                'Without key the profiling will not be '
+                                'triggered even if osprofiler is enabled '
+                                'on server side. Defaults to '
+                                'env[OS_PROFILE].')
+
         parser.set_defaults(func=self.do_help)
         parser.set_defaults(command='')
 
@@ -577,7 +597,17 @@ class OpenStackManilaShell(object):
                                                       argv,
                                                       options)
 
+        profile = osprofiler_profiler and options.profile
+        if profile:
+            osprofiler_profiler.init(options.profile)
+
         args.func(self.cs, args)
+
+        if profile:
+            trace_id = osprofiler_profiler.get().get_base_id()
+            print("Profiling trace ID: %s" % trace_id)
+            print("To display trace use next command:\n"
+                  "osprofiler trace show --html %s " % trace_id)
 
     def _discover_client(self,
                          current_client,
