@@ -4268,11 +4268,21 @@ def do_pool_list(cs, args):
               metavar='<new_size>',
               type=int,
               help='New size of share, in GiBs.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share extension')
+@cliutils.service_type('sharev2')
 def do_extend(cs, args):
     """Increases the size of an existing share."""
     share = _find_share(cs, args.share)
     cs.shares.extend(share, args.new_size)
 
+    if args.wait:
+        share = _wait_for_share_status(cs, share)
+    else:
+        share = _find_share(cs, args.share)
+    _print_share(cs, share)
 
 @cliutils.arg('share', metavar='<share>',
               help='Name or ID of share to shrink.')
@@ -4280,11 +4290,21 @@ def do_extend(cs, args):
               metavar='<new_size>',
               type=int,
               help='New size of share, in GiBs.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share shrinkage')
+@cliutils.service_type('sharev2')
 def do_shrink(cs, args):
     """Decreases the size of an existing share."""
     share = _find_share(cs, args.share)
     cs.shares.shrink(share, args.new_size)
 
+    if args.wait:
+        share = _wait_for_share_status(cs, share)
+    else:
+        share = _find_share(cs, args.share)
+    _print_share(cs, share)
 
 ##############################################################################
 #
