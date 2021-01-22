@@ -1467,20 +1467,54 @@ class ShellTest(test_utils.TestCase):
             args = Arguments(metadata=input[0])
             self.assertEqual(shell_v2._extract_metadata(args), input[1])
 
-    def test_extend(self):
-        self.run_command('extend 1234 77')
-        expected = {'extend': {'new_size': 77}}
-        self.assert_called('POST', '/shares/1234/action', body=expected)
+    @ddt.data('--wait', '')
+    def test_extend_with_wait_option(self, wait_option):
+        share_to_extend = shares.Share('fake', {'id': '1234',
+                                       'status': 'extending'})
+        already_extended_share = shares.Share('fake', {'id': '1234',
+                                              'status': 'available'})
+        fake_shares = [share_to_extend] * 3
+        fake_shares.append(already_extended_share)
+        self.mock_object(shell_v2, '_find_share',
+                         mock.Mock(side_effect=fake_shares))
+        expected_extend_body = {'extend': {'new_size': 77}}
+        self.run_command('extend 1234 77 %s' % wait_option)
+        self.assert_called_anytime('POST', '/shares/1234/action',
+                                   body=expected_extend_body,
+                                   clear_callstack=False)
+        if wait_option:
+            shell_v2._find_share.assert_has_calls(
+                [mock.call(self.shell.cs, '1234')] * 4)
+        else:
+            shell_v2._find_share.assert_called_with(
+                self.shell.cs, '1234')
 
     def test_reset_state(self):
         self.run_command('reset-state 1234')
         expected = {'reset_status': {'status': 'available'}}
         self.assert_called('POST', '/shares/1234/action', body=expected)
 
-    def test_shrink(self):
-        self.run_command('shrink 1234 77')
-        expected = {'shrink': {'new_size': 77}}
-        self.assert_called('POST', '/shares/1234/action', body=expected)
+    @ddt.data('--wait', '')
+    def test_shrink_with_wait_option(self, wait_option):
+        share_to_shrink = shares.Share('fake', {'id': '1234',
+                                       'status': 'shrinking'})
+        already_shrank_share = shares.Share('fake', {'id': '1234',
+                                            'status': 'available'})
+        fake_shares = [share_to_shrink] * 3
+        fake_shares.append(already_shrank_share)
+        self.mock_object(shell_v2, '_find_share',
+                         mock.Mock(side_effect=fake_shares))
+        expected_shrink_body = {'shrink': {'new_size': 77}}
+        self.run_command('shrink 1234 77 %s' % wait_option)
+        self.assert_called_anytime('POST', '/shares/1234/action',
+                                   body=expected_shrink_body,
+                                   clear_callstack=False)
+        if wait_option:
+            shell_v2._find_share.assert_has_calls(
+                [mock.call(self.shell.cs, '1234')] * 4)
+        else:
+            shell_v2._find_share.assert_called_with(
+                self.shell.cs, '1234')
 
     def test_reset_state_with_flag(self):
         self.run_command('reset-state --state error 1234')
