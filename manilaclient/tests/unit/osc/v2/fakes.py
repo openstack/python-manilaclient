@@ -298,11 +298,12 @@ class FakeShareExportLocation(object):
         attrs = attrs or {}
 
         share_export_location_info = {
-            "fake_uuid": "foo_el_uuid",
+            "created_at": 'time-' + uuid.uuid4().hex,
             "fake_path": "/foo/el/path",
             "fake_share_instance_id": 'share-instance-id' + uuid.uuid4().hex,
+            "fake_uuid": "foo_el_uuid",
             "is_admin_only": False,
-            "created_at": 'time-' + uuid.uuid4().hex,
+            "preferred": False,
             "updated_at": 'time-' + uuid.uuid4().hex,
         }
 
