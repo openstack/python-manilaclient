@@ -615,6 +615,14 @@ class SetShare(command.Command):
             help=_('Level of visibility for share. '
                    'Defines whether other tenants are able to see it or not. ')
         )
+        parser.add_argument(
+            '--status',
+            metavar='<status>',
+            default=None,
+            help=_('Explicitly update the status of a share (Admin only). '
+                   'Examples include: available, error, creating, deleting, '
+                   'error_deleting.')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -647,6 +655,13 @@ class SetShare(command.Command):
             except Exception as e:
                 LOG.error(_("Failed to update share display name, visibility "
                           "or display description: %s"), e)
+                result += 1
+        if parsed_args.status:
+            try:
+                share_obj.reset_state(parsed_args.status)
+            except Exception as e:
+                LOG.error(_(
+                    "Failed to set status for the share: %s"), e)
                 result += 1
 
         if result > 0:
