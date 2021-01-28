@@ -512,6 +512,38 @@ class ShellTest(test_utils.TestCase):
             self.run_command('share-instance-force-delete 1234')
             manager_mock.force_delete.assert_called_once_with(share_instance)
 
+    @ddt.data(('share_instance_xyz', ), ('share_instance_abc',
+                                         'share_instance_xyz'))
+    def test_share_instance_force_delete_wait(self, instances_to_delete):
+        fake_manager = mock.Mock()
+        fake_instances = [
+            share_instances.ShareInstance(fake_manager, {'id': '1234'})
+            for instance in instances_to_delete
+        ]
+        instance_not_found_error = ("Delete for instance %s failed: No "
+                                    "instance with a name or "
+                                    "ID of '%s' exists.")
+        instances_are_not_found_errors = [
+            exceptions.CommandError(
+                instance_not_found_error % (instance, instance))
+            for instance in instances_to_delete
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_instance',
+            mock.Mock(side_effect=(
+                fake_instances + instances_are_not_found_errors)))
+        self.run_command(
+            'share-instance-force-delete %s --wait' % ' '.join(
+                instances_to_delete))
+        shell_v2._find_share_instance.assert_has_calls([
+            mock.call(self.shell.cs, instance) for instance in
+            instances_to_delete
+        ])
+        fake_manager.force_delete.assert_has_calls([
+            mock.call(instance) for instance in fake_instances])
+        self.assertEqual(len(instances_to_delete),
+                         fake_manager.force_delete.call_count)
+
     def test_type_show_details(self):
         self.run_command('type-show 1234')
         self.assert_called_anytime('GET', '/types/1234')
@@ -955,6 +987,31 @@ class ShellTest(test_utils.TestCase):
         for share in fake_shares:
             uri = '/shares/%s' % share.id
             self.assert_called_anytime('DELETE', uri, clear_callstack=False)
+
+    @ddt.data(('share_xyz', ), ('share_abc', 'share_xyz'))
+    def test_force_delete_wait(self, shares_to_delete):
+        fake_manager = mock.Mock()
+        fake_shares = [
+            shares.Share(fake_manager, {'id': '1234'})
+            for share in shares_to_delete
+        ]
+        share_not_found_error = ("Delete for share %s failed: No share with "
+                                 "a name or ID of '%s' exists.")
+        shares_are_not_found_errors = [
+            exceptions.CommandError(share_not_found_error % (share, share))
+            for share in shares_to_delete
+        ]
+        self.mock_object(
+            shell_v2, '_find_share',
+            mock.Mock(side_effect=(fake_shares + shares_are_not_found_errors)))
+        self.run_command('force-delete %s --wait' % ' '.join(shares_to_delete))
+        shell_v2._find_share.assert_has_calls([
+            mock.call(self.shell.cs, share) for share in shares_to_delete
+        ])
+        fake_manager.force_delete.assert_has_calls([
+            mock.call(share) for share in fake_shares])
+        self.assertEqual(len(shares_to_delete),
+                         fake_manager.force_delete.call_count)
 
     def test_list_snapshots(self):
         self.run_command('snapshot-list')
@@ -3353,26 +3410,36 @@ class ShellTest(test_utils.TestCase):
                 'DELETE', '/snapshots/%s' % snapshot.id,
                 clear_callstack=False)
 
-    @ddt.data(('1234', ), ('1234', '5678'))
-    def test_snapshot_force_delete(self, snapshot_ids):
+    @ddt.data(('snapshot_xyz', ), ('snapshot_abc', 'snapshot_xyz'))
+    def test_snapshot_force_delete_wait(self, snapshots_to_delete):
+        fake_manager = mock.Mock()
         fake_snapshots = [
-            share_snapshots.ShareSnapshot('fake', {'id': snapshot_id}, True)
-            for snapshot_id in snapshot_ids
+            share_snapshots.ShareSnapshot(fake_manager, {'id': '1234'})
+            for snapshot in snapshots_to_delete
+        ]
+        snapshot_not_found_error = ("Delete for snapshot %s failed: No "
+                                    "snapshot with a name or "
+                                    "ID of '%s' exists.")
+        snapshots_are_not_found_errors = [
+            exceptions.CommandError(
+                snapshot_not_found_error % (snapshot, snapshot))
+            for snapshot in snapshots_to_delete
         ]
         self.mock_object(
             shell_v2, '_find_share_snapshot',
-            mock.Mock(side_effect=fake_snapshots))
-
-        self.run_command('snapshot-force-delete %s' % ' '.join(snapshot_ids))
-
+            mock.Mock(side_effect=(
+                fake_snapshots + snapshots_are_not_found_errors)))
+        self.run_command(
+            'snapshot-force-delete %s --wait' % ' '.join(
+                snapshots_to_delete))
         shell_v2._find_share_snapshot.assert_has_calls([
-            mock.call(self.shell.cs, s_id) for s_id in snapshot_ids
+            mock.call(self.shell.cs, snapshot) for snapshot in
+            snapshots_to_delete
         ])
-        for snapshot in fake_snapshots:
-            self.assert_called_anytime(
-                'POST', '/snapshots/%s/action' % snapshot.id,
-                {'force_delete': None},
-                clear_callstack=False)
+        fake_manager.force_delete.assert_has_calls([
+            mock.call(snapshot) for snapshot in fake_snapshots])
+        self.assertEqual(len(snapshots_to_delete),
+                         fake_manager.force_delete.call_count)
 
     @ddt.data(('fake_type1', ), ('fake_type1', 'fake_type2'))
     def test_share_type_delete(self, type_ids):

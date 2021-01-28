@@ -55,6 +55,7 @@ def _wait_for_resource_status(cs,
         'share_replica': _find_share_replica,
         'share_group': _find_share_group,
         'share_group_snapshot': _find_share_group_snapshot,
+        'share_instance': _find_share_instance,
     }
 
     print_resource = {
@@ -63,6 +64,7 @@ def _wait_for_resource_status(cs,
         'share_replica': _print_share_replica,
         'share_group': _print_share_group,
         'share_group_snapshot': _print_share_group_snapshot,
+        'share_instance': _print_share_instance,
     }
 
     expected_status = expected_status or ('available', )
@@ -80,7 +82,7 @@ def _wait_for_resource_status(cs,
         'resource_type': resource_type.capitalize(),
         'resource': resource.id,
     }
-    not_found_regex = "no %s .* exists" % resource_type
+    not_found_regex = "no .* exists"
     while True:
         if time_elapsed > poll_timeout:
             print_resource[resource_type](cs, resource)
@@ -1686,12 +1688,20 @@ def do_delete(cs, args):
     metavar='<share>',
     nargs='+',
     help='Name or ID of the share(s) to force delete.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share to delete')
+@cliutils.service_type('sharev2')
 def do_force_delete(cs, args):
     """Attempt force-delete of share, regardless of state (Admin only)."""
     failure_count = 0
+    shares_to_delete = []
     for share in args.share:
         try:
-            _find_share(cs, share).force_delete()
+            share_ref = _find_share(cs, share)
+            shares_to_delete.append(share_ref)
+            share_ref.force_delete()
         except Exception as e:
             failure_count += 1
             print("Delete for share %s failed: %s" % (share, e),
@@ -1699,6 +1709,12 @@ def do_force_delete(cs, args):
     if failure_count == len(args.share):
         raise exceptions.CommandError("Unable to force delete any of "
                                       "specified shares.")
+    if args.wait:
+        for share in shares_to_delete:
+            try:
+                _wait_for_share_status(cs, share, expected_status='deleted')
+            except exceptions.CommandError as e:
+                print(e, file=sys.stderr)
 
 
 @api_versions.wraps("1.0", "2.8")
@@ -2358,12 +2374,20 @@ def do_share_instance_show(cs, args):  # noqa
     nargs='+',
     help='Name or ID of the instance(s) to force delete.')
 @api_versions.wraps("2.3")
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share instance deletion')
+@cliutils.service_type('sharev2')
 def do_share_instance_force_delete(cs, args):
     """Force-delete the share instance, regardless of state (Admin only)."""
     failure_count = 0
+    instances_to_delete = []
     for instance in args.instance:
         try:
-            _find_share_instance(cs, instance).force_delete()
+            instance_ref = _find_share_instance(cs, instance)
+            instances_to_delete.append(instance_ref)
+            instance_ref.force_delete()
         except Exception as e:
             failure_count += 1
             print("Delete for share instance %s failed: %s" % (instance, e),
@@ -2371,6 +2395,14 @@ def do_share_instance_force_delete(cs, args):
     if failure_count == len(args.instance):
         raise exceptions.CommandError("Unable to force delete any of "
                                       "specified share instances.")
+    if args.wait:
+        for instance in instances_to_delete:
+            try:
+                _wait_for_resource_status(
+                    cs, instance, resource_type='share_instance',
+                    expected_status='deleted')
+            except exceptions.CommandError as e:
+                print(e, file=sys.stderr)
 
 
 @cliutils.arg(
@@ -2814,18 +2846,25 @@ def do_snapshot_delete(cs, args):
     metavar='<snapshot>',
     nargs='+',
     help='Name or ID of the snapshot(s) to force delete.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for snapshot to delete')
+@cliutils.service_type('sharev2')
 def do_snapshot_force_delete(cs, args):
     """Attempt force-deletion of one or more snapshots.
 
     Regardless of the state (Admin only).
     """
     failure_count = 0
+    snapshots_to_delete = []
 
     for snapshot in args.snapshot:
         try:
             snapshot_ref = _find_share_snapshot(
                 cs, snapshot)
-            cs.share_snapshots.force_delete(snapshot_ref)
+            snapshots_to_delete.append(snapshot_ref)
+            snapshot_ref.force_delete()
         except Exception as e:
             failure_count += 1
             print("Delete for snapshot %s failed: %s" % (
@@ -2834,6 +2873,14 @@ def do_snapshot_force_delete(cs, args):
     if failure_count == len(args.snapshot):
         raise exceptions.CommandError("Unable to force delete any of the "
                                       "specified snapshots.")
+    if args.wait:
+        for snapshot in snapshots_to_delete:
+            try:
+                _wait_for_resource_status(
+                    cs, snapshot, resource_type='snapshot',
+                    expected_status='deleted')
+            except exceptions.CommandError as e:
+                print(e, file=sys.stderr)
 
 
 @cliutils.arg(
