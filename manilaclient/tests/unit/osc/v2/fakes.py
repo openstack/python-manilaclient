@@ -40,6 +40,7 @@ class FakeShareClient(object):
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
             osc_fakes.FakeResource(None, {}))
+        self.messages = mock.Mock()
 
 
 class ManilaParseException(Exception):
@@ -534,3 +535,59 @@ class FakeSnapshotExportLocation(object):
                     attrs))
 
         return export_locations
+
+
+class FakeMessage(object):
+    """Fake message"""
+
+    @staticmethod
+    def create_one_message(attrs=None):
+        """Create a fake message
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+
+        message = {
+            'id': 'message-id-' + uuid.uuid4().hex,
+            'action_id': '001',
+            'detail_id': '002',
+            'user_message': 'user message',
+            'message_level': 'ERROR',
+            'resource_type': 'SHARE',
+            'resource_id': 'resource-id-' + uuid.uuid4().hex,
+            'created_at': datetime.datetime.now().isoformat(),
+            'expires_at': (
+                datetime.datetime.now() + datetime.timedelta(days=30)
+            ).isoformat(),
+            'request_id': 'req-' + uuid.uuid4().hex,
+        }
+
+        message.update(attrs)
+        message = osc_fakes.FakeResource(info=copy.deepcopy(
+            message),
+            loaded=True)
+        return message
+
+    @staticmethod
+    def create_messages(attrs={}, count=2):
+        """Create multiple fake messages.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        messages = []
+        for n in range(0, count):
+            messages.append(
+                FakeMessage.create_one_message(attrs))
+
+        return messages
