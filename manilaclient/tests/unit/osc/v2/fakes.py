@@ -373,7 +373,7 @@ class FakeShareAccessRule(object):
             'access_level': 'rw',
             'access_to': 'demo',
             'access_type': 'user',
-            'state': 'queued_to_apply',
+            'state': 'active',
             'access_key': None,
             'created_at': datetime.datetime.now().isoformat(),
             'updated_at': None,

@@ -10,6 +10,8 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 
+import logging
+
 from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
@@ -32,6 +34,8 @@ ACCESS_RULE_ATTRIBUTES = [
     'updated_at',
     'properties'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 class ShareAccessAllow(command.ShowOne):
@@ -75,6 +79,11 @@ class ShareAccessAllow(command.ShowOne):
             help=_('Share access level ("rw" and "ro" access levels '
                    'are supported). Defaults to rw.')
         )
+        parser.add_argument(
+            "--wait",
+            action='store_true',
+            help=_("Wait for share access rule creation.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -97,6 +106,17 @@ class ShareAccessAllow(command.ShowOne):
                 access_level=parsed_args.access_level,
                 metadata=properties
             )
+            if parsed_args.wait:
+                if not oscutils.wait_for_status(
+                    status_f=share_client.share_access_rules.get,
+                    res_id=share_access_rule['id'],
+                    status_field='state'
+                ):
+                    LOG.error(_("ERROR: Share access rule is in error state."))
+
+                share_access_rule = oscutils.find_resource(
+                    share_client.share_access_rules,
+                    share_access_rule['id'])._info
             share_access_rule.update(
                 {
                     'properties': utils.format_properties(
@@ -128,6 +148,12 @@ class ShareAccessDeny(command.Command):
             metavar="<id>",
             help=_('ID of the access rule to be deleted.')
         )
+        parser.add_argument(
+            "--wait",
+            action='store_true',
+            default=False,
+            help=_("Wait for share access rule deletion")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -135,12 +161,21 @@ class ShareAccessDeny(command.Command):
 
         share = apiutils.find_resource(share_client.shares,
                                        parsed_args.share)
+        error = None
         try:
             share.deny(parsed_args.id)
+            if parsed_args.wait:
+                if not oscutils.wait_for_delete(
+                        manager=share_client.share_access_rules,
+                        res_id=parsed_args.id):
+                    error = _("Failed to delete share access rule with ID: %s"
+                              % parsed_args.id)
         except Exception as e:
-            raise exceptions.CommandError(
+            error = e
+        if error:
+            raise exceptions.CommandError(_(
                 "Failed to delete share access rule for share "
-                "'%s': %s" % (share, e))
+                "'%s': %s" % (share, error)))
 
 
 class ListShareAccess(command.Lister):
