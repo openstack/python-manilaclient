@@ -1,0 +1,8 @@
+---
+upgrade:
+  - |
+    manilaclient SDK no longer supports some options that were deprecated in
+    version 2.0.0: 'share_service_name' (use 'service_name' instead),
+    'proxy_tenant_id', 'proxy_token', 'os_cache' (use 'use_keyring' instead)
+    'api_key'(use 'password' instead). The client.authenticate() method has
+    been removed as well, since authentication is performed automatically.

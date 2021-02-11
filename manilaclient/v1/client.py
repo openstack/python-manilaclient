@@ -41,7 +41,10 @@ class Client(object):
 
     Create an instance with your creds::
 
-        >>> client = Client(USERNAME, PASSWORD, PROJECT_ID, AUTH_URL)
+        >>> client = Client(username=USERNAME,
+                            password=PASSWORD,
+                            project_name=PROJECT_NAME,
+                            auth_url=AUTH_URL)
 
     Or, alternatively, you can create a client instance using the
     keystoneauth1.session API::
@@ -52,7 +55,7 @@ class Client(object):
         >>> auth = v2.Password(auth_url=AUTH_URL,
                                username=USERNAME,
                                password=PASSWORD,
-                               tenant_name=PROJECT_ID)
+                               project_name=PROJECT_ID)
         >>> sess = session.Session(auth=auth)
         >>> manila = client.Client(VERSION, session=sess)
 
@@ -61,24 +64,9 @@ class Client(object):
         >>> client.shares.list()
         ...
     """
-    @removals.removed_kwarg(
-        'share_service_name', message="Please use 'service_name' instead",
-        removal_version='2.0.0')
-    @removals.removed_kwarg(
-        'proxy_tenant_id', message="This is not used anywhere",
-        removal_version='2.0.0')
-    @removals.removed_kwarg(
-        'proxy_token', message="This is not used anywhere",
-        removal_version='2.0.0')
-    @removals.removed_kwarg(
-        'os_cache', message="Please use 'use_keyring' instead",
-        removal_version='2.0.0')
-    @removals.removed_kwarg(
-        'api_key', message="Please use 'password' instead",
-        removal_version='2.0.0')
-    def __init__(self, username=None, api_key=None,
-                 project_id=None, auth_url=None, insecure=False, timeout=None,
-                 tenant_id=None, project_name=None, region_name=None,
+    def __init__(self, username=None, project_id=None, auth_url=None,
+                 insecure=False, timeout=None, tenant_id=None,
+                 project_name=None, region_name=None,
                  endpoint_type='publicURL', extensions=None,
                  service_type=constants.V1_SERVICE_TYPE, service_name=None,
                  retries=None, http_log_debug=False, input_auth_token=None,
@@ -97,7 +85,7 @@ class Client(object):
                  **kwargs):
 
         self.username = username
-        self.password = password or api_key
+        self.password = password
         self.tenant_id = tenant_id or project_id
         self.tenant_name = project_name
 
@@ -120,8 +108,6 @@ class Client(object):
         self.use_keyring = use_keyring
         self.force_new_token = force_new_token
         self.cached_token_lifetime = cached_token_lifetime
-
-        service_name = kwargs.get("share_service_name", service_name)
 
         if input_auth_token and not service_catalog_url:
             msg = ("For token-based authentication you should "
@@ -212,21 +198,6 @@ class Client(object):
         for extension in extensions:
             if extension.manager_class:
                 setattr(self, extension.name, extension.manager_class(self))
-
-    @removals.remove(
-        message="authenticate() method is deprecated. Client automatically "
-        "makes authentication call in the constructor.",
-        removal_version='2.0.0')
-    def authenticate(self):
-        """Authenticate against the server.
-
-        Normally this is called automatically when you first access the API,
-        but you can call this method to force authentication right now.
-
-        Returns on success; raises :exc:`exceptions.Unauthorized` if the
-        credentials are wrong.
-        """
-        pass
 
     def _get_keystone_client(self):
         # First create a Keystone session
