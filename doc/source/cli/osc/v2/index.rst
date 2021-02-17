@@ -44,6 +44,8 @@ shares
 .. autoprogram-cliff:: openstack.share.v2
     :command: share export location list
 
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share revert
 
 ==================
 share access rules

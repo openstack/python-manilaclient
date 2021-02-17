@@ -1066,3 +1066,32 @@ class ShowShareProperties(command.ShowOne):
         share_properties = share_client.shares.get_metadata(share)
 
         return self.dict2columns(share_properties._info)
+
+
+class RevertShare(command.Command):
+    """Revert a share to snapshot."""
+
+    _description = _("Revert a share to the specified snapshot.")
+
+    def get_parser(self, prog_name):
+        parser = super(RevertShare, self).get_parser(prog_name)
+        parser.add_argument(
+            'snapshot',
+            metavar="<snapshot>",
+            help=_('Name or ID of the snapshot to restore. The snapshot '
+                   'must be the most recent one known to manila.')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        snapshot = apiutils.find_resource(share_client.share_snapshots,
+                                          parsed_args.snapshot)
+        share = apiutils.find_resource(share_client.shares,
+                                       snapshot.share_id)
+        try:
+            share.revert_to_snapshot(snapshot)
+        except Exception as e:
+            raise exceptions.CommandError(_(
+                "Failed to revert share to snapshot: %s" % (e)))
