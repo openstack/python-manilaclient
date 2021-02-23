@@ -78,7 +78,15 @@ class SharesReadWriteBase(base.BaseTestCase):
         self.assertEqual('False', create['is_public'])
 
         self.user_client.update_share(
-            create['id'], new_name, new_description, True)
+            create['id'], name=new_name, description=new_description)
+        get = self.user_client.get_share(create['id'])
+
+        self.assertEqual(new_name, get['name'])
+        self.assertEqual(new_description, get['description'])
+        self.assertEqual('False', get['is_public'])
+
+        # only admins operating at system scope can set a share to be public
+        self.admin_client.update_share(create['id'], is_public=True)
         get = self.user_client.get_share(create['id'])
 
         self.assertEqual(new_name, get['name'])

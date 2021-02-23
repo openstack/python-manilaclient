@@ -38,7 +38,6 @@ class SnapshotAccessReadBase(base.BaseTestCase):
                                      "snapshot access tests." % self.protocol)
 
         self.share = self.create_share(share_protocol=self.protocol,
-                                       public=True,
                                        client=self.get_user_client())
         int_range = range(0, 10)
 
