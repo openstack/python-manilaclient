@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    The commands "manila force-delete", "manila snapshot-force-delete"
+    and "manila share-instance-force-delete" now accept an optional
+    "--wait" that allows administrator users to let the client poll for the
+    completion of the operation.
+
