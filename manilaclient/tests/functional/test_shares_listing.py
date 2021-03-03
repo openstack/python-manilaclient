@@ -144,11 +144,11 @@ class SharesListReadWriteTest(base.BaseTestCase):
             name=self.public_name,
             description=self.public_description,
             public=True,
-            client=self.get_user_client())
+            client=self.admin_client)
 
         for share_id in (self.private_share['id'], self.public_share['id'],
                          self.admin_private_share['id']):
-            self.get_admin_client().wait_for_resource_status(
+            self.admin_client.wait_for_resource_status(
                 share_id, constants.STATUS_AVAILABLE)
 
     def _list_shares(self, filters=None):
@@ -314,8 +314,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self.create_share(
             name=u'共享名称',
             description=u'共享描述',
-            public=True,
-            client=self.get_user_client())
+            client=self.user_client)
         filters = {'name~': u'名称'}
         shares = self.user_client.list_shares(filters=filters)
         self.assertGreater(len(shares), 0)
