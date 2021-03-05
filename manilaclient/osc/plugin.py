@@ -84,7 +84,8 @@ def make_client(instance):
                                        service_type=service_type,
                                        auth=instance.auth,
                                        http_log_debug=debugging_enabled,
-                                       api_version=requested_api_version)
+                                       api_version=requested_api_version,
+                                       cert=instance.cert)
     return client
 
 

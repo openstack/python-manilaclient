@@ -196,6 +196,7 @@ class Client(object):
                                             user_agent,
                                             insecure=insecure,
                                             cacert=cacert,
+                                            cert=cert,
                                             timeout=timeout,
                                             retries=retries,
                                             http_log_debug=http_log_debug,
