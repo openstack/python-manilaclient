@@ -53,14 +53,14 @@ class HTTPClient(object):
 
     def __init__(self, endpoint_url, token, user_agent, api_version,
                  insecure=False, cacert=None, timeout=None, retries=None,
-                 http_log_debug=False):
+                 http_log_debug=False, cert=None):
         self.endpoint_url = endpoint_url
         self.base_url = self._get_base_url(self.endpoint_url)
         self.retries = int(retries or 0)
         self.http_log_debug = http_log_debug
 
         self.request_options = self._set_request_options(
-            insecure, cacert, timeout)
+            insecure, cacert, timeout, cert)
 
         self.default_headers = {
             'X-Auth-Token': token,
@@ -95,13 +95,15 @@ class HTTPClient(object):
         base_url = service_endpoint._replace(path=base_path)
         return parse.urlunparse(base_url) + '/'
 
-    def _set_request_options(self, insecure, cacert, timeout=None):
+    def _set_request_options(self, insecure, cacert, timeout=None, cert=None):
         options = {'verify': True}
 
         if insecure:
             options['verify'] = False
         elif cacert:
             options['verify'] = cacert
+        if cert:
+            options['cert'] = cert
 
         if timeout:
             options['timeout'] = timeout

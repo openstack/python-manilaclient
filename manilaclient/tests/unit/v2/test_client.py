@@ -88,6 +88,7 @@ class ClientTest(utils.TestCase):
             'python-manilaclient',
             insecure=False,
             cacert=None,
+            cert=None,
             timeout=None,
             retries=None,
             http_log_debug=False,
@@ -129,6 +130,7 @@ class ClientTest(utils.TestCase):
             'python-manilaclient',
             insecure=False,
             cacert=None,
+            cert=None,
             timeout=None,
             retries=None,
             http_log_debug=False,
@@ -209,8 +211,8 @@ class ClientTest(utils.TestCase):
 
         client.httpclient.HTTPClient.assert_called_with(
             'http://3.3.3.3', mock.ANY, 'python-manilaclient', insecure=False,
-            cacert=None, timeout=None, retries=None, http_log_debug=False,
-            api_version=manilaclient.API_MIN_VERSION)
+            cacert=None, cert=client_args['cert'], timeout=None, retries=None,
+            http_log_debug=False, api_version=manilaclient.API_MIN_VERSION)
 
         client.ks_client.Client.assert_called_with(
             session=mock.ANY, version=(3, 0), auth_url='url_v3.0',
@@ -264,8 +266,8 @@ class ClientTest(utils.TestCase):
 
         client.httpclient.HTTPClient.assert_called_with(
             'http://3.3.3.3', mock.ANY, 'python-manilaclient', insecure=False,
-            cacert=None, timeout=None, retries=None, http_log_debug=False,
-            api_version=manilaclient.API_MIN_VERSION)
+            cacert=None, cert=client_args['cert'], timeout=None, retries=None,
+            http_log_debug=False, api_version=manilaclient.API_MIN_VERSION)
         client.ks_client.Client.assert_called_with(
             session=mock.ANY, version=(2, 0), auth_url='url_v2.0',
             username=client_args['username'],
