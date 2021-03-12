@@ -60,8 +60,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'python-manilaclient Release Notes'
-copyright = u'2016, Manila Developers'
+project = 'python-manilaclient Release Notes'
+copyright = '2016, Manila Developers'
 
 # Release notes are version independent.
 release = ''
@@ -203,8 +203,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     ('index', 'PythonManilaclientReleaseNotes.tex',
-     u'python-manilaclient Release Notes Documentation',
-     u'Manila Developers', 'manual'),
+     'python-manilaclient Release Notes Documentation',
+     'Manila Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -234,8 +234,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'python-manilaclientreleasenotes',
-     u'python-manilaclient Release Notes Documentation',
-     [u'Manila Developers'], 1)
+     'python-manilaclient Release Notes Documentation',
+     ['Manila Developers'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -249,8 +249,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'PythonManilaclientReleaseNotes',
-     u'python-manilaclient Release Notes Documentation',
-     u'Manila Developers', 'PythonManilaclientReleaseNotes',
+     'python-manilaclient Release Notes Documentation',
+     'Manila Developers', 'PythonManilaclientReleaseNotes',
      'One line description of project.',
      'Miscellaneous'),
 ]
