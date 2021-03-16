@@ -146,8 +146,11 @@ class SharesListReadWriteTest(base.BaseTestCase):
             public=True,
             client=self.admin_client)
 
-        for share_id in (self.private_share['id'], self.public_share['id'],
-                         self.admin_private_share['id']):
+        self.shares_created = (self.private_share['id'],
+                               self.public_share['id'],
+                               self.admin_private_share['id'])
+
+        for share_id in self.shares_created:
             self.admin_client.wait_for_resource_status(
                 share_id, constants.STATUS_AVAILABLE)
 
@@ -159,18 +162,34 @@ class SharesListReadWriteTest(base.BaseTestCase):
         if filters:
             for share in shares:
                 try:
-                    get = self.user_client.get_share(share['ID'])
+                    share_get = self.user_client.get_share(share['ID'])
                 except exceptions.NotFound:
                     # NOTE(vponomaryov): Case when some share was deleted
                     # between our 'list' and 'get' requests. Skip such case.
                     # It occurs with concurrently running tests.
                     continue
-                for k, v in filters.items():
-                    if k in ('share_network', 'share-network'):
-                        k = 'share_network_id'
-                    if v != 'deleting' and get[k] == 'deleting':
+                if share_get['status'] == 'migrating':
+                    # all bets are off, a fair chance share migration
+                    # started between the 'list' and 'get' requests. No need
+                    # to verify these shares.
+                    continue
+                for filter_key, expected_value in filters.items():
+                    if filter_key in ('share_network', 'share-network'):
+                        filter_key = 'share_network_id'
+                        if share_get[filter_key] != expected_value:
+                            # Possibly a mismatch because the share was
+                            # migrated to a new network in the time that
+                            # elapsed between the 'list' and 'get' requests.
+                            # If this isn't one of the shares created in
+                            # this class, don't worry about such mismatches
+                            self.assertNotIn(share_get[id],
+                                             self.shares_created)
+                            continue
+
+                    if (expected_value != 'deleting' and
+                            share_get[filter_key] == 'deleting'):
                         continue
-                    self.assertEqual(v, get[k])
+                    self.assertEqual(expected_value, share_get[filter_key])
 
     def test_list_shares(self):
         self._list_shares()
