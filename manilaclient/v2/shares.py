@@ -388,6 +388,8 @@ class ShareManager(base.ManagerWithFind):
                     search_opts['sort_key'] = 'snapshot_id'
                 elif sort_key == 'share_network':
                     search_opts['sort_key'] = 'share_network_id'
+                elif sort_key == 'availability_zone':
+                    search_opts['sort_key'] = 'availability_zone_id'
             else:
                 raise ValueError('sort_key must be one of the following: %s.'
                                  % ', '.join(constants.SHARE_SORT_KEY_VALUES))
