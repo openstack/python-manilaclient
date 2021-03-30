@@ -56,6 +56,7 @@ def _wait_for_resource_status(cs,
         'share_group': _find_share_group,
         'share_group_snapshot': _find_share_group_snapshot,
         'share_instance': _find_share_instance,
+        'share_server': _find_share_server,
     }
 
     print_resource = {
@@ -4223,15 +4224,22 @@ def do_share_server_details(cs, args):
     nargs='+',
     type=str,
     help='ID of the share server(s) to delete.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share server to delete')
+@cliutils.service_type('sharev2')
 def do_share_server_delete(cs, args):
     """Delete one or more share servers (Admin only)."""
 
     failure_count = 0
+    share_servers_to_delete = []
 
     for server_id in args.id:
         try:
             id_ref = _find_share_server(cs, server_id)
-            cs.share_servers.delete(id_ref)
+            share_servers_to_delete.append(id_ref)
+            id_ref.delete()
         except Exception as e:
             failure_count += 1
             print("Delete for share server %s failed: %s" % (
@@ -4240,6 +4248,15 @@ def do_share_server_delete(cs, args):
     if failure_count == len(args.id):
         raise exceptions.CommandError("Unable to delete any of the specified "
                                       "share servers.")
+
+    if args.wait:
+        for share_server in share_servers_to_delete:
+            try:
+                _wait_for_resource_status(
+                    cs, share_server, resource_type='share_server',
+                    expected_status='deleted')
+            except exceptions.CommandError as e:
+                print(e, file=sys.stderr)
 
 
 @cliutils.arg(
