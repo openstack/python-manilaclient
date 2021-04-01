@@ -332,6 +332,8 @@ class ShellTest(test_utils.TestCase):
                     key = 'share_network_id' if key == 'share_network' else key
                     key = 'snapshot_id' if key == 'snapshot' else key
                     key = 'share_type_id' if key == 'share_type' else key
+                    key = ('availability_zone_id' if key == 'availability_zone'
+                           else key)
                     self.assert_called('GET', '/shares/detail?sort_key=' + key)
 
     def test_list_with_fake_sort_key(self):

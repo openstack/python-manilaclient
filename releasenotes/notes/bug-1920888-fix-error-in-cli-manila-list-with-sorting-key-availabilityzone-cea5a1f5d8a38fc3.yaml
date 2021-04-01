@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    `Launchpad bug 1920888 <https://bugs.launchpad.net/manila/+bug/1920888>`_:
+    Fix the bug in CLI 'manila list' with sorting key 'availability_zone'.
