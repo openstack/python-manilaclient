@@ -132,6 +132,14 @@ class QuotaSet(command.Command):
             default=None,
             help=_('Force update the quota.')
         )
+        parser.add_argument(
+            '--per-share-gigabytes',
+            metavar='<per-share-gigabytes>',
+            type=int,
+            default=None,
+            help=_("New value for the 'per-share-gigabytes' quota."
+                   "Available only for microversion >= 2.62")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -153,6 +161,7 @@ class QuotaSet(command.Command):
             "gigabytes": parsed_args.gigabytes,
             "snapshot_gigabytes": parsed_args.snapshot_gigabytes,
             "share_networks": parsed_args.share_networks,
+            "per_share_gigabytes": parsed_args.per_share_gigabytes,
         }
 
         if parsed_args.share_type is not None:
@@ -186,6 +195,13 @@ class QuotaSet(command.Command):
                     "is available only starting with API microversion '2.53'.")
                 )
             kwargs["replica_gigabytes"] = parsed_args.replica_gigabytes
+        if parsed_args.per_share_gigabytes is not None:
+            if share_client.api_version < api_versions.APIVersion('2.62'):
+                raise exceptions.CommandError(_(
+                    "'per share gigabytes' quotas are available only "
+                    "starting with '2.62' API microversion.")
+                )
+            kwargs["per_share_gigabytes"] = parsed_args.per_share_gigabytes
 
         if all(value is None for value in kwargs.values()):
             raise exceptions.CommandError(_(
@@ -194,7 +210,7 @@ class QuotaSet(command.Command):
                 "resources: 'shares', 'snapshots', 'gigabytes', "
                 "'snapshot-gigabytes', 'share-networks', 'share-type', "
                 "'share-groups', 'share group snapshots', 'share-replicas', "
-                "'replica-gigabytes'"))
+                "'replica-gigabytes', 'per-share-gigabytes'"))
 
         project_id = None
         if parsed_args.project:

@@ -371,7 +371,8 @@ class FakeQuotaSet(object):
             'share_networks': 10,
             'shares': 50,
             'shapshot_gigabytes': 1000,
-            'snapshots': 50
+            'snapshots': 50,
+            'per_share_gigabytes': -1,
         }
 
         quotas_info.update(attrs)

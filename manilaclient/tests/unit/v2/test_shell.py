@@ -2514,6 +2514,7 @@ class ShellTest(test_utils.TestCase):
         ('--share-group-snapshots 0', {'share_group_snapshots': 0}),
         ('--share-replicas 15', {'share_replicas': 15}),
         ('--replica_gigabytes 100', {'replica_gigabytes': 100}),
+        ('--per_share_gigabytes 101', {'per_share_gigabytes': 101}),
     )
     @ddt.unpack
     def test_quota_update(self, cmd, expected_body):

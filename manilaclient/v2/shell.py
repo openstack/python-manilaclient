@@ -445,7 +445,8 @@ _quota_resources = [
     'snapshot_gigabytes',
     'share_networks',
     'share_replicas',
-    'replica_gigabytes'
+    'replica_gigabytes',
+    'per_share_gigabytes'
 ]
 
 
@@ -614,6 +615,14 @@ def do_quota_defaults(cs, args):
     default=None,
     help='Whether force update the quota even if the already used '
          'and reserved exceeds the new quota.')
+@cliutils.arg(
+    '--per-share-gigabytes',
+    '--per_share_gigabytes',
+    metavar='<per-share-gigabytes>',
+    type=int,
+    default=None,
+    help='New value for the "per_share_gigabytes" quota. Available only for '
+         'microversion >= 2.62')
 @api_versions.wraps("1.0")
 def do_quota_update(cs, args):
     """Update the quotas for a project/user and/or share type (Admin only)."""
@@ -650,6 +659,13 @@ def do_quota_update(cs, args):
                 "'2.53' API microversion.")
         kwargs["share_replicas"] = args.share_replicas
         kwargs["replica_gigabytes"] = args.replica_gigabytes
+    if args.per_share_gigabytes is not None:
+        if cs.api_version < api_versions.APIVersion("2.62"):
+            raise exceptions.CommandError(
+                "'per share gigabytes' quotas are available only starting "
+                "with '2.62' API microversion.")
+        kwargs["per_share_gigabytes"] = args.per_share_gigabytes
+
     cs.quotas.update(**kwargs)
 
 
@@ -763,6 +779,15 @@ def do_quota_class_show(cs, args):
     action='single_alias',
     help='New value for the "replica_gigabytes" quota. Available only for '
          'microversion >= 2.53')
+@cliutils.arg(
+    '--per-share-gigabytes',
+    '--per_share_gigabytes',  # alias
+    metavar='<per-share-gigabytes>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "per_share_gigabytes" quota. Available only for '
+         'microversion >= 2.62')
 def do_quota_class_update(cs, args):
     """Update the quotas for a quota class (Admin only)."""
     if args.share_replicas is not None or args.replica_gigabytes is not None:
@@ -770,6 +795,11 @@ def do_quota_class_update(cs, args):
             raise exceptions.CommandError(
                 "'share replica' quotas are available only starting with "
                 "'2.53' API microversion.")
+    if args.per_share_gigabytes is not None:
+        if cs.api_version < api_versions.APIVersion("2.62"):
+            raise exceptions.CommandError(
+                "'per_share_gigabytes' quota is available only starting "
+                "with '2.62' API microversion.")
 
     _quota_class_update(cs.quota_classes, args.class_name, args)
 

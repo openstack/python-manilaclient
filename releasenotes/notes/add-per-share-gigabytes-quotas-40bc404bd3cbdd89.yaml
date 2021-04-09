@@ -1,0 +1,6 @@
+---
+features:
+  - Added support for per share gigabytes quotas.
+upgrade:
+  - After addition of per share gigabytes quotas, it is now possible
+    to get 'over limit' error while creating a share.

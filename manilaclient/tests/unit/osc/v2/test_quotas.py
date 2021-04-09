@@ -72,6 +72,7 @@ class TestQuotaSet(TestQuotas):
                 shares=40,
                 snapshot_gigabytes=None,
                 snapshots=None,
+                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -99,6 +100,7 @@ class TestQuotaSet(TestQuotas):
                 shares=None,
                 snapshot_gigabytes=None,
                 snapshots=None,
+                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -127,6 +129,7 @@ class TestQuotaSet(TestQuotas):
                 shares=None,
                 snapshot_gigabytes=None,
                 snapshots=None,
+                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -157,6 +160,7 @@ class TestQuotaSet(TestQuotas):
                 snapshot_gigabytes=None,
                 snapshots=None,
                 tenant_id=self.project.id,
+                per_share_gigabytes=None,
                 user_id=None)
             self.assertIsNone(result)
 
@@ -235,6 +239,7 @@ class TestQuotaSet(TestQuotas):
                 shares=None,
                 snapshot_gigabytes=None,
                 snapshots=None,
+                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -252,6 +257,38 @@ class TestQuotaSet(TestQuotas):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_quota_set_per_share_gigabytes(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.62'
+        )
+
+        arglist = [
+            '--project', self.project.id,
+            '--per-share-gigabytes', '10',
+        ]
+        verifylist = [
+            ('project', self.project.id),
+            ('per_share_gigabytes', 10)
+        ]
+
+        with mock.patch('osc_lib.utils.find_resource') as mock_find_resource:
+            mock_find_resource.return_value = self.project
+
+            parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+            result = self.cmd.take_action(parsed_args)
+            self.quotas_mock.update.assert_called_with(
+                force=None,
+                gigabytes=None,
+                share_networks=None,
+                shares=None,
+                snapshot_gigabytes=None,
+                snapshots=None,
+                per_share_gigabytes=10,
+                tenant_id=self.project.id,
+                user_id=None)
+            self.assertIsNone(result)
 
 
 class TestQuotaShow(TestQuotas):

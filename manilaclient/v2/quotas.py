@@ -95,6 +95,7 @@ class QuotaSetManager(base.ManagerWithFind):
                    force=None, user_id=None, share_type=None,
                    share_groups=None, share_group_snapshots=None,
                    share_replicas=None, replica_gigabytes=None,
+                   per_share_gigabytes=None,
                    resource_path=RESOURCE_PATH):
         self._check_user_id_and_share_type_args(user_id, share_type)
         body = {
@@ -110,6 +111,7 @@ class QuotaSetManager(base.ManagerWithFind):
                 'force': force,
                 'share_replicas': share_replicas,
                 'replica_gigabytes': replica_gigabytes,
+                'per_share_gigabytes': per_share_gigabytes,
             },
         }
 
@@ -198,6 +200,26 @@ class QuotaSetManager(base.ManagerWithFind):
             share_group_snapshots=share_group_snapshots,
             share_replicas=share_replicas,
             replica_gigabytes=replica_gigabytes,
+            resource_path=RESOURCE_PATH
+        )
+
+    @api_versions.wraps("2.62")  # noqa
+    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
+               shares=None, snapshots=None, gigabytes=None,
+               snapshot_gigabytes=None, share_networks=None,
+               share_groups=None, share_group_snapshots=None,
+               share_replicas=None, replica_gigabytes=None, force=None,
+               per_share_gigabytes=None):
+        self._validate_st_and_sn_in_same_request(share_type, share_networks)
+        return self._do_update(
+            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
+            share_networks, force, user_id,
+            share_type=share_type,
+            share_groups=share_groups,
+            share_group_snapshots=share_group_snapshots,
+            share_replicas=share_replicas,
+            replica_gigabytes=replica_gigabytes,
+            per_share_gigabytes=per_share_gigabytes,
             resource_path=RESOURCE_PATH
         )
 

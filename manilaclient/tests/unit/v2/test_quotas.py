@@ -179,6 +179,11 @@ class QuotaSetsTest(utils.TestCase):
                 'share_replicas']
             kwargs['replica_gigabytes'] = expected_body['quota_set'][
                 'replica_gigabytes']
+        if (api_versions.APIVersion(microversion) >=
+                api_versions.APIVersion('2.62')):
+            expected_body['quota_set']['per_share_gigabytes'] = 10
+            kwargs['per_share_gigabytes'] = expected_body['quota_set'][
+                'per_share_gigabytes']
 
         with mock.patch.object(manager, '_update',
                                mock.Mock(return_value='fake_update')):
@@ -209,6 +214,9 @@ class QuotaSetsTest(utils.TestCase):
             expected_body['quota_set']['share_replicas'] = 8
             expected_body['quota_set']['replica_gigabytes'] = 9
             kwargs = {'share_replicas': 8, 'replica_gigabytes': 9}
+        if microversion >= '2.62':
+            expected_body['quota_set']['per_share_gigabytes'] = 10
+            kwargs = {'per_share_gigabytes': 10}
         with mock.patch.object(manager, '_update',
                                mock.Mock(return_value='fake_update')):
             manager.update(

@@ -54,7 +54,8 @@ class QuotaClassSetManager(base.ManagerWithFind):
     def _do_update(self, class_name, shares=None, gigabytes=None,
                    snapshots=None, snapshot_gigabytes=None,
                    share_networks=None, share_replicas=None,
-                   replica_gigabytes=None, resource_path=RESOURCE_PATH):
+                   replica_gigabytes=None, per_share_gigabytes=None,
+                   resource_path=RESOURCE_PATH):
         body = {
             'quota_class_set': {
                 'class_name': class_name,
@@ -64,7 +65,8 @@ class QuotaClassSetManager(base.ManagerWithFind):
                 'snapshot_gigabytes': snapshot_gigabytes,
                 'share_networks': share_networks,
                 "share_replicas": share_replicas,
-                "replica_gigabytes": replica_gigabytes
+                "replica_gigabytes": replica_gigabytes,
+                'per_share_gigabytes': per_share_gigabytes,
             }
         }
 
@@ -103,3 +105,16 @@ class QuotaClassSetManager(base.ManagerWithFind):
             snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
             share_networks=share_networks, share_replicas=share_replicas,
             replica_gigabytes=replica_gigabytes, resource_path=RESOURCE_PATH)
+
+    @api_versions.wraps("2.62")  # noqa
+    def update(self, class_name, shares=None, gigabytes=None,  # noqa
+               snapshots=None, snapshot_gigabytes=None, share_networks=None,
+               share_replicas=None, replica_gigabytes=None,
+               per_share_gigabytes=None):
+        return self._do_update(
+            class_name, shares=shares, gigabytes=gigabytes,
+            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks, share_replicas=share_replicas,
+            replica_gigabytes=replica_gigabytes,
+            per_share_gigabytes=per_share_gigabytes,
+            resource_path=RESOURCE_PATH)
