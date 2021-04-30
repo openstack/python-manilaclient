@@ -35,6 +35,7 @@ from manilaclient.tests.unit.v2 import fakes
 from manilaclient import utils
 from manilaclient.v2 import messages
 from manilaclient.v2 import security_services
+from manilaclient.v2 import share_groups
 from manilaclient.v2 import share_instances
 from manilaclient.v2 import share_network_subnets
 from manilaclient.v2 import share_networks
@@ -2650,9 +2651,17 @@ class ShellTest(test_utils.TestCase):
                 '/share-groups/detail?description~=%D1%84%D1%84%D1%84')
 
     def test_share_group_show(self):
+        fake_manager = mock.Mock()
+        fake_share_group = share_groups.ShareGroup(
+            fake_manager, {'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_group',
+            mock.Mock(side_effect=[fake_share_group]))
+
         self.run_command('share-group-show 1234')
 
-        self.assert_called('GET', '/share-groups/1234')
+        shell_v2._find_share_group.assert_has_calls(
+            [mock.call(self.shell.cs, "1234")])
 
     def test_share_group_create(self):
         fake_share_type_1 = type('FakeShareType1', (object,), {'id': '1234'})
@@ -2736,8 +2745,17 @@ class ShellTest(test_utils.TestCase):
     )
     @ddt.unpack
     def test_share_group_update(self, cmd, expected_body):
+        fake_manager = mock.Mock()
+        fake_share_group = share_groups.ShareGroup(
+            fake_manager, {'uuid': '1234', 'id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_group',
+            mock.Mock(side_effect=[fake_share_group]))
+
         self.run_command('share-group-update 1234 %s' % cmd)
 
+        shell_v2._find_share_group.assert_has_calls(
+            [mock.call(self.shell.cs, '1234')])
         expected = {'share_group': expected_body}
         self.assert_called('PUT', '/share-groups/1234', body=expected)
 
@@ -2746,24 +2764,58 @@ class ShellTest(test_utils.TestCase):
             exceptions.CommandError,
             self.run_command, 'share-group-update 1234')
 
-    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
-    def test_share_group_delete(self):
-        fake_group = type('FakeShareGroup', (object,), {'id': '1234'})
-        shell_v2._find_share_group.return_value = fake_group
+    @ddt.data(('share_group_xyz', ), ('share_group_abc', 'share_group_xyz'))
+    def test_share_group_delete_wait(self, share_group_to_delete):
+        fake_manager = mock.Mock()
+        fake_share_group = [
+            share_groups.ShareGroup(fake_manager, {'id': share_group})
+            for share_group in share_group_to_delete
+        ]
+        share_group_not_found_error = ("Delete for share group %s "
+                                       "failed: No group with a "
+                                       "name or ID of '%s' exists.")
+        share_group_are_not_found_errors = [
+            exceptions.CommandError(
+                share_group_not_found_error % (share_group, share_group))
+            for share_group in share_group_to_delete
+        ]
+        self.mock_object(
+            shell_v2, '_find_share_group',
+            mock.Mock(side_effect=(
+                fake_share_group + share_group_are_not_found_errors)))
+        self.mock_object(
+            shell_v2, '_wait_for_resource_status',
+            mock.Mock()
+        )
+        self.run_command(
+            'share-group-delete %s --wait' % ' '.join(
+                share_group_to_delete))
+        shell_v2._find_share_group.assert_has_calls([
+            mock.call(self.shell.cs, share_group) for share_group in
+            share_group_to_delete
+        ])
+        fake_manager.delete.assert_has_calls([
+            mock.call(share_group,
+                      force=False) for share_group in fake_share_group])
+        shell_v2._wait_for_resource_status.assert_has_calls([
+            mock.call(self.shell.cs, share_group,
+                      resource_type='share_group', expected_status='deleted')
+            for share_group in fake_share_group
+        ])
 
-        self.run_command('share-group-delete fake-sg')
-
-        self.assert_called('DELETE', '/share-groups/1234')
-
-    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
     def test_share_group_delete_force(self):
-        fake_group = type('FakeShareGroup', (object,), {'id': '1234'})
-        shell_v2._find_share_group.return_value = fake_group
-
+        fake_manager = mock.Mock()
+        fake_share_group = share_groups.ShareGroup(
+            fake_manager, {'id': 'fake-group'})
+        self.mock_object(
+            shell_v2, '_find_share_group',
+            mock.Mock(side_effect=[fake_share_group]))
         self.run_command('share-group-delete --force fake-group')
-
-        self.assert_called(
-            'POST', '/share-groups/1234/action', {'force_delete': None})
+        shell_v2._find_share_group.assert_has_calls(
+            [mock.call(self.shell.cs, "fake-group")])
+        fake_manager.delete.assert_has_calls(
+            [mock.call(fake_share_group, force=True)])
+        self.assertEqual(1, fake_manager.delete.call_count)
 
     @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
     def test_share_group_delete_all_fail(self):
