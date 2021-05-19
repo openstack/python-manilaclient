@@ -79,6 +79,8 @@ def _wait_for_resource_status(cs,
                      "state.")
     deleted_message = ("%(resource_type)s %(resource)s has been successfully "
                        "deleted.")
+    unmanaged_message = ("%(resource_type)s %(resource)s has been "
+                         "successfully unmanaged.")
     message_payload = {
         'resource_type': resource_type.capitalize(),
         'resource': resource.id,
@@ -94,10 +96,13 @@ def _wait_for_resource_status(cs,
         try:
             resource = find_resource[resource_type](cs, resource.id)
         except exceptions.CommandError as e:
-            if (re.search(not_found_regex, str(e), flags=re.IGNORECASE)
-                    and 'deleted' in expected_status):
-                print(deleted_message % message_payload)
-                break
+            if (re.search(not_found_regex, str(e), flags=re.IGNORECASE)):
+                if 'deleted' in expected_status:
+                    print(deleted_message % message_payload)
+                    break
+                if 'unmanaged' in expected_status:
+                    print(unmanaged_message % message_payload)
+                    break
             else:
                 raise e
 
@@ -1523,6 +1528,10 @@ def do_share_export_location_show(cs, args):
     help="Share server associated with share when using a share type with "
          "'driver_handles_share_servers' extra_spec set to True. Available "
          "only for microversion >= 2.49. (Default=None)")
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share management')
 def do_manage(cs, args):
     """Manage share not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
@@ -1545,6 +1554,11 @@ def do_manage(cs, args):
             name=args.name, description=args.description,
             is_public=args.public)
 
+    if args.wait:
+        share = _wait_for_resource_status(
+            cs, share, resource_type='share',
+            expected_status='available'
+        )
     _print_share(cs, share)
 
 
@@ -1682,10 +1696,16 @@ def do_snapshot_manage(cs, args):
     'share',
     metavar='<share>',
     help='Name or ID of the share(s).')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share unmanagement')
 def do_unmanage(cs, args):
     """Unmanage share (Admin only)."""
     share_ref = _find_share(cs, args.share)
     share_ref.unmanage()
+    if args.wait:
+        _wait_for_share_status(cs, share_ref, expected_status='unmanaged')
 
 
 @api_versions.wraps("2.49")
@@ -1775,7 +1795,6 @@ def do_delete(cs, args):
     """Remove one or more shares."""
     failure_count = 0
     shares_to_delete = []
-
     for share in args.share:
         try:
             share_ref = _find_share(cs, share)

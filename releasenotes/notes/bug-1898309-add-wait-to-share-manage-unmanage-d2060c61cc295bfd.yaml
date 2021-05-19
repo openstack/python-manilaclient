@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    The commands "manila manage" and "manila unmanage"
+    now accept an optional "--wait" flag that allows
+    users to let the client poll for the completion
+    of the operation.

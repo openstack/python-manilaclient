@@ -691,7 +691,8 @@ class ShellTest(test_utils.TestCase):
                    'share_type': None,
                    'share_server_id': None,
                }},
-              {'cmd_args': '--public',
+              {'cmd_args': '--public'
+                           ' --wait',
                'valid_params': {
                    'driver_options': {},
                    'share_type': None,
@@ -710,7 +711,8 @@ class ShellTest(test_utils.TestCase):
                'version': '--os-share-api-version 2.8',
                },
               {'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
-                           ' --share_type fake_share_type',
+                           ' --share_type fake_share_type'
+                           ' --wait',
                'valid_params': {
                    'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
                    'share_type': 'fake_share_type',
@@ -730,7 +732,8 @@ class ShellTest(test_utils.TestCase):
                },
               {'cmd_args': '--driver_options opt1=opt1 opt2=opt2'
                            ' --share_type fake_share_type'
-                           ' --share_server_id fake_server',
+                           ' --share_server_id fake_server'
+                           ' --wait',
                'valid_params': {
                    'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
                    'share_type': 'fake_share_type',
@@ -740,6 +743,16 @@ class ShellTest(test_utils.TestCase):
     @ddt.unpack
     def test_manage(self, cmd_args, valid_params, is_public=False,
                     version=None):
+        share_to_be_managed = shares.Share(
+            'fake_share', {
+                'id': 'fake'
+            }
+        )
+        self.mock_object(
+            shell_v2, '_wait_for_resource_status',
+            mock.Mock(return_value=share_to_be_managed)
+        )
+
         if version is not None:
             self.run_command(version
                              + ' manage fake_service fake_protocol '
@@ -761,7 +774,15 @@ class ShellTest(test_utils.TestCase):
             }
         }
         expected['share'].update(valid_params)
+
         self.assert_called('POST', '/shares/manage', body=expected)
+
+        if '--wait' in cmd_args:
+            shell_v2._wait_for_resource_status.assert_called_once_with(
+                self.shell.cs, share_to_be_managed, resource_type='share',
+                expected_status='available')
+        else:
+            shell_v2._wait_for_resource_status.assert_not_called()
 
     def test_manage_invalid_param_share_server_id(self):
         self.assertRaises(
@@ -903,9 +924,40 @@ class ShellTest(test_utils.TestCase):
         expected = {'reset_status': {'status': status}}
         self.assert_called('POST', '/share-servers/1234/action', body=expected)
 
-    def test_unmanage(self):
-        self.run_command('unmanage 1234')
-        self.assert_called('POST', '/shares/1234/action')
+    @ddt.data('--wait', '')
+    def test_unmanage(self, wait_option):
+        version = api_versions.APIVersion('2.46')
+        api = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=api)
+        fake_share = shares.Share(
+            manager, {
+                'id': 'xyzzyspoon',
+                'api_version': version,
+                'status': 'available',
+            }
+        )
+        share_not_found_error = ("ERROR: No share with "
+                                 "a name or ID of '%s' exists.")
+        share_not_found_error = exceptions.CommandError(
+            share_not_found_error % (fake_share.id)
+        )
+        self.mock_object(
+            shell_v2, '_find_share',
+            mock.Mock(side_effect=([fake_share, fake_share, fake_share,
+                                    share_not_found_error])))
+        self.mock_object(
+            shares.ShareManager, 'get',
+            mock.Mock(return_value=fake_share))
+
+        self.run_command('unmanage %s xyzzyspoon' % wait_option)
+
+        expected_get_share_calls = 4 if wait_option else 1
+        shell_v2._find_share.assert_has_calls(
+            [mock.call(self.shell.cs, fake_share.id)] *
+            expected_get_share_calls
+        )
+        uri = '/shares/%s/action' % fake_share.id
+        api.client.post.assert_called_once_with(uri, body={'unmanage': None})
 
     def test_share_server_unmanage(self):
         self.run_command('share-server-unmanage 1234')
