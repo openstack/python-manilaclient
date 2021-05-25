@@ -96,7 +96,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
             snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
             share_networks=share_networks, resource_path=RESOURCE_PATH)
 
-    @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION)  # noqa
+    @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION, "2.61")  # noqa
     def update(self, class_name, shares=None, gigabytes=None,  # noqa
                snapshots=None, snapshot_gigabytes=None, share_networks=None,
                share_replicas=None, replica_gigabytes=None):

@@ -185,7 +185,7 @@ class QuotaSetManager(base.ManagerWithFind):
             resource_path=RESOURCE_PATH,
         )
 
-    @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION)  # noqa
+    @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION, "2.61")  # noqa
     def update(self, tenant_id, user_id=None, share_type=None,  # noqa
                shares=None, snapshots=None, gigabytes=None,
                snapshot_gigabytes=None, share_networks=None,

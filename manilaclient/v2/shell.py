@@ -609,13 +609,6 @@ def do_quota_defaults(cs, args):
     help='New value for the "replica_gigabytes" quota. Available only for '
          'microversion >= 2.53')
 @cliutils.arg(
-    '--force',
-    dest='force',
-    action="store_true",
-    default=None,
-    help='Whether force update the quota even if the already used '
-         'and reserved exceeds the new quota.')
-@cliutils.arg(
     '--per-share-gigabytes',
     '--per_share_gigabytes',
     metavar='<per-share-gigabytes>',
@@ -623,6 +616,13 @@ def do_quota_defaults(cs, args):
     default=None,
     help='New value for the "per_share_gigabytes" quota. Available only for '
          'microversion >= 2.62')
+@cliutils.arg(
+    '--force',
+    dest='force',
+    action="store_true",
+    default=None,
+    help='Whether force update the quota even if the already used '
+         'and reserved exceeds the new quota.')
 @api_versions.wraps("1.0")
 def do_quota_update(cs, args):
     """Update the quotas for a project/user and/or share type (Admin only)."""
