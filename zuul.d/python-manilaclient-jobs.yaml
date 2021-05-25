@@ -74,10 +74,11 @@
       devstack_services:
         # Keystone
         key: true
-        # Neutron
-        q-agt: true
-        q-dhcp: true
-        q-l3: true
-        q-meta: true
-        q-metering: true
+        # OVN services
+        ovn-controller: true
+        ovn-northd: true
+        ovs-vswitchd: true
+        ovsdb-server: true
+        # Neutron services
         q-svc: true
+        q-ovn-metadata-agent: true
