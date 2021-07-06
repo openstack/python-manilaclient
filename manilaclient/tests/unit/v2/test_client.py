@@ -160,7 +160,7 @@ class ClientTest(utils.TestCase):
         return client_args
 
     @ddt.data(
-        {'auth_url': 'only_v3', 'api_key': 'password_backward_compat',
+        {'auth_url': 'only_v3', 'password': 'password_backward_compat',
          'endpoint_type': 'publicURL', 'project_id': 'foo_tenant_project_id'},
         {'password': 'renamed_api_key', 'endpoint_type': 'public',
          'tenant_id': 'foo_tenant_project_id'},
@@ -217,7 +217,7 @@ class ClientTest(utils.TestCase):
         client.ks_client.Client.assert_called_with(
             session=mock.ANY, version=(3, 0), auth_url='url_v3.0',
             username=client_args['username'],
-            password=client_args.get('password', client_args.get('api_key')),
+            password=client_args.get('password'),
             user_id=client_args['user_id'],
             user_domain_name=client_args['user_domain_name'],
             user_domain_id=client_args['user_domain_id'],
@@ -233,7 +233,7 @@ class ClientTest(utils.TestCase):
         mocked_ks_client.authenticate.assert_called_with()
 
     @ddt.data(
-        {'auth_url': 'only_v2', 'api_key': 'foo', 'project_id': 'bar'},
+        {'auth_url': 'only_v2', 'password': 'foo', 'project_id': 'bar'},
         {'password': 'foo', 'tenant_id': 'bar'},
     )
     def test_client_init_no_session_no_auth_token_v2(self, kwargs):
@@ -271,7 +271,7 @@ class ClientTest(utils.TestCase):
         client.ks_client.Client.assert_called_with(
             session=mock.ANY, version=(2, 0), auth_url='url_v2.0',
             username=client_args['username'],
-            password=client_args.get('password', client_args.get('api_key')),
+            password=client_args.get('password'),
             tenant_id=client_args.get('tenant_id',
                                       client_args.get('project_id')),
             tenant_name=client_args['project_name'],
