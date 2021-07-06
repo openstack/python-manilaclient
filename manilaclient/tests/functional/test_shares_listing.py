@@ -168,7 +168,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
                     # between our 'list' and 'get' requests. Skip such case.
                     # It occurs with concurrently running tests.
                     continue
-                if share_get['status'] == 'migrating':
+                if 'migrating' in share_get['status']:
                     # all bets are off, a fair chance share migration
                     # started between the 'list' and 'get' requests. No need
                     # to verify these shares.
