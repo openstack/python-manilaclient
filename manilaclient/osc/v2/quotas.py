@@ -209,7 +209,7 @@ class QuotaSet(command.Command):
                 "New quota must be specified to at least one of the following "
                 "resources: 'shares', 'snapshots', 'gigabytes', "
                 "'snapshot-gigabytes', 'share-networks', 'share-type', "
-                "'share-groups', 'share group snapshots', 'share-replicas', "
+                "'share-groups', 'share-group-snapshots', 'share-replicas', "
                 "'replica-gigabytes', 'per-share-gigabytes'"))
 
         project_id = None
