@@ -3470,25 +3470,47 @@ class ShellTest(test_utils.TestCase):
                 'DELETE', '/types/%s' % fake_share_type.id,
                 clear_callstack=False)
 
-    @ddt.data(('1234', ), ('1234', '5678'))
-    def test_share_server_delete(self, server_ids):
+    @ddt.data(('share_server_xyz', ), ('share_server_abc', 'share_server_xyz'))
+    def test_share_server_delete_wait(self, share_servers_to_delete):
+        fake_manager = mock.Mock()
         fake_share_servers = [
-            share_servers.ShareServer('fake', {'id': server_id}, True)
-            for server_id in server_ids
+            share_servers.ShareServer(fake_manager, {'id': '1234'})
+            for share_server in share_servers_to_delete
+        ]
+        share_server_not_found_error = ("Delete for share server %s "
+                                        "failed: No server with a "
+                                        "name or ID of '%s' exists.")
+        share_servers_are_not_found_errors = [
+            exceptions.CommandError(share_server_not_found_error
+                                    % (share_server, share_server))
+            for share_server in share_servers_to_delete
         ]
         self.mock_object(
-            shell_v2, '_find_share_server',
-            mock.Mock(side_effect=fake_share_servers))
+            shell_v2, '_find_share_server', mock.Mock(
+                side_effect=(fake_share_servers +
+                             share_servers_are_not_found_errors)))
 
-        self.run_command('share-server-delete %s' % ' '.join(server_ids))
+        self.mock_object(
+            shell_v2, '_wait_for_resource_status',
+            mock.Mock()
+        )
+
+        self.run_command('share-server-delete %s --wait' % ' '
+                         .join(share_servers_to_delete))
 
         shell_v2._find_share_server.assert_has_calls([
-            mock.call(self.shell.cs, s_id) for s_id in server_ids
+            mock.call(self.shell.cs, share_server)
+            for share_server in share_servers_to_delete
         ])
-        for server in fake_share_servers:
-            self.assert_called_anytime(
-                'DELETE', '/share-servers/%s' % server.id,
-                clear_callstack=False)
+        fake_manager.delete.assert_has_calls([
+            mock.call(share_server) for share_server in fake_share_servers])
+        shell_v2._wait_for_resource_status.assert_has_calls([
+            mock.call(self.shell.cs, share_server,
+                      resource_type='share_server', expected_status='deleted')
+            for share_server in fake_share_servers
+        ])
+        self.assertEqual(len(share_servers_to_delete),
+                         fake_manager.delete.call_count)
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_message_list(self):
