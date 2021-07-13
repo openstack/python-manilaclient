@@ -81,3 +81,10 @@ user messages
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share message *
+
+==============
+share replicas
+==============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share replica *
