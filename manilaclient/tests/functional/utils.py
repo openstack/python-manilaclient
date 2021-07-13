@@ -14,7 +14,6 @@
 #    under the License.
 
 import ast
-import six
 from tempest.lib.cli import output_parser
 import testtools
 
@@ -42,7 +41,7 @@ def multi_line_row_table(output_lines, group_by_column_index=0):
 
     def is_embedded_table(parsed_rows):
         def is_table_border(t):
-            return six.text_type(t).startswith('+')
+            return str(t).startswith('+')
 
         return (isinstance(parsed_rows, list)
                 and len(parsed_rows) > 3
@@ -126,8 +125,8 @@ def choose_matching_backend(share, pools, share_type):
     # convert extra-specs in provided type to dict format
     pair = [x.strip() for x in share_type['required_extra_specs'].split(':')]
     if len(pair) == 2:
-        value = (True if six.text_type(pair[1]).lower() == 'true'
-                 else False if six.text_type(pair[1]).lower() == 'false'
+        value = (True if str(pair[1]).lower() == 'true'
+                 else False if str(pair[1]).lower() == 'false'
                  else pair[1])
         extra_specs[pair[0]] = value
 

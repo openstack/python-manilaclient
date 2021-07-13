@@ -21,7 +21,6 @@ import sys
 import time
 
 from oslo_utils import strutils
-import six
 
 from manilaclient import api_versions
 from manilaclient.common.apiclient import utils as apiclient_utils
@@ -2060,27 +2059,27 @@ def do_snapshot_access_list(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share description pattern. '
          'Available only for microversion >= 2.36.')
@@ -2517,13 +2516,13 @@ def do_share_instance_export_location_show(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
@@ -2591,14 +2590,14 @@ def do_share_instance_export_location_show(cs, args):
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share snapshot name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share snapshot description pattern. '
          'Available only for microversion >= 2.36.')
@@ -3414,13 +3413,13 @@ def do_share_network_list(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
@@ -3512,14 +3511,14 @@ def do_share_network_list(cs, args):
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share network name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share network description pattern. '
          'Available only for microversion >= 2.36.')
@@ -4760,7 +4759,7 @@ def do_type_create(cs, args):
                 args.spec_driver_handles_share_servers, strict=True))
     except ValueError as e:
         msg = ("Argument spec_driver_handles_share_servers "
-               "argument is not valid: %s" % six.text_type(e))
+               "argument is not valid: %s" % str(e))
         raise exceptions.CommandError(msg)
 
     kwargs['extra_specs'] = _extract_extra_specs(args)
@@ -4803,7 +4802,7 @@ def do_type_create(cs, args):
                         kwargs['extra_specs'][key], strict=True))
         except ValueError as e:
             msg = ("Argument '%s' is of boolean "
-                   "type and has invalid value: %s" % (key, six.text_type(e)))
+                   "type and has invalid value: %s" % (key, str(e)))
             raise exceptions.CommandError(msg)
 
     stype = cs.share_types.create(**kwargs)
@@ -4851,7 +4850,7 @@ def do_type_update(cs, args):
                                                             strict=True)
         except ValueError as e:
             raise exceptions.CommandError("The value of 'is_public' is"
-                                          " invalid: %s", six.text_type(e))
+                                          " invalid: %s", str(e))
 
     kwargs['description'] = description
     stype = _find_share_type(cs, args.id)
@@ -5301,13 +5300,13 @@ def do_share_group_create(cs, args):
 @cliutils.arg(
     '--name',
     metavar='<name>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by name.')
 @cliutils.arg(
     '--description',
     metavar='<description>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results by description. '
          'Available only for microversion >= 2.36.')
@@ -5397,14 +5396,14 @@ def do_share_group_create(cs, args):
 @cliutils.arg(
     '--name~',
     metavar='<name~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share group name pattern. '
          'Available only for microversion >= 2.36.')
 @cliutils.arg(
     '--description~',
     metavar='<description~>',
-    type=six.text_type,
+    type=str,
     default=None,
     help='Filter results matching a share group description pattern. '
          'Available only for microversion >= 2.36.')

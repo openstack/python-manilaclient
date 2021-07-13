@@ -16,7 +16,6 @@
 from unittest import mock
 
 import ddt
-import six
 
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes as fake
@@ -33,7 +32,7 @@ class MessageTest(utils.TestCase):
         self.fake_kwargs = {'key': 'value'}
 
     def test_repr(self):
-        result = six.text_type(self.message)
+        result = str(self.message)
 
         self.assertEqual('<Message: fake_id>', result)
 

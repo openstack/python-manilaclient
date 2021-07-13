@@ -18,7 +18,6 @@ import re
 import time
 
 from oslo_utils import strutils
-import six
 from tempest.lib.cli import base
 from tempest.lib.cli import output_parser
 from tempest.lib.common.utils import data_utils
@@ -48,7 +47,7 @@ def not_found_wrapper(f):
         except tempest_lib_exc.CommandFailed as e:
             for regexp in (r'No (\w+) with a name or ID',
                            r'not(.*){0,5}found'):
-                if re.search(regexp, six.text_type(e.stderr)):
+                if re.search(regexp, str(e.stderr)):
                     # Raise appropriate 'NotFound' error
                     raise tempest_lib_exc.NotFound()
             raise
@@ -62,7 +61,7 @@ def forbidden_wrapper(f):
         try:
             return f(self, *args, **kwargs)
         except tempest_lib_exc.CommandFailed as e:
-            if re.search('HTTP 403', six.text_type(e.stderr)):
+            if re.search('HTTP 403', str(e.stderr)):
                 # Raise appropriate 'Forbidden' error.
                 raise tempest_lib_exc.Forbidden()
             raise
@@ -201,10 +200,10 @@ class ManilaCLIClient(base.CLIClient):
         if name is None:
             name = data_utils.rand_name('manilaclient_functional_test')
         dhss = driver_handles_share_servers
-        if not isinstance(dhss, six.string_types):
-            dhss = six.text_type(dhss)
-        if not isinstance(is_public, six.string_types):
-            is_public = six.text_type(is_public)
+        if not isinstance(dhss, str):
+            dhss = str(dhss)
+        if not isinstance(is_public, str):
+            is_public = str(is_public)
 
         cmd = ('type-create %(name)s %(dhss)s --is-public %(is_public)s ') % {
             'name': name, 'dhss': dhss, 'is_public': is_public}
@@ -213,34 +212,31 @@ class ManilaCLIClient(base.CLIClient):
             cmd += " --description " + description
 
         if snapshot_support is not None:
-            if not isinstance(snapshot_support, six.string_types):
-                snapshot_support = six.text_type(snapshot_support)
+            if not isinstance(snapshot_support, str):
+                snapshot_support = str(snapshot_support)
             cmd += " --snapshot-support " + snapshot_support
 
         if create_share_from_snapshot is not None:
-            if not isinstance(create_share_from_snapshot, six.string_types):
-                create_share_from_snapshot = six.text_type(
-                    create_share_from_snapshot)
+            if not isinstance(create_share_from_snapshot, str):
+                create_share_from_snapshot = str(create_share_from_snapshot)
             cmd += (" --create-share-from-snapshot-support " +
                     create_share_from_snapshot)
 
         if revert_to_snapshot is not None:
-            if not isinstance(revert_to_snapshot, six.string_types):
-                revert_to_snapshot = six.text_type(
-                    revert_to_snapshot)
+            if not isinstance(revert_to_snapshot, str):
+                revert_to_snapshot = str(revert_to_snapshot)
             cmd += (" --revert-to-snapshot-support " + revert_to_snapshot)
 
         if mount_snapshot is not None:
-            if not isinstance(mount_snapshot, six.string_types):
-                mount_snapshot = six.text_type(
-                    mount_snapshot)
+            if not isinstance(mount_snapshot, str):
+                mount_snapshot = str(mount_snapshot)
             cmd += (" --mount-snapshot-support " + mount_snapshot)
 
         if extra_specs is not None:
             extra_spec_str = ''
             for k, v in extra_specs.items():
-                if not isinstance(v, six.string_types):
-                    extra_specs[k] = six.text_type(v)
+                if not isinstance(v, str):
+                    extra_specs[k] = str(v)
                 extra_spec_str += "{}='{}' ".format(k, v)
             cmd += " --extra_specs " + extra_spec_str
 
@@ -267,8 +263,8 @@ class ManilaCLIClient(base.CLIClient):
             'share_type_id': share_type_id}
 
         if is_public is not None:
-            if not isinstance(is_public, six.string_types):
-                is_public = six.text_type(is_public)
+            if not isinstance(is_public, str):
+                is_public = str(is_public)
             cmd += " --is_public " + is_public
 
         if description:
@@ -551,7 +547,7 @@ class ManilaCLIClient(base.CLIClient):
 
     @staticmethod
     def _stranslate_to_cli_optional_param(param):
-        if len(param) < 1 or not isinstance(param, six.string_types):
+        if len(param) < 1 or not isinstance(param, str):
             raise exceptions.InvalidData(
                 'Provided wrong parameter for translation.')
         while not param[0:2] == '--':
@@ -1002,7 +998,7 @@ class ManilaCLIClient(base.CLIClient):
                                'dest': dest_host,
                                'share_id': share['id'],
                                'timeout': self.build_timeout,
-                               'status': six.text_type(statuses),
+                               'status': str(statuses),
                            })
                 raise tempest_lib_exc.TimeoutException(message)
         return share
@@ -1762,7 +1758,7 @@ class ManilaCLIClient(base.CLIClient):
                                'dest': dest_host,
                                'share_server_id': server['id'],
                                'timeout': self.build_timeout,
-                               'status': six.text_type(statuses),
+                               'status': str(statuses),
                            })
                 raise tempest_lib_exc.TimeoutException(message)
 

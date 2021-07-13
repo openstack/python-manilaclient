@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import six
 import testtools
 
 from manilaclient import utils
@@ -20,10 +19,6 @@ class TestCommonUtils(testtools.TestCase):
 
     def test_unicode_key_value_to_string(self):
         src = {u'key': u'\u70fd\u7231\u5a77'}
-        expected = {'key': '\xe7\x83\xbd\xe7\x88\xb1\xe5\xa9\xb7'}
-        if six.PY2:
-            self.assertEqual(expected, utils.unicode_key_value_to_string(src))
-        else:
-            # u'xxxx' in PY3 is str, we will not get extra 'u' from cli
-            # output in PY3
-            self.assertEqual(src, utils.unicode_key_value_to_string(src))
+        # u'xxxx' in PY3 is str, we will not get extra 'u' from cli
+        # output in PY3
+        self.assertEqual(src, utils.unicode_key_value_to_string(src))

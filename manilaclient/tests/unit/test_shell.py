@@ -10,13 +10,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import io
 import re
 import sys
 from unittest import mock
 
 import ddt
 import fixtures
-from six import moves
 from tempest.lib.cli import output_parser
 from testtools import matchers
 
@@ -55,7 +55,7 @@ class OpenstackManilaShellTest(utils.TestCase):
     def shell(self, argstr):
         orig = sys.stdout
         try:
-            sys.stdout = moves.StringIO()
+            sys.stdout = io.StringIO()
             _shell = shell.OpenStackManilaShell()
             _shell._discover_client = self.shell_discover_client
             _shell.main(argstr.split())
@@ -384,7 +384,7 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
     def shell(self, argstr):
         orig = sys.stdout
         try:
-            sys.stdout = moves.StringIO()
+            sys.stdout = io.StringIO()
             _shell = CustomOpenStackManilaShell()
             _shell._discover_client = self.shell_discover_client
             _shell.main(argstr.split())

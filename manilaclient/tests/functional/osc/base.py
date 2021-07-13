@@ -10,7 +10,6 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 
-import six
 import time
 
 from tempest.lib.cli import base
@@ -48,7 +47,7 @@ class OSCClientTestBase(base.ClientTestBase):
         obj = {}
         items = self.parser.listing(output)
         for item in items:
-            obj[item['Field']] = six.text_type(item['Value'])
+            obj[item['Field']] = str(item['Value'])
         return obj
 
     def _wait_for_object_status(self, object_name, object_id, status,

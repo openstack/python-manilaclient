@@ -16,7 +16,6 @@
 from unittest import mock
 
 import ddt
-import six
 
 import manilaclient
 from manilaclient import exceptions
@@ -35,7 +34,7 @@ class ShareGroupSnapshotTest(utils.TestCase):
         self.fake_kwargs = {'key': 'value'}
 
     def test_repr(self):
-        result = six.text_type(self.share_group_snapshot)
+        result = str(self.share_group_snapshot)
 
         self.assertEqual('<Share Group Snapshot: fake_id>', result)
 

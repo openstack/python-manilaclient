@@ -27,15 +27,12 @@ import os
 import pkgutil
 import sys
 
-from oslo_utils import encodeutils
 from oslo_utils import importutils
-import six
 
 from manilaclient import api_versions
 from manilaclient import client
 from manilaclient.common import cliutils
 from manilaclient.common import constants
-
 from manilaclient import exceptions as exc
 import manilaclient.extension
 from manilaclient.v2 import shell as shell_v2
@@ -69,7 +66,7 @@ class AllowOnlyOneAliasAtATimeAction(argparse.Action):
             self.calls[self.dest] = set()
 
         local_values = sorted(values) if isinstance(values, list) else values
-        self.calls[self.dest].add(six.text_type(local_values))
+        self.calls[self.dest].add(str(local_values))
 
         if len(self.calls[self.dest]) == 1:
             setattr(namespace, self.dest, local_values)
@@ -539,7 +536,7 @@ class OpenStackManilaShell(object):
             api_version = api_versions.get_api_version(
                 options.os_share_api_version)
 
-        major_version_string = six.text_type(api_version.ver_major)
+        major_version_string = str(api_version.ver_major)
         os_service_type = args.service_type
         if not os_service_type:
             os_service_type = constants.SERVICE_TYPES[major_version_string]
@@ -734,17 +731,13 @@ class OpenStackHelpFormatter(argparse.HelpFormatter):
 
 def main():
     try:
-        if sys.version_info >= (3, 0):
-            OpenStackManilaShell().main(sys.argv[1:])
-        else:
-            OpenStackManilaShell().main(
-                map(encodeutils.safe_decode, sys.argv[1:]))
+        OpenStackManilaShell().main(sys.argv[1:])
     except KeyboardInterrupt:
         print("... terminating manila client", file=sys.stderr)
         sys.exit(130)
     except Exception as e:
         logger.debug(e, exc_info=1)
-        print("ERROR: %s" % six.text_type(e), file=sys.stderr)
+        print("ERROR: %s" % str(e), file=sys.stderr)
         sys.exit(1)
 
 

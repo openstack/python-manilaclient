@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-
 from manilaclient.tests.unit import utils
 
 
@@ -25,7 +23,7 @@ class SchedulerStatsV1Test(utils.TestCase):
             from manilaclient.v1 import scheduler_stats
         except Exception as e:
             msg = ("module 'manilaclient.v1.scheduler_stats' cannot be "
-                   "imported with error: %s") % six.text_type(e)
+                   "imported with error: %s") % str(e)
             assert False, msg
         for cls in ('Pool', 'PoolManager'):
             msg = "Module 'scheduler_stats' has no '%s' attr." % cls

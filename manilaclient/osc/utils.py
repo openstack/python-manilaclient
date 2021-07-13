@@ -11,7 +11,6 @@
 #   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #   License for the specific language governing permissions and limitations
 #   under the License.
-import six
 
 from oslo_utils import strutils
 
@@ -73,9 +72,10 @@ def extract_extra_specs(extra_specs, specs_to_add):
             if strutils.is_valid_boolstr(value):
                 extra_specs[key] = value.capitalize()
             else:
-                msg = ("Argument '%s' is of boolean "
-                       "type and has invalid value: %s"
-                       % (key, six.text_type(value)))
+                msg = (
+                    "Argument '%s' is of boolean "
+                    "type and has invalid value: %s"
+                    % (key, str(value)))
                 raise exceptions.CommandError(msg)
         else:
             extra_specs[key] = value

@@ -36,8 +36,6 @@ Exception definitions.
 import inspect
 import sys
 
-import six
-
 from manilaclient.common._i18n import _
 
 
@@ -460,8 +458,7 @@ def from_response(response, method, url):
                 if isinstance(error, dict):
                     kwargs["message"] = (error.get("message") or
                                          error.get("faultstring"))
-                    kwargs["details"] = (error.get("details") or
-                                         six.text_type(body))
+                    kwargs["details"] = error.get("details") or str(body)
     elif content_type.startswith("text/"):
         kwargs["details"] = response.text
 

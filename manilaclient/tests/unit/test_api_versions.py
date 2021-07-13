@@ -15,7 +15,6 @@
 from unittest import mock
 
 import ddt
-import six
 
 import manilaclient
 from manilaclient import api_versions
@@ -131,7 +130,7 @@ class APIVersionTestCase(utils.TestCase):
     def test_representation(self, version):
         version_major, version_minor = version.split('.')
         api_version = api_versions.APIVersion(version)
-        self.assertEqual(six.text_type(api_version),
+        self.assertEqual(str(api_version),
                          ("API Version Major: %s, Minor: %s" %
                           (version_major, version_minor)))
         self.assertEqual(repr(api_version), "<APIVersion: %s>" % version)
