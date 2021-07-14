@@ -17,8 +17,6 @@ import sys
 from unittest import mock
 
 from keystoneauth1 import fixture
-from oslo_serialization import jsonutils
-import requests
 
 AUTH_TOKEN = "foobar"
 AUTH_URL = "http://0.0.0.0"
@@ -139,16 +137,6 @@ class FakeClientManager(object):
         return self.network_endpoint_enabled
 
 
-class FakeModule(object):
-
-    def __init__(self, name, version):
-        self.name = name
-        self.__version__ = version
-        # Workaround for openstacksdk case
-        self.version = mock.Mock()
-        self.version.__version__ = version
-
-
 class FakeResource(object):
 
     def __init__(self, manager=None, info=None, loaded=False, methods=None):
@@ -210,26 +198,3 @@ class FakeResource(object):
 
     def get(self, item, default=None):
         return self._info.get(item, default)
-
-
-class FakeResponse(requests.Response):
-
-    def __init__(self, headers=None, status_code=200,
-                 data=None, encoding=None):
-        super(FakeResponse, self).__init__()
-
-        headers = headers or {}
-
-        self.status_code = status_code
-
-        self.headers.update(headers)
-        self._content = jsonutils.dump_as_bytes(data)
-
-
-class FakeModel(dict):
-
-    def __getattr__(self, key):
-        try:
-            return self[key]
-        except KeyError:
-            raise AttributeError(key)
