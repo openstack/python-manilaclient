@@ -32,7 +32,7 @@ class TestQuotas(manila_fakes.TestShare):
         self.quotas_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.51'
+            api_versions.MAX_VERSION
         )
 
 
@@ -245,6 +245,8 @@ class TestQuotaSet(TestQuotas):
             self.assertIsNone(result)
 
     def test_quota_set_replica_gigabytes_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.51')
         arglist = [
             '--project', self.project.id,
             '--replica-gigabytes', '10',
@@ -259,10 +261,6 @@ class TestQuotaSet(TestQuotas):
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
     def test_quota_set_per_share_gigabytes(self):
-        self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.62'
-        )
-
         arglist = [
             '--project', self.project.id,
             '--per-share-gigabytes', '10',

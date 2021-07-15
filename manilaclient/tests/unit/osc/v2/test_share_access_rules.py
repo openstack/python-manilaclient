@@ -37,7 +37,7 @@ class TestShareAccess(manila_fakes.TestShare):
 
         self.shares_mock = self.app.client_manager.share.shares
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.51')
+            api_versions.MAX_VERSION)
         self.shares_mock.reset_mock()
 
         self.access_rules_mock = (

@@ -53,7 +53,7 @@ class TestShareSnapshot(manila_fakes.TestShare):
         self.snapshots_mock = self.app.client_manager.share.share_snapshots
         self.snapshots_mock.reset_mock()
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.51")
+            api_versions.MAX_VERSION)
 
         self.export_locations_mock = (
             self.app.client_manager.share.share_snapshot_export_locations)
