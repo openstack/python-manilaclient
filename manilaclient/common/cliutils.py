@@ -55,7 +55,7 @@ def validate_args(fn, *args, **kwargs):
     :param arg: the positional arguments supplied
     :param kwargs: the keyword arguments supplied
     """
-    argspec = inspect.getargspec(fn)
+    argspec = inspect.getfullargspec(fn)
 
     num_defaults = len(argspec.defaults or [])
     required_args = argspec.args[:len(argspec.args) - num_defaults]
