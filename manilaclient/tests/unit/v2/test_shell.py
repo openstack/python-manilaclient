@@ -1034,6 +1034,16 @@ class ShellTest(test_utils.TestCase):
         self.assertEqual(len(shares_to_delete),
                          fake_manager.force_delete.call_count)
 
+    def test_soft_delete(self):
+        self.run_command('soft-delete 1234')
+        expected = {'soft_delete': None}
+        self.assert_called('POST', '/shares/1234/action', body=expected)
+
+    def test_restore(self):
+        self.run_command('restore 1234')
+        expected = {'restore': None}
+        self.assert_called('POST', '/shares/1234/action', body=expected)
+
     def test_list_snapshots(self):
         self.run_command('snapshot-list')
         self.assert_called('GET', '/snapshots/detail')

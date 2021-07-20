@@ -126,6 +126,8 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self.admin_private_description = data_utils.rand_name(
             'autotest_admin_private_share_description')
 
+        self.soft_name = data_utils.rand_name('soft_delete_share_name')
+
         self.admin_private_share = self.create_share(
             name=self.admin_private_name,
             description=self.admin_private_description,
@@ -146,13 +148,24 @@ class SharesListReadWriteTest(base.BaseTestCase):
             public=True,
             client=self.admin_client)
 
+        self.wait_soft_delete_share = self.create_share(
+            name=self.soft_name,
+            public=False,
+            client=self.get_user_client(),
+            wait_for_creation=False)
+
         self.shares_created = (self.private_share['id'],
                                self.public_share['id'],
-                               self.admin_private_share['id'])
+                               self.admin_private_share['id'],
+                               self.wait_soft_delete_share['id'])
 
         for share_id in self.shares_created:
             self.admin_client.wait_for_resource_status(
                 share_id, constants.STATUS_AVAILABLE)
+
+        self.soft_delete_share([self.wait_soft_delete_share['id']],
+                               client=self.get_user_client(),
+                               microversion='2.69')
 
     def _list_shares(self, filters=None):
         filters = filters or dict()
@@ -349,3 +362,9 @@ class SharesListReadWriteTest(base.BaseTestCase):
         self.assertEqual(1, len(shares))
         self.assertTrue(
             any(self.private_share['id'] == s['ID'] for s in shares))
+
+    def test_list_shares_in_recycle_bin(self):
+        shares = self.user_client.list_shares(is_soft_deleted=True)
+
+        self.assertTrue(
+            any(self.wait_soft_delete_share['id'] == s['ID'] for s in shares))

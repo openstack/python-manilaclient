@@ -543,6 +543,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert 'host' in body[action]
         elif action == 'reset_task_state':
             assert 'task_state' in body[action]
+        elif action in ('soft_delete', 'restore'):
+            assert body[action] is None
         else:
             raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)

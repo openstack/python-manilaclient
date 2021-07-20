@@ -869,12 +869,45 @@ class ManilaCLIClient(base.CLIClient):
             cmd += '--wait '
         return self.manila(cmd, microversion=microversion)
 
-    def list_shares(self, all_tenants=False, filters=None, columns=None,
-                    is_public=False, microversion=None):
+    @not_found_wrapper
+    @forbidden_wrapper
+    def soft_delete_share(self, shares, microversion=None):
+        """Soft Delete share[s] by Names or IDs.
+
+        :param shares: either str or list of str that can be either Name
+            or ID of a share(s) that should be soft deleted.
+        """
+        if not isinstance(shares, list):
+            shares = [shares]
+        cmd = 'soft-delete '
+        for share in shares:
+            cmd += '%s ' % share
+        return self.manila(cmd, microversion=microversion)
+
+    @not_found_wrapper
+    @forbidden_wrapper
+    def restore_share(self, shares, microversion=None):
+        """Restore share[s] by Names or IDs.
+
+        :param shares: either str or list of str that can be either Name
+            or ID of a share(s) that should be soft deleted.
+        """
+        if not isinstance(shares, list):
+            shares = [shares]
+        cmd = 'restore '
+        for share in shares:
+            cmd += '%s ' % share
+        return self.manila(cmd, microversion=microversion)
+
+    def list_shares(self, all_tenants=False, is_soft_deleted=False,
+                    filters=None, columns=None, is_public=False,
+                    microversion=None):
         """List shares.
 
         :param all_tenants: bool -- whether to list shares that belong
             only to current project or for all tenants.
+        :param is_soft_deleted: bool -- whether to list shares that has
+            been soft deleted to recycle bin.
         :param filters: dict -- filters for listing of shares.
             Example, input:
                 {'project_id': 'foo'}
@@ -886,12 +919,15 @@ class ManilaCLIClient(base.CLIClient):
             Example, "--columns Name,Size"
         :param is_public: bool -- should list public shares or not.
             Default is False.
+        :param microversion: str -- the request api version.
         """
         cmd = 'list '
         if all_tenants:
             cmd += '--all-tenants '
         if is_public:
             cmd += '--public '
+        if is_soft_deleted:
+            cmd += '--soft-deleted '
         if filters and isinstance(filters, dict):
             for k, v in filters.items():
                 cmd += '%(k)s=%(v)s ' % {
@@ -946,6 +982,46 @@ class ManilaCLIClient(base.CLIClient):
         self.wait_for_resource_deletion(
             SHARE, res_id=share, interval=5, timeout=300,
             microversion=microversion)
+
+    def wait_for_share_soft_deletion(self, share_id, microversion=None):
+        body = self.get_share(share_id, microversion=microversion)
+        is_soft_deleted = body['is_soft_deleted']
+        start = int(time.time())
+
+        while is_soft_deleted == "False":
+            time.sleep(self.build_interval)
+            body = self.get_share(share_id, microversion=microversion)
+            is_soft_deleted = body['is_soft_deleted']
+
+            if is_soft_deleted == "True":
+                return
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = ("Share %(share_id)s failed to be soft deleted "
+                           "within the required time %(build_timeout)s." %
+                           {"share_id": share_id,
+                            "build_timeout": self.build_timeout})
+                raise tempest_lib_exc.TimeoutException(message)
+
+    def wait_for_share_restore(self, share_id, microversion=None):
+        body = self.get_share(share_id, microversion=microversion)
+        is_soft_deleted = body['is_soft_deleted']
+        start = int(time.time())
+
+        while is_soft_deleted == "True":
+            time.sleep(self.build_interval)
+            body = self.get_share(share_id, microversion=microversion)
+            is_soft_deleted = body['is_soft_deleted']
+
+            if is_soft_deleted == "False":
+                return
+
+            if int(time.time()) - start >= self.build_timeout:
+                message = ("Share %(share_id)s failed to be restored "
+                           "within the required time %(build_timeout)s." %
+                           {"share_id": share_id,
+                            "build_timeout": self.build_timeout})
+                raise tempest_lib_exc.TimeoutException(message)
 
     def wait_for_resource_status(self, resource_id, status, microversion=None,
                                  resource_type="share"):

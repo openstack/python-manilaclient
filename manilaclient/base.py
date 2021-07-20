@@ -24,6 +24,7 @@ import copy
 import hashlib
 import os
 
+from manilaclient import api_versions
 from manilaclient.common import cliutils
 from manilaclient import exceptions
 from manilaclient import utils
@@ -237,7 +238,14 @@ class ManagerWithFind(Manager):
         searches = list(kwargs.items())
 
         search_opts = {'all_tenants': 1}
-        for obj in self.list(search_opts=search_opts):
+        resources = self.list(search_opts=search_opts)
+        if ('v2.shares.ShareManager' in str(self.__class__) and
+                self.api_version >= api_versions.APIVersion("2.69")):
+            search_opts_2 = {'all_tenants': 1,
+                             'is_soft_deleted': True}
+            shares_soft_deleted = self.list(search_opts=search_opts_2)
+            resources += shares_soft_deleted
+        for obj in resources:
             try:
                 if all(getattr(obj, attr) == value
                        for (attr, value) in searches):

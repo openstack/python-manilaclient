@@ -1844,6 +1844,56 @@ def do_force_delete(cs, args):
                 print(e, file=sys.stderr)
 
 
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    nargs='+',
+    help='Name or ID of the share(s).')
+@cliutils.service_type('sharev2')
+@api_versions.wraps("2.69")
+def do_soft_delete(cs, args):
+    """Soft delete one or more shares."""
+    failure_count = 0
+
+    for share in args.share:
+        try:
+            share_ref = _find_share(cs, share)
+            cs.shares.soft_delete(share_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Soft deletion of share %s failed: %s" % (share, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.share):
+        raise exceptions.CommandError("Unable to soft delete any of the "
+                                      "specified shares.")
+
+
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    nargs='+',
+    help='Name or ID of the share(s).')
+@cliutils.service_type('sharev2')
+@api_versions.wraps("2.69")
+def do_restore(cs, args):
+    """Restore one or more shares from recycle bin."""
+    failure_count = 0
+
+    for share in args.share:
+        try:
+            share_ref = _find_share(cs, share)
+            cs.shares.restore(share_ref)
+        except Exception as e:
+            failure_count += 1
+            print("Restoration of share %s failed: %s" % (share, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.share):
+        raise exceptions.CommandError("Unable to restore any of the "
+                                      "specified shares.")
+
+
 @api_versions.wraps("1.0", "2.8")
 @cliutils.arg(
     'share',
@@ -2313,6 +2363,12 @@ def do_snapshot_access_list(cs, args):
     default=False,
     help='Display total number of shares to return. '
          'Available only for microversion >= 2.42.')
+@cliutils.arg(
+    '--soft-deleted', '--soft_deleted',
+    action='store_true',
+    help='Get shares in recycle bin. If this parameter is set to '
+         'True(Default=False), will only show shares in recycle bin. '
+         'Available only for microversion >= 2.69.')
 @cliutils.service_type('sharev2')
 def do_list(cs, args):
     """List NAS shares with filters."""
@@ -2388,6 +2444,15 @@ def do_list(cs, args):
         raise exceptions.CommandError(
             "Display total number of shares is only "
             "available with manila API version >= 2.42")
+
+    if cs.api_version.matches(api_versions.APIVersion("2.69"),
+                              api_versions.APIVersion()):
+        if args.soft_deleted:
+            search_opts['is_soft_deleted'] = args.soft_deleted
+    elif args.soft_deleted:
+        raise exceptions.CommandError(
+            "Filtering by is_soft_deleted is only "
+            "available with manila API version >= 2.69")
 
     if share_group:
         search_opts['share_group_id'] = share_group.id

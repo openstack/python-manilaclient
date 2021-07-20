@@ -162,6 +162,18 @@ class SharesTest(utils.TestCase):
         cs.shares.delete(share)
         cs.assert_called('DELETE', '/shares/1234')
 
+    def test_soft_delete_share(self):
+        share = cs.shares.get('1234')
+        cs.shares.soft_delete(share)
+        body = {"soft_delete": None}
+        cs.assert_called('POST', '/shares/1234/action', body=body)
+
+    def test_restore_share(self):
+        share = cs.shares.get('1234')
+        cs.shares.restore(share)
+        body = {"restore": None}
+        cs.assert_called('POST', '/shares/1234/action', body=body)
+
     @ddt.data(
         ("2.6", "/os-share-manage", None),
         ("2.7", "/shares/manage", None),
@@ -299,6 +311,37 @@ class SharesTest(utils.TestCase):
         cs.shares.list(detailed=False)
         cs.assert_called('GET', '/shares?is_public=True')
 
+    @ddt.data("1.0", "2.35", "2.69")
+    def test_list_shares_index_diff_api_version(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+        search_opts1 = {}
+        search_opts2 = {
+            'export_location': 'fake_export_id',
+        }
+        search_opts3 = {
+            'export_location': 'fake_export_id',
+            'is_soft_deleted': 'True',
+        }
+
+        with mock.patch.object(manager, "do_list",
+                               mock.Mock(return_value="fake")):
+            manager.list(detailed=False, search_opts=search_opts3)
+
+            if version >= api_versions.APIVersion('2.69'):
+                manager.do_list.assert_called_once_with(
+                    detailed=False, search_opts=search_opts3,
+                    sort_key=None, sort_dir=None)
+            elif version >= api_versions.APIVersion('2.35'):
+                manager.do_list.assert_called_once_with(
+                    detailed=False, search_opts=search_opts2,
+                    sort_key=None, sort_dir=None)
+            else:
+                manager.do_list.assert_called_once_with(
+                    detailed=False, search_opts=search_opts1,
+                    sort_key=None, sort_dir=None)
+
     def test_list_shares_index_with_search_opts(self):
         search_opts = {
             'fake_str': 'fake_str_value',
@@ -331,6 +374,21 @@ class SharesTest(utils.TestCase):
             cs.assert_called(
                 'GET', ('/shares?export_location_' + filter_type + '='
                         + value + '&is_public=True'))
+
+    @ddt.data(True, False)
+    def test_list_shares_index_with_is_soft_deleted(self, detailed):
+        search_opts = {
+            'is_soft_deleted': 'True',
+        }
+        cs.shares.list(detailed=detailed, search_opts=search_opts)
+        if detailed:
+            cs.assert_called(
+                'GET', ('/shares/detail?is_public=True'
+                        + '&is_soft_deleted=True'))
+        else:
+            cs.assert_called(
+                'GET', ('/shares?is_public=True'
+                        + '&is_soft_deleted=True'))
 
     def test_list_shares_detailed(self):
         search_opts = {

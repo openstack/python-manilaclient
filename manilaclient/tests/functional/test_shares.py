@@ -125,6 +125,42 @@ class SharesReadWriteBase(base.BaseTestCase):
                               self.user_client.get_share,
                               share['id'])
 
+    def test_create_soft_delete_and_restore_share(self):
+        self.skip_if_microversion_not_supported('2.69')
+        microversion = '2.69'
+        description = data_utils.rand_name('we-wait-until-share-is-ready')
+
+        share = self.create_share(self.protocol,
+                                  name='share_name',
+                                  description=description,
+                                  use_wait_option=True,
+                                  client=self.user_client)
+
+        self.assertEqual("available", share['status'])
+
+        # soft delete the share to recycle bin
+        self.soft_delete_share([share['id']], client=self.user_client,
+                               microversion=microversion)
+        self.user_client.wait_for_share_soft_deletion(share['id'])
+
+        # get shares list in recycle bin
+        result = self.user_client.list_shares(is_soft_deleted=True,
+                                              microversion=microversion)
+        share_ids = [sh['ID'] for sh in result]
+        # check share is in recycle bin
+        self.assertIn(share['id'], share_ids)
+
+        # restore the share from recycle bin
+        self.restore_share([share['id']], client=self.user_client,
+                           microversion=microversion)
+        self.user_client.wait_for_share_restore(share['id'])
+
+        result1 = self.user_client.list_shares(is_soft_deleted=True,
+                                               microversion=microversion)
+        share_ids1 = [sh['ID'] for sh in result1]
+        # check share not in recycle bin
+        self.assertNotIn(share['id'], share_ids1)
+
 
 @ddt.ddt
 class SharesTestMigration(base.BaseTestCase):

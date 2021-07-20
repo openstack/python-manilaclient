@@ -355,6 +355,20 @@ class BaseTestCase(base.ClientTestBase):
                             wait=wait, microversion=microversion)
 
     @classmethod
+    def soft_delete_share(cls, shares_to_soft_delete,
+                          client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        client.soft_delete_share(shares_to_soft_delete,
+                                 microversion=microversion)
+
+    @classmethod
+    def restore_share(cls, shares_to_restore,
+                      client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        client.restore_share(shares_to_restore,
+                             microversion=microversion)
+
+    @classmethod
     def _determine_share_network_to_use(cls, client, share_type,
                                         microversion=None):
         """Determine what share network we need from the share type."""

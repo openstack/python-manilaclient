@@ -1,0 +1,5 @@
+---
+features:
+  - Added CLI commands to soft delete share.
+  - Added CLI commands to restore share.
+  - Added CLI commands to query shares in recycle bin.

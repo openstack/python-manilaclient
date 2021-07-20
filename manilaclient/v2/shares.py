@@ -111,6 +111,14 @@ class Share(base.Resource):
         """Reverts a share (in place) to a snapshot."""
         self.manager.revert_to_snapshot(self, snapshot)
 
+    def soft_delete(self):
+        """Soft delete a share to recycle bin"""
+        self.manager.soft_delete(self)
+
+    def restore(self):
+        """Restore a share from recycle bin"""
+        self.manager.restore(self)
+
 
 class ShareManager(base.ManagerWithFind):
     """Manage :class:`Share` resources."""
@@ -341,11 +349,20 @@ class ShareManager(base.ManagerWithFind):
         """Get a list of all shares."""
         search_opts = search_opts or {}
         search_opts.pop("export_location", None)
+        search_opts.pop("is_soft_deleted", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
                             sort_key=sort_key, sort_dir=sort_dir)
 
-    @api_versions.wraps("2.35")   # noqa
+    @api_versions.wraps("2.35", "2.68")   # noqa
     def list(self, detailed=True, search_opts=None,   # noqa
+             sort_key=None, sort_dir=None):
+        """Get a list of all shares."""
+        search_opts.pop("is_soft_deleted", None)
+        return self.do_list(detailed=detailed, search_opts=search_opts,
+                            sort_key=sort_key, sort_dir=sort_dir)
+
+    @api_versions.wraps("2.69")  # noqa
+    def list(self, detailed=True, search_opts=None,  # noqa
              sort_key=None, sort_dir=None):
         """Get a list of all shares."""
         return self.do_list(detailed=detailed, search_opts=search_opts,
@@ -371,6 +388,7 @@ class ShareManager(base.ManagerWithFind):
             - (('share_network_id', 'share_network'), text)
             - (('share_type_id', 'share_type'), text)
             - (('snapshot_id', 'snapshot'), text)
+            - ('is_soft_deleted', bool)
             Note, that member context will have restricted set of
             available search opts. For admin context filtering also available
             by each share attr from its Model. So, this list is not full for
@@ -450,6 +468,22 @@ class ShareManager(base.ManagerWithFind):
     @api_versions.wraps("2.7")  # noqa
     def force_delete(self, share):   # noqa
         return self._do_force_delete(share, "force_delete")
+
+    @api_versions.wraps("2.69")
+    def soft_delete(self, share):
+        """Soft delete a share - share will go to recycle bin.
+
+        :param share: either share object or text with its ID.
+        """
+        return self._action("soft_delete", share)
+
+    @api_versions.wraps("2.69")
+    def restore(self, share):
+        """Restore a share - share will restore from recycle bin.
+
+        :param share: either share object or text with its ID.
+        """
+        return self._action("restore", share)
 
     @staticmethod
     def _validate_common_name(access):
