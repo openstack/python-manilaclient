@@ -63,6 +63,7 @@ class ShellTest(test_utils.TestCase):
         for var in self.FAKE_ENV:
             self.useFixture(fixtures.EnvironmentVariable(var,
                                                          self.FAKE_ENV[var]))
+        self.mock_completion()
 
         self.shell = shell.OpenStackManilaShell()
 

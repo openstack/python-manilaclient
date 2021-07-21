@@ -48,6 +48,16 @@ class TestCase(testtools.TestCase):
         self.addCleanup(patcher.stop)
         return new_attr
 
+    def mock_completion(self):
+        patcher = mock.patch(
+            'manilaclient.base.Manager.write_to_completion_cache')
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        patcher = mock.patch('manilaclient.base.Manager.completion_cache')
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
 
 class TestResponse(requests.Response):
     """Class used to wrap requests.Response.
