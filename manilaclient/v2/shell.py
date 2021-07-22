@@ -843,9 +843,11 @@ def do_rate_limits(cs, args):
 @cliutils.arg(
     '--snapshot-id',
     '--snapshot_id',
-    metavar='<snapshot-id>',
+    '--snapshot',
+    metavar='<snapshot>',
     action='single_alias',
-    help='Optional snapshot ID to create the share from. (Default=None)',
+    help='Optional snapshot ID or name to create the share from.'
+         ' (Default=None)',
     default=None)
 @cliutils.arg(
     '--name',
@@ -918,11 +920,15 @@ def do_create(cs, args):
     if args.share_network:
         share_network = _find_share_network(cs, args.share_network)
 
+    snapshot = None
+    if args.snapshot_id:
+        snapshot = _find_share_snapshot(cs, args.snapshot_id).id
+
     if args.name == 'None':
         raise exceptions.CommandError(
             "Share name cannot be with the value 'None'")
 
-    share = cs.shares.create(args.share_protocol, args.size, args.snapshot_id,
+    share = cs.shares.create(args.share_protocol, args.size, snapshot,
                              args.name, args.description,
                              metadata=share_metadata,
                              share_network=share_network,

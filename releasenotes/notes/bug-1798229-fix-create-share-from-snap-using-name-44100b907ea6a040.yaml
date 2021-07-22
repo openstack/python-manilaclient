@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Fixed the issue in which users were unable to create a share from a
+    snapshot, specifing the snapshot's name. For more details, please refer to
+    `launchpad bug 1798229 <https://bugs.launchpad.net/python-manilaclient/+bug/1798229>`_
