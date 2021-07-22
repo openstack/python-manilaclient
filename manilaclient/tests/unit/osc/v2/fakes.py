@@ -31,6 +31,7 @@ class FakeShareClient(object):
         self.management_url = kwargs['endpoint']
         self.shares = mock.Mock()
         self.share_access_rules = mock.Mock()
+        self.share_groups = mock.Mock()
         self.share_types = mock.Mock()
         self.share_type_access = mock.Mock()
         self.quotas = mock.Mock()
@@ -1091,3 +1092,62 @@ class FakeShareNetwork(object):
                 FakeShareNetwork.create_one_share_network(attrs))
 
         return share_networks
+
+
+class FakeShareGroup(object):
+    """Fake a share group"""
+
+    @staticmethod
+    def create_one_share_group(attrs=None, methods=None):
+        """Create a fake share group
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+
+        share_group = {
+            "id": 'share-group-id-' + uuid.uuid4().hex,
+            'name': None,
+            'created_at': datetime.datetime.now().isoformat(),
+            'status': 'available',
+            'description': None,
+            'availability_zone': None,
+            "project_id": 'project-id-' + uuid.uuid4().hex,
+            'host': None,
+            'share_group_type_id': 'share-group-type-id-' + uuid.uuid4().hex,
+            'source_share_group_snapshot_id': None,
+            'share_network_id': None,
+            'share_server_id': None,
+            'share_types': ['share-types-id-' + uuid.uuid4().hex],
+            'consistent_snapshot_support': None
+        }
+
+        share_group.update(attrs)
+        share_group = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_group),
+            methods=methods,
+            loaded=True)
+        return share_group
+
+    @staticmethod
+    def create_share_groups(attrs=None, count=2):
+        """Create multiple fake groups.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share groups to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_groups = []
+        for n in range(0, count):
+            share_groups.append(
+                FakeShareGroup.create_one_share_group(attrs))
+        return share_groups

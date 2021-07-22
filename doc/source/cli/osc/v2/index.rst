@@ -144,3 +144,10 @@ share instance export location
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share instance export location *
+
+============
+share groups
+============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share group *
