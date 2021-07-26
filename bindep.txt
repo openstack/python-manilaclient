@@ -9,3 +9,6 @@ locales [platform:debian]
 python3-all-dev [platform:ubuntu !platform:ubuntu-precise]
 python3-dev [platform:dpkg]
 python3-devel [platform:fedora]
+
+# PDF Docs package dependencies
+tex-gyre [platform:dpkg doc]
