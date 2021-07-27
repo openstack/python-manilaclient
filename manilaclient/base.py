@@ -183,7 +183,6 @@ class Manager(utils.HookableMixin):
 
     def _build_query_string(self, search_opts):
         search_opts = search_opts or {}
-        search_opts = utils.unicode_key_value_to_string(search_opts)
         params = sorted(
             [(k, v) for (k, v) in search_opts.items() if v])
         query_string = "?%s" % utils.safe_urlencode(params) if params else ''
