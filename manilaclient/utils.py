@@ -12,8 +12,6 @@
 
 from urllib import parse
 
-import six
-
 
 class HookableMixin(object):
     """Mixin so classes can register and run hooks."""
@@ -46,19 +44,11 @@ def safe_issubclass(*args):
 
 
 def get_function_name(func):
-    if six.PY2:
-        if hasattr(func, "im_class"):
-            return "%s.%s" % (func.im_class, func.__name__)
-        else:
-            return "%s.%s" % (func.__module__, func.__name__)
-    else:
-        return "%s.%s" % (func.__module__, func.__qualname__)
+    return "%s.%s" % (func.__module__, func.__qualname__)
 
 
 def _encode(src):
     """remove extra 'u' in PY2."""
-    if six.PY2 and isinstance(src, six.text_type):
-        return src.encode('utf-8')
     return src
 
 

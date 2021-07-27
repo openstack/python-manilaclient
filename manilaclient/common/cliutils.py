@@ -25,8 +25,6 @@ import textwrap
 from oslo_utils import encodeutils
 from oslo_utils import strutils
 import prettytable
-import six
-from six import moves
 
 from manilaclient.common._i18n import _
 
@@ -178,10 +176,7 @@ def print_list(objs, fields, formatters=None, sortby_index=0,
                 row.append(data)
         pt.add_row(row)
 
-    if six.PY3:
-        print(encodeutils.safe_encode(pt.get_string(**kwargs)).decode())
-    else:
-        print(encodeutils.safe_encode(pt.get_string(**kwargs)))
+    print(encodeutils.safe_encode(pt.get_string(**kwargs)).decode())
 
 
 def print_dict(dct, dict_property="Property", wrap=0):
@@ -196,12 +191,12 @@ def print_dict(dct, dict_property="Property", wrap=0):
     for k, v in dct.items():
         # convert dict to str to check length
         if isinstance(v, dict):
-            v = six.text_type(v)
+            v = str(v)
         if wrap > 0:
-            v = textwrap.fill(six.text_type(v), wrap)
+            v = textwrap.fill(str(v), wrap)
         # if value has a newline, add in multiple rows
         # e.g. fault with stacktrace
-        if v and isinstance(v, six.string_types) and r'\n' in v:
+        if v and isinstance(v, str) and r'\n' in v:
             lines = v.strip().split(r'\n')
             col1 = k
             for line in lines:
@@ -210,10 +205,7 @@ def print_dict(dct, dict_property="Property", wrap=0):
         else:
             pt.add_row([k, v])
 
-    if six.PY3:
-        print(encodeutils.safe_encode(pt.get_string()).decode())
-    else:
-        print(encodeutils.safe_encode(pt.get_string()))
+    print(encodeutils.safe_encode(pt.get_string()).decode())
 
 
 def get_password(max_password_prompts=3):
@@ -223,7 +215,7 @@ def get_password(max_password_prompts=3):
     if hasattr(sys.stdin, "isatty") and sys.stdin.isatty():
         # Check for Ctrl-D
         try:
-            for __ in moves.range(max_password_prompts):
+            for __ in range(max_password_prompts):
                 pw1 = getpass.getpass("OS Password: ")
                 if verify:
                     pw2 = getpass.getpass("Please verify: ")

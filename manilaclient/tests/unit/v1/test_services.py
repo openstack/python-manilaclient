@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-
 from manilaclient.tests.unit import utils
 
 
@@ -25,7 +23,7 @@ class ServicesV1Test(utils.TestCase):
             from manilaclient.v1 import services
         except Exception as e:
             msg = ("module 'manilaclient.v1.services' cannot be imported "
-                   "with error: %s") % six.text_type(e)
+                   "with error: %s") % str(e)
             assert False, msg
         for cls in ('Service', 'ServiceManager'):
             msg = "Module 'services' has no '%s' attr." % cls

@@ -25,7 +25,6 @@ from oslo_utils import importutils
 from oslo_utils import strutils
 import re
 import requests
-import six
 
 from manilaclient import exceptions
 
@@ -166,7 +165,7 @@ class HTTPClient(object):
                 if attempts > self.retries:
                     raise
 
-                self._logger.debug("Request error: %s", six.text_type(e))
+                self._logger.debug("Request error: %s", str(e))
 
             self._logger.debug(
                 "Failed attempt(%(current)s of %(total)s), "

@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-
 from manilaclient.tests.unit import utils
 
 
@@ -25,7 +23,7 @@ class ShareServersV1Test(utils.TestCase):
             from manilaclient.v1 import share_servers
         except Exception as e:
             msg = ("module 'manilaclient.v1.share_servers' cannot be imported "
-                   "with error: %s") % six.text_type(e)
+                   "with error: %s") % str(e)
             assert False, msg
         for cls in ('ShareServer', 'ShareServerManager'):
             msg = "Module 'share_servers' has no '%s' attr." % cls

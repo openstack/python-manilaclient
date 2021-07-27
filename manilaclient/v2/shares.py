@@ -18,7 +18,6 @@ import collections
 import ipaddress
 from oslo_utils import uuidutils
 import re
-import six
 import string
 
 from manilaclient import api_versions
@@ -507,11 +506,11 @@ class ShareManager(base.ManagerWithFind):
             if access_type == 'ip':
                 try:
                     if enable_ipv6:
-                        ipaddress.ip_network(six.text_type(access))
+                        ipaddress.ip_network(str(access))
                     else:
-                        ipaddress.IPv4Network(six.text_type(access))
+                        ipaddress.IPv4Network(str(access))
                 except ValueError as error:
-                    raise exceptions.CommandError(six.text_type(error))
+                    raise exceptions.CommandError(str(error))
             elif access_type == 'user':
                 self._validate_username(access)
             elif access_type == 'cert':

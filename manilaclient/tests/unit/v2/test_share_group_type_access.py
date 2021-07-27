@@ -16,7 +16,6 @@
 from unittest import mock
 
 import ddt
-import six
 
 import manilaclient
 from manilaclient import exceptions
@@ -37,7 +36,7 @@ class ShareGroupTypeAccessTest(utils.TestCase):
             self.manager, fake_group_type_access_info, loaded=True)
 
     def test_repr(self):
-        result = six.text_type(self.share_group_type_access)
+        result = str(self.share_group_type_access)
 
         self.assertEqual(
             '<Share Group Type Access: %s>' % fake.ShareGroupTypeAccess.id,

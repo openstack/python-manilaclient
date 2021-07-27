@@ -13,8 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-
 from manilaclient.tests.unit import utils
 
 
@@ -25,7 +23,7 @@ class QuotaClassesV1Test(utils.TestCase):
             from manilaclient.v1 import quota_classes
         except Exception as e:
             msg = ("module 'manilaclient.v1.quota_classes' cannot be imported "
-                   "with error: %s") % six.text_type(e)
+                   "with error: %s") % str(e)
             assert False, msg
         for cls in ('QuotaClassSet', 'QuotaClassSetManager'):
             msg = "Module 'quota_classes' has no '%s' attr." % cls

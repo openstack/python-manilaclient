@@ -11,7 +11,6 @@
 #   under the License.
 
 import logging
-import six
 
 from osc_lib.command import command
 from osc_lib import exceptions
@@ -152,7 +151,7 @@ class CreateShareType(command.ShowOne):
                     strict=True))
         except ValueError as e:
             msg = ("Argument spec_driver_handles_share_servers "
-                   "argument is not valid: %s" % six.text_type(e))
+                   "argument is not valid: %s" % str(e))
             raise exceptions.CommandError(msg)
 
         if parsed_args.description:

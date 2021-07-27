@@ -21,7 +21,6 @@ from unittest import mock
 import ddt
 import fixtures
 from oslo_utils import strutils
-import six
 
 from manilaclient import api_versions
 from manilaclient import client
@@ -606,7 +605,7 @@ class ShellTest(test_utils.TestCase):
         }
         self.run_command(
             'type-create test-type-3 false --is-public %s' %
-            six.text_type(public))
+            str(public))
         self.assert_called('POST', '/types', body=expected)
 
     def test_type_access_list(self):
@@ -3050,7 +3049,7 @@ class ShellTest(test_utils.TestCase):
         self.run_command(
             'share-group-type-create test-group-type-1 '
             'type1,type2 --is-public %s --group-specs '
-            'spec1=value1' % six.text_type(public))
+            'spec1=value1' % str(public))
 
         self.assert_called_anytime('POST', '/share-group-types', body=expected)
 
@@ -3404,7 +3403,7 @@ class ShellTest(test_utils.TestCase):
 
     @ddt.data('migration_error', 'migration_success', None)
     def test_reset_task_state(self, param):
-        command = ' '.join(('reset-task-state --state', six.text_type(param),
+        command = ' '.join(('reset-task-state --state', str(param),
                             '1234'))
         self.run_command(command)
         expected = {'reset_task_state': {'task_state': param}}
@@ -3712,7 +3711,7 @@ class ShellTest(test_utils.TestCase):
     @ddt.data('migration_error', 'migration_success', None)
     def test_share_server_reset_task_state(self, param):
         command = ' '.join(('share-server-reset-task-state --state',
-                            six.text_type(param),
+                            str(param),
                             '1234'))
         self.run_command(command)
         expected = {'reset_task_state': {'task_state': param}}
