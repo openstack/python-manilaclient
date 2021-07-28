@@ -177,7 +177,10 @@ share groups
 ============
 
 .. autoprogram-cliff:: openstack.share.v2
-    :command: share group [!t]*
+    :command: share group [!ts]*
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share group set
 
 =================
 share group types
@@ -185,3 +188,10 @@ share group types
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share group type *
+
+=====================
+share group snapshots
+=====================
+
+  .. autoprogram-cliff:: openstack.share.v2
+      :command: share group snapshot *
