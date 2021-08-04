@@ -19,7 +19,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCE_PATH = '/share-access-rules/%s'
 RESOURCE_NAME = 'access'
@@ -29,7 +28,7 @@ RESOURCE_METADATA_PATH = '/share-access-rules/%s/metadata/%s'
 RESOURCE_LIST_PATH = '/share-access-rules'
 
 
-class ShareAccessRule(common_base.Resource):
+class ShareAccessRule(base.Resource):
     """A Share Access Rule."""
 
     def __repr__(self):
@@ -53,7 +52,7 @@ class ShareAccessRuleManager(base.ManagerWithFind):
            with UUID
         :rtype: :class:`ShareAccessRule`
         """
-        share_access_rule_id = common_base.getid(share_access_rule)
+        share_access_rule_id = base.getid(share_access_rule)
         url = RESOURCE_PATH % share_access_rule_id
         return self._get(url, RESOURCE_NAME)
 
@@ -66,7 +65,7 @@ class ShareAccessRuleManager(base.ManagerWithFind):
         :param metadata: A list of keys to be set.
         """
         body = {'metadata': metadata}
-        access_id = common_base.getid(access)
+        access_id = base.getid(access)
         url = RESOURCES_METADATA_PATH % access_id
         return self._update(url, body, "metadata")
 
@@ -78,13 +77,13 @@ class ShareAccessRuleManager(base.ManagerWithFind):
         :return: None if successful, else API response on failure
         """
         for k in keys:
-            url = RESOURCE_METADATA_PATH % (common_base.getid(access), k)
+            url = RESOURCE_METADATA_PATH % (base.getid(access), k)
             self._delete(url)
 
     @api_versions.wraps("2.45")
     def access_list(self, share, search_opts=None):
         search_opts = search_opts or {}
-        search_opts['share_id'] = common_base.getid(share)
+        search_opts['share_id'] = base.getid(share)
         query_string = self._build_query_string(search_opts)
         url = RESOURCE_LIST_PATH + query_string
         return self._list(url, 'access_list')

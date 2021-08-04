@@ -17,7 +17,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 
 RESOURCES_PATH = '/share-groups'
@@ -28,7 +27,7 @@ RESOURCE_NAME = 'share_group'
 SG_GRADUATION_VERSION = "2.55"
 
 
-class ShareGroup(common_base.Resource):
+class ShareGroup(base.Resource):
     """A share group is a logical grouping of shares on a single backend."""
 
     def __repr__(self):
@@ -88,15 +87,15 @@ class ShareGroupManager(base.ManagerWithFind):
         if availability_zone:
             body['availability_zone'] = availability_zone
         if share_group_type:
-            body['share_group_type_id'] = common_base.getid(share_group_type)
+            body['share_group_type_id'] = base.getid(share_group_type)
         if share_network:
-            body['share_network_id'] = common_base.getid(share_network)
+            body['share_network_id'] = base.getid(share_network)
 
         if source_share_group_snapshot:
-            body['source_share_group_snapshot_id'] = common_base.getid(
+            body['source_share_group_snapshot_id'] = base.getid(
                 source_share_group_snapshot)
         elif share_types:
-            body['share_types'] = [common_base.getid(share_type)
+            body['share_types'] = [base.getid(share_type)
                                    for share_type in share_types]
 
         return self._create(
@@ -129,7 +128,7 @@ class ShareGroupManager(base.ManagerWithFind):
         :param share_group: either ShareGroup object or text with its UUID
         :rtype: :class:`ShareGroup`
         """
-        share_group_id = common_base.getid(share_group)
+        share_group_id = base.getid(share_group)
         url = RESOURCE_PATH % share_group_id
         return self._get(url, RESOURCE_NAME)
 
@@ -217,7 +216,7 @@ class ShareGroupManager(base.ManagerWithFind):
         :param share_group: either ShareGroup object or text with its UUID
         :rtype: :class:`ShareGroup`
         """
-        share_group_id = common_base.getid(share_group)
+        share_group_id = base.getid(share_group)
         url = RESOURCE_PATH % share_group_id
         if not kwargs:
             return self._get(url, RESOURCE_NAME)
@@ -239,7 +238,7 @@ class ShareGroupManager(base.ManagerWithFind):
         :param share_group: either ShareGroup object or text with its UUID
         :param force: True to force the deletion
         """
-        share_group_id = common_base.getid(share_group)
+        share_group_id = base.getid(share_group)
         if force:
             url = RESOURCE_PATH_ACTION % share_group_id
             body = {'force_delete': None}
@@ -264,7 +263,7 @@ class ShareGroupManager(base.ManagerWithFind):
         :param state: The new state for the share group
         """
 
-        share_group_id = common_base.getid(share_group)
+        share_group_id = base.getid(share_group)
         url = RESOURCE_PATH_ACTION % share_group_id
         body = {'reset_status': {'status': state}}
         self.api.client.post(url, body=body)

@@ -15,7 +15,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
 
 RESOURCES_PATH = '/share-networks'
@@ -25,7 +24,7 @@ RESOURCES_NAME = 'share_networks'
 ACTION_PATH = RESOURCE_PATH + '/action'
 
 
-class ShareNetwork(common_base.Resource):
+class ShareNetwork(base.Resource):
     """Network info for Manila shares."""
     def __repr__(self):
         return "<ShareNetwork: %s>" % self.id
@@ -125,11 +124,11 @@ class ShareNetworkManager(base.ManagerWithFind):
         """
         body = {
             'remove_security_service': {
-                'security_service_id': common_base.getid(security_service),
+                'security_service_id': base.getid(security_service),
             },
         }
         return self._create(
-            RESOURCE_PATH % common_base.getid(share_network) + '/action',
+            RESOURCE_PATH % base.getid(share_network) + '/action',
             body,
             RESOURCE_NAME,
         )
@@ -140,7 +139,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         :param policy: share network to get.
         :rtype: :class:`NetworkInfo`
         """
-        return self._get(RESOURCE_PATH % common_base.getid(share_network),
+        return self._get(RESOURCE_PATH % base.getid(share_network),
                          RESOURCE_NAME)
 
     @api_versions.wraps("1.0", "2.25")
@@ -173,7 +172,7 @@ class ShareNetworkManager(base.ManagerWithFind):
             raise exceptions.CommandError(msg)
 
         body = {RESOURCE_NAME: values}
-        return self._update(RESOURCE_PATH % common_base.getid(share_network),
+        return self._update(RESOURCE_PATH % base.getid(share_network),
                             body,
                             RESOURCE_NAME)
 
@@ -205,7 +204,7 @@ class ShareNetworkManager(base.ManagerWithFind):
             raise exceptions.CommandError(msg)
 
         body = {RESOURCE_NAME: values}
-        return self._update(RESOURCE_PATH % common_base.getid(share_network),
+        return self._update(RESOURCE_PATH % base.getid(share_network),
                             body,
                             RESOURCE_NAME)
 
@@ -214,7 +213,7 @@ class ShareNetworkManager(base.ManagerWithFind):
 
         :param share_network: share network to be deleted.
         """
-        self._delete(RESOURCE_PATH % common_base.getid(share_network))
+        self._delete(RESOURCE_PATH % base.getid(share_network))
 
     def list(self, detailed=True, search_opts=None):
         """Get a list of all share network.
@@ -239,7 +238,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body)
-        url = ACTION_PATH % common_base.getid(share_network)
+        url = ACTION_PATH % base.getid(share_network)
         return self.api.client.post(url, body=body)
 
     def add_security_service(self, share_network, security_service):
@@ -250,7 +249,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         :rtype: :class:`ShareNetwork`
         """
         info = {
-            'security_service_id': common_base.getid(security_service),
+            'security_service_id': base.getid(security_service),
         }
         return self._action('add_security_service', share_network, info)
 
@@ -265,7 +264,7 @@ class ShareNetworkManager(base.ManagerWithFind):
         :rtype: :class:`ShareNetwork`
         """
         info = {
-            'security_service_id': common_base.getid(security_service),
+            'security_service_id': base.getid(security_service),
             'reset_operation': reset_operation,
         }
         return self._action('add_security_service_check', share_network, info)
@@ -284,8 +283,8 @@ class ShareNetworkManager(base.ManagerWithFind):
         :rtype: :class:`ShareNetwork`
         """
         info = {
-            'current_service_id': common_base.getid(current_security_service),
-            'new_service_id': common_base.getid(new_security_service)}
+            'current_service_id': base.getid(current_security_service),
+            'new_service_id': base.getid(new_security_service)}
 
         return self._action('update_security_service', share_network, info)
 
@@ -304,8 +303,8 @@ class ShareNetworkManager(base.ManagerWithFind):
         :rtype: :class:`ShareNetwork`
         """
         info = {
-            'current_service_id': common_base.getid(current_security_service),
-            'new_service_id': common_base.getid(new_security_service),
+            'current_service_id': base.getid(current_security_service),
+            'new_service_id': base.getid(new_security_service),
             'reset_operation': reset_operation
         }
 

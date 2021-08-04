@@ -22,13 +22,12 @@ import string
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 from manilaclient import exceptions
 from manilaclient.v2 import share_instances
 
 
-class Share(common_base.Resource):
+class Share(base.Resource):
     """A share is an extra block level storage to the OpenStack instances."""
     def __repr__(self):
         return "<Share: %s>" % self.id
@@ -150,8 +149,8 @@ class ShareManager(base.ManagerWithFind):
             'description': description,
             'metadata': share_metadata,
             'share_proto': share_proto,
-            'share_network_id': common_base.getid(share_network),
-            'share_type': common_base.getid(share_type),
+            'share_network_id': base.getid(share_network),
+            'share_type': base.getid(share_type),
             'is_public': is_public,
             'availability_zone': availability_zone,
             'scheduler_hints': scheduler_hints,
@@ -291,7 +290,7 @@ class ShareManager(base.ManagerWithFind):
         :param share: either share object or text with its ID.
         """
         return self.api.client.post(
-            "/os-share-unmanage/%s/unmanage" % common_base.getid(share))
+            "/os-share-unmanage/%s/unmanage" % base.getid(share))
 
     @api_versions.wraps("2.7")  # noqa
     def unmanage(self, share):   # noqa
@@ -310,7 +309,7 @@ class ShareManager(base.ManagerWithFind):
         :param snapshot: either snapshot object or text with its ID.
         """
 
-        snapshot_id = common_base.getid(snapshot)
+        snapshot_id = base.getid(snapshot)
         info = {'snapshot_id': snapshot_id}
         return self._action('revert', share, info=info)
 
@@ -320,7 +319,7 @@ class ShareManager(base.ManagerWithFind):
         :param share: either share object or text with its ID.
         :rtype: :class:`Share`
         """
-        share_id = common_base.getid(share)
+        share_id = base.getid(share)
         return self._get("/shares/%s" % share_id, "share")
 
     def update(self, share, **kwargs):
@@ -333,7 +332,7 @@ class ShareManager(base.ManagerWithFind):
             return
 
         body = {'share': kwargs, }
-        share_id = common_base.getid(share)
+        share_id = base.getid(share)
         return self._update("/shares/%s" % share_id, body)
 
     @api_versions.wraps("1.0", "2.34")
@@ -432,7 +431,7 @@ class ShareManager(base.ManagerWithFind):
         :param share_group_id: text - ID of the share group to which the share
             belongs
         """
-        url = "/shares/%s" % common_base.getid(share)
+        url = "/shares/%s" % base.getid(share)
         if share_group_id:
             url += "?share_group_id=%s" % share_group_id
         self._delete(url)
@@ -631,7 +630,7 @@ class ShareManager(base.ManagerWithFind):
 
         :param share: either share object or text with its ID.
         """
-        return self._get("/shares/%s/metadata" % common_base.getid(share),
+        return self._get("/shares/%s/metadata" % base.getid(share),
                          "metadata")
 
     def set_metadata(self, share, metadata):
@@ -641,7 +640,7 @@ class ShareManager(base.ManagerWithFind):
         :param metadata: A list of keys to be set.
         """
         body = {'metadata': metadata}
-        return self._create("/shares/%s/metadata" % common_base.getid(share),
+        return self._create("/shares/%s/metadata" % base.getid(share),
                             body, "metadata")
 
     def delete_metadata(self, share, keys):
@@ -650,7 +649,7 @@ class ShareManager(base.ManagerWithFind):
         :param share: either share object or text with its ID.
         :param keys: A list of keys to be removed.
         """
-        share_id = common_base.getid(share)
+        share_id = base.getid(share)
         for key in keys:
             self._delete("/shares/%(share_id)s/metadata/%(key)s" % {
                 'share_id': share_id, 'key': key})
@@ -662,7 +661,7 @@ class ShareManager(base.ManagerWithFind):
         :param metadata: A list of keys to be updated.
         """
         body = {'metadata': metadata}
-        return self._update("/shares/%s/metadata" % common_base.getid(share),
+        return self._update("/shares/%s/metadata" % base.getid(share),
                             body)
 
     def _action(self, action, share, info=None, **kwargs):
@@ -675,7 +674,7 @@ class ShareManager(base.ManagerWithFind):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/shares/%s/action' % common_base.getid(share)
+        url = '/shares/%s/action' % base.getid(share)
         return self.api.client.post(url, body=body)
 
     def _do_reset_state(self, share, state, action_name):
@@ -742,7 +741,7 @@ class ShareManager(base.ManagerWithFind):
         :param share: either share object or text with its ID.
         """
         return self._list(
-            '/shares/%s/instances' % common_base.getid(share),
+            '/shares/%s/instances' % base.getid(share),
             'share_instances',
             obj_class=share_instances.ShareInstance
         )

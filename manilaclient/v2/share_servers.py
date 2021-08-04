@@ -15,7 +15,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_NAME = 'share_servers'
 RESOURCES_PATH = '/share-servers'
@@ -24,7 +23,7 @@ RESOURCE_NAME = 'share_server'
 ACTION_PATH = RESOURCE_PATH + '/action'
 
 
-class ShareServer(common_base.Resource):
+class ShareServer(base.Resource):
 
     def __repr__(self):
         return "<ShareServer: %s>" % self.id
@@ -87,7 +86,7 @@ class ShareServerManager(base.ManagerWithFind):
         :param server: ID of the :class:`ShareServer` to get.
         :rtype: :class:`ShareServer`
         """
-        server_id = common_base.getid(server)
+        server_id = base.getid(server)
         server = self._get("%s/%s" % (RESOURCES_PATH, server_id),
                            RESOURCE_NAME)
         # Split big dict 'backend_details' to separated strings
@@ -107,7 +106,7 @@ class ShareServerManager(base.ManagerWithFind):
         :param server: ID of the :class:`ShareServer` to get details from.
         :rtype: list of :class:`ShareServerBackendDetails
         """
-        server_id = common_base.getid(server)
+        server_id = base.getid(server)
         return self._get("%s/%s/details" % (RESOURCES_PATH, server_id),
                          "details")
 
@@ -116,7 +115,7 @@ class ShareServerManager(base.ManagerWithFind):
 
         :param server: ID of the :class:`ShareServer` to delete.
         """
-        server_id = common_base.getid(server)
+        server_id = base.getid(server)
         self._delete(RESOURCE_PATH % server_id)
 
     def list(self, search_opts=None):
@@ -181,7 +180,7 @@ class ShareServerManager(base.ManagerWithFind):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body)
-        url = ACTION_PATH % common_base.getid(share_server)
+        url = ACTION_PATH % base.getid(share_server)
         return self.api.client.post(url, body=body)
 
     @api_versions.wraps("2.57")

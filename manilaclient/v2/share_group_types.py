@@ -16,7 +16,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/share-group-types'
 RESOURCE_PATH = '/share-group-types/%s'
@@ -30,7 +29,7 @@ GROUP_SPECS_RESOURCES_NAME = 'group_specs'
 SG_GRADUATION_VERSION = "2.55"
 
 
-class ShareGroupType(common_base.Resource):
+class ShareGroupType(base.Resource):
     """A Share Group Type is the type of share group to be created."""
 
     def __init__(self, manager, info, loaded=False):
@@ -56,7 +55,7 @@ class ShareGroupType(common_base.Resource):
         if prefer_resource_data:
             return self._group_specs
         else:
-            share_group_type_id = common_base.getid(self)
+            share_group_type_id = base.getid(self)
             url = GROUP_SPECS_RESOURCES_PATH % share_group_type_id
             _resp, body = self.manager.api.client.get(url)
             self._group_specs = body.get(GROUP_SPECS_RESOURCES_NAME, {})
@@ -68,7 +67,7 @@ class ShareGroupType(common_base.Resource):
         :param extra_specs: A dict of key/value pairs to be set on this object
         :return: dict with group specs
         """
-        share_group_type_id = common_base.getid(self)
+        share_group_type_id = base.getid(self)
         url = GROUP_SPECS_RESOURCES_PATH % share_group_type_id
         body = {GROUP_SPECS_RESOURCES_NAME: group_specs}
         return self.manager._create(
@@ -80,7 +79,7 @@ class ShareGroupType(common_base.Resource):
         :param keys: A list of keys on this object to be unset
         :return: None if successful, else API response on failure
         """
-        share_group_type_id = common_base.getid(self)
+        share_group_type_id = base.getid(self)
         for k in keys:
             url = GROUP_SPECS_RESOURCE_PATH % (share_group_type_id, k)
             resp = self.manager._delete(url)
@@ -110,7 +109,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
             'name': name,
             'is_public': is_public,
             'group_specs': group_specs or {},
-            'share_types': [common_base.getid(share_type)
+            'share_types': [base.getid(share_type)
                             for share_type in share_types],
         }
         return self._create(
@@ -134,7 +133,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
            with UUID, or 'default'
         :rtype: :class:`ShareGroupType`
         """
-        share_group_type_id = common_base.getid(share_group_type)
+        share_group_type_id = base.getid(share_group_type)
         url = RESOURCE_PATH % share_group_type_id
         return self._get(url, RESOURCE_NAME)
 
@@ -174,7 +173,7 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         :param share_group_type: either instance of ShareGroupType, or text
            with UUID
         """
-        share_group_type_id = common_base.getid(share_group_type)
+        share_group_type_id = base.getid(share_group_type)
         url = RESOURCE_PATH % share_group_type_id
         self._delete(url)
 

@@ -16,11 +16,10 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 
 
-class ShareSnapshot(common_base.Resource):
+class ShareSnapshot(base.Resource):
     """Represent a snapshot of a share."""
 
     def __repr__(self):
@@ -72,7 +71,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         :param description: Description of the snapshot
         :rtype: :class:`ShareSnapshot`
         """
-        body = {'snapshot': {'share_id': common_base.getid(share),
+        body = {'snapshot': {'share_id': base.getid(share),
                              'force': force,
                              'name': name,
                              'description': description}}
@@ -93,7 +92,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         """
         driver_options = driver_options if driver_options else {}
         body = {
-            'share_id': common_base.getid(share),
+            'share_id': base.getid(share),
             'provider_location': provider_location,
             'driver_options': driver_options,
             'name': name,
@@ -117,7 +116,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
             of snapshot to delete.
         :rtype: :class:`ShareSnapshot`
         """
-        snapshot_id = common_base.getid(snapshot)
+        snapshot_id = base.getid(snapshot)
         return self._get('/snapshots/%s' % snapshot_id, 'snapshot')
 
     def list(self, detailed=True, search_opts=None, sort_key=None,
@@ -161,11 +160,11 @@ class ShareSnapshotManager(base.ManagerWithFind):
 
         :param snapshot: The :class:`ShareSnapshot` to delete.
         """
-        self._delete("/snapshots/%s" % common_base.getid(snapshot))
+        self._delete("/snapshots/%s" % base.getid(snapshot))
 
     def _do_force_delete(self, snapshot, action_name="force_delete"):
         """Delete the specified snapshot ignoring its current state."""
-        return self._action(action_name, common_base.getid(snapshot))
+        return self._action(action_name, base.getid(snapshot))
 
     @api_versions.wraps("1.0", "2.6")
     def force_delete(self, snapshot):
@@ -186,7 +185,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
             return
 
         body = {'snapshot': kwargs, }
-        snapshot_id = common_base.getid(snapshot)
+        snapshot_id = base.getid(snapshot)
         return self._update("/snapshots/%s" % snapshot_id, body)
 
     def _do_reset_state(self, snapshot, state, action_name="reset_status"):
@@ -222,7 +221,7 @@ class ShareSnapshotManager(base.ManagerWithFind):
         return self._do_deny(snapshot, id)
 
     def _do_access_list(self, snapshot):
-        snapshot_id = common_base.getid(snapshot)
+        snapshot_id = base.getid(snapshot)
         access_list = self._list("/snapshots/%s/access-list" % snapshot_id,
                                  'snapshot_access_list')
         return access_list
@@ -235,5 +234,5 @@ class ShareSnapshotManager(base.ManagerWithFind):
         """Perform a snapshot 'action'."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/snapshots/%s/action' % common_base.getid(snapshot)
+        url = '/snapshots/%s/action' % base.getid(snapshot)
         return self.api.client.post(url, body=body)

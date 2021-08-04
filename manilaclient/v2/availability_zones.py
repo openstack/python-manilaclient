@@ -15,14 +15,13 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCE_PATH_LEGACY = '/os-availability-zone'
 RESOURCE_PATH = '/availability-zones'
 RESOURCE_NAME = 'availability_zones'
 
 
-class AvailabilityZone(common_base.Resource):
+class AvailabilityZone(base.Resource):
 
     def __repr__(self):
         return "<AvailabilityZone: %s>" % self.id

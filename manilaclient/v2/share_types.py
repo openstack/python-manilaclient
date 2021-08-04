@@ -20,11 +20,10 @@ Share Type interface.
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
 
 
-class ShareType(common_base.Resource):
+class ShareType(base.Resource):
     """A Share Type is the type of share to be created."""
 
     def __init__(self, manager, info, loaded=False):
@@ -57,7 +56,7 @@ class ShareType(common_base.Resource):
             return extra_specs
 
         _resp, body = self.manager.api.client.get(
-            "/types/%s/extra_specs" % common_base.getid(self))
+            "/types/%s/extra_specs" % base.getid(self))
 
         self.extra_specs = body["extra_specs"]
 
@@ -77,7 +76,7 @@ class ShareType(common_base.Resource):
         """
         body = {'extra_specs': metadata}
         return self.manager._create(
-            "/types/%s/extra_specs" % common_base.getid(self),
+            "/types/%s/extra_specs" % base.getid(self),
             body,
             "extra_specs",
             return_raw=True,
@@ -97,7 +96,7 @@ class ShareType(common_base.Resource):
         resp = None
         for k in keys:
             resp = self.manager._delete(
-                "/types/%s/extra_specs/%s" % (common_base.getid(self), k))
+                "/types/%s/extra_specs/%s" % (base.getid(self), k))
             if resp is not None:
                 return resp
 
@@ -128,7 +127,7 @@ class ShareTypeManager(base.ManagerWithFind):
         :param share: either share object or text with its ID.
         :rtype: :class:`Share`
         """
-        type_id = common_base.getid(share_type)
+        type_id = base.getid(share_type)
         return self._get("/types/%s" % type_id, "share_type")
 
     def get(self, share_type="default"):
@@ -137,7 +136,7 @@ class ShareTypeManager(base.ManagerWithFind):
         :param share_type: The ID of the :class:`ShareType` to get.
         :rtype: :class:`ShareType`
         """
-        return self._get("/types/%s" % common_base.getid(share_type),
+        return self._get("/types/%s" % base.getid(share_type),
                          "share_type")
 
     def delete(self, share_type):
@@ -145,7 +144,7 @@ class ShareTypeManager(base.ManagerWithFind):
 
         :param share_type: The name or ID of the :class:`ShareType` to get.
         """
-        self._delete("/types/%s" % common_base.getid(share_type))
+        self._delete("/types/%s" % base.getid(share_type))
 
     def _do_create(self, name, extra_specs, is_public,
                    is_public_keyname="share_type_access:is_public",
@@ -189,7 +188,7 @@ class ShareTypeManager(base.ManagerWithFind):
             body["share_type"][is_public_keyname] = is_public
         if description or description == "":
             body["share_type"]["description"] = description
-        return self._update("/types/%s" % common_base.getid(share_type),
+        return self._update("/types/%s" % base.getid(share_type),
                             body, "share_type")
 
     @api_versions.wraps("1.0", "2.6")

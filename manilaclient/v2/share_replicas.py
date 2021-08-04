@@ -15,7 +15,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 
 RESOURCES_PATH = '/share-replicas'
@@ -25,7 +24,7 @@ RESOURCES_NAME = 'share_replicas'
 RESOURCE_NAME = 'share_replica'
 
 
-class ShareReplica(common_base.Resource):
+class ShareReplica(base.Resource):
     """A replica is 'mirror' instance of a share at some point in time."""
     def __repr__(self):
         return "<Share Replica: %s>" % self.id
@@ -66,7 +65,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         :param replica: either replica object or its UUID.
         :rtype: :class:`ShareReplica`
         """
-        replica_id = common_base.getid(replica)
+        replica_id = base.getid(replica)
         return self._get(RESOURCE_PATH % replica_id, RESOURCE_NAME)
 
     @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
@@ -87,7 +86,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
 
         if share:
-            share_id = '?share_id=' + common_base.getid(share)
+            share_id = '?share_id=' + base.getid(share)
             url = RESOURCES_PATH + '/detail' + share_id
             return self._list(url, RESOURCES_NAME)
         else:
@@ -129,11 +128,11 @@ class ShareReplicaManager(base.ManagerWithFind):
         :param availability_zone: The 'availability_zone' object or its UUID.
         """
 
-        share_id = common_base.getid(share)
+        share_id = base.getid(share)
         body = {'share_id': share_id}
 
         if availability_zone:
-            body['availability_zone'] = common_base.getid(availability_zone)
+            body['availability_zone'] = base.getid(availability_zone)
 
         return self._create(RESOURCES_PATH,
                             {RESOURCE_NAME: body},
@@ -223,7 +222,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        replica_id = common_base.getid(replica)
+        replica_id = base.getid(replica)
         url = RESOURCE_PATH_ACTION % replica_id
         return self.api.client.post(url, body=body)
 
@@ -232,7 +231,7 @@ class ShareReplicaManager(base.ManagerWithFind):
 
         :param replica: either share replica object or its UUID.
         """
-        replica_id = common_base.getid(replica)
+        replica_id = base.getid(replica)
         url = RESOURCE_PATH % replica_id
 
         if force:
@@ -245,7 +244,7 @@ class ShareReplicaManager(base.ManagerWithFind):
 
         :param replica: either share replica object or its UUID.
         """
-        return self._action(action_name, common_base.getid(replica))
+        return self._action(action_name, base.getid(replica))
 
     def _do_reset_state(self, replica, state, action_name):
         """Update the provided share replica with the provided state.

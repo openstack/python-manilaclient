@@ -15,14 +15,13 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCE_PATH_LEGACY = '/os-quota-class-sets'
 RESOURCE_PATH = '/quota-class-sets'
 REPLICA_QUOTAS_MICROVERSION = "2.53"
 
 
-class QuotaClassSet(common_base.Resource):
+class QuotaClassSet(base.Resource):
 
     @property
     def id(self):

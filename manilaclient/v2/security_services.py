@@ -14,7 +14,6 @@
 #    under the License.
 
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient import exceptions
 
 RESOURCES_PATH = '/security-services'
@@ -23,7 +22,7 @@ RESOURCE_NAME = 'security_service'
 RESOURCES_NAME = 'security_services'
 
 
-class SecurityService(common_base.Resource):
+class SecurityService(base.Resource):
     """Security service for Manila shares."""
     def __repr__(self):
         return "<SecurityService: %s>" % self.id
@@ -88,7 +87,7 @@ class SecurityServiceManager(base.ManagerWithFind):
         :rtype: :class:`SecurityService`
         """
         return self._get(
-            RESOURCE_PATH % common_base.getid(security_service),
+            RESOURCE_PATH % base.getid(security_service),
             RESOURCE_NAME,
         )
 
@@ -138,7 +137,7 @@ class SecurityServiceManager(base.ManagerWithFind):
         body = {RESOURCE_NAME: values}
 
         return self._update(
-            RESOURCE_PATH % common_base.getid(security_service),
+            RESOURCE_PATH % base.getid(security_service),
             body,
             RESOURCE_NAME,
         )
@@ -148,7 +147,7 @@ class SecurityServiceManager(base.ManagerWithFind):
 
         :param security_service: security service to be deleted.
         """
-        self._delete(RESOURCE_PATH % common_base.getid(security_service))
+        self._delete(RESOURCE_PATH % base.getid(security_service))
 
     def list(self, detailed=True, search_opts=None):
         """Get a list of all security services.

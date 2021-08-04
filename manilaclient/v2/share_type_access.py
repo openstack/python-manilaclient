@@ -16,10 +16,9 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 
-class ShareTypeAccess(common_base.Resource):
+class ShareTypeAccess(base.Resource):
     def __repr__(self):
         return "<ShareTypeAccess: %s>" % self.id
 
@@ -35,7 +34,7 @@ class ShareTypeAccessManager(base.ManagerWithFind):
 
         return self._list(
             "/types/%(st_id)s/%(action_name)s" % {
-                "st_id": common_base.getid(share_type),
+                "st_id": base.getid(share_type),
                 "action_name": action_name},
             "share_type_access")
 
@@ -61,5 +60,5 @@ class ShareTypeAccessManager(base.ManagerWithFind):
         """Perform a share type action."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/types/%s/action' % common_base.getid(share_type)
+        url = '/types/%s/action' % base.getid(share_type)
         return self.api.client.post(url, body=body)
