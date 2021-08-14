@@ -56,6 +56,13 @@ class CreateShareReplica(command.ShowOne):
                    "Supported key is only_host. Available for microversion "
                    ">= 2.67."),
         )
+        parser.add_argument(
+            '--share-network',
+            metavar='<share-network-name-or-id>',
+            default=None,
+            help=_('Optional network info ID or name. Available for '
+                   'microversion >= 2.72')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -83,6 +90,17 @@ class CreateShareReplica(command.ShowOne):
         }
         if scheduler_hints:
             body['scheduler_hints'] = scheduler_hints
+
+        share_network_id = None
+        if parsed_args.share_network:
+            if share_client.api_version < api_versions.APIVersion("2.72"):
+                raise exceptions.CommandError(
+                    "'share-network' option is available only starting "
+                    "with '2.72' API microversion.")
+            share_network_id = osc_utils.find_resource(
+                share_client.share_networks,
+                parsed_args.share_network).id
+            body['share_network'] = share_network_id
 
         share_replica = share_client.share_replicas.create(**body)
         if parsed_args.wait:

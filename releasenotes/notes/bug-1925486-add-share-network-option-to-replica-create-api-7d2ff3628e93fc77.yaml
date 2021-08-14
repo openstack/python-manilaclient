@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    `Bug #1925486 <https://bugs.launchpad.net/manila/+bug/1925486>`_
+    Share replica create command does not support share network option and
+    manila internally uses parent share's share network. Fixed it to allow any
+    share network by providing option ``share-network`` starting with microversion
+    '2.72'.

@@ -18,6 +18,7 @@ from unittest import mock
 import ddt
 
 from manilaclient import api_versions
+from manilaclient.common import constants
 from manilaclient.tests.unit import utils
 from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_replicas
@@ -37,19 +38,43 @@ class ShareReplicasTest(utils.TestCase):
         self.manager = share_replicas.ShareReplicaManager(
             fakes.FakeClient(api_version=microversion))
 
-    def test_create(self):
+    @ddt.data("2.11",
+              constants.REPLICA_PRE_GRADUATION_VERSION,
+              constants.REPLICA_GRADUATION_VERSION)
+    def test_create(self, microversion):
+        api_version = api_versions.APIVersion(microversion)
         values = {
             'availability_zone': 'az1',
             'share': 's1',
         }
-        self._create_common(values)
 
-    def _create_common(self, values):
-
-        with mock.patch.object(self.manager, '_create', fakes.fake_create):
-            result = self.manager.create(**values)
+        manager = share_replicas.ShareReplicaManager(
+            fakes.FakeClient(api_version=api_version))
+        with mock.patch.object(manager, '_create', fakes.fake_create):
+            result = manager.create(**values)
 
             values['share_id'] = values.pop('share')
+            body_expected = {share_replicas.RESOURCE_NAME: values}
+            self.assertEqual(share_replicas.RESOURCES_PATH, result['url'])
+            self.assertEqual(share_replicas.RESOURCE_NAME, result['resp_key'])
+            self.assertEqual(body_expected, result['body'])
+
+    @ddt.data("2.72")
+    def test_create_with_share_network(self, microversion):
+        api_version = api_versions.APIVersion(microversion)
+        values = {
+            'availability_zone': 'az1',
+            'share': 's1',
+            'share_network': 'sn1',
+        }
+
+        manager = share_replicas.ShareReplicaManager(
+            fakes.FakeClient(api_version=api_version))
+        with mock.patch.object(manager, '_create', fakes.fake_create):
+            result = manager.create(**values)
+
+            values['share_id'] = values.pop('share')
+            values['share_network_id'] = values.pop('share_network')
             body_expected = {share_replicas.RESOURCE_NAME: values}
             self.assertEqual(share_replicas.RESOURCES_PATH, result['url'])
             self.assertEqual(share_replicas.RESOURCE_NAME, result['resp_key'])

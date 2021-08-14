@@ -480,11 +480,15 @@ class BaseTestCase(base.ClientTestBase):
     @classmethod
     def create_share_replica(cls, share_id, client=None,
                              wait_for_creation=True, cleanup_in_class=False,
+                             availability_zone=None, share_network=None,
                              microversion=None):
         client = client or cls.get_user_client()
 
         share_replica = client.create_share_replica(
-            share_id, microversion=microversion)
+            share_id,
+            availability_zone=availability_zone,
+            share_network=share_network,
+            microversion=microversion)
         if wait_for_creation:
             share_replica = client.wait_for_share_replica_status(
                 share_replica['id'])
