@@ -88,3 +88,10 @@ share replicas
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share replica *
+
+========================
+share availability zones
+========================
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share availability zone list
