@@ -55,6 +55,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
                    snapshots=None, snapshot_gigabytes=None,
                    share_networks=None, share_replicas=None,
                    replica_gigabytes=None, per_share_gigabytes=None,
+                   share_groups=None, share_group_snapshots=None,
                    resource_path=RESOURCE_PATH):
         body = {
             'quota_class_set': {
@@ -67,6 +68,8 @@ class QuotaClassSetManager(base.ManagerWithFind):
                 "share_replicas": share_replicas,
                 "replica_gigabytes": replica_gigabytes,
                 'per_share_gigabytes': per_share_gigabytes,
+                'share_groups': share_groups,
+                'share_group_snapshots': share_group_snapshots,
             }
         }
 
@@ -88,7 +91,7 @@ class QuotaClassSetManager(base.ManagerWithFind):
             snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
             share_networks=share_networks, resource_path=RESOURCE_PATH_LEGACY)
 
-    @api_versions.wraps("2.7", "2.52")  # noqa
+    @api_versions.wraps("2.7", "2.39")  # noqa
     def update(self, class_name, shares=None, gigabytes=None,  # noqa
                snapshots=None, snapshot_gigabytes=None, share_networks=None):
         return self._do_update(
@@ -96,25 +99,42 @@ class QuotaClassSetManager(base.ManagerWithFind):
             snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
             share_networks=share_networks, resource_path=RESOURCE_PATH)
 
+    @api_versions.wraps("2.40", "2.52")  # noqa
+    def update(self, class_name, shares=None, gigabytes=None,  # noqa
+               snapshots=None, snapshot_gigabytes=None, share_networks=None,
+               share_groups=None, share_group_snapshots=None):
+        return self._do_update(
+            class_name, shares=shares, gigabytes=gigabytes,
+            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks, share_groups=share_groups,
+            share_group_snapshots=share_group_snapshots,
+            resource_path=RESOURCE_PATH)
+
     @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION, "2.61")  # noqa
     def update(self, class_name, shares=None, gigabytes=None,  # noqa
                snapshots=None, snapshot_gigabytes=None, share_networks=None,
+               share_groups=None, share_group_snapshots=None,
                share_replicas=None, replica_gigabytes=None):
         return self._do_update(
             class_name, shares=shares, gigabytes=gigabytes,
             snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, share_replicas=share_replicas,
-            replica_gigabytes=replica_gigabytes, resource_path=RESOURCE_PATH)
+            share_networks=share_networks, share_groups=share_groups,
+            share_group_snapshots=share_group_snapshots,
+            share_replicas=share_replicas, replica_gigabytes=replica_gigabytes,
+            resource_path=RESOURCE_PATH)
 
     @api_versions.wraps("2.62")  # noqa
     def update(self, class_name, shares=None, gigabytes=None,  # noqa
                snapshots=None, snapshot_gigabytes=None, share_networks=None,
+               share_groups=None, share_group_snapshots=None,
                share_replicas=None, replica_gigabytes=None,
                per_share_gigabytes=None):
         return self._do_update(
             class_name, shares=shares, gigabytes=gigabytes,
             snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, share_replicas=share_replicas,
+            share_networks=share_networks, share_groups=share_groups,
+            share_group_snapshots=share_group_snapshots,
+            share_replicas=share_replicas,
             replica_gigabytes=replica_gigabytes,
             per_share_gigabytes=per_share_gigabytes,
             resource_path=RESOURCE_PATH)

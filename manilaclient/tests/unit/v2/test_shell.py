@@ -3185,7 +3185,14 @@ class ShellTest(test_utils.TestCase):
          '--snapshots': 5,
          '--gigabytes': 5,
          '--snapshot-gigabytes': 5,
-         '--share-networks': 5})
+         '--share-networks': 5},
+        {'--shares': 5,
+         '--snapshots': 5,
+         '--gigabytes': 5,
+         '--snapshot-gigabytes': 5,
+         '--share-networks': 5,
+         '--share-groups': 5,
+         '--share-group-snapshots': 5})
     def test_quota_class_update(self, data):
         cmd = 'quota-class-update test'
         expected = dict()

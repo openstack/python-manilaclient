@@ -458,7 +458,9 @@ _quota_resources = [
     'share_networks',
     'share_replicas',
     'replica_gigabytes',
-    'per_share_gigabytes'
+    'per_share_gigabytes',
+    'share_groups',
+    'share_group_snapshots'
 ]
 
 
@@ -773,6 +775,24 @@ def do_quota_class_show(cs, args):
     action='single_alias',
     help='New value for the "share_networks" quota.')
 @cliutils.arg(
+    '--share-groups',
+    '--share_groups',  # alias
+    metavar='<share-groups>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "share_groups" quota. Available only for '
+         'microversion >= 2.40')
+@cliutils.arg(
+    '--share-group-snapshots',
+    '--share_group_snapshots',
+    metavar='<share-group-snapshots>',
+    type=int,
+    default=None,
+    action='single_alias',
+    help='New value for the "share_group_snapshots" quota. Available only for '
+         'microversion >= 2.40')
+@cliutils.arg(
     '--share-replicas',
     '--share_replicas',  # alias
     '--replicas',  # alias
@@ -802,6 +822,11 @@ def do_quota_class_show(cs, args):
          'microversion >= 2.62')
 def do_quota_class_update(cs, args):
     """Update the quotas for a quota class (Admin only)."""
+    if args.share_groups is not None or args.share_group_snapshots is not None:
+        if cs.api_version < api_versions.APIVersion("2.40"):
+            raise exceptions.CommandError(
+                "'share groups' quotas are available only starting with "
+                "'2.40' API microversion.")
     if args.share_replicas is not None or args.replica_gigabytes is not None:
         if cs.api_version < api_versions.APIVersion("2.53"):
             raise exceptions.CommandError(

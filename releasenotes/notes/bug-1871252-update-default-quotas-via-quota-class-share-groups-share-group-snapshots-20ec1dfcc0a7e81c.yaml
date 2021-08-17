@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Share group and share group snapshots quotas have been available in manila
+    since API 2.40. With this change, we added the possibility for users to update
+    share group and share group snapshots quotas via the quota class API to the
+    manilaclient CLI. For more details, please refer to 
+    `Launchpad bug 1871252 <https://bugs.launchpad.net/manila/+bug/1871252>`_.
