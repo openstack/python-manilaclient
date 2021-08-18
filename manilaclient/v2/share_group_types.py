@@ -152,7 +152,10 @@ class ShareGroupTypeManager(base.ManagerWithFind):
 
         :rtype: list of :class:`ShareGroupType`.
         """
-        query_string = '?is_public=all' if show_all else ''
+        search_opts = search_opts or {}
+        if show_all:
+            search_opts['is_public'] = 'all'
+        query_string = self._build_query_string(search_opts)
         url = RESOURCES_PATH + query_string
         return self._list(url, RESOURCES_NAME)
 
