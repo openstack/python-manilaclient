@@ -43,6 +43,7 @@ class FakeShareClient(object):
             osc_fakes.FakeResource(None, {}))
         self.messages = mock.Mock()
         self.availability_zones = mock.Mock()
+        self.services = mock.Mock()
 
 
 class ManilaParseException(Exception):
@@ -697,3 +698,53 @@ class FakeShareAvailabilityZones(object):
             availability_zones.append(
                 FakeShareAvailabilityZones.create_one_availability_zone(attrs))
         return availability_zones
+
+
+class FakeShareService(object):
+    """Fake one or more share service"""
+
+    @staticmethod
+    def create_fake_service(attrs=None):
+        """Create a fake share service
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+
+        share_service_info = {
+            "binary": "manila-share",
+            "host": "fake_host@fake_backend",
+            "id": uuid.uuid4().hex,
+            "status": "enabled",
+            "state": "up",
+            "updated_at": 'time-' + uuid.uuid4().hex,
+            "zone": "fake_zone"
+        }
+
+        share_service_info.update(attrs)
+        share_service = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_service_info),
+            loaded=True)
+        return share_service
+
+    @staticmethod
+    def create_fake_services(attrs=None, count=2):
+        """Create multiple fake services.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share services to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        services = []
+        for n in range(count):
+            services.append(
+                FakeShareService.create_fake_service(attrs))
+        return services

@@ -95,3 +95,10 @@ share availability zones
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share availability zone list
+
+==============
+share services
+==============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share service *
