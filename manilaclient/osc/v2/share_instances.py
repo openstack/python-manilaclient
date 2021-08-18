@@ -215,7 +215,7 @@ class ShareInstanceShow(command.ShowOne):
 
         if parsed_args.formatter == 'table':
             instance._info['export_locations'] = (
-                cliutils.transform_export_locations_to_string_view(
+                cliutils.convert_dict_list_to_string(
                     instance._info['export_locations']))
 
         instance._info.pop('links', None)

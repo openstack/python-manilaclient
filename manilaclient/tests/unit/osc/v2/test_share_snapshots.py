@@ -283,8 +283,8 @@ class TestShareSnapshotShow(TestShareSnapshot):
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        cliutils.transform_export_locations_to_string_view = mock.Mock()
-        cliutils.transform_export_locations_to_string_view.return_value = (
+        cliutils.convert_dict_list_to_string = mock.Mock()
+        cliutils.convert_dict_list_to_string.return_value = (
             self.export_location)
 
         columns, data = self.cmd.take_action(parsed_args)

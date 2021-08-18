@@ -96,7 +96,7 @@ class ShowShareSnapshotInstance(command.ShowOne):
 
         if parsed_args.formatter == 'table':
             snapshot_instance._info['export_locations'] = (
-                cliutils.transform_export_locations_to_string_view(
+                cliutils.convert_dict_list_to_string(
                     snapshot_instance._info['export_locations']))
 
         snapshot_instance._info.pop('links', None)

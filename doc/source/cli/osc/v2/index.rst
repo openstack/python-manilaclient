@@ -61,6 +61,13 @@ share access rules
 .. autoprogram-cliff:: openstack.share.v2
     :command: share access *
 
+==============
+share networks
+==============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share network *
+
 ===========
 share types
 ===========

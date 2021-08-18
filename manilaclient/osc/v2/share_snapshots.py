@@ -148,9 +148,9 @@ class ShowShareSnapshot(command.ShowOne):
         export_locations = (
             share_client.share_snapshot_export_locations.list(
                 share_snapshot))
-        export_locations = (
-            cliutils.transform_export_locations_to_string_view(
-                export_locations))
+
+        export_locations = cliutils.convert_dict_list_to_string(
+            export_locations, ignored_keys=['links'])
 
         data = share_snapshot._info
         data['export_locations'] = export_locations

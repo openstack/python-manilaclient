@@ -156,7 +156,7 @@ class TestShareSnapshotInstanceShow(TestShareSnapshotInstance):
                     .ShowShareSnapshotInstance(self.app, None))
 
         self.share_snapshot_instance._info['export_locations'] = (
-            cliutils.transform_export_locations_to_string_view(
+            cliutils.convert_dict_list_to_string(
                 self.share_snapshot_instances_el_list))
 
         self.data = self.share_snapshot_instance._info.values()

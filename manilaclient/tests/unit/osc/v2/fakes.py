@@ -39,6 +39,8 @@ class FakeShareClient(object):
         self.share_snapshot_instances = mock.Mock()
         self.share_replicas = mock.Mock()
         self.share_replica_export_locations = mock.Mock()
+        self.share_networks = mock.Mock()
+        self.security_services = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_instance_export_locations = mock.Mock()
         self.share_export_locations = mock.Mock()
@@ -1000,3 +1002,72 @@ class FakeShareLimits(object):
         share_limits = osc_fakes.FakeLimitsResource(
             info=copy.deepcopy(share_limits), loaded=True)
         return share_limits
+
+
+class FakeShareNetwork(object):
+    """Fake a share network"""
+
+    @staticmethod
+    def create_one_share_network(attrs=None, methods=None):
+        """Create a fake share network
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+
+        share_network = {
+            'id': str(uuid.uuid4()),
+            'project_id': uuid.uuid4().hex,
+            'created_at': datetime.datetime.now().isoformat(),
+            'description': 'description-' + uuid.uuid4().hex,
+            'name': 'name-' + uuid.uuid4().hex,
+            "status": "active",
+            "security_service_update_support": True,
+            'share_network_subnets': [
+                {
+                    'id': str(uuid.uuid4()),
+                    "availability_zone": None,
+                    "created_at": datetime.datetime.now().isoformat(),
+                    "updated_at": datetime.datetime.now().isoformat(),
+                    "segmentation_id": 1010,
+                    "neutron_net_id": str(uuid.uuid4()),
+                    "neutron_subnet_id": str(uuid.uuid4()),
+                    "ip_version": 4,
+                    "cidr": "10.0.0.0/24",
+                    "network_type": "vlan",
+                    "mtu": "1500",
+                    "gateway": "10.0.0.1"
+                },
+            ],
+        }
+
+        share_network.update(attrs)
+        share_network = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_network),
+            methods=methods,
+            loaded=True)
+        return share_network
+
+    @staticmethod
+    def create_share_networks(attrs=None, count=2):
+        """Create multiple fake share networks.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share networks to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_networks = []
+        for n in range(count):
+            share_networks.append(
+                FakeShareNetwork.create_one_share_network(attrs))
+
+        return share_networks

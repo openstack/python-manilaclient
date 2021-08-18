@@ -555,9 +555,12 @@ class ShowShare(command.ShowOne):
                                            parsed_args.share)
 
         export_locations = share_client.share_export_locations.list(share_obj)
-        export_locations = (
-            cliutils.transform_export_locations_to_string_view(
-                export_locations))
+        export_locations = cliutils.convert_dict_list_to_string(
+            export_locations,
+            ignored_keys=['replica_state',
+                          'availability_zone',
+                          'share_replica_id']
+        )
 
         data = share_obj._info
         data['export_locations'] = export_locations

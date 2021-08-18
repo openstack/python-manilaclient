@@ -175,8 +175,12 @@ def _print_share(cs, share):  # noqa
     # +-------------------+--------------------------------------------+
     if info.get('export_locations'):
         info['export_locations'] = (
-            cliutils.transform_export_locations_to_string_view(
-                info['export_locations']))
+            cliutils.convert_dict_list_to_string(
+                info['export_locations'],
+                ignored_keys=['replica_state',
+                              'availability_zone',
+                              'share_replica_id'])
+        )
 
     # No need to print both volume_type and share_type to CLI
     if 'volume_type' in info and 'share_type' in info:
@@ -229,8 +233,13 @@ def _print_share_instance(cs, instance):  # noqa
     info.pop('links', None)
     if info.get('export_locations'):
         info['export_locations'] = (
-            cliutils.transform_export_locations_to_string_view(
-                info['export_locations']))
+            cliutils.convert_dict_list_to_string(
+                info['export_locations'],
+                ignored_keys=['replica_state',
+                              'availability_zone',
+                              'share_replica_id'])
+        )
+
     cliutils.print_dict(info)
 
 
@@ -252,8 +261,10 @@ def _print_share_replica(cs, replica):  # noqa
     info.pop('links', None)
     if info.get('export_locations'):
         info['export_locations'] = (
-            cliutils.transform_export_locations_to_string_view(
-                info['export_locations']))
+            cliutils.convert_dict_list_to_string(
+                info['export_locations'],
+                ignored_keys=['replica_state', 'availability_zone',
+                              'share_replica_id']))
     cliutils.print_dict(info)
 
 
@@ -303,7 +314,7 @@ def _print_share_snapshot(cs, snapshot):
 
     if info.get('export_locations'):
         info['export_locations'] = (
-            cliutils.transform_export_locations_to_string_view(
+            cliutils.convert_dict_list_to_string(
                 info['export_locations']))
 
     cliutils.print_dict(info)

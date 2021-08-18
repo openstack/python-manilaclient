@@ -292,8 +292,8 @@ class TestShareInstanceShow(TestShareInstance):
         expected_columns += ('export_locations',)
         expected_data_dic += (dict(self.export_locations[0]),)
 
-        cliutils.transform_export_locations_to_string_view = mock.Mock()
-        cliutils.transform_export_locations_to_string_view.return_value = dict(
+        cliutils.convert_dict_list_to_string = mock.Mock()
+        cliutils.convert_dict_list_to_string.return_value = dict(
             self.export_locations[0])
 
         arglist = [
