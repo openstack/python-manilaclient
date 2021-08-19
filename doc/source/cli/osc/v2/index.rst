@@ -52,7 +52,7 @@ share instances
 ===============
 
 .. autoprogram-cliff:: openstack.share.v2
-    :command: share instance *
+    :command: share instance [!e]*
 
 ==================
 share access rules
@@ -137,3 +137,10 @@ share limits
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share limits *
+
+==============================
+share instance export location
+==============================
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share instance export location *

@@ -327,6 +327,27 @@ class FakeShareExportLocation(object):
             loaded=True)
         return share_export_location
 
+    @staticmethod
+    def create_share_export_locations(attrs=None, count=2):
+        """Create multiple fake export locations.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+
+        :param Integer count:
+            The number of share export locations to be faked
+
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_export_locations = []
+        for n in range(0, count):
+            share_export_locations.append(
+                FakeShareExportLocation.
+                create_one_export_location(attrs))
+        return share_export_locations
+
 
 class FakeShareAccessRule(object):
     """Fake one or more share access rules"""
@@ -796,6 +817,7 @@ class FakeShareAvailabilityZones(object):
 
     @staticmethod
     def create_share_availability_zones(attrs=None, count=2):
+
         """Create multiple availability zones.
 
         :param Dictionary attrs:
@@ -923,7 +945,6 @@ class FakeShareInstance(object):
         :return:
             A FakeResource object, with project_id, resource and so on
         """
-
         attrs = attrs or {}
         methods = methods or {}
 
@@ -960,7 +981,6 @@ class FakeShareInstance(object):
         :return:
             A list of FakeResource objects
         """
-
         share_instances = []
         for n in range(count):
             share_instances.append(
