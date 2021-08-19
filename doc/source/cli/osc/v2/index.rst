@@ -47,6 +47,13 @@ shares
 .. autoprogram-cliff:: openstack.share.v2
     :command: share revert
 
+===============
+share instances
+===============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share instance *
+
 ==================
 share access rules
 ==================

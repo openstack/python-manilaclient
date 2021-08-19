@@ -40,6 +40,7 @@ class FakeShareClient(object):
         self.share_replicas = mock.Mock()
         self.share_replica_export_locations = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
+        self.share_instance_export_locations = mock.Mock()
         self.share_export_locations = mock.Mock()
         self.share_snapshot_instance_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -47,6 +48,7 @@ class FakeShareClient(object):
         self.messages = mock.Mock()
         self.availability_zones = mock.Mock()
         self.services = mock.Mock()
+        self.share_instances = mock.Mock()
         self.pools = mock.Mock()
 
 
@@ -904,3 +906,60 @@ class FakeSharePools(object):
             share_pools.append(
                 FakeSharePools.create_one_share_pool(attrs))
         return share_pools
+
+
+class FakeShareInstance(object):
+    """Fake a share instance"""
+
+    @staticmethod
+    def create_one_share_instance(attrs=None, methods=None):
+        """Create a fake share instance
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+
+        share_instance = {
+            'status': None,
+            'progress': None,
+            'share_id': 'share-id-' + uuid.uuid4().hex,
+            'availability_zone': None,
+            'replica_state': None,
+            'created_at': datetime.datetime.now().isoformat(),
+            'cast_rules_to_readonly': False,
+            'share_network_id': 'sn-id-' + uuid.uuid4().hex,
+            'share_server_id': 'ss-id-' + uuid.uuid4().hex,
+            'host': None,
+            'access_rules_status': None,
+            'id': 'instance-id-' + uuid.uuid4().hex
+        }
+
+        share_instance.update(attrs)
+        share_instance = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_instance),
+            methods=methods,
+            loaded=True)
+        return share_instance
+
+    @staticmethod
+    def create_share_instances(attrs=None, count=2):
+        """Create multiple fake instances.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share instances to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_instances = []
+        for n in range(count):
+            share_instances.append(
+                FakeShareInstance.create_one_share_instance(attrs))
+        return share_instances
