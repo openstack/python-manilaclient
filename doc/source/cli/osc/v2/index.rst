@@ -195,3 +195,10 @@ share group snapshots
 
   .. autoprogram-cliff:: openstack.share.v2
       :command: share group snapshot *
+
+==============
+share servers
+==============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share server *
