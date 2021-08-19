@@ -44,6 +44,7 @@ class FakeShareClient(object):
         self.messages = mock.Mock()
         self.availability_zones = mock.Mock()
         self.services = mock.Mock()
+        self.pools = mock.Mock()
 
 
 class ManilaParseException(Exception):
@@ -748,3 +749,51 @@ class FakeShareService(object):
             services.append(
                 FakeShareService.create_fake_service(attrs))
         return services
+
+
+class FakeSharePools(object):
+    """Fake one or more share pool"""
+
+    @staticmethod
+    def create_one_share_pool(attrs=None):
+        """Create a fake share pool
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object
+        """
+
+        attrs = attrs or {}
+
+        share_pool = {
+            "name": 'fake_pool@gamma#fake_pool',
+            "host": 'fake_host_' + uuid.uuid4().hex,
+            "backend": 'fake_backend_' + uuid.uuid4().hex,
+            "pool": 'fake_pool_' + uuid.uuid4().hex,
+            "capabilities": {'fake_capability': uuid.uuid4().hex}
+        }
+
+        share_pool.update(attrs)
+        share_pool = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_pool),
+            loaded=True)
+        return share_pool
+
+    @staticmethod
+    def create_share_pools(attrs=None, count=2):
+        """Create multiple fake share pools.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share pools to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_pools = []
+        for n in range(count):
+            share_pools.append(
+                FakeSharePools.create_one_share_pool(attrs))
+        return share_pools
