@@ -36,9 +36,11 @@ class FakeShareClient(object):
         self.quotas = mock.Mock()
         self.share_snapshots = mock.Mock()
         self.share_snapshot_export_locations = mock.Mock()
+        self.share_snapshot_instances = mock.Mock()
         self.share_replicas = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
+        self.share_snapshot_instance_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
             osc_fakes.FakeResource(None, {}))
         self.messages = mock.Mock()
@@ -382,6 +384,109 @@ class FakeQuotaSet(object):
                                         quotas_info),
                                         loaded=True)
         return quotas
+
+
+class FakeShareSnapshotIntances(object):
+    """Fake a share snapshot instance"""
+
+    @staticmethod
+    def create_one_snapshot_instance(attrs=None, methods=None):
+        """Create a fake share snapshot instance
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+        share_snapshot_instance = {
+            'id': 'snapshot-instance-id-' + uuid.uuid4().hex,
+            'snapshot_id': 'snapshot-id-' + uuid.uuid4().hex,
+            'status': None,
+            'created_at': datetime.datetime.now().isoformat(),
+            'updated_at': datetime.datetime.now().isoformat(),
+            'share_id': 'share-id-' + uuid.uuid4().hex,
+            'share_instance_id': 'share-instance-id-' + uuid.uuid4().hex,
+            'progress': None,
+            'provider_location': None
+        }
+
+        share_snapshot_instance.update(attrs)
+        share_snapshot_instance = osc_fakes.FakeResource(info=copy.deepcopy(
+            share_snapshot_instance),
+            methods=methods,
+            loaded=True)
+        return share_snapshot_instance
+
+    @staticmethod
+    def create_share_snapshot_instances(attrs=None, count=2):
+        """Create multiple fake snapshot instances.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share snapshot instances to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_snapshot_instances = []
+        for n in range(0, count):
+            share_snapshot_instances.append(
+                FakeShareSnapshot.create_one_snapshot(attrs))
+
+        return share_snapshot_instances
+
+
+class FakeShareSnapshotInstancesExportLocations(object):
+    """Fake a share snapshot instance Export Locations"""
+
+    @staticmethod
+    def create_one_snapshot_instance(attrs=None, methods=None):
+        """Create a fake share snapshot instance export locations
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+        share_snapshot_instance_export_location = {
+            'id': 'snapshot-instance-export-location-id-' + uuid.uuid4().hex,
+            'is_admin_only': False,
+            'path': '0.0.0.0/:fake-share-instance-export-location-id',
+        }
+
+        share_snapshot_instance_export_location.update(attrs)
+        share_snapshot_instance_export_location = osc_fakes.FakeResource(
+            info=copy.deepcopy(
+                share_snapshot_instance_export_location),
+            methods=methods,
+            loaded=True)
+        return share_snapshot_instance_export_location
+
+    @staticmethod
+    def create_share_snapshot_instances(attrs=None, count=2):
+        """Create multiple fake snapshot instances.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of share snapshot instance locations to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        share_snapshot_instances = []
+        for n in range(0, count):
+            share_snapshot_instances.append(
+                FakeShareSnapshot.create_one_snapshot(attrs))
+
+        return share_snapshot_instances
 
 
 class FakeShareSnapshot(object):
