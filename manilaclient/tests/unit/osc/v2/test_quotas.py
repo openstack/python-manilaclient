@@ -31,6 +31,9 @@ class TestQuotas(manila_fakes.TestShare):
         self.quotas_mock = self.app.client_manager.share.quotas
         self.quotas_mock.reset_mock()
 
+        self.quota_classes_mock = self.app.client_manager.share.quota_classes
+        self.quota_classes_mock.reset_mock()
+
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             api_versions.MAX_VERSION
         )
@@ -47,11 +50,44 @@ class TestQuotaSet(TestQuotas):
         self.quotas_mock.update = mock.Mock()
         self.quotas_mock.update.return_value = None
 
+        self.quota_classes_mock.update = mock.Mock()
+        self.quota_classes_mock.update.return_value = None
+
         self.cmd = osc_quotas.QuotaSet(self.app, None)
+
+    def test_quota_set_default_class_shares(self):
+        arglist = [
+            'default',
+            '--class',
+            '--shares', '40'
+        ]
+        verifylist = [
+            ('project', 'default'),
+            ('quota_class', True),
+            ('shares', 40)
+        ]
+
+        with mock.patch('osc_lib.utils.find_resource') as mock_find_resource:
+            mock_find_resource.return_value = self.project
+
+            parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+            result = self.cmd.take_action(parsed_args)
+            self.quota_classes_mock.update.assert_called_with(
+                class_name='default',
+                gigabytes=None,
+                share_networks=None,
+                shares=40,
+                snapshot_gigabytes=None,
+                snapshots=None,
+                per_share_gigabytes=None)
+            self.assertIsNone(result)
+            mock_find_resource.assert_not_called()
+            self.quotas_mock.asert_not_called()
 
     def test_quota_set_shares(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--shares', '40'
         ]
         verifylist = [
@@ -79,7 +115,7 @@ class TestQuotaSet(TestQuotas):
 
     def test_quota_set_gigabytes(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--gigabytes', '1100'
         ]
         verifylist = [
@@ -107,7 +143,7 @@ class TestQuotaSet(TestQuotas):
 
     def test_quota_set_share_type(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-type', 'default'
         ]
         verifylist = [
@@ -136,7 +172,7 @@ class TestQuotaSet(TestQuotas):
 
     def test_quota_set_force(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--force',
             '--shares', '40'
         ]
@@ -170,7 +206,7 @@ class TestQuotaSet(TestQuotas):
         )
 
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-groups', '40'
         ]
         verifylist = [
@@ -182,9 +218,9 @@ class TestQuotaSet(TestQuotas):
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
-    def test_quota_set_update_exception(self):
+    def test_quota_set_update_project_exception(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-groups', '40',
             '--share-group-snapshots', '40'
         ]
@@ -199,9 +235,25 @@ class TestQuotaSet(TestQuotas):
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
+    def test_quota_set_update_class_exception(self):
+        arglist = [
+            'default',
+            '--class',
+            '--gigabytes', '40'
+        ]
+        verifylist = [
+            ('project', 'default'),
+            ('gigabytes', 40)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.quota_classes_mock.update.side_effect = BadRequest()
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
+
     def test_quota_set_nothing_to_set_exception(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
         ]
         verifylist = [
             ('project', self.project.id)
@@ -217,7 +269,7 @@ class TestQuotaSet(TestQuotas):
         )
 
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-replicas', '2',
         ]
         verifylist = [
@@ -248,7 +300,7 @@ class TestQuotaSet(TestQuotas):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             '2.51')
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--replica-gigabytes', '10',
         ]
         verifylist = [
@@ -262,7 +314,7 @@ class TestQuotaSet(TestQuotas):
 
     def test_quota_set_per_share_gigabytes(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--per-share-gigabytes', '10',
         ]
         verifylist = [
@@ -302,7 +354,7 @@ class TestQuotaShow(TestQuotas):
 
     def test_quota_show(self):
         arglist = [
-            '--project', self.project.id
+            self.project.id
         ]
         verifylist = [
             ('project', self.project.id)
@@ -329,7 +381,7 @@ class TestQuotaShow(TestQuotas):
         )
 
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-type', 'default'
         ]
         verifylist = [
@@ -341,25 +393,9 @@ class TestQuotaShow(TestQuotas):
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
-    def test_quota_show_user_id_share_type_exception(self):
-        arglist = [
-            '--project', self.project.id,
-            '--share-type', 'default',
-            '--user', self.user.id
-        ]
-        verifylist = [
-            ('project', self.project.id),
-            ('share_type', 'default'),
-            ('user', self.user.id)
-        ]
-
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
-
     def test_quota_show_defaults(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--defaults'
         ]
         verifylist = [
@@ -395,7 +431,7 @@ class TestQuotaDelete(TestQuotas):
 
     def test_quota_delete(self):
         arglist = [
-            '--project', self.project.id
+            self.project.id
         ]
         verifylist = [
             ('project', self.project.id)
@@ -414,7 +450,7 @@ class TestQuotaDelete(TestQuotas):
 
     def test_quota_delete_share_type(self):
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-type', 'default'
         ]
         verifylist = [
@@ -440,7 +476,7 @@ class TestQuotaDelete(TestQuotas):
         )
 
         arglist = [
-            '--project', self.project.id,
+            self.project.id,
             '--share-type', 'default'
         ]
         verifylist = [
@@ -451,22 +487,3 @@ class TestQuotaDelete(TestQuotas):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
-
-    def test_quota_delete_user_share_type_exeption(self):
-        arglist = [
-            '--project', self.project.id,
-            '--share-type', 'default',
-            '--user', self.user.id
-        ]
-        verifylist = [
-            ('project', self.project.id),
-            ('share_type', 'default'),
-            ('user', self.user.id)
-        ]
-
-        with mock.patch('osc_lib.utils.find_resource') as mock_find_resource:
-            mock_find_resource.return_value = self.project
-
-            parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-            self.assertRaises(
-                exceptions.CommandError, self.cmd.take_action, parsed_args)

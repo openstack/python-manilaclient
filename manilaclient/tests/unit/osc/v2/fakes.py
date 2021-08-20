@@ -35,6 +35,7 @@ class FakeShareClient(object):
         self.share_types = mock.Mock()
         self.share_type_access = mock.Mock()
         self.quotas = mock.Mock()
+        self.quota_classes = mock.Mock()
         self.share_snapshots = mock.Mock()
         self.share_snapshot_export_locations = mock.Mock()
         self.share_snapshot_instances = mock.Mock()

@@ -18,30 +18,46 @@ from manilaclient import api_versions
 from manilaclient.common._i18n import _
 
 
-def _check_user_id_and_share_type_args(user_id, share_type):
-    if user_id and share_type:
-        raise exceptions.CommandError(_(
-            "'user_id' and 'share_type' values are mutually exclusive. "
-            "one or both should be unset."))
-
-
 class QuotaSet(command.Command):
-    """Set quotas for a project or project/user or project/share-type."""
-    _description = _("Set Quota")
+    """Set quotas for a project or project/user or project/share-type.
+
+    It can be used to set the default class for all projects.
+    """
+
+    _description = _("Set Quota for a project, or project/user or "
+                     "project/share-type or a class.")
 
     def get_parser(self, prog_name):
         parser = super(QuotaSet, self).get_parser(prog_name)
+        quota_type = parser.add_mutually_exclusive_group()
         parser.add_argument(
-            '--project',
-            metavar='<project>',
-            help=_('Name or ID of the project to set the quotas for.')
+            'project',
+            metavar='<project/class>',
+            help=_("A project (name/ID) or a class (e.g.: default).")
         )
-        parser.add_argument(
+        quota_type.add_argument(
+            '--class',
+            dest='quota_class',
+            action='store_true',
+            default=False,
+            help=_("Update class quota to all projects. "
+                   "Mutually exclusive with '--user' and '--share-type'.")
+        )
+        quota_type.add_argument(
             '--user',
             metavar='<user>',
             default=None,
-            help=_("Name or ID of a user to set the quotas for. Optional. "
-                   "Mutually exclusive with '--share-type'.")
+            help=_("Name or ID of a user to set the quotas for. "
+                   "Mutually exclusive with '--share-type' and '--class'.")
+        )
+        quota_type.add_argument(
+            '--share-type',
+            metavar='<share-type>',
+            type=str,
+            default=None,
+            help=_("Name or ID of a share type to set the quotas for. "
+                   "Mutually exclusive with '--user' and '--class'. "
+                   "Available only for microversion >= 2.39")
         )
         parser.add_argument(
             '--shares',
@@ -83,7 +99,7 @@ class QuotaSet(command.Command):
             metavar='<share-groups>',
             type=int,
             default=None,
-            help=_('New value for the "share-groups" quota.'
+            help=_('New value for the "share-groups" quota. '
                    'Available only for microversion >= 2.40')
         )
         parser.add_argument(
@@ -91,7 +107,8 @@ class QuotaSet(command.Command):
             metavar='<share-group-snapshots>',
             type=int,
             default=None,
-            help=_('New value for the "share-group-snapshots" quota.')
+            help=_('New value for the "share-group-snapshots" quota. '
+                   'Available only for microversion >= 2.40')
         )
         parser.add_argument(
             '--share-replicas',
@@ -110,29 +127,20 @@ class QuotaSet(command.Command):
                    "Available only for microversion >= 2.53")
         )
         parser.add_argument(
-            '--share-type',
-            metavar='<share-type>',
-            type=str,
-            default=None,
-            help=_("Name or ID of a share type to set the quotas for. "
-                   "Optional. "
-                   "Mutually exclusive with '--user'. "
-                   "Available only for microversion >= 2.39")
-        )
-        parser.add_argument(
-            '--force',
-            dest='force',
-            action="store_true",
-            default=None,
-            help=_('Force update the quota.')
-        )
-        parser.add_argument(
             '--per-share-gigabytes',
             metavar='<per-share-gigabytes>',
             type=int,
             default=None,
             help=_("New value for the 'per-share-gigabytes' quota."
                    "Available only for microversion >= 2.62")
+        )
+        parser.add_argument(
+            '--force',
+            dest='force',
+            action="store_true",
+            default=None,
+            help=_('Force update the quota. '
+                   'Not applicable for class update.')
         )
         return parser
 
@@ -145,9 +153,6 @@ class QuotaSet(command.Command):
             user_id = utils.find_resource(
                 identity_client.users,
                 parsed_args.user).id
-
-        _check_user_id_and_share_type_args(
-            user_id, parsed_args.share_type)
 
         kwargs = {
             "shares": parsed_args.shares,
@@ -206,27 +211,33 @@ class QuotaSet(command.Command):
                 "'share-groups', 'share-group-snapshots', 'share-replicas', "
                 "'replica-gigabytes', 'per-share-gigabytes'"))
 
-        project_id = None
-        if parsed_args.project:
+        if parsed_args.quota_class:
+            kwargs.update({
+                "class_name": parsed_args.project,
+            })
+            try:
+                share_client.quota_classes.update(**kwargs)
+            except Exception as e:
+                raise exceptions.CommandError(_(
+                    "Failed to set quotas for %s class: '%s'")
+                    % (parsed_args.project, e))
+        else:
             project_id = utils.find_resource(
                 identity_client.projects,
-                parsed_args.project
-            ).id
-        else:
-            project_id = self.app.client_manager.auth_ref.project_id
+                parsed_args.project).id
 
-        kwargs.update({
-            "tenant_id": project_id,
-            "force": parsed_args.force,
-            "user_id": user_id
-        })
+            kwargs.update({
+                "tenant_id": project_id,
+                "force": parsed_args.force,
+                "user_id": user_id
+            })
 
-        try:
-            share_client.quotas.update(**kwargs)
-        except Exception as e:
-            raise exceptions.CommandError(_(
-                "Failed to set quotas for project '%s' : '%s'")
-                % (parsed_args.project, e))
+            try:
+                share_client.quotas.update(**kwargs)
+            except Exception as e:
+                raise exceptions.CommandError(_(
+                    "Failed to set quotas for project '%s' : '%s'")
+                    % (parsed_args.project, e))
 
 
 class QuotaShow(command.ShowOne):
@@ -235,24 +246,25 @@ class QuotaShow(command.ShowOne):
 
     def get_parser(self, prog_name):
         parser = super(QuotaShow, self).get_parser(prog_name)
+        quota_type = parser.add_mutually_exclusive_group()
         parser.add_argument(
-            '--project',
+            'project',
             metavar='<project>',
-            help=_('Name or ID of hte project to list quotas for.')
+            help=_('Name or ID of the project to list quotas for.')
         )
-        parser.add_argument(
+        quota_type.add_argument(
             '--user',
             metavar='<user>',
             default=None,
             help=_("Name or ID of user to list the quotas for. Optional. "
                    "Mutually exclusive with '--share-type'.")
         )
-        parser.add_argument(
+        quota_type.add_argument(
             '--share-type',
             metavar='<share-type>',
             type=str,
             default=None,
-            help=_("UUID or name of a share type to list the quotas for. "
+            help=_("Name or ID of a share type to list the quotas for. "
                    "Optional. "
                    "Mutually exclusive with '--user'. "
                    "Available only for microversion >= 2.39")
@@ -282,16 +294,9 @@ class QuotaShow(command.ShowOne):
                 identity_client.users,
                 parsed_args.user).id
 
-        _check_user_id_and_share_type_args(
-            user_id, parsed_args.share_type)
-
-        project_id = None
-        if parsed_args.project:
-            project_id = utils.find_resource(
-                identity_client.projects,
-                parsed_args.project).id
-        else:
-            project_id = self.app.client_manager.auth_ref.project_id
+        project_id = utils.find_resource(
+            identity_client.projects,
+            parsed_args.project).id
 
         quotas = {}
         if parsed_args.defaults:
@@ -331,19 +336,20 @@ class QuotaDelete(command.Command):
 
     def get_parser(self, prog_name):
         parser = super(QuotaDelete, self).get_parser(prog_name)
+        quota_type = parser.add_mutually_exclusive_group()
         parser.add_argument(
-            '--project',
+            'project',
             metavar='<project>',
             help=_('Name or ID of the project to delete quotas for.')
         )
-        parser.add_argument(
+        quota_type.add_argument(
             '--user',
             metavar='<user>',
             default=None,
             help=_("Name or ID of user to delete the quotas for. Optional. "
                    "Mutually exclusive with '--share-type'.")
         )
-        parser.add_argument(
+        quota_type.add_argument(
             '--share-type',
             metavar='<share-type>',
             type=str,
@@ -365,16 +371,9 @@ class QuotaDelete(command.Command):
                 identity_client.users,
                 parsed_args.user).id
 
-        _check_user_id_and_share_type_args(
-            user_id, parsed_args.share_type)
-
-        project_id = None
-        if parsed_args.project:
-            project_id = utils.find_resource(
-                identity_client.projects,
-                parsed_args.project).id
-        else:
-            project_id = self.app.client_manager.auth_ref.project_id
+        project_id = utils.find_resource(
+            identity_client.projects,
+            parsed_args.project).id
 
         kwargs = {
             "tenant_id": project_id,
