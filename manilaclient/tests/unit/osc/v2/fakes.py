@@ -37,6 +37,7 @@ class FakeShareClient(object):
         self.share_snapshots = mock.Mock()
         self.share_snapshot_export_locations = mock.Mock()
         self.share_replicas = mock.Mock()
+        self.share_replica_export_locations = mock.Mock()
         self.shares.resource_class = osc_fakes.FakeResource(None, {})
         self.share_export_locations = mock.Mock()
         self.share_export_locations.resource_class = (
@@ -305,6 +306,7 @@ class FakeShareExportLocation(object):
             "fake_path": "/foo/el/path",
             "fake_share_instance_id": 'share-instance-id' + uuid.uuid4().hex,
             "fake_uuid": "foo_el_uuid",
+            "id": "id-" + uuid.uuid4().hex,
             "is_admin_only": False,
             "preferred": False,
             "updated_at": 'time-' + uuid.uuid4().hex,
