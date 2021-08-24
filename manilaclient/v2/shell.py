@@ -5286,10 +5286,14 @@ def do_share_group_type_access_remove(cs, args):
     metavar='<availability-zone>',
     help='Optional availability zone in which group should be created. '
          '(Default=None)')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share group to create')
 @cliutils.service_type('sharev2')
 def do_share_group_create(cs, args):
     """Creates a new share group."""
-
     share_types = []
     if args.share_types:
         s_types = args.share_types.split(',')
@@ -5321,6 +5325,15 @@ def do_share_group_create(cs, args):
     }
 
     share_group = cs.share_groups.create(**kwargs)
+
+    if args.wait:
+        try:
+            share_group = _wait_for_resource_status(
+                cs, share_group, resource_type='share_group',
+                expected_status='available')
+        except exceptions.CommandError as e:
+            print(e, file=sys.stderr)
+
     _print_share_group(cs, share_group)
 
 

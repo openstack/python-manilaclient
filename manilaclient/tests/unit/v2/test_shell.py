@@ -34,6 +34,7 @@ from manilaclient.tests.unit.v2 import fakes
 from manilaclient import utils
 from manilaclient.v2 import messages
 from manilaclient.v2 import security_services
+from manilaclient.v2 import share_group_types
 from manilaclient.v2 import share_groups
 from manilaclient.v2 import share_instances
 from manilaclient.v2 import share_network_subnets
@@ -2663,29 +2664,52 @@ class ShellTest(test_utils.TestCase):
         shell_v2._find_share_group.assert_has_calls(
             [mock.call(self.shell.cs, "1234")])
 
-    def test_share_group_create(self):
-        fake_share_type_1 = type('FakeShareType1', (object,), {'id': '1234'})
-        fake_share_type_2 = type('FakeShareType2', (object,), {'id': '5678'})
+    def test_share_group_create_wait(self):
+        fake_manager = mock.Mock()
+        fake_share_type1 = share_types.ShareType(
+            fake_manager, {'name': '1234', 'uuid': '1234'})
+        fake_share_type2 = share_types.ShareType(
+            fake_manager, {'name': '5678', 'uuid': '5678'})
+        fake_share_group_type = share_group_types.ShareGroupType(
+            fake_manager, {'name': 'fake_sg', 'uuid': '2345'})
+        fake_share_network = share_networks.ShareNetwork(
+            fake_manager, {'id': '3456', 'uuid': '3456'})
+        fake_share_group = share_groups.ShareGroup(
+            fake_manager, {'id': 'fake-sg-id', 'name': 'fake_sg'})
+
         self.mock_object(
             shell_v2, '_find_share_type',
-            mock.Mock(side_effect=[fake_share_type_1, fake_share_type_2]))
-        fake_share_group_type = type(
-            'FakeShareGroupType', (object,), {'id': '2345'})
+            mock.Mock(side_effect=[fake_share_type1, fake_share_type2]))
         self.mock_object(
             shell_v2, '_find_share_group_type',
-            mock.Mock(return_value=fake_share_group_type))
-        fake_share_network = type(
-            'FakeShareNetwork', (object,), {'id': '3456'})
+            mock.Mock(side_effect=[fake_share_group_type]))
         self.mock_object(
             shell_v2, '_find_share_network',
-            mock.Mock(return_value=fake_share_network))
+            mock.Mock(side_effect=[fake_share_network]))
+        self.mock_object(
+            shell_v2, '_wait_for_resource_status',
+            mock.Mock(side_effect=[fake_share_group])
+        )
 
         self.run_command(
-            'share-group-create --name fake_sg '
-            '--description my_group --share-types 1234,5678 '
-            '--share-group-type fake_sg_type '
-            '--share-network fake_share_network '
-            '--availability-zone fake_az')
+            'share-group-create --name fake_sg --description my_group '
+            '--share-types 1234,5678 '
+            '--share-group-type fake_sg '
+            '--share-network 3456 '
+            '--availability-zone fake_az --wait')
+
+        shell_v2._find_share_type.assert_has_calls([
+            mock.call(self.shell.cs, '1234'),
+            mock.call(self.shell.cs, '5678')
+        ])
+
+        shell_v2._find_share_group_type.assert_has_calls([
+            mock.call(self.shell.cs, 'fake_sg')
+        ])
+
+        shell_v2._find_share_network.assert_has_calls([
+            mock.call(self.shell.cs, '3456')
+        ])
 
         expected = {
             'share_group': {
@@ -2698,6 +2722,12 @@ class ShellTest(test_utils.TestCase):
             },
         }
         self.assert_called('POST', '/share-groups', body=expected)
+
+        shell_v2._wait_for_resource_status.assert_has_calls([
+            mock.call(self.shell.cs, fake_share_group,
+                      resource_type='share_group',
+                      expected_status='available')
+        ])
 
     @ddt.data(
         '--name fake_name --availability-zone fake_az',
