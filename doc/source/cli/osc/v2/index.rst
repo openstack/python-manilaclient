@@ -102,3 +102,10 @@ share services
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share service *
+
+===========
+share pools
+===========
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share pool list
