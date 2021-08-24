@@ -182,7 +182,7 @@ class SharesListReadWriteTest(base.BaseTestCase):
                             # elapsed between the 'list' and 'get' requests.
                             # If this isn't one of the shares created in
                             # this class, don't worry about such mismatches
-                            self.assertNotIn(share_get[id],
+                            self.assertNotIn(share_get['id'],
                                              self.shares_created)
                             continue
 
