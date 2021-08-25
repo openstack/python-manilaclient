@@ -50,6 +50,7 @@ class RateLimit(object):
         self.regex = regex
         self.value = value
         self.remain = remain
+        self.remaining = self.remain
         self.unit = unit
         self.next_available = next_available
 

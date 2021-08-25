@@ -123,3 +123,10 @@ share pools
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share pool list
+
+============
+share limits
+============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share limits *
