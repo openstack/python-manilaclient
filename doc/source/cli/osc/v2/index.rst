@@ -73,7 +73,14 @@ share snapshots
 ===============
 
 .. autoprogram-cliff:: openstack.share.v2
-    :command: share snapshot *
+    :command: share snapshot [!i]*
+
+========================
+share snapshot instances
+========================
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share snapshot instance *
 
 ===============
 user messages
