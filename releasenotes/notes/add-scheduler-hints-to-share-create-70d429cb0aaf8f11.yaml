@@ -1,0 +1,8 @@
+---
+features:
+  - Added --scheduler_hints to the share create command
+upgrade:
+  - Scheduler hints in the share create command allow scheduler to select
+    appropriate host using hard affinity and anti-affinity filters. User needs
+    to specify affinity/anti-affinity share ids using keys "same_host" or
+    "different_host" when creating a manila share.

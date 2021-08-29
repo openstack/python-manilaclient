@@ -120,7 +120,7 @@ class ShareManager(base.ManagerWithFind):
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False, availability_zone=None,
-               share_group_id=None):
+               share_group_id=None, scheduler_hints=None):
         """Create a share.
 
         :param share_proto: text - share protocol for new share available
@@ -135,9 +135,14 @@ class ShareManager(base.ManagerWithFind):
         :param is_public: bool, whether to set share as public or not.
         :param share_group_id: text - ID of the share group to which the share
             should belong
+        :param scheduler_hints: dict - hints for the scheduler to place share
+            on most appropriate host e.g. keys are same_host for affinity and
+            different_host for anti-affinity
         :rtype: :class:`Share`
         """
         share_metadata = metadata if metadata is not None else dict()
+        scheduler_hints = (scheduler_hints if scheduler_hints is not None
+                           else dict())
         body = {
             'size': size,
             'snapshot_id': snapshot_id,
@@ -149,6 +154,7 @@ class ShareManager(base.ManagerWithFind):
             'share_type': common_base.getid(share_type),
             'is_public': is_public,
             'availability_zone': availability_zone,
+            'scheduler_hints': scheduler_hints,
         }
         if share_group_id:
             body['share_group_id'] = share_group_id

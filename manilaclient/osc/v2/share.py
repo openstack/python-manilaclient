@@ -179,6 +179,16 @@ class CreateShare(command.ShowOne):
             default=False,
             help=_('Wait for share creation')
         )
+        parser.add_argument(
+            "--scheduler-hint",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_("Set Scheduler hints for the share as key=value pairs, "
+                   "possible keys are same_host, different_host."
+                   "(repeat option to set multiple hints)"),
+        )
+
         return parser
 
     def take_action(self, parsed_args):
@@ -210,6 +220,33 @@ class CreateShare(command.ShowOne):
             snapshot_id = snapshot.id
             size = max(size or 0, snapshot.size)
 
+        scheduler_hints = {}
+        if parsed_args.scheduler_hint:
+            if share_client.api_version < api_versions.APIVersion('2.65'):
+                raise exceptions.CommandError(
+                    'Setting share scheduler hints for a share is '
+                    'available only for API microversion >= 2.65')
+            else:
+                scheduler_hints = utils.extract_key_value_options(
+                    parsed_args.scheduler_hint)
+                same_host_hint_shares = scheduler_hints.get('same_host')
+                different_host_hint_shares = scheduler_hints.get(
+                    'different_host')
+                if same_host_hint_shares:
+                    same_host_hint_shares = [
+                        apiutils.find_resource(share_client.shares, sh).id
+                        for sh in same_host_hint_shares.split(',')
+                    ]
+                    scheduler_hints['same_host'] = (
+                        ','.join(same_host_hint_shares))
+                if different_host_hint_shares:
+                    different_host_hint_shares = [
+                        apiutils.find_resource(share_client.shares, sh).id
+                        for sh in different_host_hint_shares.split(',')
+                    ]
+                    scheduler_hints['different_host'] = (
+                        ','.join(different_host_hint_shares))
+
         body = {
             'share_proto': parsed_args.share_proto,
             'size': size,
@@ -221,7 +258,8 @@ class CreateShare(command.ShowOne):
             'share_type': share_type,
             'is_public': parsed_args.public,
             'availability_zone': parsed_args.availability_zone,
-            'share_group_id': share_group
+            'share_group_id': share_group,
+            'scheduler_hints': scheduler_hints
         }
 
         share = share_client.shares.create(**body)
