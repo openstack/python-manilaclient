@@ -11,6 +11,7 @@
 #   under the License.
 import logging
 
+from openstackclient.identity import common as identity_common
 from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
@@ -219,7 +220,7 @@ class ListShareGroup(command.Lister):
             "--all-projects",
             action='store_true',
             default=False,
-            help=_("Display snapshots from all projects (Admin only).")
+            help=_("Display share groups from all projects (Admin only).")
         )
         parser.add_argument(
             "--name",
@@ -241,7 +242,7 @@ class ListShareGroup(command.Lister):
             help=_("Filter results by status.")
         )
         parser.add_argument(
-            "--share-server-id",
+            "--share-server",
             metavar="<share-server-id>",
             default=None,
             help=_("Filter results by share server ID.")
@@ -276,12 +277,13 @@ class ListShareGroup(command.Lister):
                    "ID. ")
         )
         parser.add_argument(
-            "--project-id",
-            metavar="<project-id>",
+            "--project",
+            metavar="<project>",
             default=None,
-            help=_("Filter results by project ID. Useful with "
+            help=_("Filter results by project name or ID. Useful with "
                    "set key '--all-projects'. ")
         )
+        identity_common.add_project_domain_option_to_parser(parser)
         parser.add_argument(
             "--limit",
             metavar="<limit>",
@@ -316,7 +318,7 @@ class ListShareGroup(command.Lister):
             metavar="<description~>",
             default=None,
             help=_("Filter results matching a share group "
-                   "name pattern. Available only for "
+                   "description pattern. Available only for "
                    "microversion >= 2.36. ")
         )
         return parser
@@ -326,7 +328,7 @@ class ListShareGroup(command.Lister):
         identity_client = self.app.client_manager.identity
 
         share_server_id = None
-        if parsed_args.share_server_id:
+        if parsed_args.share_server:
             share_server_id = osc_utils.find_resource(
                 share_client.share_servers,
                 parsed_args.share_server).id
@@ -350,7 +352,7 @@ class ListShareGroup(command.Lister):
                 parsed_args.share_network).id
 
         project_id = None
-        if parsed_args.project_id:
+        if parsed_args.project:
             project_id = identity_common.find_project(
                 identity_client,
                 parsed_args.project,
@@ -398,8 +400,8 @@ class ListShareGroup(command.Lister):
 
 
 class ShowShareGroup(command.ShowOne):
-    """Show share groups."""
-    _description = _("Show details about a share groups")
+    """Show share group."""
+    _description = _("Show details about a share group")
 
     def get_parser(self, prog_name):
         parser = super(ShowShareGroup, self).get_parser(prog_name)
