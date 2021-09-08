@@ -915,6 +915,14 @@ def do_rate_limits(cs, args):
     '--wait',
     action='store_true',
     help='Wait for share creation')
+@cliutils.arg(
+    '--scheduler-hints', '--scheduler_hints', '--sh',
+    metavar='<key=value>',
+    nargs='*',
+    help='Scheduler hints for the share as key=value pairs, '
+         'possible keys are same_host, different_host, '
+         'value must be share_name or share_id.',
+    default=None)
 @cliutils.service_type('sharev2')
 def do_create(cs, args):
     """Creates a new share (NFS, CIFS, CephFS, GlusterFS, HDFS or MAPRFS)."""
@@ -939,6 +947,25 @@ def do_create(cs, args):
         raise exceptions.CommandError(
             "Share name cannot be with the value 'None'")
 
+    scheduler_hints = {}
+    if args.scheduler_hints:
+        scheduler_hints = _extract_key_value_options(args, 'scheduler_hints')
+        same_host_hint_shares = scheduler_hints.get('same_host')
+        different_host_hint_shares = scheduler_hints.get('different_host')
+        if same_host_hint_shares:
+            same_host_hint_shares = [
+                _find_share(cs, sh).id
+                for sh in same_host_hint_shares.split(',')
+            ]
+            scheduler_hints['same_host'] = ','.join(same_host_hint_shares)
+        if different_host_hint_shares:
+            different_host_hint_shares = [
+                _find_share(cs, sh).id
+                for sh in different_host_hint_shares.split(',')
+            ]
+            scheduler_hints['different_host'] = ','.join(
+                different_host_hint_shares)
+
     share = cs.shares.create(args.share_protocol, args.size, snapshot,
                              args.name, args.description,
                              metadata=share_metadata,
@@ -946,7 +973,8 @@ def do_create(cs, args):
                              share_type=args.share_type,
                              is_public=args.public,
                              availability_zone=args.availability_zone,
-                             share_group_id=share_group)
+                             share_group_id=share_group,
+                             scheduler_hints=scheduler_hints)
 
     if args.wait:
         share = _wait_for_share_status(cs, share)

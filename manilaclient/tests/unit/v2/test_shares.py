@@ -67,6 +67,7 @@ class SharesTest(utils.TestCase):
             'share_type': None,
             'is_public': False,
             'availability_zone': None,
+            'scheduler_hints': dict(),
         }
         cs.shares.create(protocol, 1)
         cs.assert_called('POST', '/shares', {'share': expected})
@@ -87,6 +88,7 @@ class SharesTest(utils.TestCase):
             'share_type': None,
             'is_public': False,
             'availability_zone': None,
+            'scheduler_hints': dict(),
         }
         cs.shares.create('nfs', 1, share_network=share_network)
         cs.assert_called('POST', '/shares', {'share': expected})
@@ -107,6 +109,7 @@ class SharesTest(utils.TestCase):
             'share_type': 'fake_st',
             'is_public': False,
             'availability_zone': None,
+            'scheduler_hints': dict(),
         }
         cs.shares.create('nfs', 1, share_type=share_type)
         cs.assert_called('POST', '/shares', {'share': expected})
@@ -130,6 +133,7 @@ class SharesTest(utils.TestCase):
                 'share_network_id': None,
                 'size': 1,
                 'availability_zone': availability_zone,
+                'scheduler_hints': {},
             }
         }
         cs.shares.create('nfs', 1, is_public=is_public,

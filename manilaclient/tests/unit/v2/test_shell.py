@@ -86,6 +86,7 @@ class ShellTest(test_utils.TestCase):
                 "size": 1,
                 "is_public": False,
                 "availability_zone": None,
+                "scheduler_hints": {},
             }
         }
 
