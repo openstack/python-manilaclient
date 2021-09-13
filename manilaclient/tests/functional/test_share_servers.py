@@ -317,20 +317,30 @@ class ShareServersMigrationBase(base.BaseTestCase):
         task_state = constants.TASK_STATE_MIGRATION_DRIVER_PHASE1_DONE
         server = self.admin_client.wait_for_server_migration_task_state(
             share_server_id, dest_host, task_state)
+        migration_progress = (
+            self.admin_client.share_server_migration_get_progress(
+                share_server_id))
+        dest_share_server_id = migration_progress.get(
+            'destination_share_server_id')
 
         # Call share server migration complete or cancel operations
         # according the ddt.
         if operation == 'complete':
+            task_state = constants.TASK_STATE_MIGRATION_SUCCESS
             self.admin_client.share_server_migration_complete(
                 share_server_id)
-            task_state = constants.TASK_STATE_MIGRATION_SUCCESS
+            server = self.admin_client.wait_for_server_migration_task_state(
+                dest_share_server_id, dest_host, task_state)
+            self.assertRaises(exceptions.NotFound,
+                              self.admin_client.get_share_server,
+                              share_server_id)
         else:
             self.admin_client.share_server_migration_cancel(server['id'])
             task_state = constants.TASK_STATE_MIGRATION_CANCELLED
+            # Wait for the respectives task state for each operation above.
+            server = self.admin_client.wait_for_server_migration_task_state(
+                server['id'], dest_host, task_state)
 
-        # Wait for the respectives task state for each operation above.
-        server = self.admin_client.wait_for_server_migration_task_state(
-            server['id'], dest_host, task_state)
         # Check if the share is available again.
         share = self.admin_client.get_share(share['id'])
         self.assertEqual('available', share['status'])
