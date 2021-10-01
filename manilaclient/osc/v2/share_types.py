@@ -420,7 +420,9 @@ class ListShareType(command.Lister):
         values = (oscutils.get_dict_properties(
             s._info, ATTRIBUTES) for s in formatted_types)
 
-        return (ATTRIBUTES, values)
+        columns = utils.format_column_headers(ATTRIBUTES)
+
+        return (columns, values)
 
 
 class ShowShareType(command.ShowOne):

@@ -170,14 +170,14 @@ class TestShareAccessDelete(TestShareAccess):
 class TestShareAccessList(TestShareAccess):
 
     access_rules_columns = [
-        'id',
-        'access_type',
-        'access_to',
-        'access_level',
-        'state',
-        'access_key',
-        'created_at',
-        'updated_at'
+        'ID',
+        'Access Type',
+        'Access To',
+        'Access Level',
+        'State',
+        'Access Key',
+        'Created At',
+        'Updated At'
     ]
 
     def setUp(self):
