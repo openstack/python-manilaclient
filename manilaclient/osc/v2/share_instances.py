@@ -29,8 +29,6 @@ class ShareInstanceDelete(command.Command):
     """Forces the deletion of the share instance."""
     _description = _("Forces the deletion of a share instance")
 
-    log = logging.getLogger(__name__ + ".ShareInstanceDelete")
-
     def get_parser(self, prog_name):
         parser = super(ShareInstanceDelete, self).get_parser(prog_name)
         parser.add_argument(

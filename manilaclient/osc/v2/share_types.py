@@ -65,8 +65,6 @@ class CreateShareType(command.ShowOne):
     _description = _(
         "Create new share type")
 
-    log = logging.getLogger(__name__ + ".CreateShareType")
-
     def get_parser(self, prog_name):
         parser = super(CreateShareType, self).get_parser(prog_name)
         parser.add_argument(
@@ -199,8 +197,6 @@ class DeleteShareType(command.Command):
     """Delete a share type."""
     _description = _("Delete a share type")
 
-    log = logging.getLogger(__name__ + ".DeleteShareType")
-
     def get_parser(self, prog_name):
         parser = super(DeleteShareType, self).get_parser(prog_name)
         parser.add_argument(
@@ -239,8 +235,6 @@ class DeleteShareType(command.Command):
 class SetShareType(command.Command):
     """Set share type properties."""
     _description = _("Set share type properties")
-
-    log = logging.getLogger(__name__ + ".SetShareType")
 
     def get_parser(self, prog_name):
         parser = super(SetShareType, self).get_parser(prog_name)
@@ -335,8 +329,6 @@ class UnsetShareType(command.Command):
     """Unset share type extra specs."""
     _description = _("Unset share type extra specs")
 
-    log = logging.getLogger(__name__ + ".UnsetShareType")
-
     def get_parser(self, prog_name):
         parser = super(UnsetShareType, self).get_parser(prog_name)
         parser.add_argument(
@@ -369,8 +361,6 @@ class UnsetShareType(command.Command):
 class ListShareType(command.Lister):
     """List Share Types."""
     _description = _("List share types")
-
-    log = logging.getLogger(__name__ + ".ListShareType")
 
     def get_parser(self, prog_name):
         parser = super(ListShareType, self).get_parser(prog_name)

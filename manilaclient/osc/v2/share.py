@@ -96,8 +96,6 @@ class CreateShare(command.ShowOne):
     """Create a new share."""
     _description = _("Create new share")
 
-    log = logging.getLogger(__name__ + ".CreateShare")
-
     def get_parser(self, prog_name):
         parser = super(CreateShare, self).get_parser(prog_name)
         parser.add_argument(

@@ -10,8 +10,6 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 
-import logging
-
 from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
@@ -21,8 +19,6 @@ from manilaclient import api_versions
 from manilaclient.common._i18n import _
 from manilaclient.common.apiclient import utils as apiutils
 from manilaclient.osc import utils
-
-LOG = logging.getLogger(__name__)
 
 ACCESS_RULE_ATTRIBUTES = [
     'id',
@@ -41,8 +37,6 @@ ACCESS_RULE_ATTRIBUTES = [
 class ShareAccessAllow(command.ShowOne):
     """Create a new share access rule."""
     _description = _("Create new share access rule")
-
-    log = logging.getLogger(__name__ + ".CreateShareAccess")
 
     def get_parser(self, prog_name):
         parser = super(ShareAccessAllow, self).get_parser(prog_name)
@@ -122,8 +116,6 @@ class ShareAccessDeny(command.Command):
     """Delete a share access rule."""
     _description = _("Delete a share access rule")
 
-    log = logging.getLogger(__name__ + ".DeleteShareAccess")
-
     def get_parser(self, prog_name):
         parser = super(ShareAccessDeny, self).get_parser(prog_name)
         parser.add_argument(
@@ -154,8 +146,6 @@ class ShareAccessDeny(command.Command):
 class ListShareAccess(command.Lister):
     """List share access rules."""
     _description = _("List share access rule")
-
-    log = logging.getLogger(__name__ + ".ListShareAccess")
 
     def get_parser(self, prog_name):
         parser = super(ListShareAccess, self).get_parser(prog_name)
@@ -228,8 +218,6 @@ class ShowShareAccess(command.ShowOne):
         "Display a share access rule. "
         "Available for API microversion 2.45 and higher")
 
-    log = logging.getLogger(__name__ + ".ShowShareAccess")
-
     def get_parser(self, prog_name):
         parser = super(ShowShareAccess, self).get_parser(prog_name)
         parser.add_argument(
@@ -266,8 +254,6 @@ class SetShareAccess(command.Command):
     _description = _(
         "Set properties to share access rule. "
         "Available for API microversion 2.45 and higher")
-
-    log = logging.getLogger(__name__ + ".SetShareAccess")
 
     def get_parser(self, prog_name):
         parser = super(SetShareAccess, self).get_parser(prog_name)
@@ -315,8 +301,6 @@ class UnsetShareAccess(command.Command):
     _description = _(
         "Unset properties of share access rule. "
         "Available for API microversion 2.45 and higher")
-
-    log = logging.getLogger(__name__ + ".UnsetShareAccess")
 
     def get_parser(self, prog_name):
         parser = super(UnsetShareAccess, self).get_parser(prog_name)
