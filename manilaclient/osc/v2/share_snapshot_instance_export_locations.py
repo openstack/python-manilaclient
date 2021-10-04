@@ -10,15 +10,11 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 
-import logging
-
 from osc_lib.command import command
 from osc_lib import utils
 
 from manilaclient.common._i18n import _
 from manilaclient.common.apiclient import utils as apiutils
-
-LOG = logging.getLogger(__name__)
 
 
 class ShareSnapshotInstanceExportLocationList(command.Lister):

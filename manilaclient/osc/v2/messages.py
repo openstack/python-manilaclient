@@ -41,8 +41,6 @@ class DeleteMessage(command.Command):
     """Remove one or more messages."""
     _description = _("Remove one or more messages")
 
-    log = logging.getLogger(__name__ + ".DeleteMessage")
-
     def get_parser(self, prog_name):
         parser = super(DeleteMessage, self).get_parser(prog_name)
         parser.add_argument(
@@ -76,8 +74,6 @@ class DeleteMessage(command.Command):
 class ListMessage(command.Lister):
     """Lists all messages."""
     _description = _("Lists all messages")
-
-    log = logging.getLogger(__name__ + ".ListMessage")
 
     def get_parser(self, prog_name):
         parser = super(ListMessage, self).get_parser(prog_name)

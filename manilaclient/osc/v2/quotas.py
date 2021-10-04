@@ -10,16 +10,12 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 
-import logging
-
 from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils
 
 from manilaclient import api_versions
 from manilaclient.common._i18n import _
-
-LOG = logging.getLogger(__name__)
 
 
 def _check_user_id_and_share_type_args(user_id, share_type):
@@ -32,8 +28,6 @@ def _check_user_id_and_share_type_args(user_id, share_type):
 class QuotaSet(command.Command):
     """Set quotas for a project or project/user or project/share-type."""
     _description = _("Set Quota")
-
-    log = logging.getLogger(__name__ + ".QuotaSet")
 
     def get_parser(self, prog_name):
         parser = super(QuotaSet, self).get_parser(prog_name)
@@ -239,8 +233,6 @@ class QuotaShow(command.ShowOne):
     """List the quotas for a project or project/user or project/share-type."""
     _description = _("Show Quota")
 
-    log = logging.getLogger(__name__ + ".QuotaShow")
-
     def get_parser(self, prog_name):
         parser = super(QuotaShow, self).get_parser(prog_name)
         parser.add_argument(
@@ -336,8 +328,6 @@ class QuotaDelete(command.Command):
     """
 
     _description = _("Delete Quota")
-
-    log = logging.getLogger(__name__ + ".QuotaDelete")
 
     def get_parser(self, prog_name):
         parser = super(QuotaDelete, self).get_parser(prog_name)
