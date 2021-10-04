@@ -5888,6 +5888,7 @@ def do_share_group_snapshot_update(cs, args):
 
     if args.name is not None:
         kwargs['name'] = args.name
+
     if args.description is not None:
         kwargs['description'] = args.description
 
@@ -5916,8 +5917,7 @@ def do_share_group_snapshot_delete(cs, args):
     failure_count = 0
     kwargs = {}
 
-    if args.force is not None:
-        kwargs['force'] = args.force
+    kwargs['force'] = args.force
 
     for sg_snapshot in args.share_group_snapshot:
         try:
