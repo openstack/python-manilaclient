@@ -192,19 +192,19 @@ class ListShareAccess(command.Lister):
             access_list = share.access_list()
 
         list_of_keys = [
-            'id',
-            'access_type',
-            'access_to',
-            'access_level',
-            'state'
+            'ID',
+            'Access Type',
+            'Access To',
+            'Access Level',
+            'State'
         ]
 
         if share_client.api_version >= api_versions.APIVersion("2.21"):
-            list_of_keys.append('access_key')
+            list_of_keys.append('Access Key')
 
         if share_client.api_version >= api_versions.APIVersion("2.33"):
-            list_of_keys.append('created_at')
-            list_of_keys.append('updated_at')
+            list_of_keys.append('Created At')
+            list_of_keys.append('Updated At')
 
         values = (oscutils.get_item_properties(
             a, list_of_keys) for a in access_list)

@@ -19,6 +19,7 @@ from osc_lib import utils as oscutils
 from manilaclient import api_versions
 from manilaclient.common.apiclient.exceptions import BadRequest
 from manilaclient.common.apiclient.exceptions import NotFound
+from manilaclient.osc import utils
 from manilaclient.osc.v2 import share_types as osc_share_types
 from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
@@ -448,6 +449,7 @@ class TestShareTypeUnset(TestShareType):
 class TestShareTypeList(TestShareType):
 
     share_types = manila_fakes.FakeShareType.create_share_types()
+    columns = utils.format_column_headers(COLUMNS)
 
     def setUp(self):
         super(TestShareTypeList, self).setUp()
@@ -473,7 +475,7 @@ class TestShareTypeList(TestShareType):
             search_opts={},
             show_all=False
         )
-        self.assertEqual(COLUMNS, columns)
+        self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
 
     def test_share_type_list_all(self):
@@ -490,7 +492,7 @@ class TestShareTypeList(TestShareType):
         self.shares_mock.list.assert_called_once_with(
             search_opts={},
             show_all=True)
-        self.assertEqual(COLUMNS, columns)
+        self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
 
     def test_share_type_list_extra_specs(self):
@@ -507,7 +509,7 @@ class TestShareTypeList(TestShareType):
         self.shares_mock.list.assert_called_once_with(
             search_opts={'extra_specs': {'snapshot_support': 'True'}},
             show_all=False)
-        self.assertEqual(COLUMNS, columns)
+        self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
 
     def test_share_type_list_api_versions_exception(self):

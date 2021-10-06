@@ -91,7 +91,7 @@ class TestShareTypeAccessAllow(TestShareTypeAccess):
 
 class TestShareTypeAccessList(TestShareTypeAccess):
 
-    columns = ['Project_ID']
+    columns = ['Project ID']
     data = (('',), ('',))
 
     def setUp(self):

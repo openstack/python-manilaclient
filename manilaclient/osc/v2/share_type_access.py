@@ -77,7 +77,7 @@ class ListShareTypeAccess(command.Lister):
 
         data = share_client.share_type_access.list(share_type)
 
-        columns = ['Project_ID']
+        columns = ['Project ID']
         values = (oscutils.get_item_properties(s, columns) for s in data)
 
         return (columns, values)
