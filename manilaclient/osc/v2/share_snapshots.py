@@ -177,11 +177,17 @@ class ShowShareSnapshot(command.ShowOne):
             share_client.share_snapshot_export_locations.list(
                 share_snapshot))
 
-        export_locations = cliutils.convert_dict_list_to_string(
-            export_locations, ignored_keys=['links'])
+        locations = []
+        for location in export_locations:
+            location._info.pop('links', None)
+            locations.append(location._info)
+
+        if parsed_args.formatter == 'table':
+            locations = cliutils.convert_dict_list_to_string(
+                locations)
 
         data = share_snapshot._info
-        data['export_locations'] = export_locations
+        data['export_locations'] = locations
         data.pop('links', None)
 
         return self.dict2columns(data)
