@@ -96,9 +96,9 @@ class Share(common_base.Resource):
         """Update the share with the provided state."""
         self.manager.reset_state(self, state)
 
-    def extend(self, new_size):
+    def extend(self, new_size, force=False):
         """Extend the size of the specified share."""
-        self.manager.extend(self, new_size)
+        self.manager.extend(self, new_size, force=force)
 
     def shrink(self, new_size):
         """Shrink the size of the specified share."""
@@ -694,21 +694,31 @@ class ShareManager(base.ManagerWithFind):
     def reset_state(self, share, state):  # noqa
         return self._do_reset_state(share, state, "reset_status")
 
-    def _do_extend(self, share, new_size, action_name):
+    def _do_extend(self, share, new_size, action_name, force=False):
         """Extend the size of the specified share.
 
         :param share: either share object or text with its ID.
         :param new_size: The desired size to extend share to.
+        :param force: if set to True, the scheduler's capacity decisions are
+                      not accounted for. Setting this parameter to True does
+                      not mean that the request will always succeed.
         """
-        return self._action(action_name, share, {"new_size": new_size})
+        req_body = {"new_size": new_size}
+        if force:
+            req_body['force'] = "true"
+        return self._action(action_name, share, req_body)
 
     @api_versions.wraps("1.0", "2.6")
     def extend(self, share, new_size):
         return self._do_extend(share, new_size, "os-extend")
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.63")  # noqa
     def extend(self, share, new_size):  # noqa
         return self._do_extend(share, new_size, "extend")
+
+    @api_versions.wraps("2.64")  # noqa
+    def extend(self, share, new_size, force=False):  # noqa
+        return self._do_extend(share, new_size, "extend", force=force)
 
     def _do_shrink(self, share, new_size, action_name):
         """Shrink the size of the specified share.

@@ -797,6 +797,14 @@ class ResizeShare(command.Command):
             default=False,
             help=_('Wait for share resize')
         )
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            default=False,
+            help=_('Only applicable when increasing the size of the '
+                   'share，only available with microversion '
+                   '2.64 and higher. (admin only)')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -814,8 +822,18 @@ class ResizeShare(command.Command):
                     "Share resize failed: %s" % e
                 ))
         elif share_size < new_size:
+            force = False
+            if parsed_args.force:
+                if share_client.api_version < api_versions.APIVersion("2.64"):
+                    raise exceptions.CommandError(
+                        'args force is available only for '
+                        'API microversion >= 2.64')
+                force = True
             try:
-                share_client.shares.extend(share, new_size)
+                if force:
+                    share_client.shares.extend(share, new_size, force=force)
+                else:
+                    share_client.shares.extend(share, new_size)
             except Exception as e:
                 raise exceptions.CommandError(_(
                     "Share resize failed: %s" % e
