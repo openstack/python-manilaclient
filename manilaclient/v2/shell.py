@@ -57,6 +57,7 @@ def _wait_for_resource_status(cs,
         'share_group_snapshot': _find_share_group_snapshot,
         'share_instance': _find_share_instance,
         'share_server': _find_share_server,
+        'share_access_rule': _find_share_access_rule,
     }
 
     print_resource = {
@@ -66,6 +67,7 @@ def _wait_for_resource_status(cs,
         'share_group': _print_share_group,
         'share_group_snapshot': _print_share_group_snapshot,
         'share_instance': _print_share_instance,
+        'share_access_rule': _print_share_access_rule,
     }
 
     expected_status = expected_status or ('available', )
@@ -244,6 +246,17 @@ def _print_share_instance(cs, instance):  # noqa
                               'availability_zone',
                               'share_replica_id'])
         )
+
+    cliutils.print_dict(info)
+
+
+def _find_share_access_rule(cs, access_rule):
+    """Get share access rule state"""
+    return apiclient_utils.find_resource(cs.share_access_rules, access_rule)
+
+
+def _print_share_access_rule(cs, access_rule):
+    info = access_rule._info.copy()
 
     cliutils.print_dict(info)
 
@@ -1968,6 +1981,10 @@ def do_show(cs, args):  # noqa
     help='Space Separated list of key=value pairs of metadata items. '
          'OPTIONAL: Default=None. Available only for microversion >= 2.45.',
     default=None)
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    help='Wait for share access to become active')
 def do_access_allow(cs, args):
     """Allow access to a given share."""
     access_metadata = None
@@ -1982,6 +1999,23 @@ def do_access_allow(cs, args):
     share = _find_share(cs, args.share)
     access = share.allow(args.access_type, args.access_to, args.access_level,
                          access_metadata)
+    if args.wait:
+        try:
+            if not cs.api_version.matches(api_versions.APIVersion("2.45"),
+                                          api_versions.APIVersion()):
+                raise exceptions.CommandError(
+                    "Waiting on the allowing access operation is only "
+                    "available for API versions equal to or greater than 2.45."
+                )
+            access_id = access.get('id')
+            share_access_rule = cs.share_access_rules.get(access_id)
+            access = _wait_for_resource_status(
+                cs, share_access_rule,
+                resource_type='share_access_rule',
+                expected_status='active',
+                status_attr='state')._info
+        except exceptions.CommandError as e:
+            print(e, file=sys.stderr)
     cliutils.print_dict(access)
 
 
