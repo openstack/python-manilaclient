@@ -66,7 +66,20 @@ share networks
 ==============
 
 .. autoprogram-cliff:: openstack.share.v2
-    :command: share network *
+    :command: share network [!s]*
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share network show
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share network set
+
+=====================
+share network subnets
+=====================
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share network subnet *
 
 ===========
 share types
