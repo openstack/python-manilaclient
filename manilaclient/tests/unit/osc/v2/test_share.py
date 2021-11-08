@@ -535,6 +535,8 @@ class TestShareList(TestShare):
             'project_id': None,
             'user_id': None,
             'offset': None,
+            'name~': None,
+            'description~': None,
         }
         return search_opts
 
@@ -550,24 +552,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         self.shares_mock.list.assert_called_once_with(
             search_opts=search_opts,
@@ -593,24 +578,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['project_id'] = self.project.id
         search_opts['all_tenants'] = True
@@ -641,24 +609,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['project_id'] = self.project.id
         search_opts['all_tenants'] = True
@@ -687,24 +638,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['user_id'] = self.user.id
 
@@ -733,24 +667,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['user_id'] = self.user.id
 
@@ -778,24 +695,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['name'] = self.new_share.name
 
@@ -823,24 +723,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['status'] = self.new_share.status
 
@@ -868,24 +751,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         search_opts['all_tenants'] = True
 
@@ -912,24 +778,7 @@ class TestShareList(TestShare):
 
         cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': None,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': None,
-        }
+        search_opts = self._get_search_opts()
 
         self.shares_mock.list.assert_called_once_with(
             search_opts=search_opts,
@@ -1019,24 +868,10 @@ class TestShareList(TestShare):
 
         self.assertEqual(self.columns, cmd_columns)
 
-        search_opts = {
-            'all_tenants': False,
-            'is_public': False,
-            'metadata': {},
-            'extra_specs': {},
-            'limit': 2,
-            'name': None,
-            'status': None,
-            'host': None,
-            'share_server_id': None,
-            'share_network_id': None,
-            'share_type_id': None,
-            'snapshot_id': None,
-            'share_group_id': None,
-            'project_id': None,
-            'user_id': None,
-            'offset': self.new_share.id
-        }
+        search_opts = self._get_search_opts()
+
+        search_opts['limit'] = 2
+        search_opts['offset'] = self.new_share.id
 
         data = self._get_data()
 
@@ -1054,6 +889,55 @@ class TestShareList(TestShare):
         ]
         self.assertRaises(argparse.ArgumentTypeError, self.check_parser,
                           self.cmd, arglist, verifylist)
+
+    def test_share_list_name_description_filter(self):
+        arglist = [
+            '--name~', self.new_share.name,
+            '--description~', self.new_share.description,
+        ]
+
+        verifylist = [
+            ('name~', self.new_share.name),
+            ('description~', self.new_share.description),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
+
+        search_opts = self._get_search_opts()
+
+        search_opts['name~'] = self.new_share.name
+        search_opts['description~'] = self.new_share.description
+
+        self.shares_mock.list.assert_called_once_with(
+            search_opts=search_opts,
+        )
+
+        self.assertEqual(self.columns, cmd_columns)
+
+        data = self._get_data()
+
+        self.assertEqual(data, tuple(cmd_data))
+
+    def test_list_share_api_version_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.35")
+
+        arglist = [
+            '--name~', 'Name',
+            '--description~', 'Description',
+        ]
+        verifylist = [
+            ('name~', 'Name'),
+            ('description~', 'Description'),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            osc_exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
 
 
 class TestShareShow(TestShare):

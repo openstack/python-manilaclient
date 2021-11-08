@@ -461,6 +461,20 @@ class ListShare(command.Lister):
             metavar="<share>",
             help=_('The last share ID of the previous page'),
         )
+        parser.add_argument(
+            "--name~",
+            metavar="<name~>",
+            default=None,
+            help=_("Filter results matching a share name pattern. "
+                   "Available only for microversion >= 2.36.")
+        )
+        parser.add_argument(
+            '--description~',
+            metavar="<description~>",
+            default=None,
+            help=_("Filter results matching a share description pattern."
+                   "Available only for microversion >= 2.36.")
+        )
 
         return parser
 
@@ -468,8 +482,7 @@ class ListShare(command.Lister):
         share_client = self.app.client_manager.share
         identity_client = self.app.client_manager.identity
 
-        # TODO(gouthamr): Add support for ~name, ~description
-        # export_location filtering
+        # TODO(gouthamr): Add support for export_location filtering
         if parsed_args.long:
             columns = SHARE_ATTRIBUTES
             column_headers = SHARE_ATTRIBUTES_HEADERS
@@ -563,6 +576,15 @@ class ListShare(command.Lister):
 
         # NOTE(vkmc) We implemented sorting and filtering in manilaclient
         # but we will use the one provided by osc
+        if share_client.api_version >= api_versions.APIVersion("2.36"):
+            search_opts['name~'] = getattr(parsed_args, 'name~')
+            search_opts['description~'] = getattr(parsed_args, 'description~')
+        elif (getattr(parsed_args, 'name~') or
+              getattr(parsed_args, 'description~')):
+            raise exceptions.CommandError(
+                "Pattern based filtering (name~ and description~)"
+                " is only available with manila API version >= 2.36")
+
         data = share_client.shares.list(search_opts=search_opts)
         data = oscutils.sort_items(data, parsed_args.sort, str)
 
