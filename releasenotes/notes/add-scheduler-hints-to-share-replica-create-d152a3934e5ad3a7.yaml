@@ -1,0 +1,8 @@
+---
+features:
+  - Added --scheduler_hints to the share-replica create command of manila
+    shellclient. In case of OSC, --scheduler-hint is used. Scheduler hints in
+    the share-replica create  allow scheduler to select appropriate host using
+    filters. For example, user needs to specify "only_host=host@backend#pool"
+    when creating a manila share-replica in case of onlyhostFilter. Supported
+    for microversion >= 2.67.
