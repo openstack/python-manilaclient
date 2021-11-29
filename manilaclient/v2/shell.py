@@ -1581,6 +1581,11 @@ def do_manage(cs, args):
          "The default subnet will be used if it's not specified. Available "
          "for microversion >= 2.51 (Optional, Default=None).",
     default=None)
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default='False',
+    help='Wait for share server to manage')
 def do_share_server_manage(cs, args):
     """Manage share server not handled by Manila (Admin only)."""
     driver_options = _extract_key_value_options(args, 'driver_options')
@@ -1599,6 +1604,14 @@ def do_share_server_manage(cs, args):
     share_server = cs.share_servers.manage(
         args.host, args.share_network, args.identifier,
         **manage_kwargs)
+
+    if args.wait:
+        try:
+            _wait_for_resource_status(
+                cs, share_server, resource_type='share_server',
+                expected_status='active')
+        except exceptions.CommandError as e:
+            print(e, file=sys.stderr)
 
     cliutils.print_dict(share_server._info)
 
