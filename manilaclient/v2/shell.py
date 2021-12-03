@@ -4575,11 +4575,26 @@ def do_pool_list(cs, args):
     '--wait',
     action='store_true',
     help='Wait for share extension')
+@cliutils.arg(
+    '--force',
+    action='store_true',
+    help='Force attempt the extension of the share, only available with '
+         'microversion 2.64 and higher. (admin only)')
 @cliutils.service_type('sharev2')
 def do_extend(cs, args):
     """Increases the size of an existing share."""
     share = _find_share(cs, args.share)
-    cs.shares.extend(share, args.new_size)
+    force = False
+    if args.force:
+        if cs.api_version < api_versions.APIVersion("2.64"):
+            raise exceptions.CommandError(
+                "args 'force' is available only starting with "
+                "'2.64' API microversion.")
+        force = True
+    if force:
+        cs.shares.extend(share, args.new_size, force=force)
+    else:
+        cs.shares.extend(share, args.new_size)
 
     if args.wait:
         share = _wait_for_share_status(cs, share)

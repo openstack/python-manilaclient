@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    `Launchpad bug 1855391 <https://bugs.launchpad.net/python-manilaclient/+bug/1855391>`_
+    has been fixed by adding a "force" argument to the share extension commands.

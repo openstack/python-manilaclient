@@ -574,11 +574,12 @@ class SharesTest(utils.TestCase):
             self.assertEqual("fake", result)
 
     @ddt.data(
-        ("2.6", "os-extend"),
-        ("2.7", "extend"),
+        ("2.6", "os-extend", False),
+        ("2.7", "extend", False),
+        ("2.64", "extend", True),
     )
     @ddt.unpack
-    def test_extend_share(self, microversion, action_name):
+    def test_extend_share(self, microversion, action_name, force):
         size = 123
         share = "fake_share"
         version = api_versions.APIVersion(microversion)
@@ -587,10 +588,15 @@ class SharesTest(utils.TestCase):
 
         with mock.patch.object(manager, "_action",
                                mock.Mock(return_value="fake")):
-            result = manager.extend(share, size)
-
-            manager._action.assert_called_once_with(
-                action_name, share, {"new_size": size})
+            if not force:
+                result = manager.extend(share, size)
+                manager._action.assert_called_once_with(
+                    action_name, share, {"new_size": size})
+            else:
+                result = manager.extend(share, size, force=force)
+                manager._action.assert_called_once_with(
+                    action_name, share, {"new_size": size,
+                                         "force": "true"})
             self.assertEqual("fake", result)
 
     @ddt.data(
