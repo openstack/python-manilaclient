@@ -15,6 +15,8 @@ from unittest import mock
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
+from manilaclient.common import cliutils
+
 from manilaclient.osc import utils
 from manilaclient.osc.v2 import share_replicas as osc_share_replicas
 
@@ -32,6 +34,11 @@ class TestShareReplica(manila_fakes.TestShare):
 
         self.replicas_mock = self.app.client_manager.share.share_replicas
         self.replicas_mock.reset_mock()
+
+        self.replica_el_mock = (
+            self.app.client_manager
+                .share.share_replica_export_locations)
+        self.replica_el_mock.reset_mock()
 
 
 class TestShareReplicaCreate(TestShareReplica):
@@ -358,7 +365,19 @@ class TestShareReplicaShow(TestShareReplica):
         )
         self.replicas_mock.get.return_value = self.share_replica
 
+        self.replica_el_list = (
+            manila_fakes.FakeShareExportLocation.
+            create_share_export_locations(count=2)
+        )
+
+        self.replica_el_mock.list.return_value = (
+            self.replica_el_list)
+
         self.cmd = osc_share_replicas.ShowShareReplica(self.app, None)
+
+        self.share_replica._info['export_locations'] = (
+            cliutils.convert_dict_list_to_string(
+                self.replica_el_list))
 
         self.data = tuple(self.share_replica._info.values())
         self.columns = tuple(self.share_replica._info.keys())
