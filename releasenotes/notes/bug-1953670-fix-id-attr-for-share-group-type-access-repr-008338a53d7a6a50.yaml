@@ -1,0 +1,5 @@
+---
+fixes:
+  - Launchpad `bug 1953670 <https://bugs.launchpad.net/python-manilaclient/+bug/1953670>`_
+    has been fixed by updating the attribute name for the share group type access
+    repr to be share_group_type_id.
