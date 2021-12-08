@@ -31,7 +31,8 @@ class ShareGroupTypeAccessTest(utils.TestCase):
         super(ShareGroupTypeAccessTest, self).setUp()
         self.manager = type_access.ShareGroupTypeAccessManager(
             fake.FakeClient())
-        fake_group_type_access_info = {'id': fake.ShareGroupTypeAccess.id}
+        fake_group_type_access_info = {
+            'share_group_type_id': fake.ShareGroupTypeAccess.id}
         self.share_group_type_access = type_access.ShareGroupTypeAccess(
             self.manager, fake_group_type_access_info, loaded=True)
 
