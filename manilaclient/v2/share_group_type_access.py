@@ -26,7 +26,7 @@ SG_GRADUATION_VERSION = "2.55"
 
 class ShareGroupTypeAccess(common_base.Resource):
     def __repr__(self):
-        return "<Share Group Type Access: %s>" % self.id
+        return "<Share Group Type Access: %s>" % self.share_group_type_id
 
 
 class ShareGroupTypeAccessManager(base.ManagerWithFind):
