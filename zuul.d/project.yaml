@@ -9,10 +9,12 @@
     check:
       jobs:
         - python-manilaclient-functional
-        - rally-dsvm-manila-multibackend:
+        - manila-rally-ss:
             voting: false
-        - rally-dsvm-manila-multibackend-no-ss:
+        - manila-rally-no-ss:
             voting: false
+        - openstack-tox-lower-constraints:
+            branches: master
     gate:
       jobs:
         - python-manilaclient-functional
