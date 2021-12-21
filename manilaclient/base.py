@@ -70,7 +70,6 @@ class Manager(utils.HookableMixin):
                 data = data['values']
             except KeyError:
                 pass
-
         with self.completion_cache('human_id', obj_class, mode="w"):
             with self.completion_cache('uuid', obj_class, mode="w"):
                 resource = [obj_class(self, res, loaded=True)
