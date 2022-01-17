@@ -10,6 +10,9 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 #
+from unittest import mock
+
+from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
 from manilaclient import api_versions
@@ -58,6 +61,7 @@ class TestShareAccessCreate(TestShareAccess):
             manila_fakes.FakeShareAccessRule.create_one_access_rule(
                 attrs={"share_id": self.share.id}))
         self.share.allow.return_value = self.access_rule._info
+        self.access_rules_mock.get.return_value = self.access_rule
 
         # Get the command object to test
         self.cmd = osc_share_access_rules.ShareAccessAllow(self.app, None)
@@ -135,6 +139,64 @@ class TestShareAccessCreate(TestShareAccess):
         self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
         self.assertCountEqual(self.access_rule._info.values(), data)
 
+    def test_share_access_create_wait(self):
+        arglist = [
+            self.share.id,
+            'user',
+            'demo',
+            '--wait'
+        ]
+        verifylist = [
+            ("share", self.share.id),
+            ("access_type", "user"),
+            ("access_to", "demo"),
+            ("wait", True)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        self.shares_mock.get.assert_called_with(self.share.id)
+        self.share.allow.assert_called_with(
+            access_type="user",
+            access="demo",
+            access_level=None,
+            metadata={}
+        )
+        self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
+        self.assertCountEqual(self.access_rule._info.values(), data)
+
+    @mock.patch('manilaclient.osc.v2.share_access_rules.LOG')
+    def test_share_access_create_wait_error(self, mock_logger):
+        arglist = [
+            self.share.id,
+            'user',
+            'demo',
+            '--wait'
+        ]
+        verifylist = [
+            ("share", self.share.id),
+            ("access_type", "user"),
+            ("access_to", "demo"),
+            ("wait", True)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_status', return_value=False):
+            columns, data = self.cmd.take_action(parsed_args)
+
+            self.shares_mock.get.assert_called_with(self.share.id)
+            self.share.allow.assert_called_with(
+                access_type="user",
+                access="demo",
+                access_level=None,
+                metadata={}
+            )
+
+            mock_logger.error.assert_called_with(
+                "ERROR: Share access rule is in error state.")
+
+            self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
+            self.assertCountEqual(self.access_rule._info.values(), data)
+
 
 class TestShareAccessDelete(TestShareAccess):
 
@@ -165,6 +227,47 @@ class TestShareAccessDelete(TestShareAccess):
         self.shares_mock.get.assert_called_with(self.share.id)
         self.share.deny.assert_called_with(self.access_rule.id)
         self.assertIsNone(result)
+
+    def test_share_access_delete_wait(self):
+        arglist = [
+            self.share.id,
+            self.access_rule.id,
+            '--wait'
+        ]
+        verifylist = [
+            ("share", self.share.id),
+            ("id", self.access_rule.id),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=True):
+            result = self.cmd.take_action(parsed_args)
+
+            self.shares_mock.get.assert_called_with(self.share.id)
+            self.share.deny.assert_called_with(self.access_rule.id)
+            self.assertIsNone(result)
+
+    def test_share_access_delete_wait_error(self):
+        arglist = [
+            self.share.id,
+            self.access_rule.id,
+            '--wait'
+        ]
+        verifylist = [
+            ("share", self.share.id),
+            ("id", self.access_rule.id),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
+            self.assertRaises(
+                exceptions.CommandError,
+                self.cmd.take_action,
+                parsed_args
+            )
 
 
 class TestShareAccessList(TestShareAccess):

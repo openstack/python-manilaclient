@@ -71,7 +71,10 @@ class TestShareSnapshotCreate(TestShareSnapshot):
         self.shares_mock.get.return_value = self.share
 
         self.share_snapshot = (
-            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+            manila_fakes.FakeShareSnapshot.create_one_snapshot(
+                attrs={'status': 'available'}
+            ))
+        self.snapshots_mock.get.return_value = self.share_snapshot
         self.snapshots_mock.create.return_value = self.share_snapshot
 
         self.cmd = osc_share_snapshots.CreateShareSnapshot(self.app, None)
@@ -157,6 +160,63 @@ class TestShareSnapshotCreate(TestShareSnapshot):
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
+
+    def test_share_snapshot_create_wait(self):
+        arglist = [
+            self.share.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.create.assert_called_with(
+            share=self.share,
+            force=False,
+            name=None,
+            description=None
+        )
+
+        self.snapshots_mock.get.assert_called_with(
+            self.share_snapshot.id)
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+    @mock.patch('manilaclient.osc.v2.share_snapshots.LOG')
+    def test_share_snapshot_create_wait_error(self, mock_logger):
+        arglist = [
+            self.share.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_status', return_value=False):
+            columns, data = self.cmd.take_action(parsed_args)
+
+            self.snapshots_mock.create.assert_called_with(
+                share=self.share,
+                force=False,
+                name=None,
+                description=None
+            )
+
+            mock_logger.error.assert_called_with(
+                "ERROR: Share snapshot is in error state.")
+
+            self.snapshots_mock.get.assert_called_with(
+                self.share_snapshot.id)
+            self.assertCountEqual(self.columns, columns)
+            self.assertCountEqual(self.data, data)
 
 
 class TestShareSnapshotDelete(TestShareSnapshot):
@@ -244,6 +304,42 @@ class TestShareSnapshotDelete(TestShareSnapshot):
         self.assertRaises(exceptions.CommandError,
                           self.cmd.take_action,
                           parsed_args)
+
+    def test_share_snapshot_delete_wait(self):
+        arglist = [
+            self.share_snapshot.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('snapshot', [self.share_snapshot.id]),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=True):
+            result = self.cmd.take_action(parsed_args)
+
+            self.snapshots_mock.delete.assert_called_with(self.share_snapshot)
+            self.assertIsNone(result)
+
+    def test_share_snapshot_delete_wait_error(self):
+        arglist = [
+            self.share_snapshot.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('snapshot', [self.share_snapshot.id]),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
+            self.assertRaises(
+                exceptions.CommandError,
+                self.cmd.take_action,
+                parsed_args
+            )
 
 
 class TestShareSnapshotShow(TestShareSnapshot):
@@ -645,8 +741,13 @@ class TestShareSnapshotAdopt(TestShareSnapshot):
         self.shares_mock.get.return_value = self.share
 
         self.share_snapshot = (
-            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+            manila_fakes.FakeShareSnapshot.create_one_snapshot(
+                attrs={
+                    'status': 'available'
+                }
+            ))
 
+        self.snapshots_mock.get.return_value = self.share_snapshot
         self.export_location = (
             manila_fakes.FakeShareExportLocation.create_one_export_location())
 
@@ -748,6 +849,60 @@ class TestShareSnapshotAdopt(TestShareSnapshot):
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
+    def test_snapshot_adopt_wait(self):
+        arglist = [
+            self.share.id,
+            self.export_location.fake_path,
+            '--wait'
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('provider_location', self.export_location.fake_path),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+        self.snapshots_mock.get.assert_called_with(self.share_snapshot.id)
+        self.snapshots_mock.manage.assert_called_with(
+            share=self.share,
+            provider_location=self.export_location.fake_path,
+            driver_options={},
+            name=None,
+            description=None
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+    def test_snapshot_adopt_wait_error(self):
+        arglist = [
+            self.share.id,
+            self.export_location.fake_path,
+            '--wait'
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('provider_location', self.export_location.fake_path),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_status', return_value=False):
+            columns, data = self.cmd.take_action(parsed_args)
+            self.snapshots_mock.get.assert_called_with(self.share_snapshot.id)
+            self.snapshots_mock.manage.assert_called_with(
+                share=self.share,
+                provider_location=self.export_location.fake_path,
+                driver_options={},
+                name=None,
+                description=None
+            )
+            self.assertCountEqual(self.columns, columns)
+            self.assertCountEqual(self.data, data)
+
 
 class TestShareSnapshotAbandon(TestShareSnapshot):
 
@@ -755,7 +910,9 @@ class TestShareSnapshotAbandon(TestShareSnapshot):
         super(TestShareSnapshotAbandon, self).setUp()
 
         self.share_snapshot = (
-            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+            manila_fakes.FakeShareSnapshot.create_one_snapshot(
+                attrs={'status': 'available'}
+            ))
 
         self.snapshots_mock.get.return_value = self.share_snapshot
 
@@ -801,6 +958,42 @@ class TestShareSnapshotAbandon(TestShareSnapshot):
         self.assertEqual(self.snapshots_mock.unmanage.call_count,
                          len(share_snapshots))
         self.assertIsNone(result)
+
+    def test_share_snapshot_abandon_wait(self):
+        arglist = [
+            self.share_snapshot.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('snapshot', [self.share_snapshot.id]),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=True):
+            result = self.cmd.take_action(parsed_args)
+            self.snapshots_mock.unmanage.assert_called_with(
+                self.share_snapshot)
+            self.assertIsNone(result)
+
+    def test_share_snapshot_abandon_wait_error(self):
+        arglist = [
+            self.share_snapshot.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('snapshot', [self.share_snapshot.id]),
+            ('wait', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
+            self.assertRaises(
+                exceptions.CommandError,
+                self.cmd.take_action,
+                parsed_args)
 
 
 class TestShareSnapshotAccessAllow(TestShareSnapshot):

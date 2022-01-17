@@ -55,6 +55,12 @@ class CreateShareSnapshot(command.ShowOne):
             default=None,
             help=_("Add a description to the snapshot (Optional).")
         )
+        parser.add_argument(
+            '--wait',
+            action='store_true',
+            default=False,
+            help=_('Wait for share snapshot creation')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -69,6 +75,17 @@ class CreateShareSnapshot(command.ShowOne):
             name=parsed_args.name or None,
             description=parsed_args.description or None
         )
+        if parsed_args.wait:
+            if not utils.wait_for_status(
+                status_f=share_client.share_snapshots.get,
+                res_id=share_snapshot.id,
+                success_status=['available']
+            ):
+                LOG.error(_("ERROR: Share snapshot is in error state."))
+
+            share_snapshot = utils.find_resource(
+                share_client.share_snapshots,
+                share_snapshot.id)
         share_snapshot._info.pop('links', None)
 
         return self.dict2columns(share_snapshot._info)
@@ -93,6 +110,12 @@ class DeleteShareSnapshot(command.Command):
             default=False,
             help=_("Delete the snapshot(s) ignoring the current state.")
         )
+        parser.add_argument(
+            "--wait",
+            action='store_true',
+            default=False,
+            help=_("Wait for share snapshot deletion")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -110,6 +133,11 @@ class DeleteShareSnapshot(command.Command):
                 else:
                     share_client.share_snapshots.delete(
                         snapshot_obj)
+                if parsed_args.wait:
+                    if not utils.wait_for_delete(
+                            manager=share_client.share_snapshots,
+                            res_id=snapshot_obj.id):
+                        result += 1
             except Exception as e:
                 result += 1
                 LOG.error(_(
@@ -466,6 +494,11 @@ class AdoptShareSnapshot(command.ShowOne):
                 "Set driver options as key=value pairs."
                 "(repeat option to set multiple key=value pairs)")
         )
+        parser.add_argument(
+            "--wait",
+            action='store_true',
+            help=_("Wait until share snapshot is adopted")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -481,6 +514,19 @@ class AdoptShareSnapshot(command.ShowOne):
             name=parsed_args.name,
             description=parsed_args.description
         )
+
+        if parsed_args.wait:
+            if not utils.wait_for_status(
+                status_f=share_client.share_snapshots.get,
+                res_id=snapshot.id,
+                success_status=['available'],
+                error_status=['manage_error', 'error']
+            ):
+                LOG.error(_("ERROR: Share snapshot is in error state."))
+
+            snapshot = utils.find_resource(share_client.share_snapshots,
+                                           snapshot.id)
+
         snapshot._info.pop('links', None)
 
         return self.dict2columns(snapshot._info)
@@ -499,6 +545,11 @@ class AbandonShareSnapshot(command.Command):
             nargs='+',
             help=_("Name or ID of the snapshot(s) to be abandoned.")
         )
+        parser.add_argument(
+            "--wait",
+            action='store_true',
+            help=_("Wait until share snapshot is abandoned")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -511,6 +562,11 @@ class AbandonShareSnapshot(command.Command):
                 snapshot)
             try:
                 share_client.share_snapshots.unmanage(snapshot_obj)
+                if parsed_args.wait:
+                    if not utils.wait_for_delete(
+                            manager=share_client.share_snapshots,
+                            res_id=snapshot_obj.id):
+                        result += 1
             except Exception as e:
                 result += 1
                 LOG.error(_(
