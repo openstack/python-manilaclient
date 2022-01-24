@@ -1,0 +1,4 @@
+features:
+  - |
+    Adds support to set snapshot property on snapshot create, filter list on
+    snapshot property, and snapshot property set and unset. Only in OSC.

@@ -215,3 +215,30 @@ class ShareSnapshotsTest(utils.TestCase):
     def test_access_list(self):
         cs.share_snapshots.access_list(1234)
         cs.assert_called('GET', '/snapshots/1234/access-list')
+
+    def test_get_metadata(self):
+        cs.share_snapshots.get_metadata(1234)
+        cs.assert_called('GET', '/snapshots/1234/metadata')
+
+    def test_set_metadata(self):
+        cs.share_snapshots.set_metadata(1234, {'k1': 'v2'})
+        cs.assert_called('POST', '/snapshots/1234/metadata',
+                         {'metadata': {'k1': 'v2'}})
+
+    @ddt.data(
+        type('SnapshotUUID', (object, ), {'uuid': '1234'}),
+        type('SnapshotID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_delete_metadata(self, snapshot):
+        keys = ['key1']
+        cs.share_snapshots.delete_metadata(snapshot, keys)
+        cs.assert_called('DELETE', '/snapshots/1234/metadata/key1')
+
+    @ddt.data(
+        type('SnapshotUUID', (object, ), {'uuid': '1234'}),
+        type('SnapshotID', (object, ), {'id': '1234'}),
+        '1234')
+    def test_metadata_update_all(self, snapshot):
+        cs.share_snapshots.update_all_metadata(snapshot, {'k1': 'v1'})
+        cs.assert_called('PUT', '/snapshots/1234/metadata',
+                         {'metadata': {'k1': 'v1'}})

@@ -12,6 +12,7 @@
 
 import logging
 
+from osc_lib.cli import format_columns
 from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
@@ -20,6 +21,7 @@ from osc_lib import utils
 from manilaclient import api_versions
 from manilaclient.common._i18n import _
 from manilaclient.common import cliutils
+from manilaclient.osc import utils as oscutils
 
 LOG = logging.getLogger(__name__)
 
@@ -61,6 +63,15 @@ class CreateShareSnapshot(command.ShowOne):
             default=False,
             help=_('Wait for share snapshot creation')
         )
+        parser.add_argument(
+            "--property",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_("Set a property to this snapshot "
+                   "(repeat option to set multiple properties)."
+                   "Available only for microversion >= 2.73"),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -69,11 +80,19 @@ class CreateShareSnapshot(command.ShowOne):
         share = utils.find_resource(share_client.shares,
                                     parsed_args.share)
 
+        if share_client.api_version >= api_versions.APIVersion("2.73"):
+            property = parsed_args.property or {}
+        elif parsed_args.property:
+            raise exceptions.CommandError(
+                "Setting metadtaa is only available with manila API version "
+                ">= 2.73")
+
         share_snapshot = share_client.share_snapshots.create(
             share=share,
             force=parsed_args.force,
             name=parsed_args.name or None,
-            description=parsed_args.description or None
+            description=parsed_args.description or None,
+            metadata=property
         )
         if parsed_args.wait:
             if not utils.wait_for_status(
@@ -188,6 +207,14 @@ class ShowShareSnapshot(command.ShowOne):
 
         data = share_snapshot._info
         data['export_locations'] = locations
+        # Special mapping for columns to make the output easier to read:
+        # 'metadata' --> 'properties'
+        data.update(
+            {
+                'properties':
+                    format_columns.DictColumn(data.pop('metadata', {})),
+            },
+        )
         data.pop('links', None)
 
         return self.dict2columns(data)
@@ -227,6 +254,14 @@ class SetShareSnapshot(command.Command):
                    "Options include : available, error, creating, "
                    "deleting, manage_starting, manage_error, "
                    "unmanage_starting, unmanage_error, error_deleting.")
+        )
+        parser.add_argument(
+            "--property",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_("Set a property to this snapshot "
+                   "(repeat option to set multiple properties)"),
         )
         return parser
 
@@ -270,7 +305,15 @@ class SetShareSnapshot(command.Command):
                     "Failed to update snapshot status to "
                     "'%(status)s': %(e)s"),
                     {'status': parsed_args.status, 'e': e})
-
+        if parsed_args.property:
+            try:
+                share_snapshot.set_metadata(parsed_args.property)
+            except Exception as e:
+                LOG.error(_("Failed to set share snapshot properties "
+                            "'%(properties)s': %(exception)s"),
+                          {'properties': parsed_args.property,
+                           'exception': e})
+                result += 1
         if result > 0:
             raise exceptions.CommandError(_("One or more of the "
                                           "set operations failed"))
@@ -297,6 +340,13 @@ class UnsetShareSnapshot(command.Command):
             action='store_true',
             help=_("Unset snapshot description."),
         )
+        parser.add_argument(
+            '--property',
+            metavar='<key>',
+            action='append',
+            help=_('Remove a property from snapshot '
+                   '(repeat option to remove multiple properties)'),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -321,6 +371,15 @@ class UnsetShareSnapshot(command.Command):
                 raise exceptions.CommandError(_(
                     "Failed to unset snapshot display name "
                     "or display description : %s" % e))
+        if parsed_args.property:
+            for key in parsed_args.property:
+                try:
+                    share_snapshot.delete_metadata([key])
+                except Exception as e:
+                    raise exceptions.CommandError(_(
+                        "Failed to unset snapshot property "
+                        "'%(key)s': %(e)s"),
+                        {'key': key, 'e': e})
 
 
 class ListShareSnapshot(command.Lister):
@@ -408,6 +467,14 @@ class ListShareSnapshot(command.Lister):
             default=False,
             help=_("List share snapshots with details")
         )
+        parser.add_argument(
+            '--property',
+            metavar='<key=value>',
+            action=parseractions.KeyValueAction,
+            help=_('Filter snapshots having a given metadata key=value '
+                   'property. (repeat option to filter by multiple '
+                   'properties)'),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -427,6 +494,8 @@ class ListShareSnapshot(command.Lister):
             'status': parsed_args.status,
             'share_id': share_id,
             'usage': parsed_args.usage,
+            'metadata': oscutils.extract_key_value_options(
+                parsed_args.property),
         }
 
         if share_client.api_version >= api_versions.APIVersion("2.36"):

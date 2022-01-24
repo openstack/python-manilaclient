@@ -59,6 +59,9 @@ class TestShareSnapshot(manila_fakes.TestShare):
             self.app.client_manager.share.share_snapshot_export_locations)
         self.export_locations_mock.reset_mock()
 
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            api_versions.MAX_VERSION)
+
 
 class TestShareSnapshotCreate(TestShareSnapshot):
 
@@ -105,7 +108,8 @@ class TestShareSnapshotCreate(TestShareSnapshot):
             share=self.share,
             force=False,
             name=None,
-            description=None
+            description=None,
+            metadata={}
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -129,7 +133,8 @@ class TestShareSnapshotCreate(TestShareSnapshot):
             share=self.share,
             force=True,
             name=None,
-            description=None
+            description=None,
+            metadata={}
         )
 
         self.assertCountEqual(columns, columns)
@@ -155,7 +160,38 @@ class TestShareSnapshotCreate(TestShareSnapshot):
             share=self.share,
             force=False,
             name=self.share_snapshot.name,
-            description=self.share_snapshot.description
+            description=self.share_snapshot.description,
+            metadata={}
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+    def test_share_snapshot_create_metadata(self):
+        arglist = [
+            self.share.id,
+            '--name', self.share_snapshot.name,
+            '--description', self.share_snapshot.description,
+            '--property', 'Manila=zorilla',
+            '--property', 'Zorilla=manila'
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('name', self.share_snapshot.name),
+            ('description', self.share_snapshot.description),
+            ('property', {'Manila': 'zorilla', 'Zorilla': 'manila'}),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.create.assert_called_with(
+            share=self.share,
+            force=False,
+            name=self.share_snapshot.name,
+            description=self.share_snapshot.description,
+            metadata={'Manila': 'zorilla', 'Zorilla': 'manila'},
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -179,7 +215,8 @@ class TestShareSnapshotCreate(TestShareSnapshot):
             share=self.share,
             force=False,
             name=None,
-            description=None
+            description=None,
+            metadata={}
         )
 
         self.snapshots_mock.get.assert_called_with(
@@ -207,7 +244,8 @@ class TestShareSnapshotCreate(TestShareSnapshot):
                 share=self.share,
                 force=False,
                 name=None,
-                description=None
+                description=None,
+                metadata={}
             )
 
             mock_logger.error.assert_called_with(
@@ -396,7 +434,9 @@ class TestShareSnapshotSet(TestShareSnapshot):
         super(TestShareSnapshotSet, self).setUp()
 
         self.share_snapshot = (
-            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+            manila_fakes.FakeShareSnapshot.create_one_snapshot(
+                methods={"set_metadata": None}
+            ))
 
         self.snapshots_mock.get.return_value = self.share_snapshot
 
@@ -458,6 +498,22 @@ class TestShareSnapshotSet(TestShareSnapshot):
             parsed_args.status)
         self.assertIsNone(result)
 
+    def test_set_snapshot_property(self):
+        arglist = [
+            self.share_snapshot.id,
+            '--property', 'Zorilla=manila',
+        ]
+        verifylist = [
+            ('snapshot', self.share_snapshot.id),
+            ('property', {'Zorilla': 'manila'}),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.share_snapshot.set_metadata.assert_called_with(
+            {'Zorilla': 'manila'})
+
     def test_set_snapshot_update_exception(self):
         snapshot_name = 'snapshot-name-' + uuid.uuid4().hex
         arglist = [
@@ -495,6 +551,29 @@ class TestShareSnapshotSet(TestShareSnapshot):
             self.cmd.take_action,
             parsed_args)
 
+    def test_set_snapshot_property_exception(self):
+        arglist = [
+            '--property', 'key=',
+            self.share_snapshot.id,
+        ]
+        verifylist = [
+            ('property', {'key': ''}),
+            ('snapshot', self.share_snapshot.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.share_snapshot.set_metadata.assert_called_with(
+            {'key': ''})
+
+        # '--property' takes key=value arguments
+        # missing a value would raise a BadRequest
+        self.share_snapshot.set_metadata.side_effect = exceptions.BadRequest
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action,
+            parsed_args)
+
 
 class TestShareSnapshotUnset(TestShareSnapshot):
 
@@ -502,7 +581,9 @@ class TestShareSnapshotUnset(TestShareSnapshot):
         super(TestShareSnapshotUnset, self).setUp()
 
         self.share_snapshot = (
-            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+            manila_fakes.FakeShareSnapshot.create_one_snapshot(
+                methods={"delete_metadata": None}
+            ))
 
         self.snapshots_mock.get.return_value = self.share_snapshot
 
@@ -544,6 +625,22 @@ class TestShareSnapshotUnset(TestShareSnapshot):
             display_description=None)
         self.assertIsNone(result)
 
+    def test_unset_snapshot_property(self):
+        arglist = [
+            '--property', 'Manila',
+            self.share_snapshot.id,
+        ]
+        verifylist = [
+            ('property', ['Manila']),
+            ('snapshot', self.share_snapshot.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.share_snapshot.delete_metadata.assert_called_with(
+            parsed_args.property)
+
     def test_unset_snapshot_name_exception(self):
         arglist = [
             self.share_snapshot.id,
@@ -561,6 +658,27 @@ class TestShareSnapshotUnset(TestShareSnapshot):
             exceptions.CommandError,
             self.cmd.take_action,
             parsed_args)
+
+    def test_unset_snapshot_property_exception(self):
+        arglist = [
+            '--property', 'Manila',
+            self.share_snapshot.id,
+        ]
+        verifylist = [
+            ('property', ['Manila']),
+            ('snapshot', self.share_snapshot.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+        self.share_snapshot.delete_metadata.assert_called_with(
+            parsed_args.property)
+
+        # 404 Not Found would be raised, if property 'Manila' doesn't exist
+        self.share_snapshot.delete_metadata.side_effect = exceptions.NotFound
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
 
 
 class TestShareSnapshotList(TestShareSnapshot):
@@ -600,9 +718,10 @@ class TestShareSnapshotList(TestShareSnapshot):
                 'status': None,
                 'share_id': None,
                 'usage': None,
+                'metadata': {},
                 'name~': None,
                 'description~': None,
-                'description': None
+                'description': None,
             })
 
         self.assertEqual(COLUMNS, columns)
@@ -635,9 +754,10 @@ class TestShareSnapshotList(TestShareSnapshot):
                 'status': None,
                 'share_id': None,
                 'usage': None,
+                'metadata': {},
                 'name~': None,
                 'description~': None,
-                'description': None
+                'description': None,
             })
 
         self.assertEqual(all_tenants_list, columns)
@@ -668,6 +788,7 @@ class TestShareSnapshotList(TestShareSnapshot):
                 'status': None,
                 'share_id': None,
                 'usage': None,
+                'metadata': {},
                 'name~': None,
                 'description~': None,
                 'description': None
@@ -724,6 +845,7 @@ class TestShareSnapshotList(TestShareSnapshot):
                 'status': None,
                 'share_id': self.share.id,
                 'usage': None,
+                'metadata': {},
                 'name~': None,
                 'description~': None,
                 'description': None

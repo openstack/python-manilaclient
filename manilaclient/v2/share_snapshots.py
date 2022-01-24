@@ -19,7 +19,8 @@ from manilaclient import base
 from manilaclient.common import constants
 
 
-class ShareSnapshot(base.Resource):
+class ShareSnapshot(base.MetadataCapableResource):
+
     """Represent a snapshot of a share."""
 
     def __repr__(self):
@@ -57,11 +58,13 @@ class ShareSnapshot(base.Resource):
         return self.manager.access_list(self)
 
 
-class ShareSnapshotManager(base.ManagerWithFind):
+class ShareSnapshotManager(base.MetadataCapableManager):
     """Manage :class:`ShareSnapshot` resources."""
     resource_class = ShareSnapshot
+    resource_path = '/snapshots'
 
-    def create(self, share, force=False, name=None, description=None):
+    def _do_create(self, share, force=False, name=None, description=None,
+                   metadata=None):
         """Create a snapshot of the given share.
 
         :param share_id: The ID of the share to snapshot.
@@ -69,13 +72,26 @@ class ShareSnapshotManager(base.ManagerWithFind):
                       share is busy. Default is False.
         :param name: Name of the snapshot
         :param description: Description of the snapshot
+        :param metadata: dict - optional metadata to set on share creation
         :rtype: :class:`ShareSnapshot`
         """
+
+        metadata = metadata if metadata is not None else dict()
         body = {'snapshot': {'share_id': base.getid(share),
                              'force': force,
                              'name': name,
-                             'description': description}}
+                             'description': description,
+                             'metadata': metadata}}
         return self._create('/snapshots', body, 'snapshot')
+
+    @api_versions.wraps("2.0", "2.72")
+    def create(self, share, force=False, name=None, description=None):
+        return self._do_create(share, force, name, description)
+
+    @api_versions.wraps("2.73")
+    def create(self, share, force=False, name=None, description=None,# noqa F811
+               metadata=None):
+        return self._do_create(share, force, name, description, metadata)
 
     @api_versions.wraps("2.12")
     def manage(self, share, provider_location,

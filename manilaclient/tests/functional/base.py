@@ -320,7 +320,7 @@ class BaseTestCase(base.ClientTestBase):
             'description': description,
             'public': public,
             'snapshot': snapshot,
-            'metadata': metadata,
+            'metadata': metadata or {},
             'microversion': microversion,
             'wait': use_wait_option,
         }
