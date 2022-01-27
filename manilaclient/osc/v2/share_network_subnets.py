@@ -87,8 +87,8 @@ class CreateShareNetworkSubnet(command.ShowOne):
 
 
 class DeleteShareNetworkSubnet(command.Command):
-    """Create a share network subnet."""
-    _description = _("Create a share network subnet")
+    """Delete a share network subnet."""
+    _description = _("Delete a share network subnet")
 
     def get_parser(self, prog_name):
         parser = super(DeleteShareNetworkSubnet, self).get_parser(prog_name)
