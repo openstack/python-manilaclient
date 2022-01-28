@@ -397,6 +397,39 @@ class ShareNetworksReadWriteTest(base.BaseTestCase):
         self.assertEqual(len(network_services), 1)
         self.assertEqual(network_services[0]['name'], new_name)
 
+    def test_share_network_subnet_create_check(self):
+        share_network = self.create_share_network(
+            client=self.user_client,
+            description='fakedescription',
+        )
+
+        check_result = (
+            self.user_client.share_network_subnet_create_check(
+                share_network['id'], neutron_net_id='fake_neutron_net_id',
+                neutron_subnet_id='fake_neutron_subnet_id'))
+
+        self.assertEqual(check_result['compatible'], 'True')
+
+    @ddt.data(
+        {'neutron_net_id': None, 'neutron_subnet_id': 'fake_subnet_id'},
+        {'neutron_net_id': 'fake_net_id', 'neutron_subnet_id': None},
+        {'availability_zone': 'invalid_availability_zone'},
+    )
+    def test_check_add_share_network_subnet_with_invalid_params(self, params):
+        self.assertRaises(
+            tempest_lib_exc.CommandFailed,
+            self.user_client.share_network_subnet_create_check,
+            self.sn['id'],
+            **params)
+
+    def test_check_add_share_network_subnet_to_invalid_share_network(self):
+        self.assertRaises(
+            tempest_lib_exc.CommandFailed,
+            self.user_client.share_network_subnet_create_check,
+            'invalid_share_network',
+            self.neutron_net_id,
+            self.neutron_subnet_id)
+
 
 class ShareNetworkSecurityServiceCheckReadWriteTests(base.BaseTestCase):
     protocol = None

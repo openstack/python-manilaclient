@@ -1,0 +1,6 @@
+---
+features:
+  - The command `share-network-subnet-create-check` was added. This command
+    will check if the share network subnet can be created in a specific share
+    network based on the cloud support. The OSC equivalent command is also
+    added, run the subnet create with the new option --check-only.

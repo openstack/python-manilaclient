@@ -321,3 +321,30 @@ class ShareNetworkManager(base.ManagerWithFind):
         """
         return self._action('reset_status', share_network,
                             {"status": state})
+
+    @api_versions.wraps("2.70")
+    def share_network_subnet_create_check(self, share_network_id,
+                                          neutron_net_id=None,
+                                          neutron_subnet_id=None,
+                                          availability_zone=None,
+                                          reset_operation=False):
+        """Check if share network subnet can be created in given share network.
+
+        :param share_network_id: ID of the Share network
+        :param neutron_net_id: ID of Neutron network
+        :param neutron_subnet_id: ID of Neutron subnet
+        :param availability_zone: Name of the target availability zone
+        :param reset_operation: Start over the check operation
+        :rtype: :class:`ShareNetworkSubnet`
+        """
+        values = {}
+        if neutron_net_id:
+            values['neutron_net_id'] = neutron_net_id
+        if neutron_subnet_id:
+            values['neutron_subnet_id'] = neutron_subnet_id
+        if availability_zone:
+            values['availability_zone'] = availability_zone
+        values['reset_operation'] = reset_operation
+
+        return self._action('share_network_subnet_create_check',
+                            share_network_id, values)
