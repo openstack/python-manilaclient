@@ -1297,7 +1297,7 @@ def do_share_server_migration_start(cs, args):
 def do_share_server_migration_complete(cs, args):
     """Completes migration for a given share server
 
-    (Admin only,Experimental).
+    (Admin only, Experimental).
     """
     share_server = _find_share_server(cs, args.share_server_id)
     result = share_server.migration_complete()
