@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    `Launchpad bug 1960422 <https://bugs.launchpad.net/python-manilaclient/+bug/1960422>`_
+    has been fixed by prevent sending the share creation request and provide
+    early feedback to CLI users.
