@@ -14,12 +14,12 @@
 #
 
 import argparse
-import mock
 import uuid
 
+import mock
 from mock import call
-
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
+from osc_lib import exceptions as osc_exceptions
 
 from manilaclient.common import cliutils
 from manilaclient.osc.v2 import share as osc_shares
@@ -58,6 +58,11 @@ class TestShareCreate(TestShare):
         self.new_share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.create.return_value = self.new_share
 
+        self.share_types_mock = self.app.client_manager.share.share_types
+        self.share_types_mock.reset_mock()
+        self.share_type = manila_fakes.FakeShareType.create_one_sharetype()
+        self.share_types_mock.get.return_value = self.share_type
+
         # Get the command object to test
         self.cmd = osc_shares.CreateShare(self.app, None)
 
@@ -70,10 +75,12 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
-            ('size', self.new_share.size)
+            ('size', self.new_share.size),
+            ('share_type', self.share_type.id)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -89,7 +96,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None
         )
@@ -113,12 +120,14 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
             '--property', 'Manila=zorilla',
             '--property', 'Zorilla=manila'
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
             ('property', {'Manila': 'zorilla', 'Zorilla': 'manila'}),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -134,7 +143,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None
         )
@@ -145,6 +154,24 @@ class TestShareCreate(TestShare):
     # TODO(vkmc) Add test with snapshot when
     # we implement snapshot support in OSC
     # def test_share_create_with_snapshot(self):
+
+    def test_create_share_with_no_existing_share_type(self):
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.share_types_mock.get.side_effect = osc_exceptions.CommandError()
+
+        self.assertRaises(
+            osc_exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
 
 
 class TestShareDelete(TestShare):
