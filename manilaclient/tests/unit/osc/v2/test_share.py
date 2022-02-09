@@ -82,6 +82,8 @@ class TestShareCreate(TestShare):
         self.share_snapshot = (
             manila_fakes.FakeShareSnapshot.create_one_snapshot())
         self.snapshots_mock.get.return_value = self.share_snapshot
+        self.share_type = manila_fakes.FakeShareType.create_one_sharetype()
+        self.share_types_mock.get.return_value = self.share_type
 
         # Get the command object to test
         self.cmd = osc_shares.CreateShare(self.app, None)
@@ -95,10 +97,12 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
-            ('size', self.new_share.size)
+            ('size', self.new_share.size),
+            ('share_type', self.share_type.id)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -114,7 +118,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
             scheduler_hints={}
@@ -139,12 +143,14 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
             '--property', 'Manila=zorilla',
             '--property', 'Zorilla=manila'
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
             ('property', {'Manila': 'zorilla', 'Zorilla': 'manila'}),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -160,7 +166,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
             scheduler_hints={}
@@ -181,12 +187,14 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
             '--scheduler-hint', ('same_host=%s' % share1_name),
             '--scheduler-hint', ('different_host=%s' % share2_name),
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
             ('scheduler_hint',
                 {'same_host': share1_name, 'different_host': share2_name}),
         ]
@@ -203,7 +211,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
             scheduler_hints={'same_host': shares[0].id,
@@ -219,12 +227,14 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
             '--snapshot-id', self.share_snapshot.id
 
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
             ('snapshot_id', self.share_snapshot.id)
         ]
 
@@ -241,7 +251,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=self.share_snapshot.id,
             scheduler_hints={}
@@ -255,11 +265,13 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
             '--wait'
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
             ('wait', True)
         ]
 
@@ -276,7 +288,7 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=None,
+            share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
             scheduler_hints={}
@@ -292,11 +304,13 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
+            '--share-type', self.share_type.id,
             '--wait'
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
             ('wait', True)
         ]
 
@@ -314,7 +328,7 @@ class TestShareCreate(TestShare):
                 share_group_id=None,
                 share_network=None,
                 share_proto=self.new_share.share_proto,
-                share_type=None,
+                share_type=self.share_type.id,
                 size=self.new_share.size,
                 snapshot_id=None,
                 scheduler_hints={}
@@ -326,6 +340,24 @@ class TestShareCreate(TestShare):
             self.shares_mock.get.assert_called_with(self.new_share.id)
             self.assertCountEqual(self.columns, columns)
             self.assertCountEqual(self.datalist, data)
+
+    def test_create_share_with_no_existing_share_type(self):
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.share_types_mock.get.side_effect = osc_exceptions.CommandError()
+
+        self.assertRaises(
+            osc_exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
 
 
 class TestShareDelete(TestShare):

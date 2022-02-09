@@ -23,6 +23,7 @@ from osc_lib import utils as oscutils
 
 from manilaclient import api_versions
 from manilaclient.common._i18n import _
+from manilaclient.common.apiclient import exceptions as apiclient_exceptions
 from manilaclient.common.apiclient import utils as apiutils
 from manilaclient.common import cliutils
 from manilaclient.osc import utils
@@ -193,10 +194,17 @@ class CreateShare(command.ShowOne):
         # TODO(s0ru): the table shows 'Field', 'Value'
         share_client = self.app.client_manager.share
 
-        share_type = None
         if parsed_args.share_type:
             share_type = apiutils.find_resource(share_client.share_types,
                                                 parsed_args.share_type).id
+        else:
+            try:
+                share_type = apiutils.find_resource(
+                    share_client.share_types, 'default').id
+            except apiclient_exceptions.CommandError:
+                msg = ("There is no default share type available. You must "
+                       "pick a valid share type to create a share.")
+                raise exceptions.CommandError(msg)
 
         share_network = None
         if parsed_args.share_network:

@@ -972,6 +972,14 @@ def do_create(cs, args):
         raise exceptions.CommandError(
             "Share name cannot be with the value 'None'")
 
+    if not args.share_type:
+        try:
+            _find_share_type(cs, "default")
+        except exceptions.CommandError:
+            msg = ("There is no default share type available. You must pick "
+                   "a valid share type to create a share.")
+            raise exceptions.CommandError(msg)
+
     scheduler_hints = {}
     if args.scheduler_hints:
         scheduler_hints = _extract_key_value_options(args, 'scheduler_hints')
