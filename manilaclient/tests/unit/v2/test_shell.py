@@ -1948,13 +1948,16 @@ class ShellTest(test_utils.TestCase):
 
     def test_create_share(self):
         # Use only required fields
-        self.run_command("create nfs 1")
-        self.assert_called("POST", "/shares", body=self.create_share_body)
+        expected = self.create_share_body.copy()
+        expected['share']['share_type'] = 'test_type'
+        self.run_command("create nfs 1 --share-type test_type")
+        self.assert_called("POST", "/shares", body=expected)
 
     def test_create_public_share(self):
         expected = self.create_share_body.copy()
         expected['share']['is_public'] = True
-        self.run_command("create --public nfs 1")
+        expected['share']['share_type'] = 'test_type'
+        self.run_command("create --public nfs 1 --share-type test_type")
         self.assert_called("POST", "/shares", body=expected)
 
     def test_create_with_share_network(self):
@@ -1962,18 +1965,26 @@ class ShellTest(test_utils.TestCase):
         sn = "fake-share-network"
         with mock.patch.object(shell_v2, "_find_share_network",
                                mock.Mock(return_value=sn)):
-            self.run_command("create nfs 1 --share-network %s" % sn)
+            self.run_command("create nfs 1 --share-type test_type "
+                             "--share-network %s" % sn)
             expected = self.create_share_body.copy()
             expected['share']['share_network_id'] = sn
+            expected['share']['share_type'] = 'test_type'
             self.assert_called("POST", "/shares", body=expected)
             shell_v2._find_share_network.assert_called_once_with(mock.ANY, sn)
 
     def test_create_with_metadata(self):
         # Except required fields added metadata
-        self.run_command("create nfs 1 --metadata key1=value1 key2=value2")
+        self.run_command("create nfs 1 --metadata key1=value1 key2=value2 "
+                         "--share-type test_type")
         expected = self.create_share_body.copy()
         expected['share']['metadata'] = {"key1": "value1", "key2": "value2"}
+        expected['share']['share_type'] = 'test_type'
         self.assert_called("POST", "/shares", body=expected)
+
+    def test_create_share_with_no_existing_share_type(self):
+        self.assertRaises(
+            exceptions.CommandError, self.run_command, "create nfs 1")
 
     def test_allow_access_cert(self):
         self.run_command("access-allow 1234 cert client.example.com")
