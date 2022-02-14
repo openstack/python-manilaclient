@@ -36,7 +36,7 @@ ATTRIBUTES = [
 ]
 
 
-def format_share_type(share_type):
+def format_share_type(share_type, formatter='table'):
     # share_type_access:is_public (true/false) --> visibility (public/private)
     is_public = 'share_type_access:is_public'
     visibility = 'public' if share_type._info.get(is_public) else 'private'
@@ -48,15 +48,25 @@ def format_share_type(share_type):
     for key in share_type.required_extra_specs.keys():
         optional_extra_specs.pop(key, None)
 
-    share_type._info.update(
-        {
-            'visibility': visibility,
-            'required_extra_specs': utils.format_properties(
-                share_type.required_extra_specs),
-            'optional_extra_specs': utils.format_properties(
-                optional_extra_specs),
-        }
-    )
+    if formatter == 'table':
+        share_type._info.update(
+            {
+                'visibility': visibility,
+                'required_extra_specs': utils.format_properties(
+                    share_type.required_extra_specs),
+                'optional_extra_specs': utils.format_properties(
+                    optional_extra_specs),
+            }
+        )
+    else:
+        share_type._info.update(
+            {
+                'visibility': visibility,
+                'required_extra_specs': share_type.required_extra_specs,
+                'optional_extra_specs': optional_extra_specs,
+            }
+        )
+
     return share_type
 
 
@@ -187,7 +197,7 @@ class CreateShareType(command.ShowOne):
         kwargs['extra_specs'] = extra_specs
 
         share_type = share_client.share_types.create(**kwargs)
-        formatted_type = format_share_type(share_type)
+        formatted_type = format_share_type(share_type, parsed_args.formatter)
 
         return (ATTRIBUTES, oscutils.get_dict_properties(
                 formatted_type._info, ATTRIBUTES))
@@ -405,7 +415,8 @@ class ListShareType(command.Lister):
 
         formatted_types = []
         for share_type in share_types:
-            formatted_types.append(format_share_type(share_type))
+            formatted_types.append(format_share_type(share_type,
+                                                     parsed_args.formatter))
 
         values = (oscutils.get_dict_properties(
             s._info, ATTRIBUTES) for s in formatted_types)
@@ -435,7 +446,7 @@ class ShowShareType(command.ShowOne):
             share_client.share_types,
             parsed_args.share_type)
 
-        formatted_type = format_share_type(share_type)
+        formatted_type = format_share_type(share_type, parsed_args.formatter)
 
         return (ATTRIBUTES, oscutils.get_dict_properties(
             formatted_type._info, ATTRIBUTES))

@@ -71,6 +71,20 @@ class TestShareTypeCreate(TestShareType):
             self.new_share_type.description,
         ]
 
+        self.raw_data = [
+            self.new_share_type.id,
+            self.new_share_type.name,
+            'public',
+            self.new_share_type.is_default,
+            {'driver_handles_share_servers': True},
+            {'replication_type': 'readable',
+             'mount_snapshot_support': False,
+             'revert_to_snapshot_support': False,
+             'create_share_from_snapshot_support': True,
+             'snapshot_support': True},
+            self.new_share_type.description,
+        ]
+
     def test_share_type_create_required_args(self):
         """Verifies required arguments."""
 
@@ -96,6 +110,33 @@ class TestShareTypeCreate(TestShareType):
 
         self.assertCountEqual(COLUMNS, columns)
         self.assertCountEqual(self.data, data)
+
+    def test_share_type_create_json_fomrat(self):
+        """Verifies --format json."""
+
+        arglist = [
+            self.new_share_type.name,
+            'True',
+            '-f', 'json'
+        ]
+        verifylist = [
+            ('name', self.new_share_type.name),
+            ('spec_driver_handles_share_servers', 'True')
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.shares_mock.create.assert_called_with(
+            extra_specs={},
+            is_public=True,
+            name=self.new_share_type.name,
+            spec_driver_handles_share_servers=True
+        )
+
+        self.assertCountEqual(COLUMNS, columns)
+        self.assertCountEqual(self.raw_data, data)
 
     def test_share_type_create_missing_required_arg(self):
         """Verifies missing required arguments."""
@@ -554,6 +595,20 @@ class TestShareTypeShow(TestShareType):
             self.share_type.description,
         ]
 
+        self.raw_data = [
+            self.share_type.id,
+            self.share_type.name,
+            'public',
+            self.share_type.is_default,
+            {'driver_handles_share_servers': True},
+            {'replication_type': 'readable',
+             'mount_snapshot_support': False,
+             'revert_to_snapshot_support': False,
+             'create_share_from_snapshot_support': True,
+             'snapshot_support': True},
+            self.share_type.description,
+        ]
+
     def test_share_type_show(self):
         arglist = [
             self.share_type.id
@@ -568,3 +623,19 @@ class TestShareTypeShow(TestShareType):
 
         self.assertCountEqual(COLUMNS, columns)
         self.assertCountEqual(self.data, data)
+
+    def test_share_type_show_json_format(self):
+        arglist = [
+            self.share_type.id,
+            '-f', 'json',
+        ]
+        verifylist = [
+            ("share_type", self.share_type.id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+        self.shares_mock.get.assert_called_with(self.share_type.id)
+
+        self.assertCountEqual(COLUMNS, columns)
+        self.assertCountEqual(self.raw_data, data)

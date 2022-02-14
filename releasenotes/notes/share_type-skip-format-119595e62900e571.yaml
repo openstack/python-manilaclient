@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    The following openstack subcommands no longer format
+    the required_extra_specs field and the optional_extra_specs field unless
+    the default ``table`` format is used.
+
+    - ``openstack share type create``
+    - ``openstack share type list``
+    - ``openstack share type show``
