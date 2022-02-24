@@ -11,10 +11,12 @@
 #   under the License.
 import logging
 
+from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils as osc_utils
 
+from manilaclient import api_versions
 from manilaclient.common._i18n import _
 from manilaclient.common import cliutils
 from manilaclient.osc import utils
@@ -45,6 +47,15 @@ class CreateShareReplica(command.ShowOne):
             default=False,
             help=_('Wait for replica creation')
         )
+        parser.add_argument(
+            "--scheduler-hint",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_("Scheduler hint for the share replica as key=value pairs, "
+                   "Supported key is only_host. Available for microversion "
+                   ">= 2.67."),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -52,10 +63,28 @@ class CreateShareReplica(command.ShowOne):
 
         share = osc_utils.find_resource(share_client.shares,
                                         parsed_args.share)
-        share_replica = share_client.share_replicas.create(
-            share,
-            availability_zone=parsed_args.availability_zone
-        )
+        scheduler_hints = {}
+        if parsed_args.scheduler_hint:
+            if share_client.api_version < api_versions.APIVersion("2.67"):
+                raise exceptions.CommandError(_(
+                    "arg '--scheduler_hint' is available only starting with "
+                    "API microversion '2.67'."))
+
+            hints = utils.extract_key_value_options(parsed_args.scheduler_hint)
+            if 'only_host' not in hints.keys() or len(hints) > 1:
+                raise exceptions.CommandError(
+                    "The only valid key supported with the --scheduler-hint "
+                    "argument is 'only_host'.")
+            scheduler_hints['only_host'] = hints.get('only_host')
+
+        body = {
+            'share': share,
+            'availability_zone': parsed_args.availability_zone,
+        }
+        if scheduler_hints:
+            body['scheduler_hints'] = scheduler_hints
+
+        share_replica = share_client.share_replicas.create(**body)
         if parsed_args.wait:
             if not osc_utils.wait_for_status(
                 status_f=share_client.share_replicas.get,
