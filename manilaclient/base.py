@@ -20,6 +20,7 @@ Base utilities to build API operation managers and objects on top of.
 """
 
 import contextlib
+import copy
 import hashlib
 import os
 
@@ -28,12 +29,21 @@ from manilaclient import exceptions
 from manilaclient import utils
 
 
-# Python 2.4 compat
-try:
-    all
-except NameError:
-    def all(iterable):
-        return True not in (not x for x in iterable)
+def getid(obj):
+    """Return id if argument is a Resource.
+
+    Abstracts the common pattern of allowing both an object or an object's ID
+    (UUID) as a parameter when dealing with relationships.
+    """
+    try:
+        if obj.uuid:
+            return obj.uuid
+    except AttributeError:
+        pass
+    try:
+        return obj.id
+    except AttributeError:
+        return obj
 
 
 class Manager(utils.HookableMixin):
@@ -53,6 +63,17 @@ class Manager(utils.HookableMixin):
         return self.api.api_version
 
     def _list(self, url, response_key, obj_class=None, body=None):
+        """List the collection.
+
+        :param url: a partial URL, e.g., '/shares'
+        :param response_key: the key to be looked up in response dictionary,
+            e.g., 'shares'. If response_key is None - all response body
+            will be used.
+        :param obj_class: class for constructing the returned objects
+            (self.resource_class will be used by default)
+        :param body: data that will be encoded as JSON and passed in POST
+            request (GET will be sent by default)
+        """
         resp = None
         if body:
             resp, body = self.api.client.post(url, body=body)
@@ -228,3 +249,98 @@ class ManagerWithFind(Manager):
 
     def list(self, search_opts=None):
         raise NotImplementedError
+
+
+class Resource(object):
+    """Base class for OpenStack resources (tenant, user, etc.).
+
+    This is pretty much just a bag for attributes.
+    """
+
+    HUMAN_ID = False
+    NAME_ATTR = 'name'
+
+    def __init__(self, manager, info, loaded=False):
+        """Populate and bind to a manager.
+
+        :param manager: BaseManager object
+        :param info: dictionary representing resource attributes
+        :param loaded: prevent lazy-loading if set to True
+        """
+        self.manager = manager
+        self._info = info
+        self._add_details(info)
+        self._loaded = loaded
+
+    def __repr__(self):
+        reprkeys = sorted(k
+                          for k in self.__dict__.keys()
+                          if k[0] != '_' and k != 'manager')
+        info = ", ".join("%s=%s" % (k, getattr(self, k)) for k in reprkeys)
+        return "<%s %s>" % (self.__class__.__name__, info)
+
+    @property
+    def human_id(self):
+        """Human-readable ID which can be used for bash completion."""
+        if self.HUMAN_ID:
+            name = getattr(self, self.NAME_ATTR, None)
+            if name is not None:
+                return strutils.to_slug(name)
+        return None
+
+    def _add_details(self, info):
+        for (k, v) in info.items():
+            try:
+                setattr(self, k, v)
+                self._info[k] = v
+            except AttributeError:
+                # In this case we already defined the attribute on the class
+                pass
+
+    def __getattr__(self, k):
+        if k not in self.__dict__:
+            # NOTE(bcwaldon): disallow lazy-loading if already loaded once
+            if not self.is_loaded():
+                self.get()
+                return self.__getattr__(k)
+
+            raise AttributeError(k)
+        else:
+            return self.__dict__[k]
+
+    def get(self):
+        """Support for lazy loading details.
+
+        Some clients, such as novaclient have the option to lazy load the
+        details, details which can be loaded with this function.
+        """
+        # set_loaded() first ... so if we have to bail, we know we tried.
+        self.set_loaded(True)
+        if not hasattr(self.manager, 'get'):
+            return
+
+        new = self.manager.get(self.id)
+        if new:
+            self._add_details(new._info)
+
+    def __eq__(self, other):
+        if not isinstance(other, Resource):
+            return NotImplemented
+        # two resources of different types are not equal
+        if not isinstance(other, self.__class__):
+            return False
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id == other.id
+        return self._info == other._info
+
+    def __ne__(self, other):
+        return not self == other
+
+    def is_loaded(self):
+        return self._loaded
+
+    def set_loaded(self, val):
+        self._loaded = val
+
+    def to_dict(self):
+        return copy.deepcopy(self._info)

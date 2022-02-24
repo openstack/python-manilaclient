@@ -15,10 +15,9 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 
-class ShareInstanceExportLocation(common_base.Resource):
+class ShareInstanceExportLocation(base.Resource):
     """Resource class for a share export location."""
 
     def __repr__(self):
@@ -35,7 +34,7 @@ class ShareInstanceExportLocationManager(base.ManagerWithFind):
     @api_versions.wraps("2.9")
     def list(self, share_instance, search_opts=None):
         """List all share export locations."""
-        share_instance_id = common_base.getid(share_instance)
+        share_instance_id = base.getid(share_instance)
         return self._list(
             "/share_instances/%s/export_locations" % share_instance_id,
             "export_locations")
@@ -43,8 +42,8 @@ class ShareInstanceExportLocationManager(base.ManagerWithFind):
     @api_versions.wraps("2.9")
     def get(self, share_instance, export_location):
         """Get a share export location."""
-        share_instance_id = common_base.getid(share_instance)
-        export_location_id = common_base.getid(export_location)
+        share_instance_id = base.getid(share_instance)
+        export_location_id = base.getid(export_location)
         return self._get(
             ("/share_instances/%(share_instance_id)s/export_locations/"
              "%(export_location_id)s") % {

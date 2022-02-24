@@ -13,7 +13,6 @@
 """Asynchronous User Message interface."""
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 
 RESOURCES_PATH = '/messages'
@@ -22,7 +21,7 @@ RESOURCES_NAME = 'messages'
 RESOURCE_NAME = 'message'
 
 
-class Message(common_base.Resource):
+class Message(base.Resource):
     NAME_ATTR = 'id'
 
     def __repr__(self):
@@ -79,6 +78,6 @@ class MessageManager(base.ManagerWithFind):
     def delete(self, message):
         """Delete a message."""
 
-        loc = RESOURCE_PATH % common_base.getid(message)
+        loc = RESOURCE_PATH % base.getid(message)
 
         return self._delete(loc)

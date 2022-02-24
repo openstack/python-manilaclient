@@ -17,10 +17,9 @@ from oslo_utils import uuidutils
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 
-class ShareInstance(common_base.Resource):
+class ShareInstance(base.Resource):
     """A share is an extra block level storage to the OpenStack instances."""
     def __repr__(self):
         return "<Share: %s>" % self.id
@@ -45,7 +44,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         :param instance: either share object or text with its ID.
         :rtype: :class:`ShareInstance`
         """
-        share_id = common_base.getid(instance)
+        share_id = base.getid(instance)
         return self._get("/share_instances/%s" % share_id, "share_instance")
 
     @api_versions.wraps("2.3", "2.34")
@@ -79,7 +78,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/share_instances/%s/action' % common_base.getid(instance)
+        url = '/share_instances/%s/action' % base.getid(instance)
         return self.api.client.post(url, body=body)
 
     def _do_force_delete(self, instance, action_name="force_delete"):
@@ -87,7 +86,7 @@ class ShareInstanceManager(base.ManagerWithFind):
 
         :param instance: either share instance object or text with its ID.
         """
-        return self._action(action_name, common_base.getid(instance))
+        return self._action(action_name, base.getid(instance))
 
     @api_versions.wraps("2.3", "2.6")
     def force_delete(self, instance):

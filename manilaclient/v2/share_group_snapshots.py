@@ -16,7 +16,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 from manilaclient.common import constants
 
 RESOURCES_PATH = '/share-group-snapshots'
@@ -27,7 +26,7 @@ RESOURCE_NAME = 'share_group_snapshot'
 SG_GRADUATION_VERSION = "2.55"
 
 
-class ShareGroupSnapshot(common_base.Resource):
+class ShareGroupSnapshot(base.Resource):
     """A snapshot of a share group."""
 
     def __repr__(self):
@@ -59,7 +58,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
         :param description: text - description of the group snapshot
         :rtype: :class:`ShareGroupSnapshot`
         """
-        share_group_id = common_base.getid(share_group)
+        share_group_id = base.getid(share_group)
         body = {'share_group_id': share_group_id}
         if name:
             body['name'] = name
@@ -87,7 +86,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             with its UUID
         :rtype: :class:`ShareGroupSnapshot`
         """
-        share_group_snapshot_id = common_base.getid(share_group_snapshot)
+        share_group_snapshot_id = base.getid(share_group_snapshot)
         url = RESOURCE_PATH % share_group_snapshot_id
         return self._get(url, RESOURCE_NAME)
 
@@ -167,7 +166,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             with its UUID
         :rtype: :class:`ShareGroupSnapshot`
         """
-        share_group_snapshot_id = common_base.getid(share_group_snapshot)
+        share_group_snapshot_id = base.getid(share_group_snapshot)
         url = RESOURCE_PATH % share_group_snapshot_id
         if not kwargs:
             return self._get(url, RESOURCE_NAME)
@@ -193,7 +192,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             with its UUID
         :param force: True to force the deletion
         """
-        share_group_snapshot_id = common_base.getid(share_group_snapshot)
+        share_group_snapshot_id = base.getid(share_group_snapshot)
         if force:
             url = RESOURCE_PATH_ACTION % share_group_snapshot_id
             body = {'force_delete': None}
@@ -218,7 +217,7 @@ class ShareGroupSnapshotManager(base.ManagerWithFind):
             with its UUID
         :param state: The new state for the share group snapshot
         """
-        share_group_snapshot_id = common_base.getid(share_group_snapshot)
+        share_group_snapshot_id = base.getid(share_group_snapshot)
         url = RESOURCE_PATH_ACTION % share_group_snapshot_id
         body = {'reset_status': {'status': state}}
         self.api.client.post(url, body=body)

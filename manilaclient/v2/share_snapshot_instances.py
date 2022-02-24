@@ -15,10 +15,9 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 
-class ShareSnapshotInstance(common_base.Resource):
+class ShareSnapshotInstance(base.Resource):
     """A snapshot instance is an instance of a snapshot."""
 
     def __repr__(self):
@@ -40,7 +39,7 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
         :param instance: either snapshot instance object or text with its ID.
         :rtype: :class:`ShareSnapshotInstance`
         """
-        snapshot_instance_id = common_base.getid(instance)
+        snapshot_instance_id = base.getid(instance)
         return self._get("/snapshot-instances/%s" % snapshot_instance_id,
                          "snapshot_instance")
 
@@ -53,7 +52,7 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
             url = '/snapshot-instances'
 
         if snapshot:
-            url += '?snapshot_id=%s' % common_base.getid(snapshot)
+            url += '?snapshot_id=%s' % base.getid(snapshot)
         return self._list(url, 'snapshot_instances')
 
     @api_versions.wraps("2.19")
@@ -70,5 +69,5 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
         url = ('/snapshot-instances/%s/action' %
-               common_base.getid(instance))
+               base.getid(instance))
         return self.api.client.post(url, body=body)

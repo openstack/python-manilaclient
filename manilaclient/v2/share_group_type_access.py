@@ -15,7 +15,6 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/share-group-types'
 RESOURCE_PATH = '/share-group-types/%s/access'
@@ -24,7 +23,7 @@ RESOURCE_NAME = 'share_group_type_access'
 SG_GRADUATION_VERSION = "2.55"
 
 
-class ShareGroupTypeAccess(common_base.Resource):
+class ShareGroupTypeAccess(base.Resource):
     def __repr__(self):
         return "<Share Group Type Access: %s>" % self.share_group_type_id
 
@@ -37,7 +36,7 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
                                       search_opts=None):
         if share_group_type.is_public:
             return None
-        share_group_type_id = common_base.getid(share_group_type)
+        share_group_type_id = base.getid(share_group_type)
         url = RESOURCE_PATH % share_group_type_id
         return self._list(url, RESOURCE_NAME)
 
@@ -82,6 +81,6 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
         """Perform a share group type action."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        share_group_type_id = common_base.getid(share_group_type)
+        share_group_type_id = base.getid(share_group_type)
         url = RESOURCE_PATH_ACTION % share_group_type_id
         return self.api.client.post(url, body=body)

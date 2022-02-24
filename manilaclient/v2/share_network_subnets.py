@@ -14,14 +14,13 @@
 #    under the License.
 
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/share-networks/%(share_network_id)s/subnets'
 RESOURCE_PATH = RESOURCES_PATH + '/%(share_network_subnet_id)s'
 RESOURCE_NAME = 'share_network_subnet'
 
 
-class ShareNetworkSubnet(common_base.Resource):
+class ShareNetworkSubnet(base.Resource):
     """Network subnet info for Manila share networks."""
     def __repr__(self):
         return "<ShareNetworkSubnet: %s>" % self.id
@@ -69,8 +68,8 @@ class ShareNetworkSubnetManager(base.ManagerWithFind):
         :param policy: share network subnet to get.
         :rtype: :class:`NetworkSubnetInfo`
         """
-        share_network_id = common_base.getid(share_network)
-        share_network_subnet_id = common_base.getid(share_network_subnet)
+        share_network_id = base.getid(share_network)
+        share_network_subnet_id = base.getid(share_network_subnet)
         url = ('/share-networks/%(share_network_id)s/subnets'
                '/%(share_network_subnet)s') % {
             'share_network_id': share_network_id,
@@ -86,7 +85,7 @@ class ShareNetworkSubnetManager(base.ManagerWithFind):
         """
         url = ('/share-networks/%(share_network_id)s/subnets'
                '/%(share_network_subnet)s') % {
-            'share_network_id': common_base.getid(share_network),
+            'share_network_id': base.getid(share_network),
             'share_network_subnet': share_network_subnet
         }
         self._delete(url)

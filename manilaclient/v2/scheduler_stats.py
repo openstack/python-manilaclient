@@ -13,13 +13,12 @@
 #    under the License.
 
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 RESOURCES_PATH = '/scheduler-stats/pools'
 RESOURCES_NAME = 'pools'
 
 
-class Pool(common_base.Resource):
+class Pool(base.Resource):
 
     def __repr__(self):
         return "<Pool: %s>" % self.name

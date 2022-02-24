@@ -15,10 +15,9 @@
 
 from manilaclient import api_versions
 from manilaclient import base
-from manilaclient.common.apiclient import base as common_base
 
 
-class ShareSnapshotExportLocation(common_base.Resource):
+class ShareSnapshotExportLocation(base.Resource):
     """Represent an export location snapshot of a snapshot."""
 
     def __repr__(self):
@@ -35,14 +34,14 @@ class ShareSnapshotExportLocationManager(base.ManagerWithFind):
     @api_versions.wraps("2.32")
     def list(self, snapshot=None, search_opts=None):
         return self._list("/snapshots/%s/export-locations" %
-                          common_base.getid(snapshot),
+                          base.getid(snapshot),
                           'share_snapshot_export_locations')
 
     @api_versions.wraps("2.32")
     def get(self, export_location, snapshot=None):
         params = {
-            "snapshot_id": common_base.getid(snapshot),
-            "export_location_id": common_base.getid(export_location),
+            "snapshot_id": base.getid(snapshot),
+            "export_location_id": base.getid(export_location),
         }
 
         return self._get("/snapshots/%(snapshot_id)s/export-locations/"
