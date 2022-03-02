@@ -83,7 +83,7 @@ class TestQuotaSet(TestQuotas):
                 per_share_gigabytes=None)
             self.assertIsNone(result)
             mock_find_resource.assert_not_called()
-            self.quotas_mock.asert_not_called()
+            self.quotas_mock.assert_not_called()
 
     def test_quota_set_shares(self):
         arglist = [
