@@ -35,7 +35,6 @@ class TestShare(manila_fakes.TestShare):
 
     def setUp(self):
         super(TestShare, self).setUp()
-
         self.shares_mock = self.app.client_manager.share.shares
         self.shares_mock.reset_mock()
 
@@ -55,6 +54,9 @@ class TestShare(manila_fakes.TestShare):
 
         self.share_types_mock = self.app.client_manager.share.share_types
         self.share_types_mock.reset_mock()
+
+        self.share_networks_mock = self.app.client_manager.share.share_networks
+        self.share_networks_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             MAX_VERSION)
@@ -106,7 +108,6 @@ class TestShareCreate(TestShare):
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-
         columns, data = self.cmd.take_action(parsed_args)
 
         self.shares_mock.create.assert_called_with(
@@ -1469,7 +1470,6 @@ class TestAdoptShare(TestShare):
             ('protocol', 'NFS'),
             ('export_path', '10.0.0.1:/example_path')
         ]
-
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         self.shares_mock.manage.assert_called_with(
@@ -1815,7 +1815,6 @@ class TestShareRevert(TestShare):
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-
         self.shares_mock.get.assert_called_with(self.share_snapshot.share_id)
         self.share.revert_to_snapshot.assert_called_with(self.share_snapshot)
         self.assertIsNone(result)
@@ -1832,3 +1831,104 @@ class TestShareRevert(TestShare):
         self.share.revert_to_snapshot.side_effect = Exception()
         self.assertRaises(
             osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+
+class TestShareMigrationStart(TestShare):
+
+    def setUp(self):
+        super(TestShareMigrationStart, self).setUp()
+
+        self.new_share_type = manila_fakes.FakeShareType.create_one_sharetype()
+        self.share_types_mock.get.return_value = self.new_share_type
+
+        self.new_share_network = manila_fakes.FakeShareNetwork \
+            .create_one_share_network()
+        self.share_networks_mock.get.return_value = self.new_share_network
+
+        self._share = manila_fakes.FakeShare.create_one_share(
+            attrs={
+                'status': 'available'},
+            methods={'migration_start': None})
+        self.shares_mock.get.return_value = self._share
+
+        self.shares_mock.manage.return_value = self._share
+
+        # Get the command objects to test
+        self.cmd = osc_shares.ShareMigrationStart(self.app, None)
+
+    def test_migration_start_with_new_share_type(self):
+        """Test with new_share_type"""
+        arglist = [
+            self._share.id,
+            'host@driver#pool',
+            '--preserve-metadata', 'False',
+            '--preserve-snapshots', 'False',
+            '--writable', 'False',
+            '--nondisruptive', 'False',
+            '--new-share-type', self.new_share_type.id,
+            '--force-host-assisted-migration', 'False'
+
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('host', 'host@driver#pool'),
+            ('preserve_metadata', 'False'),
+            ('preserve_snapshots', 'False'),
+            ('writable', 'False'),
+            ('nondisruptive', 'False'),
+            ('new_share_type', self.new_share_type.id),
+            ('force_host_assisted_migration', 'False')
+
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        self._share.migration_start.assert_called_with(
+            "host@driver#pool",
+            'False',
+            'False',
+            'False',
+            'False',
+            'False',
+            None,
+            self.new_share_type.id
+        )
+        self.assertIsNone(result)
+
+    def test_migration_start_with_new_share_network(self):
+        """Test with new_share_network"""
+
+        arglist = [
+            self._share.id,
+            'host@driver#pool',
+            '--preserve-metadata', 'False',
+            '--preserve-snapshots', 'False',
+            '--writable', 'False',
+            '--nondisruptive', 'False',
+            '--new-share-network', self.new_share_network.id,
+            '--force-host-assisted-migration', 'False'
+
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('host', 'host@driver#pool'),
+            ('preserve_metadata', 'False'),
+            ('preserve_snapshots', 'False'),
+            ('writable', 'False'),
+            ('nondisruptive', 'False'),
+            ('new_share_network', self.new_share_network.id),
+            ('force_host_assisted_migration', 'False')
+
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        self._share.migration_start.assert_called_with(
+            "host@driver#pool",
+            'False',
+            'False',
+            'False',
+            'False',
+            'False',
+            self.new_share_network.id,
+            None
+        )
+        self.assertIsNone(result)
