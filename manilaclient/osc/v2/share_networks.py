@@ -295,9 +295,7 @@ class CreateShareNetwork(command.ShowOne):
                 "Availability zone can be specified only with manila API "
                 "version >= 2.51")
         elif parsed_args.availability_zone:
-            availability_zone = oscutils.find_resource(
-                share_client.availability_zones,
-                parsed_args.availability_zone).name
+            availability_zone = parsed_args.availability_zone
 
         share_network = share_client.share_networks.create(
             name=parsed_args.name,
