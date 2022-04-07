@@ -1,0 +1,4 @@
+fixes:
+  - |
+    Fixed the use of the "--availability-zone" option with the
+    "openstack share network create" command.
