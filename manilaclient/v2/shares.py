@@ -357,6 +357,8 @@ class ShareManager(base.MetadataCapableManager):
     def list(self, detailed=True, search_opts=None,   # noqa
              sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
+        if search_opts is None:
+            search_opts = {}
         search_opts.pop("is_soft_deleted", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
                             sort_key=sort_key, sort_dir=sort_dir,
