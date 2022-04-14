@@ -11,6 +11,8 @@
         - python-manilaclient-functional
         - manila-rally-ss:
             voting: false
+        - python-manilaclient-functional-fips:
+            voting: false
         - manila-rally-no-ss:
             voting: false
         - openstack-tox-lower-constraints:
