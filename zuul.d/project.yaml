@@ -10,6 +10,7 @@
         - python-manilaclient-functional
         - manila-rally-ss:
             voting: false
+        - python-manilaclient-functional-fips
         - manila-rally-no-ss:
             voting: false
     gate:
