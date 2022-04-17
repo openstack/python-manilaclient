@@ -68,6 +68,13 @@ share migration
 .. autoprogram-cliff:: openstack.share.v2
     :command: share migration start
 
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share migration cancel
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share migration complete
+
+
 ==============
 share networks
 ==============

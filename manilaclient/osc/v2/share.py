@@ -1296,3 +1296,47 @@ class ShareMigrationStart(command.Command):
                               parsed_args.nondisruptive,
                               parsed_args.preserve_snapshots,
                               new_share_net_id, new_share_type_id)
+
+
+class ShareMigrationCancel(command.Command):
+    """Cancels migration of a given share when copying
+
+    (Admin only, Experimental).
+
+    """
+    _description = _("Cancels migration of a given share when copying")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareMigrationCancel, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of share to migrate.')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share = apiutils.find_resource(share_client.shares,
+                                       parsed_args.share)
+        share.migration_cancel()
+
+
+class ShareMigrationComplete(command.Command):
+    """Completes migration for a given share (Admin only, Experimental)."""
+    _description = _("Completes migration for a given share")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareMigrationComplete, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of share to migrate.')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share = apiutils.find_resource(share_client.shares,
+                                       parsed_args.share)
+        share.migration_complete()
