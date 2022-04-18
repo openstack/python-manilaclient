@@ -4400,7 +4400,8 @@ def do_share_server_list(cs, args):
                 "Share network subnet option is only available with manila "
                 "API version >= 2.51")
     else:
-        search_opts.update({'share_network_subnet': args.share_network_subnet})
+        search_opts.update({
+            'share_network_subnet_id': args.share_network_subnet})
         fields.append("Share Network Subnet Id")
 
     if args.columns is not None:

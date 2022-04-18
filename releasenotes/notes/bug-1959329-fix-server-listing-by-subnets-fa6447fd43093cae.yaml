@@ -1,0 +1,4 @@
+---
+fixes:
+  - Launchpad `bug 1959329 <https://bugs.launchpad.net/python-manilaclient/+bug/1959329>`_
+    has been fixed for share server listing with network subnet id.
