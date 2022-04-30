@@ -89,6 +89,19 @@ RESOURCE_LOCK_SORT_KEY_VALUES = (
     'lock_reason',
 )
 
+BACKUP_SORT_KEY_VALUES = (
+    'id',
+    'status',
+    'size',
+    'share_id',
+    'progress',
+    'restore_progress',
+    'name',
+    'host',
+    'topic',
+    'project_id',
+)
+
 TASK_STATE_MIGRATION_SUCCESS = 'migration_success'
 TASK_STATE_MIGRATION_ERROR = 'migration_error'
 TASK_STATE_MIGRATION_CANCELLED = 'migration_cancelled'

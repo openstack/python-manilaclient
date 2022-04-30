@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added support for share backup APIs in the SDK and the openstackclient
+    plugin. You can use the openstack client to create a backup, restore a
+    backup, delete a backup, list backups with filters, and update the name
+    and description fields of a backup. Available from microversion 2.80.
