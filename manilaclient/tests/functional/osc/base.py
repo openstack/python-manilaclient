@@ -23,24 +23,52 @@ CONF = config.CONF
 class OSCClientTestBase(base.ClientTestBase):
     """Base class for OSC manila functional tests"""
 
-    def _get_clients(self):
-
-        return base.CLIClient(
-            username=CONF.admin_username or CONF.username,
-            password=CONF.admin_password or CONF.password,
-            tenant_name=CONF.admin_tenant_name or CONF.tenant_name,
-            uri=CONF.admin_auth_url or CONF.auth_url,
+    @classmethod
+    def get_admin_client(cls):
+        admin_client = base.CLIClient(
+            username=CONF.admin_username,
+            password=CONF.admin_password,
+            tenant_name=CONF.admin_tenant_name,
+            uri=CONF.admin_auth_url,
             cli_dir=CONF.manila_exec_dir,
             insecure=CONF.insecure,
-            project_domain_name=(CONF.admin_project_domain_name or
-                                 CONF.project_domain_name or None),
-            project_domain_id=(CONF.admin_project_domain_id or
-                               CONF.project_domain_id or None),
-            user_domain_name=(CONF.admin_user_domain_name or
-                              CONF.user_domain_name or None),
-            user_domain_id=(CONF.admin_user_domain_id or
-                            CONF.user_domain_id or None)
+            project_domain_name=CONF.admin_project_domain_name or None,
+            project_domain_id=CONF.admin_project_domain_id or None,
+            user_domain_name=CONF.admin_user_domain_name or None,
+            user_domain_id=CONF.admin_user_domain_id or None
         )
+        return admin_client
+
+    @classmethod
+    def get_user_client(cls):
+        user_client = base.CLIClient(
+            username=CONF.username,
+            password=CONF.password,
+            tenant_name=CONF.tenant_name,
+            uri=CONF.auth_url,
+            cli_dir=CONF.manila_exec_dir,
+            insecure=CONF.insecure,
+            project_domain_name=CONF.project_domain_name or None,
+            project_domain_id=CONF.project_domain_id or None,
+            user_domain_name=CONF.user_domain_name or None,
+            user_domain_id=CONF.user_domain_id or None
+        )
+        return user_client
+
+    @property
+    def admin_client(self):
+        if not hasattr(self, '_admin_client'):
+            self._admin_client = self.get_admin_client()
+        return self._admin_client
+
+    @property
+    def user_client(self):
+        if not hasattr(self, '_user_client'):
+            self._user_client = self.get_user_client()
+        return self._user_client
+
+    def _get_clients(self):
+        return self.admin_client
 
     def _get_property_from_output(self, output):
         """Creates a dictionary from the given output"""
@@ -83,7 +111,7 @@ class OSCClientTestBase(base.ClientTestBase):
                       % (object_name, object_id, timeout))
 
     def openstack(self, action, flags='', params='', fail_ok=False,
-                  merge_stderr=False):
+                  merge_stderr=False, client=None):
         """Executes openstack command for given action"""
 
         if '--os-share-api-version' not in flags:
@@ -91,21 +119,24 @@ class OSCClientTestBase(base.ClientTestBase):
                 flags + '--os-share-api-version %s'
                 % CONF.max_api_microversion)
 
-        return self.clients.openstack(action, flags=flags, params=params,
-                                      fail_ok=fail_ok,
-                                      merge_stderr=merge_stderr)
+        if client is None:
+            client = self.admin_client
 
-    def listing_result(self, object_name, command):
+        return client.openstack(action, flags=flags, params=params,
+                                fail_ok=fail_ok,
+                                merge_stderr=merge_stderr)
+
+    def listing_result(self, object_name, command, client=None):
         """Returns output for the given command as list of dictionaries"""
 
-        output = self.openstack(object_name, params=command)
+        output = self.openstack(object_name, params=command, client=client)
         result = self.parser.listing(output)
         return result
 
-    def dict_result(self, object_name, command):
+    def dict_result(self, object_name, command, client=None):
         """Returns output for the given command as dictionary"""
 
-        output = self.openstack(object_name, params=command)
+        output = self.openstack(object_name, params=command, client=client)
         result_dict = self._get_property_from_output(output)
         return result_dict
 
@@ -113,7 +144,7 @@ class OSCClientTestBase(base.ClientTestBase):
                      snapshot_id=None, properties=None, share_network=None,
                      description=None, public=False, share_type=None,
                      availability_zone=None, share_group=None,
-                     add_cleanup=True):
+                     add_cleanup=True, client=None):
 
         name = name or data_utils.rand_name('autotest_share_name')
         # share_type = dhss_false until we have implemented
@@ -142,7 +173,7 @@ class OSCClientTestBase(base.ClientTestBase):
         if share_group:
             cmd = cmd + ' --share-group %s' % share_group
 
-        share_object = self.dict_result('share', cmd)
+        share_object = self.dict_result('share', cmd, client=client)
         self._wait_for_object_status(
             'share', share_object['id'], 'available')
 
