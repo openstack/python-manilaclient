@@ -151,3 +151,19 @@ class OSCClientTestBase(base.ClientTestBase):
                 self.openstack, 'share delete %s' % share_object['id']
             )
         return share_object
+
+    def list_pools(self, backend=None, host=None, pool=None, detail=False):
+        cmd = 'pool list '
+
+        if backend:
+            cmd += f'--backend {backend} '
+        if pool:
+            cmd += f'--pool {pool} '
+        if host:
+            cmd += f'--host {host} '
+        if detail:
+            cmd += '--detail'
+
+        pools = self.listing_result('share', cmd)
+
+        return pools
