@@ -294,9 +294,31 @@ class OSCClientTestBase(base.ClientTestBase):
         snapshot_object = self.dict_result('share', cmd)
         self._wait_for_object_status(
             'share snapshot', snapshot_object['id'], 'available')
-
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
                 f'share snapshot delete {snapshot_object["id"]} --wait')
         return snapshot_object
+
+    def create_share_network(self, neutron_net_id=None,
+                             neutron_subnet_id=None, name=None,
+                             description=None, availability_zone=None,
+                             add_cleanup=True):
+        name = name or data_utils.rand_name('autotest_share_network_name')
+        cmd = (f'network create --name {name} --description {description}')
+        if neutron_net_id:
+            cmd = cmd + f' --neutron-net-id {neutron_net_id}'
+        if neutron_subnet_id:
+            cmd = cmd + f' --neutron-subnet-id {neutron_subnet_id}'
+        if availability_zone:
+            cmd = cmd + f' --availability-zone {availability_zone}'
+
+        share_network_obj = self.dict_result('share', cmd)
+        self._wait_for_object_status(
+            'share network', share_network_obj['id'], 'active')
+        if add_cleanup:
+            self.addCleanup(
+                self.openstack,
+                f'share network delete {share_network_obj["id"]}'
+            )
+        return share_network_obj
