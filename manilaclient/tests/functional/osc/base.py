@@ -348,3 +348,41 @@ class OSCClientTestBase(base.ClientTestBase):
         cmd = (f'replica export location list {replica}')
         export_locations = self.listing_result('share', cmd)
         return export_locations
+
+    def create_share_group_type(self, name=None, share_types=None,
+                                group_specs=None, public=True,
+                                add_cleanup=True):
+
+        name = name or data_utils.rand_name('autotest_share_group_types_name')
+        share_types = share_types or 'None'
+
+        cmd = (f'group type create '
+               f'{name} '
+               f'{share_types} ')
+
+        if group_specs:
+            cmd = cmd + f' --group_specs {group_specs} '
+        if not public:
+            cmd = cmd + f' --public {public} '
+
+        share_object = self.dict_result('share', cmd)
+
+        if add_cleanup:
+            self.addCleanup(
+                self.openstack,
+                'share group type delete %s' % share_object['id'])
+        return share_object
+
+    def share_group_type_access_create(self, group_type, project):
+        cmd = (f'group type access create '
+               f'{group_type} '
+               f'{project} ')
+
+        self.dict_result('share', cmd)
+
+    def share_group_type_access_delete(self, group_type, access_id):
+        cmd = (f'group type access delete '
+               f'{group_type} '
+               f'{access_id} ')
+
+        self.dict_result('share', cmd)
