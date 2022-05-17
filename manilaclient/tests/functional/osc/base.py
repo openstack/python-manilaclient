@@ -255,3 +255,19 @@ class OSCClientTestBase(base.ClientTestBase):
 
         services = self.listing_result('share', cmd)
         return services
+
+    def create_share_access_rule(self, share, access_type,
+                                 access_to, properties=None,
+                                 access_level=None, wait=False):
+        cmd = f'access create {share} {access_type} {access_to} '
+
+        if access_level:
+            cmd += f'--access-level {access_level} '
+        if properties:
+            cmd += f'--properties {properties} '
+        if wait:
+            cmd += f'--wait'
+
+        access_rule = self.dict_result('share', cmd)
+
+        return access_rule
