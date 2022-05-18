@@ -145,7 +145,8 @@ class OSCClientTestBase(base.ClientTestBase):
                      snapshot_id=None, properties=None, share_network=None,
                      description=None, public=False, share_type=None,
                      availability_zone=None, share_group=None,
-                     add_cleanup=True, client=None):
+                     add_cleanup=True, client=None,
+                     wait_for_status='available'):
 
         name = name or data_utils.rand_name('autotest_share_name')
         # share_type = dhss_false until we have implemented
@@ -176,7 +177,7 @@ class OSCClientTestBase(base.ClientTestBase):
 
         share_object = self.dict_result('share', cmd, client=client)
         self._wait_for_object_status(
-            'share', share_object['id'], 'available')
+            'share', share_object['id'], wait_for_status)
 
         if add_cleanup:
             self.addCleanup(
