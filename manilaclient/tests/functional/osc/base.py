@@ -145,7 +145,7 @@ class OSCClientTestBase(base.ClientTestBase):
                      snapshot_id=None, properties=None, share_network=None,
                      description=None, public=False, share_type=None,
                      availability_zone=None, share_group=None,
-                     add_cleanup=True, client=None,
+                     add_cleanup=True, client=None, wait=None,
                      wait_for_status='available'):
 
         name = name or data_utils.rand_name('autotest_share_name')
@@ -174,6 +174,8 @@ class OSCClientTestBase(base.ClientTestBase):
             cmd = cmd + ' --availability-zone %s' % availability_zone
         if share_group:
             cmd = cmd + ' --share-group %s' % share_group
+        if wait:
+            cmd = cmd + ' --wait'
 
         share_object = self.dict_result('share', cmd, client=client)
         self._wait_for_object_status(
