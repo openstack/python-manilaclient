@@ -362,6 +362,7 @@ class TestShareSnapshotShow(TestShareSnapshot):
 
         self.data = self.share_snapshot._info.values()
         self.columns = self.share_snapshot._info.keys()
+        self.export_locations_mock.list.return_value = [self.export_location]
 
     def test_share_snapshot_show_missing_args(self):
         arglist = []
