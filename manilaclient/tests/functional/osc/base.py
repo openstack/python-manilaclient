@@ -298,6 +298,7 @@ class OSCClientTestBase(base.ClientTestBase):
             self.addCleanup(
                 self.openstack,
                 f'share snapshot delete {snapshot_object["id"]} --wait')
+
         return snapshot_object
 
     def create_share_network(self, neutron_net_id=None,
@@ -322,3 +323,28 @@ class OSCClientTestBase(base.ClientTestBase):
                 f'share network delete {share_network_obj["id"]}'
             )
         return share_network_obj
+
+    def create_share_replica(self, share, availability_zone=None,
+                             wait=None, add_cleanup=True):
+        cmd = (f'replica create {share}')
+
+        if availability_zone:
+            cmd = cmd + f' --availability-zone {availability_zone}'
+        if wait:
+            cmd = cmd + ' --wait'
+
+        replica_object = self.dict_result('share', cmd)
+        self._wait_for_object_status(
+            'share replica', replica_object['id'], 'available')
+
+        if add_cleanup:
+            self.addCleanup(
+                self.openstack,
+                f'share replica delete {replica_object["id"]} --wait'
+            )
+        return replica_object
+
+    def get_share_replica_export_locations(self, replica):
+        cmd = (f'replica export location list {replica}')
+        export_locations = self.listing_result('share', cmd)
+        return export_locations
