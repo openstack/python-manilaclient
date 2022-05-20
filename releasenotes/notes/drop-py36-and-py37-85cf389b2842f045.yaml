@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    Support for Python versions 3.6 and 3.7 was dropped. The minimum supported
+    version is now Python 3.8.
