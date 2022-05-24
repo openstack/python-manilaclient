@@ -95,9 +95,9 @@ class Share(base.Resource):
         """Update the share with the provided state."""
         self.manager.reset_state(self, state)
 
-    def extend(self, new_size, force=False):
+    def extend(self, new_size, **kwargs):
         """Extend the size of the specified share."""
-        self.manager.extend(self, new_size, force=force)
+        self.manager.extend(self, new_size, **kwargs)
 
     def shrink(self, new_size):
         """Shrink the size of the specified share."""

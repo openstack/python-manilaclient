@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Fixed a regression with the use of the "force" keyword in the "extend" API
+    in the Share resource. See `LP
+    #1975488 <https://launchpad.net/bugs/1975488>`_ for more details.
