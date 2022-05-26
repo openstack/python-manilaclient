@@ -567,6 +567,7 @@ class TestShareList(TestShare):
             'project_id': None,
             'user_id': None,
             'offset': None,
+            'export_location': None,
             'name~': None,
             'description~': None,
         }

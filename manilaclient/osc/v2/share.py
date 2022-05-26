@@ -379,6 +379,12 @@ class ListShare(command.Lister):
             help=_('Filter shares by snapshot name or id.'),
         )
         parser.add_argument(
+            '--export-location',
+            metavar='<export-location>',
+            help=_('Filter shares by export location id or path. '
+                   'Available only for microversion >= 2.35'),
+        )
+        parser.add_argument(
             '--public',
             action='store_true',
             default=False,
@@ -490,7 +496,6 @@ class ListShare(command.Lister):
         share_client = self.app.client_manager.share
         identity_client = self.app.client_manager.identity
 
-        # TODO(gouthamr): Add support for export_location filtering
         if parsed_args.long:
             columns = SHARE_ATTRIBUTES
             column_headers = SHARE_ATTRIBUTES_HEADERS
@@ -581,6 +586,13 @@ class ListShare(command.Lister):
             'user_id': user_id,
             'offset': parsed_args.marker,
         }
+
+        if share_client.api_version >= api_versions.APIVersion("2.35"):
+            search_opts['export_location'] = parsed_args.export_location
+        elif (getattr(parsed_args, 'export_location')):
+            raise exceptions.CommandError(
+                "Filtering by export location is only "
+                "available with manila API version >= 2.35")
 
         # NOTE(vkmc) We implemented sorting and filtering in manilaclient
         # but we will use the one provided by osc
