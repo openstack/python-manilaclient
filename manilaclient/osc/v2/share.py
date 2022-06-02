@@ -704,6 +704,20 @@ class SetShare(command.Command):
                    'Examples include: available, error, creating, deleting, '
                    'error_deleting.')
         )
+        parser.add_argument(
+            '--task-state',
+            metavar="<task-state>",
+            required=False,
+            default=None,
+            help=_("Indicate which task state to assign the share. Options "
+                   "include migration_starting, migration_in_progress, "
+                   "migration_completing, migration_success, migration_error, "
+                   "migration_cancelled, migration_driver_in_progress, "
+                   "migration_driver_phase1_done, data_copying_starting, "
+                   "data_copying_in_progress, data_copying_completing, "
+                   "data_copying_completed, data_copying_cancelled, "
+                   "data_copying_error. ")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -743,6 +757,13 @@ class SetShare(command.Command):
             except Exception as e:
                 LOG.error(_(
                     "Failed to set status for the share: %s"), e)
+                result += 1
+        if parsed_args.task_state:
+            try:
+                share_obj.reset_task_state(parsed_args.task_state)
+            except Exception as e:
+                LOG.error(_("Failed to update share task state"
+                          "%s"), e)
                 result += 1
 
         if result > 0:
@@ -1340,3 +1361,29 @@ class ShareMigrationComplete(command.Command):
         share = apiutils.find_resource(share_client.shares,
                                        parsed_args.share)
         share.migration_complete()
+
+
+class ShareMigrationShow(command.ShowOne):
+    """Gets migration progress of a given share when copying
+
+    (Admin only, Experimental).
+
+    """
+    _description = _("Gets migration progress of a given share when copying")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareMigrationShow, self).get_parser(prog_name)
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of the share to get share migration progress '
+                   'information.')
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share = apiutils.find_resource(share_client.shares,
+                                       parsed_args.share)
+        result = share.migration_get_progress()
+        return self.dict2columns(result[1])
