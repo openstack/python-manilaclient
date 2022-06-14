@@ -320,6 +320,12 @@ class DeleteShare(command.Command):
             default=False,
             help=_("Wait for share deletion")
         )
+        parser.add_argument(
+            "--soft",
+            action='store_true',
+            default=False,
+            help=_("Soft delete one or more shares.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -335,6 +341,8 @@ class DeleteShare(command.Command):
                                   else None)
                 if parsed_args.force:
                     share_client.shares.force_delete(share_obj)
+                if parsed_args.soft:
+                    share_client.shares.soft_delete(share_obj)
                 else:
                     share_client.shares.delete(share_obj,
                                                share_group_id)
@@ -383,6 +391,14 @@ class ListShare(command.Lister):
             metavar='<export-location>',
             help=_('Filter shares by export location id or path. '
                    'Available only for microversion >= 2.35'),
+        )
+        parser.add_argument(
+            '--soft-deleted',
+            action='store_true',
+            help=_('Get shares in recycle bin. If this parameter is set to '
+                   'True (Default=False), only shares in the recycle bin '
+                   'will be displayed. Available only for microversion >= '
+                   '2.69.')
         )
         parser.add_argument(
             '--public',
@@ -586,6 +602,12 @@ class ListShare(command.Lister):
             'user_id': user_id,
             'offset': parsed_args.marker,
         }
+        if share_client.api_version >= api_versions.APIVersion('2.69'):
+            search_opts['is_soft_deleted'] = parsed_args.soft_deleted
+        elif (getattr(parsed_args, 'soft_deleted')):
+            raise exceptions.CommandError(
+                "Filtering soft deleted shares is only "
+                "available with manila API version >= 2.69")
 
         if share_client.api_version >= api_versions.APIVersion("2.35"):
             search_opts['export_location'] = parsed_args.export_location
