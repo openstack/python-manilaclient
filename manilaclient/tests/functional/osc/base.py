@@ -240,3 +240,18 @@ class OSCClientTestBase(base.ClientTestBase):
                 self.openstack, f'share type delete {share_type["id"]}'
             )
         return share_type
+
+    def list_services(self, host=None, status=None, state=None, zone=None):
+        cmd = 'service list '
+
+        if host:
+            cmd += f'--host {host} '
+        if status:
+            cmd += f'--status {status} '
+        if state:
+            cmd += f'--state {state} '
+        if zone:
+            cmd += f'--zone {zone} '
+
+        services = self.listing_result('share', cmd)
+        return services
