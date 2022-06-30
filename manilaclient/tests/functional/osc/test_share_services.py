@@ -35,10 +35,8 @@ class ShareServicesTestCase(base.OSCClientTestBase):
                                       status=first_service['Status'],
                                       state=first_service['State'])
         self.assertEqual(1, len(services))
-        self.assertEqual(first_service['Host'],
-                         services[0]['Host'])
-        self.assertEqual(first_service['Updated At'],
-                         services[0]['Updated At'])
+        for attr in ('ID', 'Binary', 'Host', 'State', 'Status', 'Zone'):
+            self.assertEqual(first_service[attr], services[0][attr])
 
     def test_services_set(self):
         services = self.list_services()
