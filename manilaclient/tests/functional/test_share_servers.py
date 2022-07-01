@@ -331,9 +331,8 @@ class ShareServersMigrationBase(base.BaseTestCase):
                 share_server_id)
             server = self.admin_client.wait_for_server_migration_task_state(
                 dest_share_server_id, dest_host, task_state)
-            self.assertRaises(exceptions.NotFound,
-                              self.admin_client.get_share_server,
-                              share_server_id)
+
+            self.admin_client.wait_for_share_server_deletion(share_server_id)
         else:
             self.admin_client.share_server_migration_cancel(server['id'])
             task_state = constants.TASK_STATE_MIGRATION_CANCELLED
