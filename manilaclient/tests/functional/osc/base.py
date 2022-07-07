@@ -181,7 +181,7 @@ class OSCClientTestBase(base.ClientTestBase):
 
         if add_cleanup:
             self.addCleanup(
-                self.openstack, 'share delete %s' % share_object['id']
+                self.openstack, 'share delete %s --wait' % share_object['id']
             )
         return share_object
 
@@ -272,3 +272,31 @@ class OSCClientTestBase(base.ClientTestBase):
         access_rule = self.dict_result('share', cmd)
 
         return access_rule
+
+    def get_share_export_locations(self, share):
+        cmd = (f'export location list {share}')
+        export_locations = json.loads(self.openstack(f'share {cmd} -f json'))
+        return export_locations
+
+    def create_snapshot(self, share, name=None,
+                        description=None, wait=None,
+                        force=None, add_cleanup=True):
+
+        name = name or data_utils.rand_name('autotest_snapshot_name')
+
+        cmd = (f'snapshot create {share} --name {name} '
+               f'--description {description} ')
+        if wait:
+            cmd += ' --wait'
+        if force:
+            cmd += ' --force'
+
+        snapshot_object = self.dict_result('share', cmd)
+        self._wait_for_object_status(
+            'share snapshot', snapshot_object['id'], 'available')
+
+        if add_cleanup:
+            self.addCleanup(
+                self.openstack,
+                f'share snapshot delete {snapshot_object["id"]} --wait')
+        return snapshot_object

@@ -1180,6 +1180,12 @@ class RevertShare(command.Command):
             help=_('Name or ID of the snapshot to restore. The snapshot '
                    'must be the most recent one known to manila.')
         )
+        parser.add_argument(
+            '--wait',
+            action='store_true',
+            default=False,
+            help=_('Wait for share revert')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -1194,6 +1200,14 @@ class RevertShare(command.Command):
         except Exception as e:
             raise exceptions.CommandError(_(
                 "Failed to revert share to snapshot: %s" % (e)))
+        if parsed_args.wait:
+            if not oscutils.wait_for_status(
+                status_f=share_client.shares.get,
+                res_id=share.id,
+                success_status=['available']
+            ):
+                raise exceptions.CommandError(_(
+                    "Share not available after revert attempt."))
 
 
 class ShareMigrationStart(command.Command):

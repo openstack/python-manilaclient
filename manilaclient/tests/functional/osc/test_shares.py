@@ -11,6 +11,7 @@
 #   under the License.
 
 from manilaclient.tests.functional.osc import base
+from tempest.lib.common.utils import data_utils
 
 
 class SharesCLITest(base.OSCClientTestBase):
@@ -90,3 +91,55 @@ class SharesCLITest(base.OSCClientTestBase):
         self.assertEqual(share['id'], result2['id'])
         self.assertEqual('None', result2['name'])
         self.assertEqual("foo='bar'", result2['properties'])
+
+    def test_openstack_share_resize(self):
+        share = self.create_share()
+        self.openstack(f'share resize {share["id"]} 10 --wait ')
+        result = self.dict_result('share', f'show {share["id"]}')
+        self.assertEqual('10', result['size'])
+
+    def test_openstack_share_revert(self):
+        slug = "revert_test"
+        share_type = self.create_share_type(
+            name=data_utils.rand_name(slug),
+            snapshot_support=True,
+            revert_to_snapshot_support=True)
+        share = self.create_share(share_type=share_type['id'], size=10)
+        snapshot = self.create_snapshot(share['id'], wait=True)
+        self.assertEqual(snapshot['size'], share['size'])
+        self.openstack(f'share resize {share["id"]} 15 --wait')
+        result1 = self.dict_result('share', f'show {share["id"]}')
+        self.assertEqual('15', result1["size"])
+
+        self.openstack(f'share revert {snapshot["id"]} --wait')
+
+        result2 = self.dict_result('share', f'show {share["id"]}')
+
+        self.assertEqual('10', result2['size'])
+
+    def test_openstack_share_abandon_adopt(self):
+        share = self.create_share(add_cleanup=False)
+        shares_list = self.listing_result('share', 'list')
+        self.assertIn(share['id'], [item['ID'] for item in shares_list])
+        export_location_obj = self.get_share_export_locations(share['id'])[0]
+        export_location = export_location_obj['Path']
+        source = self.dict_result('share', f'show {share["id"]}')
+        host = source['host']
+        protocol = source['share_proto']
+        share_type = source['share_type']
+        self.openstack(f'share abandon {share["id"]} --wait')
+
+        # verify abandonded
+        self.check_object_deleted('share', share['id'])
+        shares_list_after_delete = self.listing_result('share', 'list')
+        self.assertNotIn(
+            share['id'], [item['ID'] for item in shares_list_after_delete])
+
+        result = self.dict_result(
+            'share', f'adopt {host} {protocol} {export_location} '
+                     f'--share-type {share_type} --wait')
+
+        # verify adopted
+        self.assertEqual(host, result['host'])
+        self.assertEqual(protocol, result['share_proto'])
+        self.openstack(f'share delete {result["id"]} --wait')
