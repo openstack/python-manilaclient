@@ -230,20 +230,24 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
             '--snapshot-id', self.share_snapshot.id
 
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
-            ('share_type', self.share_type.id),
             ('snapshot_id', self.share_snapshot.id)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        columns, data = self.cmd.take_action(parsed_args)
+        with mock.patch(
+                'manilaclient.common.apiclient.utils.find_resource',
+                mock.Mock(return_value=self.share_snapshot)):
+            columns, data = self.cmd.take_action(parsed_args)
+
+            osc_shares.apiutils.find_resource.assert_called_once_with(
+                mock.ANY, self.share_snapshot.id)
 
         self.shares_mock.create.assert_called_with(
             availability_zone=None,
@@ -254,12 +258,11 @@ class TestShareCreate(TestShare):
             share_group_id=None,
             share_network=None,
             share_proto=self.new_share.share_proto,
-            share_type=self.share_type.id,
+            share_type=None,
             size=self.new_share.size,
             snapshot_id=self.share_snapshot.id,
             scheduler_hints={}
         )
-
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.datalist, data)
 

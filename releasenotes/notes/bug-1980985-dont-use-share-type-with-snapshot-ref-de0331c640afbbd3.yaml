@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    When creating a share from snapshot with 'openstack share create', the
+    client no longer forces the use of a share type. See `bug #1980985
+    <https://launchpad.net/bugs/1980985>`_ for more information.

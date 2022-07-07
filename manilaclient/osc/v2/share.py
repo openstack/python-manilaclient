@@ -156,8 +156,9 @@ class CreateShare(command.ShowOne):
             '--share-type',
             metavar='<share-type>',
             default=None,
-            help=_('Optional share type. Use of optional shares type '
-                   'is deprecated. (Default=Default)')
+            help=_('The share type to create the share with. If not '
+                   'specified, unless creating from a snapshot, the default '
+                   'share type will be used.')
         )
         parser.add_argument(
             '--availability-zone',
@@ -191,7 +192,6 @@ class CreateShare(command.ShowOne):
         return parser
 
     def take_action(self, parsed_args):
-        # TODO(s0ru): the table shows 'Field', 'Value'
         share_client = self.app.client_manager.share
 
         if parsed_args.name:
@@ -199,10 +199,11 @@ class CreateShare(command.ShowOne):
                 raise apiclient_exceptions.CommandError(
                     "Share name cannot be with the value 'None'")
 
+        share_type = None
         if parsed_args.share_type:
             share_type = apiutils.find_resource(share_client.share_types,
                                                 parsed_args.share_type).id
-        else:
+        elif not parsed_args.snapshot_id:
             try:
                 share_type = apiutils.find_resource(
                     share_client.share_types, 'default').id
