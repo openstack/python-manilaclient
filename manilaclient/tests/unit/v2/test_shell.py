@@ -2201,6 +2201,12 @@ class ShellTest(test_utils.TestCase):
         self.assertRaises(
             exceptions.CommandError, self.run_command, "create nfs 1")
 
+    @ddt.data('None', 'NONE', 'none')
+    def test_create_share_with_the_name_none(self, name):
+        self.assertRaises(
+            exceptions.CommandError, self.run_command,
+            "create nfs 1 --name %s --share-type test_type" % name)
+
     def test_allow_access_cert(self):
         self.run_command("access-allow 1234 cert client.example.com")
 
