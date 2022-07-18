@@ -186,6 +186,11 @@ class CreateShare(command.ShowOne):
         # TODO(s0ru): the table shows 'Field', 'Value'
         share_client = self.app.client_manager.share
 
+        if parsed_args.name:
+            if parsed_args.name.capitalize() == 'None':
+                raise apiclient_exceptions.CommandError(
+                    "Share name cannot be with the value 'None'")
+
         if parsed_args.share_type:
             share_type = apiutils.find_resource(share_client.share_types,
                                                 parsed_args.share_type).id

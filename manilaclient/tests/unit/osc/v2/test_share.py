@@ -14,6 +14,7 @@
 #
 
 import argparse
+import ddt
 from unittest import mock
 import uuid
 
@@ -68,6 +69,7 @@ class TestShare(manila_fakes.TestShare):
         return shares
 
 
+@ddt.ddt
 class TestShareCreate(TestShare):
 
     def setUp(self):
@@ -305,6 +307,28 @@ class TestShareCreate(TestShare):
 
         self.assertRaises(
             osc_exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
+
+    @ddt.data('None', 'NONE', 'none')
+    def test_create_share_with_the_name_none(self, name):
+        arglist = [
+            '--name', name,
+            self.new_share.share_proto,
+            str(self.new_share.size),
+            '--share-type', self.share_type.id,
+        ]
+        verifylist = [
+            ('name', name),
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+            ('share_type', self.share_type.id),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            exceptions.CommandError,
             self.cmd.take_action,
             parsed_args)
 
