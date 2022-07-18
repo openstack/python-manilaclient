@@ -888,9 +888,10 @@ def do_create(cs, args):
     if args.share_network:
         share_network = _find_share_network(cs, args.share_network)
 
-    if args.name == 'None':
-        raise exceptions.CommandError(
-            "Share name cannot be with the value 'None'")
+    if args.name:
+        if args.name.capitalize() == 'None':
+            raise exceptions.CommandError(
+                "Share name cannot be with the value 'None'")
 
     if not args.share_type:
         try:
