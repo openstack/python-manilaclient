@@ -973,9 +973,10 @@ def do_create(cs, args):
     if args.snapshot_id:
         snapshot = _find_share_snapshot(cs, args.snapshot_id).id
 
-    if args.name == 'None':
-        raise exceptions.CommandError(
-            "Share name cannot be with the value 'None'")
+    if args.name:
+        if args.name.capitalize() == 'None':
+            raise exceptions.CommandError(
+                "Share name cannot be with the value 'None'")
 
     if not args.share_type:
         try:

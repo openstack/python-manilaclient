@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    `Launchpad bug 1909477 <https://bugs.launchpad.net/python-manilaclient/+bug/1909477>`_
+    has been fixed by prevent sending the share creation request with any capitalization of
+    the name "None".
