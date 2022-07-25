@@ -207,10 +207,11 @@ class ListShareGroupType(command.Lister):
             formatted_types.append(utils.format_share_group_type(
                 share_group_type, formatter))
 
+        column_headers = utils.format_column_headers(ATTRIBUTES)
         values = (oscutils.get_dict_properties(
             sgt, ATTRIBUTES) for sgt in formatted_types)
 
-        return (ATTRIBUTES, values)
+        return (column_headers, values)
 
 
 class ShowShareGroupType(command.ShowOne):

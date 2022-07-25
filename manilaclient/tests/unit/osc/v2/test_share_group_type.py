@@ -25,12 +25,12 @@ from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 COLUMNS = [
-    'id',
-    'name',
-    'share_types',
-    'visibility',
-    'is_default',
-    'group_specs',
+    'ID',
+    'Name',
+    'Share Types',
+    'Visibility',
+    'Is Default',
+    'Group Specs',
 ]
 
 
