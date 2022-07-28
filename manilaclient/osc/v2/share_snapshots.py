@@ -709,10 +709,10 @@ class ShareSnapshotAccessList(command.Lister):
             snapshot_obj)
 
         columns = [
-            "id",
-            "access_type",
-            "access_to",
-            "state"
+            "ID",
+            "Access Type",
+            "Access To",
+            "State"
         ]
 
         return (columns,
@@ -745,7 +745,7 @@ class ShareSnapshotListExportLocation(command.Lister):
         export_locations = share_client.share_snapshot_export_locations.list(
             snapshot=snapshot_obj)
 
-        columns = ["id", "path"]
+        columns = ["ID", "Path"]
 
         return (
             columns,

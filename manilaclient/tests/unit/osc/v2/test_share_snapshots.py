@@ -1138,10 +1138,10 @@ class TestShareSnapshotAccessDeny(TestShareSnapshot):
 class TestShareSnapshotAccessList(TestShareSnapshot):
 
     access_rules_columns = [
-        'id',
-        'access_type',
-        'access_to',
-        'state',
+        'ID',
+        'Access Type',
+        'Access To',
+        'State',
     ]
 
     def setUp(self):
@@ -1184,7 +1184,7 @@ class TestShareSnapshotAccessList(TestShareSnapshot):
 
 class TestShareSnapshotExportLocationList(TestShareSnapshot):
 
-    columns = ["id", "path"]
+    columns = ["ID", "Path"]
 
     def setUp(self):
         super(TestShareSnapshotExportLocationList, self).setUp()

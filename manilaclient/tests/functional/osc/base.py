@@ -279,21 +279,22 @@ class OSCClientTestBase(base.ClientTestBase):
         return export_locations
 
     def create_snapshot(self, share, name=None,
-                        description=None, wait=None,
-                        force=None, add_cleanup=True):
+                        description=None, wait=True, force=None,
+                        add_cleanup=True, client=None):
 
         name = name or data_utils.rand_name('autotest_snapshot_name')
 
-        cmd = (f'snapshot create {share} --name {name} '
-               f'--description {description} ')
+        cmd = (f'snapshot create {share} --name {name} ')
+
+        if description:
+            cmd += f' --description {description}'
         if wait:
             cmd += ' --wait'
         if force:
             cmd += ' --force'
 
-        snapshot_object = self.dict_result('share', cmd)
-        self._wait_for_object_status(
-            'share snapshot', snapshot_object['id'], 'available')
+        snapshot_object = self.dict_result('share', cmd, client=client)
+
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
