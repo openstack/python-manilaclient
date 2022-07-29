@@ -294,7 +294,7 @@ class OpenstackManilaShellTest(utils.TestCase):
     def test_help_on_subcommand(self, cmd):
         required = [
             '.*?^usage: manila list',
-            '.*?(?m)^List NAS shares with filters.',
+            '.*?^List NAS shares with filters.',
         ]
         help_text = self.shell(cmd)
         for r in required:
