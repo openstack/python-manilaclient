@@ -156,3 +156,29 @@ class SharesCLITest(base.OSCClientTestBase):
         self.assertEqual(host, result['host'])
         self.assertEqual(protocol, result['share_proto'])
         self.openstack(f'share delete {result["id"]} --wait')
+
+    def test_openstack_share_export_location_show(self):
+        share = self.create_share()
+        share_export_locations = self.get_share_export_locations(share["id"])
+        result_export_locations = self.listing_result(
+            'share', f'export location list {share["id"]}')
+        for share_export in share_export_locations:
+            export_location = self.dict_result(
+                'share', f'export location show {share["id"]} '
+                         f'{share_export["ID"]}')
+            self.assertIn(export_location["id"], [item["ID"] for item in
+                          result_export_locations])
+
+    def test_openstack_share_export_location_list(self):
+        share = self.create_share()
+        share_export_locations = self.get_share_export_locations(share["id"])
+        result_export_locations = self.listing_result(
+            'share', f'export location list {share["id"]}')
+
+        self.assertTableStruct(result_export_locations, [
+            'ID',
+            'Path'
+        ])
+        export_location_ids = [el['ID'] for el in share_export_locations]
+        for share_export in result_export_locations:
+            self.assertIn(share_export["ID"], export_location_ids)
