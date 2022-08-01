@@ -74,6 +74,8 @@ share migration
 .. autoprogram-cliff:: openstack.share.v2
     :command: share migration complete
 
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share migration show
 
 ==============
 share networks

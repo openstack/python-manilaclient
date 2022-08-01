@@ -1060,11 +1060,9 @@ class TestShareShow(TestShare):
             ("share", self._share.id)
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-
         cliutils.convert_dict_list_to_string = mock.Mock()
         cliutils.convert_dict_list_to_string.return_value = dict(
             self._export_location)
-
         columns, data = self.cmd.take_action(parsed_args)
         self.shares_mock.get.assert_called_with(self._share.id)
 
@@ -1083,7 +1081,7 @@ class TestShareSet(TestShare):
         super(TestShareSet, self).setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            methods={"reset_state": None}
+            methods={"reset_state": None, "reset_task_state": None}
         )
         self.shares_mock.get.return_value = self._share
 
@@ -1238,6 +1236,22 @@ class TestShareSet(TestShare):
         self._share.reset_state.side_effect = Exception()
         self.assertRaises(
             osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_share_set_task_state(self):
+        new_task_state = 'migration_starting'
+        arglist = [
+            self._share.id,
+            '--task-state', new_task_state
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('task_state', new_task_state)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        self._share.reset_task_state.assert_called_with(new_task_state)
+        self.assertIsNone(result)
 
 
 class TestShareUnset(TestShare):
@@ -1827,7 +1841,6 @@ class TestShowShareProperties(TestShare):
             }
         )
         self.shares_mock.get.return_value = self._share
-
         self.shares_mock.get_metadata.return_value = self._share.metadata
 
         # Get the command object to test
@@ -1844,7 +1857,6 @@ class TestShowShareProperties(TestShare):
             ("share", self._share.id)
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-
         columns, data = self.cmd.take_action(parsed_args)
         self.shares_mock.get.assert_called_with(self._share.id)
         self.shares_mock.get_metadata.assert_called_with(self._share)
@@ -2054,3 +2066,36 @@ class TestShareMigrationComplete(TestShare):
         result = self.cmd.take_action(parsed_args)
         self._share.migration_complete.assert_called
         self.assertIsNone(result)
+
+
+class TestShareMigrationShow(TestShare):
+
+    def setUp(self):
+        super(TestShareMigrationShow, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share(
+            attrs={
+                'status': 'available',
+                'task_state': 'migration_in_progress'},
+            methods={'migration_get_progress': ("<Response [200]>",
+                     {'total_progress': 0, 'task_state':
+                      'migration_in_progress',
+                      'details': {}})
+                     })
+        self.shares_mock.get.return_value = self._share
+
+        self.shares_mock.manage.return_value = self._share
+
+        # Get the command objects to test
+        self.cmd = osc_shares.ShareMigrationShow(self.app, None)
+
+    def test_migration_show(self):
+        arglist = [
+            self._share.id
+        ]
+        verifylist = [
+            ('share', self._share.id),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        self._share.migration_get_progress.assert_called
