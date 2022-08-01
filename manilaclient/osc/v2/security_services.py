@@ -34,14 +34,15 @@ class CreateShareSecurityService(command.ShowOne):
             metavar='<type>',
             default=None,
             choices=['ldap', 'kerberos', 'active_directory'],
-            help=_("Security service type. Possible options are:"
+            help=_("Security service type. Possible options are: "
                    "'ldap', 'kerberos', 'active_directory'.")
         )
         parser.add_argument(
             '--dns-ip',
             metavar='<dns-ip>',
             default=None,
-            help=_("DNS IP address used inside project's network.")
+            help=_("DNS IP address of the security service used "
+                   "inside project's network.")
         )
         parser.add_argument(
             '--ou',
