@@ -789,7 +789,7 @@ class SetShare(command.Command):
             try:
                 share_obj.reset_task_state(parsed_args.task_state)
             except Exception as e:
-                LOG.error(_("Failed to update share task state"
+                LOG.error(_("Failed to update share task state "
                           "%s"), e)
                 result += 1
 
