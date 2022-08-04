@@ -468,3 +468,37 @@ class ShareServerMigrationComplete(command.Command):
             raise exceptions.CommandError(
                 "Share Server Migration complete is only available "
                 "with manila API version >= 2.57")
+
+
+class ShareServerMigrationShow(command.ShowOne):
+    """Obtains progress of share migration for a given share server.
+
+    (Admin only, Experimental).
+
+    :param share_server: either share_server object or text with its ID.
+
+    """
+    _description = _(
+        "Gets migration progress of a given share server when copying")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareServerMigrationShow, self).get_parser(prog_name)
+        parser.add_argument(
+            'share_server',
+            metavar='<share_server>',
+            help='ID of share server to show migration progress for.'
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        if share_client.api_version >= api_versions.APIVersion("2.57"):
+            share_server = osc_utils.find_resource(
+                share_client.share_servers,
+                parsed_args.share_server)
+            result = share_server.migration_get_progress()
+            return self.dict2columns(result)
+        else:
+            raise exceptions.CommandError(
+                "Share Server Migration show is only available "
+                "with manila API version >= 2.57")
