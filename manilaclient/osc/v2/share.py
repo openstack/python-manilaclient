@@ -348,7 +348,13 @@ class DeleteShare(command.Command):
                 if parsed_args.force:
                     share_client.shares.force_delete(share_obj)
                 if parsed_args.soft:
-                    share_client.shares.soft_delete(share_obj)
+                    if share_client.api_version >= api_versions.APIVersion(
+                            '2.69'):
+                        share_client.shares.soft_delete(share_obj)
+                    else:
+                        raise exceptions.CommandError(
+                            "Soft Deleting shares is only "
+                            "available with manila API version >= 2.69")
                 else:
                     share_client.shares.delete(share_obj,
                                                share_group_id)
