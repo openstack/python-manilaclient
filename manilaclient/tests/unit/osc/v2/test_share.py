@@ -2102,3 +2102,41 @@ class TestShareMigrationShow(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         self._share.migration_get_progress.assert_called
+
+
+class TestShareRestore(TestShare):
+
+    def setUp(self):
+        super(TestShareRestore, self).setUp()
+
+        self.share = manila_fakes.FakeShare.create_one_share(
+            methods={'restore': None}
+        )
+        self.shares_mock.get.return_value = self.share
+        self.cmd = osc_shares.RestoreShare(self.app, None)
+
+        def test_share_restore(self):
+            arglist = [
+                self.share.name
+            ]
+            verifylist = [
+                ('share', [self.share.name])
+            ]
+            parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+            result = self.cmd.take_action(parsed_args)
+
+            self.shares_mock.get.assert_called_with(self.share)
+            self.share.restore.assert_called_with(self.share)
+            self.assertIsNone(result)
+
+        def test_share_restore_exception(self):
+            arglist = [
+                self.share.name
+            ]
+            verifylist = [
+                ('share', [self.share.name])
+            ]
+            parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+            self.share.restore.side_effect = Exception()
+            self.assertRaises(
+                osc_exceptions.CommandError, self.cmd.take_action, parsed_args)

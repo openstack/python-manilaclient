@@ -47,6 +47,9 @@ shares
 .. autoprogram-cliff:: openstack.share.v2
     :command: share revert
 
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share restore
+
 ===============
 share instances
 ===============
