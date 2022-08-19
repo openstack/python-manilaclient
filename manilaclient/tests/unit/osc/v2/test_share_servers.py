@@ -509,3 +509,64 @@ class TestSetShareServer(TestShareServer):
             exceptions.CommandError,
             self.cmd.take_action,
             parsed_args)
+
+
+class TestShareServerMigrationCancel(TestShareServer):
+
+    def setUp(self):
+        super(TestShareServerMigrationCancel, self).setUp()
+
+        self.share_server = (
+            manila_fakes.FakeShareServer.create_one_server(
+                attrs={
+                    'status': 'migrating',
+                },
+                methods={'migration_cancel': None}
+            )
+        )
+        self.servers_mock.get.return_value = self.share_server
+
+        # Get the command objects to test
+        self.cmd = osc_share_servers.ShareServerMigrationCancel(self.app, None)
+
+    def test_share_server_migration_cancel(self):
+        arglist = [
+            self.share_server.id
+        ]
+        verifylist = [
+            ('share_server', self.share_server.id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        self.share_server.migration_cancel.assert_called
+
+
+class TestShareServerMigrationComplete(TestShareServer):
+
+    def setUp(self):
+        super(TestShareServerMigrationComplete, self).setUp()
+
+        self.share_server = (
+            manila_fakes.FakeShareServer.create_one_server(
+                attrs={
+                    'status': 'migrating',
+                },
+                methods={'migration_complete': None}
+            )
+        )
+        self.servers_mock.get.return_value = self.share_server
+
+        # Get the command objects to test
+        self.cmd = osc_share_servers.ShareServerMigrationComplete(
+            self.app, None)
+
+    def test_share_server_migration_complete(self):
+        arglist = [
+            self.share_server.id
+        ]
+        verifylist = [
+            ('share_server', self.share_server.id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        self.share_server.migration_complete.assert_called
