@@ -11,11 +11,10 @@
 #   under the License.
 #
 
-import mock
-
-from osc_lib import exceptions
+from unittest import mock
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
+from osc_lib import exceptions
 
 from manilaclient import api_versions
 from manilaclient.common.apiclient.exceptions import BadRequest
