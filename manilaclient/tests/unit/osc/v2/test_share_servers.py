@@ -605,3 +605,88 @@ class TestShareServerMigrationShow(TestShareServer):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         self.share_server.migration_get_progress.assert_called
+
+
+class TestShareServerMigrationStart(TestShareServer):
+    def setUp(self):
+        super(TestShareServerMigrationStart, self).setUp()
+
+        self.new_share_network = manila_fakes.FakeShareNetwork \
+            .create_one_share_network()
+        self.share_networks_mock.get.return_value = self.new_share_network
+
+        self.share_server = (
+            manila_fakes.FakeShareServer.create_one_server(
+                methods={'migration_start': None}
+            ))
+        self.servers_mock.get.return_value = self.share_server
+
+        # Get the command objects to test
+        self.cmd = osc_share_servers.ShareServerMigrationStart(self.app, None)
+
+    def test_share_server_migration_start_with_new_share_network(self):
+        """Test share server migration with new_share_network"""
+
+        arglist = [
+            '1234',
+            'host@backend',
+            '--preserve-snapshots', 'False',
+            '--writable', 'False',
+            '--nondisruptive', 'False',
+            '--new-share-network', self.new_share_network.id
+        ]
+
+        verifylist = [
+            ('share_server', '1234'),
+            ('host', 'host@backend'),
+            ('preserve_snapshots', 'False'),
+            ('writable', 'False'),
+            ('nondisruptive', 'False'),
+            ('new_share_network', self.new_share_network.id)
+        ]
+
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.57")
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+
+        self.share_server.migration_start.assert_called_with(
+            'host@backend',
+            'False',
+            'False',
+            'False',
+            self.new_share_network.id
+        )
+        self.assertIsNone(result)
+
+    def test_share_server_migration_start_with_api_version_exception(self):
+        """Test share server migration start with API microversion exception"""
+
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.50")
+        arglist = [
+            '1234',
+            'host@backend',
+            '--preserve-snapshots', 'False',
+            '--writable', 'False',
+            '--nondisruptive', 'False',
+            '--new-share-network', self.new_share_network.id
+        ]
+
+        verifylist = [
+            ('share_server', '1234'),
+            ('host', 'host@backend'),
+            ('preserve_snapshots', 'False'),
+            ('writable', 'False'),
+            ('nondisruptive', 'False'),
+            ('new_share_network', self.new_share_network.id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.servers_mock.migration_start.side_effect = Exception()
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)

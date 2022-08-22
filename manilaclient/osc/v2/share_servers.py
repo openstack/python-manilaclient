@@ -20,6 +20,7 @@ from osc_lib import utils as osc_utils
 
 from manilaclient import api_versions
 from manilaclient.common._i18n import _
+from manilaclient.common.apiclient import utils as apiutils
 from manilaclient.common import constants
 
 LOG = logging.getLogger(__name__)
@@ -415,6 +416,7 @@ class ShareServerMigrationCancel(command.Command):
     """Attempts to cancel migration for a given share server
 
     :param share_server: either share_server object or text with its ID.
+
     """
 
     _description = _("Cancels migration of a given share server when copying")
@@ -478,6 +480,7 @@ class ShareServerMigrationShow(command.ShowOne):
     :param share_server: either share_server object or text with its ID.
 
     """
+
     _description = _(
         "Gets migration progress of a given share server when copying")
 
@@ -501,4 +504,79 @@ class ShareServerMigrationShow(command.ShowOne):
         else:
             raise exceptions.CommandError(
                 "Share Server Migration show is only available "
+                "with manila API version >= 2.57")
+
+
+class ShareServerMigrationStart(command.Command):
+    """Migrates share server to a new host (Admin only, Experimental)."""
+
+    _description = _("Migrates share server to a new host.")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareServerMigrationStart, self).get_parser(prog_name)
+        parser.add_argument(
+            'share_server',
+            metavar='<share_server>',
+            help=_('ID of share server to complete migration.')
+        )
+        parser.add_argument(
+            'host',
+            metavar='<host@backend>',
+            help=_("Destination to migrate the share server to. Use "
+                   "the format '<node_hostname>@<backend_name>'.")
+        )
+        parser.add_argument(
+            '--preserve-snapshots',
+            metavar='<True|False>',
+            choices=['True', 'False'],
+            required=True,
+            help=_("Set to True if snapshots must be preserved at "
+                   "the migration destination.")
+        )
+        parser.add_argument(
+            '--writable',
+            metavar='<True|False>',
+            choices=['True', 'False'],
+            required=True,
+            help=_("Enforces migration to keep all its shares writable"
+                   "while contents are being moved.")
+        )
+        parser.add_argument(
+            '--nondisruptive',
+            metavar='<True|False>',
+            choices=['True', 'False'],
+            required=True,
+            help=_("Enforces migration to be nondisruptive.")
+        )
+        parser.add_argument(
+            '--new-share-network',
+            metavar='<new_share_network>',
+            required=False,
+            default=None,
+            help=_('Specify a new share network for the share server. Do not '
+                   'specify this parameter if the migrating share server has '
+                   'to be retained within its current share network.',)
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share_server = osc_utils.find_resource(
+            share_client.share_servers,
+            parsed_args.share_server)
+
+        if share_client.api_version >= api_versions.APIVersion("2.57"):
+            new_share_net_id = None
+            if parsed_args.new_share_network:
+                new_share_net_id = apiutils.find_resource(
+                    share_client.share_networks,
+                    parsed_args.new_share_network).id
+            share_server.migration_start(parsed_args.host,
+                                         parsed_args.writable,
+                                         parsed_args.nondisruptive,
+                                         parsed_args.preserve_snapshots,
+                                         new_share_net_id)
+        else:
+            raise exceptions.CommandError(
+                "Share Server Migration is only available "
                 "with manila API version >= 2.57")
