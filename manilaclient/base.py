@@ -63,15 +63,15 @@ class Manager(utils.HookableMixin):
     def api_version(self):
         return self.api.api_version
 
-    def _list(self, url, response_key, obj_class=None, body=None):
+    def _list(self, url, response_key, manager=None, body=None):
         """List the collection.
 
         :param url: a partial URL, e.g., '/shares'
         :param response_key: the key to be looked up in response dictionary,
             e.g., 'shares'. If response_key is None - all response body
             will be used.
-        :param obj_class: class for constructing the returned objects
-            (self.resource_class will be used by default)
+        :param manager: manager instance for constructing the returned objects
+            (self will be used by default)
         :param body: data that will be encoded as JSON and passed in POST
             request (GET will be sent by default)
         """
@@ -81,8 +81,10 @@ class Manager(utils.HookableMixin):
         else:
             resp, body = self.api.client.get(url)
 
-        if obj_class is None:
-            obj_class = self.resource_class
+        if manager is None:
+            manager = self
+
+        obj_class = manager.resource_class
 
         data = body[response_key]
         # NOTE(ja): keystone returns values as list as {'values': [ ... ]}
@@ -94,7 +96,7 @@ class Manager(utils.HookableMixin):
                 pass
         with self.completion_cache('human_id', obj_class, mode="w"):
             with self.completion_cache('uuid', obj_class, mode="w"):
-                resource = [obj_class(self, res, loaded=True)
+                resource = [obj_class(manager, res, loaded=True)
                             for res in data if res]
                 if 'count' in body:
                     return resource, body['count']

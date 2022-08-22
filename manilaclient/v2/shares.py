@@ -777,5 +777,5 @@ class ShareManager(base.ManagerWithFind):
         return self._list(
             '/shares/%s/instances' % base.getid(share),
             'share_instances',
-            obj_class=share_instances.ShareInstance
+            manager=share_instances.ShareInstanceManager(self)
         )
