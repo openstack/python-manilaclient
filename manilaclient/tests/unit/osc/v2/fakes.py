@@ -1427,6 +1427,7 @@ class FakeShareServer(object):
             "updated_at": datetime.datetime.now().isoformat(),
             'status': None,
             'host': None,
+            'check_only': False,
             'share_network_name': None,
             'share_network_id': str(uuid.uuid4()),
             'share_network_subnet_id': str(uuid.uuid4()),
