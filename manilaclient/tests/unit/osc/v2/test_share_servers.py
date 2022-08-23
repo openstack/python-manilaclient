@@ -684,8 +684,6 @@ class TestShareServerMigrationStart(TestShareServer):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        self.servers_mock.migration_start.side_effect = Exception()
-
         self.assertRaises(
             exceptions.CommandError,
             self.cmd.take_action,

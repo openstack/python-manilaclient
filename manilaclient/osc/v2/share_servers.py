@@ -517,7 +517,7 @@ class ShareServerMigrationStart(command.Command):
         parser.add_argument(
             'share_server',
             metavar='<share_server>',
-            help=_('ID of share server to complete migration.')
+            help=_('ID of share server to start migration.')
         )
         parser.add_argument(
             'host',
@@ -538,7 +538,7 @@ class ShareServerMigrationStart(command.Command):
             metavar='<True|False>',
             choices=['True', 'False'],
             required=True,
-            help=_("Enforces migration to keep all its shares writable"
+            help=_("Enforces migration to keep all its shares writable "
                    "while contents are being moved.")
         )
         parser.add_argument(
