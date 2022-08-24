@@ -369,6 +369,36 @@ class BaseTestCase(base.ClientTestBase):
                              microversion=microversion)
 
     @classmethod
+    def create_share_transfer(cls, share_id, name=None,
+                              client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        return client.create_share_transfer(share_id, name=name,
+                                            microversion=microversion)
+
+    @classmethod
+    def delete_share_transfer(cls, transfer, client=None,
+                              microversion=None):
+        client = client or cls.get_admin_client()
+        client.delete_share_transfer(transfer, microversion=microversion)
+
+    @classmethod
+    def get_share_transfer(cls, transfer, client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        return client.get_share_transfer(transfer, microversion=microversion)
+
+    @classmethod
+    def list_share_transfer(cls, client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        return client.list_share_transfer(microversion=microversion)
+
+    @classmethod
+    def accept_share_transfer(cls, transfer, auth_key,
+                              client=None, microversion=None):
+        client = client or cls.get_admin_client()
+        client.accept_share_transfer(transfer, auth_key,
+                                     microversion=microversion)
+
+    @classmethod
     def _determine_share_network_to_use(cls, client, share_type,
                                         microversion=None):
         """Determine what share network we need from the share type."""

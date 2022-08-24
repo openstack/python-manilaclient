@@ -43,6 +43,7 @@ from manilaclient.v2 import share_snapshot_export_locations
 from manilaclient.v2 import share_snapshot_instance_export_locations
 from manilaclient.v2 import share_snapshot_instances
 from manilaclient.v2 import share_snapshots
+from manilaclient.v2 import share_transfers
 from manilaclient.v2 import share_type_access
 from manilaclient.v2 import share_types
 from manilaclient.v2 import shares
@@ -189,6 +190,7 @@ class Client(object):
         self.availability_zones = availability_zones.AvailabilityZoneManager(
             self)
         self.limits = limits.LimitsManager(self)
+        self.transfers = share_transfers.ShareTransferManager(self)
         self.messages = messages.MessageManager(self)
         self.services = services.ServiceManager(self)
         self.security_services = security_services.SecurityServiceManager(self)

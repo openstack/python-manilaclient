@@ -37,6 +37,7 @@ SHARE_NETWORK_SUBNET = 'share_network_subnet'
 SHARE_SERVER = 'share_server'
 SNAPSHOT = 'snapshot'
 SHARE_REPLICA = 'share_replica'
+TRANSFER = 'transfer'
 
 
 def not_found_wrapper(f):
@@ -142,6 +143,8 @@ class ManilaCLIClient(base.CLIClient):
             func = self.is_message_deleted
         elif res_type == SHARE_REPLICA:
             func = self.is_share_replica_deleted
+        elif res_type == TRANSFER:
+            func = self.is_share_transfer_deleted
         else:
             raise exceptions.InvalidResource(message=res_type)
 
@@ -919,6 +922,55 @@ class ManilaCLIClient(base.CLIClient):
             cmd += '%s ' % share
         return self.manila(cmd, microversion=microversion)
 
+    def create_share_transfer(self, share_id, name=None,
+                              microversion=None):
+        """Create a share transfer.
+
+        :param share_id: ID of share.
+        ":param name: name of transfer.
+        """
+        cmd = 'share-transfer-create %s ' % share_id
+        if name:
+            cmd += '--name %s' % name
+        transfer_raw = self.manila(cmd, microversion=microversion)
+        transfer = output_parser.details(transfer_raw)
+        return transfer
+
+    def delete_share_transfer(self, transfer, microversion=None):
+        """Delete a share transfer.
+
+        :param transfer: ID or name of share transfer.
+        """
+        cmd = 'share-transfer-delete %s ' % transfer
+        self.manila(cmd, microversion=microversion)
+
+    def get_share_transfer(self, transfer, microversion=None):
+        """Get a share transfer.
+
+        :param transfer: ID or name of share transfer.
+        """
+        cmd = 'share-transfer-show %s ' % transfer
+        transfer_raw = self.manila(cmd, microversion=microversion)
+        transfer = output_parser.details(transfer_raw)
+        return transfer
+
+    def list_share_transfer(self, microversion=None):
+        """Get a share transfer."""
+
+        cmd = 'share-transfer-list '
+        transfer_raw = self.manila(cmd, microversion=microversion)
+        transfers = utils.listing(transfer_raw)
+        return transfers
+
+    def accept_share_transfer(self, transfer, auth_key,
+                              microversion=None):
+        """Accept a share transfer.
+
+        :param transfer: ID or name of share transfer.
+        """
+        cmd = 'share-transfer-accept %s %s' % (transfer, auth_key)
+        self.manila(cmd, microversion=microversion)
+
     def list_shares(self, all_tenants=False, is_soft_deleted=False,
                     filters=None, columns=None, is_public=False,
                     microversion=None):
@@ -1001,6 +1053,26 @@ class ManilaCLIClient(base.CLIClient):
         """
         self.wait_for_resource_deletion(
             SHARE, res_id=share, interval=5, timeout=300,
+            microversion=microversion)
+
+    def is_share_transfer_deleted(self, transfer, microversion=None):
+        """Says whether transfer is deleted or not.
+
+        :param transfer: str -- Name or ID of transfer
+        """
+        try:
+            self.get_transfer(transfer, microversion=microversion)
+            return False
+        except tempest_lib_exc.NotFound:
+            return True
+
+    def wait_for_transfer_deletion(self, transfer, microversion=None):
+        """Wait for transfer deletion by its Name or ID.
+
+        :param transfer: str -- Name or ID of transfer.
+        """
+        self.wait_for_resource_deletion(
+            SHARE, res_id=transfer, interval=5, timeout=300,
             microversion=microversion)
 
     def wait_for_share_soft_deletion(self, share_id, microversion=None):

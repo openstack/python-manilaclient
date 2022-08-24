@@ -68,6 +68,17 @@ SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES = (
     'share_group_id',
 )
 
+SHARE_TRANSFER_SORT_KEY_VALUES = (
+    'id',
+    'resource_type',
+    'resource_id',
+    'name',
+    'source_project_id',
+    'destination_project_id',
+    'created_at',
+    'expires_at',
+)
+
 TASK_STATE_MIGRATION_SUCCESS = 'migration_success'
 TASK_STATE_MIGRATION_ERROR = 'migration_error'
 TASK_STATE_MIGRATION_CANCELLED = 'migration_cancelled'
@@ -119,3 +130,4 @@ GROUP_BOOL_SPECS = (
 
 REPLICA_GRADUATION_VERSION = '2.56'
 REPLICA_PRE_GRADUATION_VERSION = '2.55'
+SHARE_TRANSFER_VERSION = '2.77'

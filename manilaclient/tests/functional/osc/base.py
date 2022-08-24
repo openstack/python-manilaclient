@@ -302,6 +302,14 @@ class OSCClientTestBase(base.ClientTestBase):
 
         return snapshot_object
 
+    def create_share_transfer(self, share, name=None, client=None):
+
+        name = name or data_utils.rand_name('autotest_share_transfer_name')
+        cmd = (f'transfer create {share} --name {name} ')
+        transfer_object = self.dict_result('share', cmd, client=client)
+
+        return transfer_object
+
     def create_share_network(self, neutron_net_id=None,
                              neutron_subnet_id=None, name=None,
                              description=None, availability_zone=None,
