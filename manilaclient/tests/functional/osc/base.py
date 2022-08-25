@@ -362,7 +362,7 @@ class OSCClientTestBase(base.ClientTestBase):
                f'{share_types} ')
 
         if group_specs:
-            cmd = cmd + f' --group_specs {group_specs} '
+            cmd = cmd + f' --group-specs {group_specs} '
         if not public:
             cmd = cmd + f' --public {public} '
 
