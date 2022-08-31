@@ -1,0 +1,37 @@
+---
+prelude: >
+    The manilaclient repository now includes a plugin to openstackclient.
+    You can use the ``openstack share ..`` command line interface to
+    administer the Shared File System service (manila) on any deployment
+    alongside using it to provision and manage the life cycle of manila
+    resources. Refer to the `official documentation <https://docs.openstack
+    .org/python-manilaclient/latest/cli/osc_plugin_cli.html>`_ to find command
+    syntax and usage information. You may also view this documentation
+    directly in the CLI with ``openstack help share <subcommand>``. For
+    example, ``openstack help share create``.
+upgrade:
+  - |
+    With the introduction of the openstackclient integration, we are also
+    announcing our intent to deprecate the "manila" shell commands. These
+    clients will emit a deprecation warning in a future release, and will
+    eventually be removed. We recommend that you transition your workflows
+    and tooling to use the "openstack" CLI when using the Shared File
+    Systems service (manila) commands. The "manilaclient" SDK is unaffected
+    by the introducion of OpenStackClient.
+other:
+  - |
+    The ``openstack share ..`` CLI is usable only with the "v2" API. At this
+    time, we have no plans to support its use with the deprecated "v1" API
+    provided by the Shared File System service (manila).
+  - |
+    The ``openstack share ..`` CLI does not yet support API microversion
+    negotiation. This means that to use this release of the OpenStackClient
+    with older Shared File System API service, users would have to set the
+    API version in their environments. This can be done via cloud config
+    (specify ``shared_file_system_api_version``) or via shell environment
+    ``OS_SHARE_API_VERSION`` or via the CLI overrride:
+    ``--os-share-api-version``. Without this override, the client will use a
+    `hard-coded API version <https://opendev
+    .org/openstack/python-manilaclient/src/branch/stable/zed/manilaclient
+    /api_versions.py#L30>`_ to make API requests and this may fail in
+    your deployment if the version is unsupported.
