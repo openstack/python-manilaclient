@@ -326,13 +326,16 @@ class OSCClientTestBase(base.ClientTestBase):
         return share_network_obj
 
     def create_share_replica(self, share, availability_zone=None,
-                             wait=None, add_cleanup=True):
+                             share_network=None, wait=None,
+                             add_cleanup=True):
         cmd = (f'replica create {share}')
 
         if availability_zone:
             cmd = cmd + f' --availability-zone {availability_zone}'
         if wait:
             cmd = cmd + ' --wait'
+        if share_network:
+            cmd = cmd + ' --share-network %s' % share_network
 
         replica_object = self.dict_result('share', cmd)
         self._wait_for_object_status(

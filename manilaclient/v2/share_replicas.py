@@ -120,14 +120,23 @@ class ShareReplicaManager(base.ManagerWithFind):
         return self._create_share_replica(
             share, availability_zone=availability_zone)
 
-    @api_versions.wraps("2.67")  # noqa
+    @api_versions.wraps("2.67", "2.71")  # noqa
     def create(self, share, availability_zone=None, scheduler_hints=None): # noqa F811
         return self._create_share_replica(
             share, availability_zone=availability_zone,
             scheduler_hints=scheduler_hints)
 
+    @api_versions.wraps("2.72")  # noqa
+    def create(self, share, # pylint: disable=function-redefined  # noqa F811
+               availability_zone=None, scheduler_hints=None,
+               share_network=None):
+        return self._create_share_replica(
+            share, availability_zone=availability_zone,
+            scheduler_hints=scheduler_hints,
+            share_network=share_network)
+
     def _create_share_replica(self, share, availability_zone=None,
-                              scheduler_hints=None):
+                              scheduler_hints=None, share_network=None):
         """Create a replica for a share.
 
         :param share: The share to create the replica of. Can be the share
@@ -135,6 +144,7 @@ class ShareReplicaManager(base.ManagerWithFind):
         :param availability_zone: The 'availability_zone' object or its UUID.
         :param scheduler_hints: The scheduler_hints as key=value pair. Only
         supported key is 'only_host'.
+        :param share_network: either share network object or its UUID.
         """
 
         share_id = base.getid(share)
@@ -145,6 +155,10 @@ class ShareReplicaManager(base.ManagerWithFind):
 
         if scheduler_hints:
             body['scheduler_hints'] = scheduler_hints
+
+        if share_network:
+            body['share_network_id'] = base.getid(share_network)
+
         return self._create(RESOURCES_PATH,
                             {RESOURCE_NAME: body},
                             RESOURCE_NAME)

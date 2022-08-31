@@ -16,7 +16,6 @@ from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
 from manilaclient import api_versions
-from manilaclient.api_versions import MAX_VERSION
 from manilaclient.common import cliutils
 
 from manilaclient.osc import utils
@@ -37,7 +36,7 @@ class TestShareReplica(manila_fakes.TestShare):
         self.replicas_mock = self.app.client_manager.share.share_replicas
         self.replicas_mock.reset_mock()
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            MAX_VERSION)
+            api_versions.MAX_VERSION)
 
         self.replica_el_mock = (
             self.app.client_manager
@@ -178,6 +177,39 @@ class TestShareReplicaCreate(TestShareReplica):
         self.assertRaises(exceptions.CommandError,
                           self.cmd.take_action,
                           parsed_args)
+
+    def test_share_replica_create_share_network(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.72")
+
+        arglist = [
+            self.share.id,
+            '--availability-zone', self.share.availability_zone,
+            '--share-network', self.share.share_network_id
+        ]
+        verifylist = [
+            ('share', self.share.id),
+            ('availability_zone', self.share.availability_zone),
+            ('share_network', self.share.share_network_id)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+        if self.share.share_network_id:
+            self.replicas_mock.create.assert_called_with(
+                share=self.share,
+                availability_zone=self.share.availability_zone,
+                share_network=self.share.share_network_id
+            )
+        else:
+            self.replicas_mock.create.assert_called_with(
+                share=self.share,
+                availability_zone=self.share.availability_zone,
+            )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
 
     def test_share_replica_create_wait(self):
         arglist = [

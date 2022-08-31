@@ -1907,12 +1907,18 @@ class ManilaCLIClient(base.CLIClient):
 
     # Share replicas
 
-    def create_share_replica(self, share, microversion=None):
+    def create_share_replica(self, share, availability_zone=None,
+                             share_network=None, microversion=None):
         """Create a share replica.
 
         :param share: str -- Name or ID of a share to create a replica of
         """
         cmd = "share-replica-create %s" % share
+        if availability_zone is not None:
+            cmd += " --availability_zone " + availability_zone
+        if share_network is not None:
+            cmd += " --share_network " + share_network
+
         replica = self.manila(cmd, microversion=microversion)
         return output_parser.details(replica)
 

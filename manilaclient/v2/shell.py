@@ -6162,7 +6162,7 @@ def do_share_replica_create(cs, args):
     _print_share_replica(cs, replica)
 
 
-@api_versions.wraps("2.67")
+@api_versions.wraps("2.67", "2.71")
 @cliutils.arg(
     'share',
     metavar='<share>',
@@ -6203,6 +6203,67 @@ def do_share_replica_create(cs, args):  # noqa
     }
     if scheduler_hints:
         body['scheduler_hints'] = scheduler_hints
+
+    replica = cs.share_replicas.create(**body)
+    _print_share_replica(cs, replica)
+
+
+@api_versions.wraps("2.72")
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of the share to replicate.')
+@cliutils.arg(
+    '--availability-zone',
+    '--availability_zone',
+    '--az',
+    default=None,
+    action='single_alias',
+    metavar='<availability-zone>',
+    help='Optional Availability zone in which replica should be created.')
+@cliutils.arg(
+    '--scheduler-hints',
+    '--scheduler_hints',
+    '--sh',
+    metavar='<key=value>',
+    nargs='*',
+    help='Scheduler hints for the share replica as key=value pairs, '
+         'Supported key is only_host. Available for microversion >= 2.67. ',
+    default=None)
+@cliutils.arg(
+    '--share-network',
+    '--share_network',
+    metavar='<network-info>',
+    default=None,
+    action='single_alias',
+    help='Optional network info ID or name. '
+         'Available only for microversion >= 2.72')
+def do_share_replica_create(cs, args):  # noqa
+    """Create a share replica."""
+    share = _find_share(cs, args.share)
+
+    scheduler_hints = {}
+    if args.scheduler_hints:
+        hints = _extract_key_value_options(args, 'scheduler_hints')
+        if 'only_host' not in hints.keys() or len(hints) > 1:
+            raise exceptions.CommandError(
+                "The only valid key supported with the --scheduler-hints "
+                "argument is 'only_host'.")
+        scheduler_hints['only_host'] = hints.get('only_host')
+
+    share_network = None
+    if args.share_network:
+        share_network = _find_share_network(cs, args.share_network)
+
+    body = {
+        'share': share,
+        'availability_zone': args.availability_zone,
+    }
+    if scheduler_hints:
+        body['scheduler_hints'] = scheduler_hints
+
+    if share_network:
+        body['share_network'] = share_network
 
     replica = cs.share_replicas.create(**body)
     _print_share_replica(cs, replica)
