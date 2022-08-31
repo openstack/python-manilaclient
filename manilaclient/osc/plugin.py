@@ -85,7 +85,8 @@ def make_client(instance):
                                        auth=instance.auth,
                                        http_log_debug=debugging_enabled,
                                        api_version=requested_api_version,
-                                       cert=instance.cert)
+                                       cert=instance.cert,
+                                       insecure=not instance.verify)
     return client
 
 
