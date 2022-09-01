@@ -507,7 +507,7 @@ class ShareServerMigrationShow(command.ShowOne):
                 "with manila API version >= 2.57")
 
 
-class ShareServerMigrationStart(command.Command):
+class ShareServerMigrationStart(command.ShowOne):
     """Migrates share server to a new host (Admin only, Experimental)."""
 
     _description = _("Migrates share server to a new host.")
@@ -557,6 +557,12 @@ class ShareServerMigrationStart(command.Command):
                    'specify this parameter if the migrating share server has '
                    'to be retained within its current share network.',)
         )
+        parser.add_argument(
+            '--check-only',
+            action='store_true',
+            default=False,
+            help=_("Run a dry-run of the share server migration. ")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -567,15 +573,26 @@ class ShareServerMigrationStart(command.Command):
 
         if share_client.api_version >= api_versions.APIVersion("2.57"):
             new_share_net_id = None
+            result = None
             if parsed_args.new_share_network:
                 new_share_net_id = apiutils.find_resource(
                     share_client.share_networks,
                     parsed_args.new_share_network).id
-            share_server.migration_start(parsed_args.host,
-                                         parsed_args.writable,
-                                         parsed_args.nondisruptive,
-                                         parsed_args.preserve_snapshots,
-                                         new_share_net_id)
+            if parsed_args.check_only:
+                result = share_server.migration_check(
+                    parsed_args.host, parsed_args.writable,
+                    parsed_args.nondisruptive, parsed_args.preserve_snapshots,
+                    new_share_net_id
+                )
+            if result:
+                return self.dict2columns(result)
+            else:
+                share_server.migration_start(parsed_args.host,
+                                             parsed_args.writable,
+                                             parsed_args.nondisruptive,
+                                             parsed_args.preserve_snapshots,
+                                             new_share_net_id)
+                return ({}, {})
         else:
             raise exceptions.CommandError(
                 "Share Server Migration is only available "
