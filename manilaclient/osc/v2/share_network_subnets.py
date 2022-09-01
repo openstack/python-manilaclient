@@ -17,6 +17,7 @@ from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
+from manilaclient import api_versions
 from manilaclient.common._i18n import _
 
 
@@ -59,10 +60,37 @@ class CreateShareNetworkSubnet(command.ShowOne):
                    "considered as being available across all availability "
                    "zones.")
         )
+        parser.add_argument(
+            '--check-only',
+            default=False,
+            action='store_true',
+            help=_("Run a dry-run of a share network subnet create. "
+                   "Available only for microversion >= 2.70.")
+        )
+        parser.add_argument(
+            '--restart-check',
+            default=False,
+            action='store_true',
+            help=_("Restart a dry-run of a share network subnet create. "
+                   "Helpful when check results are stale. "
+                   "Available only for microversion >= 2.70.")
+        )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
+
+        # check and restart check during create is only available from 2.70.
+        if (parsed_args.check_only and
+                share_client.api_version < api_versions.APIVersion("2.70")):
+            raise exceptions.CommandError(
+                "Check only can be specified only with manila API "
+                "version >= 2.70.")
+        if (parsed_args.restart_check and
+                share_client.api_version < api_versions.APIVersion("2.70")):
+            raise exceptions.CommandError(
+                "Restart check can be specified only with manila API "
+                "version >= 2.70.")
 
         if xor(bool(parsed_args.neutron_net_id),
                bool(parsed_args.neutron_subnet_id)):
@@ -75,13 +103,24 @@ class CreateShareNetworkSubnet(command.ShowOne):
             share_client.share_networks,
             parsed_args.share_network).id
 
-        share_network_subnet = share_client.share_network_subnets.create(
-            neutron_net_id=parsed_args.neutron_net_id,
-            neutron_subnet_id=parsed_args.neutron_subnet_id,
-            availability_zone=parsed_args.availability_zone,
-            share_network_id=share_network_id
-        )
-        subnet_data = share_network_subnet._info
+        if parsed_args.check_only or parsed_args.restart_check:
+            subnet_create_check = (
+                share_client.share_networks.share_network_subnet_create_check(
+                    neutron_net_id=parsed_args.neutron_net_id,
+                    neutron_subnet_id=parsed_args.neutron_subnet_id,
+                    availability_zone=parsed_args.availability_zone,
+                    reset_operation=parsed_args.restart_check,
+                    share_network_id=share_network_id)
+            )
+            subnet_data = subnet_create_check[1]
+        else:
+            share_network_subnet = share_client.share_network_subnets.create(
+                neutron_net_id=parsed_args.neutron_net_id,
+                neutron_subnet_id=parsed_args.neutron_subnet_id,
+                availability_zone=parsed_args.availability_zone,
+                share_network_id=share_network_id
+            )
+            subnet_data = share_network_subnet._info
 
         return self.dict2columns(subnet_data)
 

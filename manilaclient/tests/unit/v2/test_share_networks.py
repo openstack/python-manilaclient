@@ -279,3 +279,23 @@ class ShareNetworkTest(utils.TestCase):
                 expected_path,
                 share_nw,
                 expected_body)
+
+    def test_share_network_subnet_create_check(self):
+        share_nw = self._FakeShareNetwork()
+
+        expected_path = 'share_network_subnet_create_check'
+
+        expected_body = {
+            'neutron_net_id': self.values['neutron_net_id'],
+            'neutron_subnet_id': self.values['neutron_subnet_id'],
+            'reset_operation': False
+        }
+
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
+            self.manager.share_network_subnet_create_check(
+                share_nw, self.values['neutron_net_id'],
+                self.values['neutron_subnet_id'])
+            self.manager._action.assert_called_once_with(
+                expected_path,
+                share_nw,
+                expected_body)
