@@ -310,7 +310,7 @@ class DeleteShare(command.Command):
             "--share-group",
             metavar="<share-group>",
             default=None,
-            help=_("Optional share group (name or ID)"
+            help=_("Optional share group (name or ID) "
                    "which contains the share")
         )
         parser.add_argument(
@@ -343,8 +343,11 @@ class DeleteShare(command.Command):
                 share_obj = apiutils.find_resource(
                     share_client.shares, share
                 )
-                share_group_id = (share_group_id if parsed_args.share_group
-                                  else None)
+                share_group_id = None
+                if parsed_args.share_group:
+                    share_group_id = apiutils.find_resource(
+                        share_client.share_groups, parsed_args.share_group).id
+
                 if parsed_args.force:
                     share_client.shares.force_delete(share_obj)
                 if parsed_args.soft:
