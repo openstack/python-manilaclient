@@ -4190,6 +4190,13 @@ def do_share_network_delete(cs, args):
     default=None,
     help="Security service name.")
 @cliutils.arg(
+    '--default-ad-site',
+    metavar='<default_ad_site>',
+    dest='default_ad_site',
+    default=None,
+    help="Default AD site. Available only for microversion >= 2.76. Can "
+         "be provided in the place of '--server' but not along with it.")
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -4213,6 +4220,21 @@ def do_security_service_create(cs, args):
         raise exceptions.CommandError(
             "Security service Organizational Unit (ou) option "
             "is only available with manila API version >= 2.44")
+
+    if cs.api_version.matches(api_versions.APIVersion("2.76"),
+                              api_versions.APIVersion()):
+        values['default_ad_site'] = args.default_ad_site
+    elif args.default_ad_site:
+        raise exceptions.CommandError(
+            "Default AD site option is only available with "
+            "manila API version >= 2.76")
+
+    if args.type == 'active_directory':
+        if args.server and args.default_ad_site:
+            raise exceptions.CommandError(
+                "Cannot create security service because both "
+                "server and 'default_ad_site' were provided. "
+                "Specify either server or 'default_ad_site'.")
 
     security_service = cs.security_services.create(args.type, **values)
     info = security_service._info.copy()
@@ -4260,6 +4282,12 @@ def do_security_service_create(cs, args):
     default=None,
     help="Security service name.")
 @cliutils.arg(
+    '--default-ad-site',
+    metavar='<default_ad_site>',
+    dest='default_ad_site',
+    default=None,
+    help="Default AD site. Available only for microversion >= 2.76.")
+@cliutils.arg(
     '--description',
     metavar='<description>',
     default=None,
@@ -4283,6 +4311,14 @@ def do_security_service_update(cs, args):
         raise exceptions.CommandError(
             "Security service Organizational Unit (ou) option "
             "is only available with manila API version >= 2.44")
+
+    if cs.api_version.matches(api_versions.APIVersion("2.76"),
+                              api_versions.APIVersion()):
+        values['default_ad_site'] = args.default_ad_site
+    elif args.default_ad_site:
+        raise exceptions.CommandError(
+            "Default AD site option is only available with "
+            "manila API version >= 2.76")
 
     security_service = _find_security_service(
         cs, args.security_service).update(**values)
@@ -4380,6 +4416,12 @@ def do_security_service_show(cs, args):
     default=None,
     help='Number of security services to return per request.')
 @cliutils.arg(
+    '--default-ad-site',
+    metavar='<default_ad_site>',
+    dest='default_ad_site',
+    default=None,
+    help="Default AD site. Available only for microversion >= 2.76.")
+@cliutils.arg(
     '--columns',
     metavar='<columns>',
     type=str,
@@ -4413,6 +4455,14 @@ def do_security_service_list(cs, args):
         raise exceptions.CommandError(
             "Security service Organizational Unit (ou) option "
             "is only available with manila API version >= 2.44")
+
+    if cs.api_version.matches(api_versions.APIVersion("2.76"),
+                              api_versions.APIVersion()):
+        search_opts['default_ad_site'] = args.default_ad_site
+    elif args.ou:
+        raise exceptions.CommandError(
+            "Security service Default AD site option "
+            "is only available with manila API version >= 2.76")
 
     if args.share_network:
         search_opts['share_network_id'] = _find_share_network(

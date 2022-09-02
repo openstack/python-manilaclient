@@ -32,6 +32,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
         self.domain = 'fake_domain'
         self.dns_ip = '1.2.3.4'
         self.ou = 'fake_ou'
+        self.default_ad_site = 'fake_default_ad_site'
 
     @ddt.data(
         {'name': 'test_name'},
@@ -39,6 +40,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
         {'user': 'test_username'},
         {'password': 'test_password'},
         {'server': 'test_server'},
+        {'default_ad_site': 'test_default_ad_site'},
         {'domain': 'test_domain'},
         {'dns_ip': 'test_dns_ip'},
         {'ou': 'test_ou'},
@@ -47,6 +49,7 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
         {'user': '""'},
         {'password': '""'},
         {'server': '""'},
+        {'default_ad_site': '""'},
         {'domain': '""'},
         {'dns_ip': '""'},
         {'ou': '""'},
@@ -62,6 +65,10 @@ class SecurityServiceReadWriteTest(base.BaseTestCase):
             'dns_ip': self.dns_ip,
             'ou': self.ou,
         }
+
+        if 'default_ad_site' in ss_data:
+            expected_data.pop('server')
+            expected_data['default_ad_site'] = self.default_ad_site
 
         ss = self.create_security_service(**expected_data)
         update = self.admin_client.update_security_service(ss['id'], **ss_data)

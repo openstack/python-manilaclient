@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Users are now able to set a default active directory site while creating
+    security services by specifying 'default_ad_site'. Refer `Launchpad bug
+    #1988146 <https://bugs.launchpad.net/python-manilaclient/+bug/1988146>`_

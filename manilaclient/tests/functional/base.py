@@ -413,8 +413,9 @@ class BaseTestCase(base.ClientTestBase):
     @classmethod
     def create_security_service(cls, type='ldap', name=None, description=None,
                                 dns_ip=None, ou=None, server=None, domain=None,
-                                user=None, password=None, client=None,
-                                cleanup_in_class=False, microversion=None):
+                                user=None, password=None, default_ad_site=None,
+                                client=None, cleanup_in_class=False,
+                                microversion=None):
         if client is None:
             client = cls.get_admin_client()
         data = {
@@ -428,6 +429,7 @@ class BaseTestCase(base.ClientTestBase):
             'dns_ip': dns_ip,
             'ou': ou,
             'microversion': microversion,
+            'default_ad_site': default_ad_site,
         }
         ss = client.create_security_service(**data)
         resource = {
