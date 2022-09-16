@@ -110,7 +110,7 @@ class CreateShareGroup(command.ShowOne):
         source_share_group_snapshot = None
         if parsed_args.source_share_group_snapshot:
             source_share_group_snapshot = osc_utils.find_resource(
-                share_client.source_share_group_snapshots,
+                share_client.share_group_snapshots,
                 parsed_args.source_share_group_snapshot).id
 
         body = {

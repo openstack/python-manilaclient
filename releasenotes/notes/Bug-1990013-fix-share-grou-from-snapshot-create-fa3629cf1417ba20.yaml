@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Create Share group from snapshot failed due to a bug in OSC.
+    The issue is fixed and its working as expected.
