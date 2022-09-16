@@ -21,6 +21,7 @@ from osc_lib import utils as osc_utils
 from manilaclient import api_versions
 from manilaclient.common._i18n import _
 from manilaclient.common.apiclient import utils as apiutils
+from manilaclient.common import cliutils
 from manilaclient.common import constants
 
 LOG = logging.getLogger(__name__)
@@ -624,6 +625,14 @@ class ShareServerMigrationStart(command.ShowOne):
                     new_share_net_id
                 )
             if result:
+                if parsed_args.formatter == 'table':
+                    for k, v in result.items():
+                        if isinstance(v, dict):
+                            capabilities_list = [v]
+                            dict_values = cliutils.convert_dict_list_to_string(
+                                capabilities_list
+                            )
+                            result[k] = dict_values
                 return self.dict2columns(result)
             else:
                 share_server.migration_start(parsed_args.host,
