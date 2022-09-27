@@ -19,6 +19,7 @@ from osc_lib import utils as oscutils
 
 from manilaclient import api_versions
 from manilaclient.common._i18n import _
+from manilaclient.common import cliutils
 
 
 LOG = logging.getLogger(__name__)
@@ -113,6 +114,15 @@ class CreateShareNetworkSubnet(command.ShowOne):
                     share_network_id=share_network_id)
             )
             subnet_data = subnet_create_check[1]
+            if subnet_data:
+                if parsed_args.formatter == 'table':
+                    for k, v in subnet_data.items():
+                        if isinstance(v, dict):
+                            capabilities_list = [v]
+                            dict_values = cliutils.convert_dict_list_to_string(
+                                capabilities_list
+                            )
+                            subnet_data[k] = dict_values
         else:
             share_network_subnet = share_client.share_network_subnets.create(
                 neutron_net_id=parsed_args.neutron_net_id,
