@@ -351,6 +351,13 @@ class OpenStackManilaShell(object):
         parser.add_argument('--os_cert',
                             help=argparse.SUPPRESS)
 
+        parser.add_argument('--os-key',
+                            metavar='<key>',
+                            default=cliutils.env('OS_KEY'),
+                            help='Defaults to env[OS_KEY].')
+        parser.add_argument('--os_key',
+                            help=argparse.SUPPRESS)
+
         if osprofiler_profiler:
             parser.add_argument('--profile',
                                 metavar='HMAC_KEY',
@@ -542,6 +549,9 @@ class OpenStackManilaShell(object):
             os_service_type = constants.SERVICE_TYPES[major_version_string]
 
         os_endpoint_type = args.endpoint_type or DEFAULT_MANILA_ENDPOINT_TYPE
+        cert = args.os_cert or None
+        if cert and args.os_key:
+            cert = cert, args.os_key
 
         client_args = dict(
             username=args.os_username,
@@ -565,7 +575,7 @@ class OpenStackManilaShell(object):
             user_domain_name=args.os_user_domain_name,
             project_domain_id=args.os_project_domain_id,
             project_domain_name=args.os_project_domain_name,
-            cert=args.os_cert,
+            cert=cert,
             input_auth_token=args.os_token,
             service_catalog_url=args.bypass_url,
         )
