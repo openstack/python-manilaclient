@@ -35,7 +35,11 @@ class ManilaClientTestCommonReadOnly(base.BaseTestCase):
 
         commands = []
         cmds_start = lines.index('Positional arguments:')
-        cmds_end = lines.index('Optional arguments:')
+        try:
+            # TODO(gouthamr): Drop when py3.10 becomes min supported version
+            cmds_end = lines.index('Optional arguments:')
+        except ValueError:
+            cmds_end = lines.index('Options:')
         command_pattern = re.compile(r'^ {4}([a-z0-9\-\_]+)')
         for line in lines[cmds_start:cmds_end]:
             match = command_pattern.match(line)
