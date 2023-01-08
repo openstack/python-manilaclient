@@ -39,6 +39,7 @@ class ShareNetworkSubnetTest(utils.TestCase):
             'neutron_net_id': 'fake_net_id',
             'neutron_subnet_id': 'fake_subnet_id',
             'availability_zone': 'fake_availability_zone',
+            'metadata': 'fake_metadata'
         }
         expected_body = {'share-network-subnet': expected_values}
         payload = expected_values.copy()

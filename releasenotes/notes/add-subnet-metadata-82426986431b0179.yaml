@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Adds support to create share network subnet with properties and update
+    the subnet properties with set and unset command (only with the OpenStackClient).

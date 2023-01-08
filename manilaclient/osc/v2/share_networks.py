@@ -15,6 +15,7 @@
 import logging
 
 from openstackclient.identity import common as identity_common
+from osc_lib.cli import format_columns
 from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
@@ -210,6 +211,16 @@ class ShowShareNetwork(command.ShowOne):
             parsed_args.share_network)
 
         data = share_network._info
+
+        # Special mapping for columns to make the output easier to read:
+        # 'metadata' --> 'properties'
+        for ss in data['share_network_subnets']:
+            ss.update(
+                {
+                    'properties':
+                        format_columns.DictColumn(ss.pop('metadata', {})),
+                },
+            )
 
         # Add security services information
         security_services = share_client.security_services.list(

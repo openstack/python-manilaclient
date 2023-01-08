@@ -1250,6 +1250,7 @@ class FakeShareNetworkSubnet(object):
             "share_network_id": str(uuid.uuid4()),
             "share_network_name": str(uuid.uuid4()),
             "updated_at": datetime.datetime.now().isoformat(),
+            "properties": {},
         }
 
         share_network_subnet.update(attrs)
