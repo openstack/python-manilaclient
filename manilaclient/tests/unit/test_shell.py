@@ -86,7 +86,8 @@ class OpenstackManilaShellTest(utils.TestCase):
             self.assertRaises(exceptions.CommandError, self.shell, 'list')
             self.assertFalse(mock_client.Client.called)
 
-    def test_main_success(self):
+    @ddt.data(None, 'foo_key')
+    def test_main_success(self, os_key):
         env_vars = {
             'OS_AUTH_URL': 'http://foo.bar',
             'OS_USERNAME': 'foo_username',
@@ -102,8 +103,13 @@ class OpenstackManilaShellTest(utils.TestCase):
             'OS_USER_DOMAIN_NAME': 'foo_user_domain_name',
             'OS_USER_DOMAIN_ID': 'foo_user_domain_id',
             'OS_CERT': 'foo_cert',
+            'OS_KEY': os_key,
         }
         self.set_env_vars(env_vars)
+        cert = env_vars['OS_CERT']
+        if os_key:
+            cert = (cert, env_vars['OS_KEY'])
+
         with mock.patch.object(shell, 'client') as mock_client:
 
             self.shell('list')
@@ -131,7 +137,7 @@ class OpenstackManilaShellTest(utils.TestCase):
                 user_domain_name=env_vars['OS_USER_DOMAIN_NAME'],
                 project_domain_id=env_vars['OS_PROJECT_DOMAIN_ID'],
                 project_domain_name=env_vars['OS_PROJECT_DOMAIN_NAME'],
-                cert=env_vars['OS_CERT'],
+                cert=cert,
                 input_auth_token='',
                 service_catalog_url='',
             )
@@ -203,7 +209,7 @@ class OpenstackManilaShellTest(utils.TestCase):
                 user_domain_name="",
                 project_domain_id="",
                 project_domain_name="",
-                cert="",
+                cert=None,
                 input_auth_token=expected["input_auth_token"],
                 service_catalog_url=expected["service_catalog_url"],
             )
@@ -282,7 +288,7 @@ class OpenstackManilaShellTest(utils.TestCase):
                 user_domain_name="",
                 project_domain_id="",
                 project_domain_name="",
-                cert="",
+                cert=None,
                 input_auth_token=expected["input_auth_token"],
                 service_catalog_url=expected["service_catalog_url"],
             )
@@ -311,6 +317,7 @@ class OpenstackManilaShellTest(utils.TestCase):
             '--os-auth-url', '--os-region-name', '--service-type',
             '--service-name', '--share-service-name', '--endpoint-type',
             '--os-share-api-version', '--os-cacert', '--retries', '--os-cert',
+            '--os-key',
         )
 
         help_text = self.shell('help')
