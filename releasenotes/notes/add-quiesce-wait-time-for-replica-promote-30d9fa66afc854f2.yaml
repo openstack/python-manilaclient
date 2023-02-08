@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added 'quiesce_wait_time' option to share replica promote API. This will be
+    used by driver as quiesce wait time for specified replica promote operation
+    instead of global config value. For more details, refer
+    `Launchpad bug #2000171 <https://bugs.launchpad.net/manila/+bug/2000171>`_

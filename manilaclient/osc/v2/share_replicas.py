@@ -349,6 +349,13 @@ class PromoteShareReplica(command.Command):
             metavar="<replica>",
             help=_("ID of the share replica.")
         )
+        parser.add_argument(
+            '--quiesce-wait-time',
+            metavar='<quiesce-wait-time>',
+            default=None,
+            help=_('Quiesce wait time in seconds. Available for '
+                   'microversion >= 2.75')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -358,8 +365,18 @@ class PromoteShareReplica(command.Command):
             share_client.share_replicas,
             parsed_args.replica)
 
+        args = [
+            replica,
+        ]
+        if parsed_args.quiesce_wait_time:
+            if share_client.api_version < api_versions.APIVersion("2.75"):
+                raise exceptions.CommandError(
+                    "'quiesce-wait-time' option is available only starting "
+                    "with '2.75' API microversion.")
+            args += [parsed_args.quiesce_wait_time]
+
         try:
-            share_client.share_replicas.promote(replica)
+            share_client.share_replicas.promote(*args)
         except Exception as e:
             raise exceptions.CommandError(_(
                 "Failed to promote replica to 'active': %s" % (e)))

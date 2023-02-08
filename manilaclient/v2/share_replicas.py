@@ -101,13 +101,25 @@ class ShareReplicaManager(base.ManagerWithFind):
         """
         return self._action('promote', replica)
 
-    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION)  # noqa
+    @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION, '2.74')  # noqa
     def promote(self, replica):  # noqa F811
         """Promote the provided replica.
 
         :param replica: either replica object or its UUID.
         """
         return self._action('promote', replica)
+
+    @api_versions.wraps('2.75')  # noqa
+    def promote(self, replica, quiesce_wait_time=None):  # noqa F811
+        """Promote the provided replica.
+
+        :param replica: either replica object or its UUID.
+        :param body: either replica object or its UUID.
+        """
+        body = None
+        if quiesce_wait_time:
+            body = dict(quiesce_wait_time=quiesce_wait_time)
+        return self._action('promote', replica, body)
 
     @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api

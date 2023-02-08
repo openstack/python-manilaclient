@@ -639,6 +639,25 @@ class TestShareReplicaPromote(TestShareReplica):
             self.share_replica)
         self.assertIsNone(result)
 
+    def test_share_replica_promote_quiesce_wait_time(self):
+        wait_time = '5'
+        arglist = [
+            self.share_replica.id,
+            '--quiesce-wait-time', wait_time
+        ]
+        verifylist = [
+            ('replica', self.share_replica.id),
+            ('quiesce_wait_time', wait_time)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.replicas_mock.promote.assert_called_with(
+            self.share_replica,
+            wait_time)
+        self.assertIsNone(result)
+
     def test_share_replica_promote_exception(self):
         arglist = [
             self.share_replica.id,

@@ -954,10 +954,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         if action in ('reset_status', 'reset_replica_state'):
             attr = action.split('reset_')[1]
             assert attr in body.get(action)
-        elif action in ('force_delete', 'resync', 'promote'):
+        elif action in ('force_delete', 'resync'):
             assert body[action] is None
         else:
-            raise AssertionError("Unexpected share action: %s" % action)
+            if action not in ('promote'):
+                raise AssertionError("Unexpected share action: %s" % action)
         return (resp, {}, _body)
 
     #

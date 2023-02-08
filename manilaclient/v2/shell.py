@@ -6407,11 +6407,32 @@ def do_share_replica_delete(cs, args):
     'replica',
     metavar='<replica>',
     help='ID of the share replica.')
-@api_versions.wraps("2.11")
+@api_versions.wraps("2.11", "2.74")
 def do_share_replica_promote(cs, args):
     """Promote specified replica to 'active' replica_state."""
     replica = _find_share_replica(cs, args.replica)
     cs.share_replicas.promote(replica)
+
+
+@cliutils.arg(
+    'replica',
+    metavar='<replica>',
+    help='ID of the share replica.')
+@cliutils.arg(
+    '--quiesce-wait-time',
+    metavar='<quiesce-wait-time>',
+    default=None,
+    help='Quiesce wait time in seconds. Available for '
+         'microversion >= 2.75')
+@api_versions.wraps("2.75")  # noqa
+def do_share_replica_promote(cs, args):  # noqa
+    """Promote specified replica to 'active' replica_state."""
+    replica = _find_share_replica(cs, args.replica)
+
+    quiesce_wait_time = None
+    if args.quiesce_wait_time:
+        quiesce_wait_time = args.quiesce_wait_time
+    cs.share_replicas.promote(replica, quiesce_wait_time)
 
 
 @api_versions.wraps("2.47")

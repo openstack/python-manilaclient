@@ -3430,6 +3430,17 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called_anytime('GET', '/share-replicas/5678')
 
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    def test_share_replica_promote_quiesce_wait_time(self):
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+        cmd = ('share-replica-promote ' + fake_replica.id +
+               ' --quiesce-wait-time 5')
+        self.run_command(cmd)
+        self.assert_called(
+            'POST', '/share-replicas/1234/action',
+            body={'promote': {'quiesce_wait_time': '5'}})
+
     @ddt.data('promote', 'resync')
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
     def test_share_replica_actions(self, action):
