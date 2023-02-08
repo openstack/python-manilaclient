@@ -1112,7 +1112,8 @@ class TestShareSet(TestShare):
         super(TestShareSet, self).setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            methods={"reset_state": None, "reset_task_state": None}
+            methods={"reset_state": None, "reset_task_state": None,
+                     "set_metadata": None}
         )
         self.shares_mock.get.return_value = self._share
 
@@ -1132,8 +1133,7 @@ class TestShareSet(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self.shares_mock.set_metadata.assert_called_with(
-            self._share.id,
+        self._share.set_metadata.assert_called_with(
             {'Zorilla': 'manila'})
 
     def test_share_set_name(self):
@@ -1224,13 +1224,12 @@ class TestShareSet(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self.shares_mock.set_metadata.assert_called_with(
-            self._share.id,
+        self._share.set_metadata.assert_called_with(
             {'key': ''})
 
         # '--property' takes key=value arguments
         # missing a value would raise a BadRequest
-        self.shares_mock.set_metadata.side_effect = exceptions.BadRequest()
+        self._share.set_metadata.side_effect = exceptions.BadRequest
         self.assertRaises(
             osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
 
@@ -1290,7 +1289,9 @@ class TestShareUnset(TestShare):
     def setUp(self):
         super(TestShareUnset, self).setUp()
 
-        self._share = manila_fakes.FakeShare.create_one_share()
+        self._share = manila_fakes.FakeShare.create_one_share(
+            methods={"delete_metadata": None}
+        )
         self.shares_mock.get.return_value = self._share
 
         # Get the command objects to test
@@ -1309,8 +1310,7 @@ class TestShareUnset(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self.shares_mock.delete_metadata.assert_called_with(
-            self._share.id,
+        self._share.delete_metadata.assert_called_with(
             parsed_args.property)
 
     def test_share_unset_name(self):
@@ -1376,12 +1376,11 @@ class TestShareUnset(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self.shares_mock.delete_metadata.assert_called_with(
-            self._share.id,
+        self._share.delete_metadata.assert_called_with(
             parsed_args.property)
 
         # 404 Not Found would be raised, if property 'Manila' doesn't exist
-        self.shares_mock.delete_metadata.side_effect = exceptions.NotFound()
+        self._share.delete_metadata.side_effect = exceptions.NotFound
         self.assertRaises(
             osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
 
@@ -1869,7 +1868,8 @@ class TestShowShareProperties(TestShare):
             attrs={
                 'metadata': osc_fakes.FakeResource(
                     info=self.properties)
-            }
+            },
+            methods={'get_metadata': None}
         )
         self.shares_mock.get.return_value = self._share
         self.shares_mock.get_metadata.return_value = self._share.metadata

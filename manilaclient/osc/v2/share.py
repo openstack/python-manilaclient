@@ -765,8 +765,7 @@ class SetShare(command.Command):
 
         if parsed_args.property:
             try:
-                share_client.shares.set_metadata(
-                    share_obj.id, parsed_args.property)
+                share_obj.set_metadata(parsed_args.property)
             except Exception as e:
                 LOG.error(_("Failed to set share properties "
                             "'%(properties)s': %(exception)s"),
@@ -860,8 +859,7 @@ class UnsetShare(command.Command):
         if parsed_args.property:
             for key in parsed_args.property:
                 try:
-                    share_client.shares.delete_metadata(
-                        share_obj.id, [key])
+                    share_obj.delete_metadata([key])
                 except Exception as e:
                     LOG.error(_("Failed to unset share property "
                                 "'%(key)s': %(e)s"),
@@ -1218,9 +1216,9 @@ class ShowShareProperties(command.ShowOne):
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
-        share = apiutils.find_resource(
+        share_obj = apiutils.find_resource(
             share_client.shares, parsed_args.share)
-        share_properties = share_client.shares.get_metadata(share)
+        share_properties = share_client.shares.get_metadata(share_obj)
 
         return self.dict2columns(share_properties._info)
 

@@ -19,6 +19,7 @@
 Base utilities to build API operation managers and objects on top of.
 """
 
+import abc
 import contextlib
 import copy
 import hashlib
@@ -354,3 +355,150 @@ class Resource(object):
 
     def to_dict(self):
         return copy.deepcopy(self._info)
+
+
+class MetadataCapableResource(Resource, metaclass=abc.ABCMeta):
+
+    superresource = None
+
+    def _get_subresource_and_resource(self, superresource):
+        resource = self
+        subresource = None
+        superresource = superresource or self.superresource
+        if superresource is not None:
+            resource = superresource
+            subresource = self
+        return resource, subresource
+
+    def get_metadata(self, superresource=None):
+        """Get metadata of a resource
+
+        :param superresource: either a parent resource object or text with
+            its ID. Required for sub-resources such as share export
+            locations which do not include a reference to the parent object
+            by default
+        """
+
+        resource, subresource = self._get_subresource_and_resource(
+            superresource)
+
+        return self.manager.get_metadata(resource, subresource=subresource)
+
+    def set_metadata(self, metadata, superresource=None):
+        """Set or update metadata for the resource.
+
+        :param metadata: A dictionary of key:value pairs to be set as
+            resource metadata
+        :param superresource: either a parent resource object or text with
+            its ID. Required for sub-resources such as share share export
+            locations which do not include a reference to the parent object
+            by default
+        """
+        resource, subresource = self._get_subresource_and_resource(
+            superresource)
+
+        return self.manager.set_metadata(resource, metadata,
+                                         subresource=subresource)
+
+    def delete_metadata(self, keys, superresource=None):
+        """Delete specified keys from the given resource.
+
+        :param keys: An iterable with keys of metadata items to be deleted
+        :param superresource: either a parent resource object or text with
+            its ID. Required for sub-resources such as share share export
+            locations which do not include a reference to the parent object
+            by default
+        """
+        resource, subresource = self._get_subresource_and_resource(
+            superresource)
+
+        return self.manager.delete_metadata(resource, keys,
+                                            subresource=subresource)
+
+    def update_all_metadata(self, metadata, superresource=None):
+        """Update all metadata for this resource.
+
+        :param metadata: A dictionary of key:value pairs of resource metadata
+            to be updated
+        :param superresource: either a parent resource object or text with
+            its ID. Required for sub-resources such as share share export
+            locations which do not include a reference to the parent object
+            by default
+        """
+        resource, subresource = self._get_subresource_and_resource(
+            superresource)
+
+        return self.manager.update_all_metadata(resource,
+                                                metadata,
+                                                subresource=subresource)
+
+
+class MetadataCapableManager(ManagerWithFind, metaclass=abc.ABCMeta):
+    """Provides extended behavior to objects to handle key=value metadata."""
+
+    resource_path = None
+    subresource_path = None
+
+    def get_metadata(self, resource, subresource=None):
+        """Get metadata of a resource.
+
+        :param resource: either resource object or text with its ID.
+        :param subresource: either a child resource object or text with its ID
+        """
+        resource = getid(resource)
+        if subresource:
+            subresource = getid(subresource)
+            resource = f"{resource}{self.subresource_path}/{subresource}"
+
+        return self._get(f"{self.resource_path}/{resource}/metadata",
+                         "metadata")
+
+    def set_metadata(self, resource, metadata, subresource=None):
+        """Set or update metadata for resource.
+
+        :param resource: either resource object or text with its ID.
+        :param metadata: A dictionary of key:value pairs to be set as
+            resource metadata
+        :param subresource: either a child resource object or text with its ID
+        """
+        body = {'metadata': metadata}
+        resource = getid(resource)
+        if subresource:
+            subresource = getid(subresource)
+            resource = f"{resource}{self.subresource_path}/{subresource}"
+
+        return self._create(f"{self.resource_path}/{resource}/metadata",
+                            body,
+                            "metadata")
+
+    def delete_metadata(self, resource, keys, subresource=None):
+        """Delete specified keys from resource metadata.
+
+        :param resource: either resource object or text with its ID.
+        :param keys: An iterable with keys of metadata items to be deleted
+        :param subresource: either a child resource object or text with its ID
+        """
+        resource = getid(resource)
+        if subresource:
+            subresource = getid(subresource)
+            resource = f"{resource}{self.subresource_path}/{subresource}"
+
+        for key in keys:
+            self._delete(f"{self.resource_path}/{resource}/metadata/{key}")
+
+    def update_all_metadata(self, resource, metadata, subresource=None):
+        """Update all metadata of a resource.
+
+        :param resource: either resource object or text with its ID.
+        :param metadata: A dictionary of key:value pairs of resource metadata
+            to be updated
+        :param subresource: either a child resource object or text with its ID
+        """
+        body = {'metadata': metadata}
+        resource = getid(resource)
+        if subresource:
+            subresource = getid(subresource)
+            resource = f"{resource}{self.subresource_path}/{subresource}"
+
+        return self._update(f"{self.resource_path}/{resource}/metadata",
+                            body)

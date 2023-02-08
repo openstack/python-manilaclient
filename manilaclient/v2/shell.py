@@ -1408,16 +1408,16 @@ def do_share_server_migration_get_progress(cs, args):
     metavar='<key=value>',
     nargs='+',
     default=[],
-    help='Metadata to set or unset (key is only necessary on unset).')
+    help='Metadata to set or unset (only key is necessary to unset).')
 def do_metadata(cs, args):
     """Set or delete metadata on a share."""
     share = _find_share(cs, args.share)
     metadata = _extract_metadata(args)
 
     if args.action == 'set':
-        cs.shares.set_metadata(share, metadata)
+        share.set_metadata(metadata)
     elif args.action == 'unset':
-        cs.shares.delete_metadata(share, sorted(list(metadata), reverse=True))
+        share.delete_metadata(sorted(list(metadata), reverse=True))
 
 
 @cliutils.arg(
@@ -1427,7 +1427,7 @@ def do_metadata(cs, args):
 def do_metadata_show(cs, args):
     """Show metadata of given share."""
     share = _find_share(cs, args.share)
-    metadata = cs.shares.get_metadata(share)._info
+    metadata = share.get_metadata()._info
     cliutils.print_dict(metadata, 'Property')
 
 
@@ -2826,6 +2826,14 @@ def do_share_instance_export_location_show(cs, args):
     default=None,
     help='Filter results matching a share snapshot description pattern. '
          'Available only for microversion >= 2.36.')
+@cliutils.arg(
+    '--metadata',
+    metavar='<key=value>',
+    type=str,
+    default=None,
+    nargs='*',
+    help='Filters results by a metadata key and value. OPTIONAL: '
+         'Default=None, Available only for microversion >= 2.73. ')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
     all_projects = int(
@@ -2852,6 +2860,7 @@ def do_snapshot_list(cs, args):
         'status': args.status,
         'share_id': share.id,
         'usage': args.usage,
+        'metadata': _extract_metadata(args),
     }
     if cs.api_version.matches(api_versions.APIVersion("2.36"),
                               api_versions.APIVersion()):
@@ -5218,7 +5227,7 @@ def do_type_delete(cs, args):
     metavar='<key=value>',
     nargs='*',
     default=None,
-    help='Extra_specs to set or unset (key is only necessary on unset).')
+    help='Extra_specs to set or unset (only key is necessary to unset).')
 def do_type_key(cs, args):
     """Set or unset extra_spec for a share type (Admin only)."""
     stype = _find_share_type(cs, args.stype)
@@ -5455,7 +5464,7 @@ def do_share_group_type_delete(cs, args):
     metavar='<key=value>',
     nargs='*',
     default=None,
-    help='Group specs to set or unset (key is only necessary on unset).')
+    help='Group specs to set or unset (only key is necessary to unset).')
 @cliutils.service_type('sharev2')
 def do_share_group_type_key(cs, args):
     """Set or unset group_spec for a share group type (Admin only)."""
@@ -6438,11 +6447,11 @@ def do_share_replica_export_location_list(cs, args):
 @cliutils.arg(
     'replica',
     metavar='<replica>',
-    help='Name or ID of the share instance.')
+    help='Name or ID of the share replica.')
 @cliutils.arg(
     'export_location',
     metavar='<export_location>',
-    help='ID of the share instance export location.')
+    help='ID of the share replica export location.')
 def do_share_replica_export_location_show(cs, args):
     """Show details of a share replica's export location."""
     replica = _find_share_replica(cs, args.replica)

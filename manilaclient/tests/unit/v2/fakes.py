@@ -1160,6 +1160,24 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         }]}
         return (200, {}, access_list)
 
+    def delete_snapshots_1234_metadata_test_key(self, **kw):
+        return (204, {}, None)
+
+    def delete_snapshots_1234_metadata_key1(self, **kw):
+        return (204, {}, None)
+
+    def delete_snapshots_1234_metadata_key2(self, **kw):
+        return (204, {}, None)
+
+    def post_snapshots_1234_metadata(self, **kw):
+        return (204, {}, {'metadata': {'test_key': 'test_value'}})
+
+    def put_snapshots_1234_metadata(self, **kw):
+        return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
+
+    def get_snapshots_1234_metadata(self, **kw):
+        return (200, {}, {"metadata": {"key1": "val1", "key2": "val2"}})
+
     def post_snapshot_instances_1234_action(self, body, **kw):
         _body = None
         resp = 202

@@ -27,7 +27,8 @@ from manilaclient import exceptions
 from manilaclient.v2 import share_instances
 
 
-class Share(base.Resource):
+class Share(base.MetadataCapableResource):
+
     """A share is an extra block level storage to the OpenStack instances."""
     def __repr__(self):
         return "<Share: %s>" % self.id
@@ -87,10 +88,6 @@ class Share(base.Resource):
         """Get access list from a share."""
         return self.manager.access_list(self)
 
-    def update_all_metadata(self, metadata):
-        """Update all metadata of this share."""
-        return self.manager.update_all_metadata(self, metadata)
-
     def reset_state(self, state):
         """Update the share with the provided state."""
         self.manager.reset_state(self, state)
@@ -120,9 +117,10 @@ class Share(base.Resource):
         self.manager.restore(self)
 
 
-class ShareManager(base.ManagerWithFind):
+class ShareManager(base.MetadataCapableManager):
     """Manage :class:`Share` resources."""
     resource_class = Share
+    resource_path = '/shares'
 
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
@@ -658,45 +656,6 @@ class ShareManager(base.ManagerWithFind):
     @api_versions.wraps("2.7", "2.44")  # noqa
     def access_list(self, share):   # noqa
         return self._do_access_list(share, "access_list")
-
-    def get_metadata(self, share):
-        """Get metadata of a share.
-
-        :param share: either share object or text with its ID.
-        """
-        return self._get("/shares/%s/metadata" % base.getid(share),
-                         "metadata")
-
-    def set_metadata(self, share, metadata):
-        """Set or update metadata for share.
-
-        :param share: either share object or text with its ID.
-        :param metadata: A list of keys to be set.
-        """
-        body = {'metadata': metadata}
-        return self._create("/shares/%s/metadata" % base.getid(share),
-                            body, "metadata")
-
-    def delete_metadata(self, share, keys):
-        """Delete specified keys from shares metadata.
-
-        :param share: either share object or text with its ID.
-        :param keys: A list of keys to be removed.
-        """
-        share_id = base.getid(share)
-        for key in keys:
-            self._delete("/shares/%(share_id)s/metadata/%(key)s" % {
-                'share_id': share_id, 'key': key})
-
-    def update_all_metadata(self, share, metadata):
-        """Update all metadata of a share.
-
-        :param share: either share object or text with its ID.
-        :param metadata: A list of keys to be updated.
-        """
-        body = {'metadata': metadata}
-        return self._update("/shares/%s/metadata" % base.getid(share),
-                            body)
 
     def _action(self, action, share, info=None, **kwargs):
         """Perform a share 'action'.
