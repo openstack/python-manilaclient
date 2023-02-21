@@ -193,6 +193,9 @@ class Manager(utils.HookableMixin):
             with self.completion_cache('uuid', self.resource_class, mode="a"):
                 return self.resource_class(self, body[response_key])
 
+    def _accept(self, url, body):
+        resp, body = self.api.client.post(url, body=body)
+
     def _delete(self, url):
         resp, body = self.api.client.delete(url)
 

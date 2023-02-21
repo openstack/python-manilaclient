@@ -125,6 +125,11 @@ def _find_share(cs, share):
     return apiclient_utils.find_resource(cs.shares, share)
 
 
+def _find_share_transfer(cs, transfer):
+    """Get a share transfer by ID."""
+    return apiclient_utils.find_resource(cs.transfers, transfer)
+
+
 @api_versions.wraps("1.0", "2.8")
 def _print_share(cs, share):
     info = share._info.copy()
@@ -6532,6 +6537,212 @@ def do_share_replica_resync(cs, args):
     cs.share_replicas.resync(replica)
 
 
+##############################################################################
+#
+# Share Transfer
+#
+##############################################################################
+
+
+def _print_share_transfer(transfer):
+    info = transfer._info.copy()
+    info.pop('links', None)
+
+    cliutils.print_dict(info)
+
+
+@api_versions.wraps("2.77")
+@cliutils.arg(
+    'share',
+    metavar='<share>',
+    help='Name or ID of share to transfer.')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    help='Transfer name. Default=None.')
+def do_share_transfer_create(cs, args):
+    """Creates a share transfer."""
+    share = _find_share(cs, args.share)
+    transfer = cs.transfers.create(share.id,
+                                   args.name)
+    _print_share_transfer(transfer)
+
+
+@api_versions.wraps("2.77")
+@cliutils.arg(
+    'transfer',
+    metavar='<transfer>',
+    nargs='+',
+    help='ID or name of the transfer(s).')
+def do_share_transfer_delete(cs, args):
+    """Remove one or more transfers."""
+    failure_count = 0
+
+    for transfer in args.transfer:
+        try:
+            transfer_ref = _find_share_transfer(cs, transfer)
+            transfer_ref.delete()
+        except Exception as e:
+            failure_count += 1
+            print("Delete for share transfer %s failed: %s" % (transfer, e),
+                  file=sys.stderr)
+
+    if failure_count == len(args.transfer):
+        raise exceptions.CommandError("Unable to delete any of the specified "
+                                      "transfers.")
+
+
+@api_versions.wraps("2.77")
+@cliutils.arg(
+    'transfer',
+    metavar='<transfer>',
+    help='ID of transfer to accept.')
+@cliutils.arg(
+    'auth_key',
+    metavar='<auth_key>',
+    help='Authentication key of transfer to accept.')
+@cliutils.arg(
+    '--clear-rules',
+    '--clear_rules',
+    dest='clear_rules',
+    action='store_true',
+    default=False,
+    help="Whether manila should clean up the access rules after the "
+         "transfer is complete. (Default=False)")
+def do_share_transfer_accept(cs, args):
+    """Accepts a share transfer."""
+    cs.transfers.accept(args.transfer, args.auth_key,
+                        clear_access_rules=args.clear_rules)
+
+
+@api_versions.wraps("2.77")
+@cliutils.arg(
+    '--all-tenants', '--all-projects',
+    action='single_alias',
+    dest='all_projects',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help='Shows details for all tenants. (Admin only).')
+@cliutils.arg(
+    '--name',
+    metavar='<name>',
+    default=None,
+    action='single_alias',
+    help='Transfer name. Default=None.')
+@cliutils.arg(
+    '--id',
+    metavar='<id>',
+    default=None,
+    action='single_alias',
+    help='Transfer ID. Default=None.')
+@cliutils.arg(
+    '--resource-type', '--resource_type',
+    metavar='<resource_type>',
+    default=None,
+    action='single_alias',
+    help='Transfer type, which can be share or network. Default=None.')
+@cliutils.arg(
+    '--resource-id', '--resource_id',
+    metavar='<resource_id>',
+    default=None,
+    action='single_alias',
+    help='Transfer resource id. Default=None.')
+@cliutils.arg(
+    '--source-project-id', '--source_project_id',
+    metavar='<source_project_id>',
+    default=None,
+    action='single_alias',
+    help='Transfer source project id. Default=None.')
+@cliutils.arg(
+    '--limit',
+    metavar='<limit>',
+    type=int,
+    default=None,
+    help='Maximum number of messages to return. (Default=None)')
+@cliutils.arg(
+    '--offset',
+    metavar="<offset>",
+    default=None,
+    help='Start position of message listing.')
+@cliutils.arg(
+    '--sort-key', '--sort_key',
+    metavar='<sort_key>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Key to be sorted, available keys are %(keys)s. Default=None.'
+         % {'keys': constants.SHARE_TRANSFER_SORT_KEY_VALUES})
+@cliutils.arg(
+    '--sort-dir', '--sort_dir',
+    metavar='<sort_dir>',
+    type=str,
+    default=None,
+    action='single_alias',
+    help='Sort direction, available values are %(values)s. '
+         'Optional: Default=None.' % {'values': constants.SORT_DIR_VALUES})
+@cliutils.arg(
+    '--detailed',
+    dest='detailed',
+    metavar='<0|1>',
+    nargs='?',
+    type=int,
+    const=1,
+    default=0,
+    help="Show detailed information about filtered share transfers.")
+@cliutils.arg(
+    '--columns',
+    metavar='<columns>',
+    type=str,
+    default=None,
+    help='Comma separated list of columns to be displayed '
+         'example --columns "id,resource_id".')
+def do_share_transfer_list(cs, args):
+    """Lists all transfers."""
+    if args.columns is not None:
+        list_of_keys = _split_columns(columns=args.columns)
+    else:
+        list_of_keys = ['ID', 'Name', 'Resource Type', 'Resource Id']
+
+    if args.detailed:
+        list_of_keys.extend(['Created At', 'Expires At', 'Source Project Id',
+                             'Destination Project Id', 'Accepted'])
+
+    all_projects = int(
+        os.environ.get("ALL_TENANTS",
+                       os.environ.get("ALL_PROJECTS",
+                                      args.all_projects))
+    )
+
+    search_opts = {
+        'offset': args.offset,
+        'limit': args.limit,
+        'all_tenants': all_projects,
+        'id': args.id,
+        'name': args.name,
+        'resource_type': args.resource_type,
+        'resource_id': args.resource_id,
+        'source_project_id': args.source_project_id,
+    }
+    share_transfers = cs.transfers.list(
+        detailed=args.detailed, search_opts=search_opts,
+        sort_key=args.sort_key, sort_dir=args.sort_dir)
+    cliutils.print_list(share_transfers, fields=list_of_keys,
+                        sortby_index=None)
+
+
+@api_versions.wraps("2.77")
+@cliutils.arg(
+    'transfer',
+    metavar='<transfer>',
+    help='Name or ID of transfer to show.')
+def do_share_transfer_show(cs, args):
+    """Delete a transfer."""
+    transfer = _find_share_transfer(cs, args.transfer)
+    _print_share_transfer(transfer)
 ##############################################################################
 #
 # User Messages

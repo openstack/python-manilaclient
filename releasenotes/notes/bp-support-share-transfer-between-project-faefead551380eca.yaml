@@ -1,0 +1,3 @@
+---
+features:
+  - Support transferring shares between projects starting from API version ``2.77``.

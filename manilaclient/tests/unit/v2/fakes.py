@@ -1317,6 +1317,19 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         'request_id': 'req-936666d2-4c8f-4e41-9ac9-237b43f8b848',
     }
 
+    fake_transfer = {
+        "id": "f21c72c4-2b77-445b-aa12-e8d1b44163a2",
+        "created_at": "2022-09-06T08:17:43.629495",
+        "name": "test_transfer",
+        "resource_type": "share",
+        "resource_id": "29476819-28a9-4b1a-a21d-3b2d203025a0",
+        "auth_key": "406a2d67cdb09afe",
+        "source_project_id": "714198c7ac5e45a4b785de732ea4695d",
+        "destination_project_id": None,
+        "accepted": False,
+        "expires_at": None,
+    }
+
     def get_messages(self, **kw):
         messages = {
             'messages': [self.fake_message],
@@ -1332,6 +1345,25 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def delete_messages_5678(self, **kw):
         return 202, {}, None
+
+    def post_share_transfers(self, **kw):
+        transfer = {'transfer': self.fake_transfer}
+        return 202, {}, transfer
+
+    def get_share_transfers_5678(self, **kw):
+        transfer = {'transfer': self.fake_transfer}
+        return 202, {}, transfer
+
+    def get_share_transfers_detail(self, **kw):
+        transfer = {'transfers': [self.fake_transfer]}
+        return 202, {}, transfer
+
+    def delete_share_transfers_5678(self, **kw):
+        return 202, {}, None
+
+    def post_share_transfers_5678_accept(self, **kw):
+        transfer = {'transfer': self.fake_transfer}
+        return 202, {}, transfer
 
 
 def fake_create(url, body, response_key):
