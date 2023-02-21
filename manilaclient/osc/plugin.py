@@ -20,6 +20,7 @@ import logging
 from osc_lib import utils
 
 from manilaclient import api_versions
+from manilaclient import client
 from manilaclient.common import constants
 from manilaclient import exceptions
 
@@ -60,34 +61,41 @@ def make_client(instance):
     """Returns a shared file system service client."""
     requested_api_version = instance._api_version[API_NAME]
 
-    shared_file_system_client = utils.get_client_class(
-        API_NAME, requested_api_version, API_VERSIONS)
+    service_type, manila_endpoint_url = _get_manila_url_from_service_catalog(
+        instance)
+    instance.setup_auth()
+    debugging_enabled = instance._cli_options.debug
+
+    client_args = dict(session=instance.session,
+                       service_catalog_url=manila_endpoint_url,
+                       endpoint_type=instance.interface,
+                       region_name=instance.region_name,
+                       service_type=service_type,
+                       auth=instance.auth,
+                       http_log_debug=debugging_enabled,
+                       cert=instance.cert,
+                       insecure=not instance.verify)
 
     # Cast the API version into an object for further processing
     requested_api_version = api_versions.APIVersion(
         version_str=requested_api_version)
 
+    max_version = api_versions.APIVersion(api_versions.MAX_VERSION)
+    client_args.update(dict(api_version=max_version))
+    temp_client = client.Client(max_version, **client_args)
+    discovered_version = api_versions.discover_version(temp_client,
+                                                       requested_api_version)
+
+    shared_file_system_client = utils.get_client_class(
+        API_NAME, discovered_version.get_string(), API_VERSIONS)
+
     LOG.debug('Instantiating Shared File System (share) client: %s',
               shared_file_system_client)
     LOG.debug('Shared File System API version: %s',
-              requested_api_version)
+              discovered_version)
 
-    service_type, manila_endpoint_url = _get_manila_url_from_service_catalog(
-        instance)
-
-    instance.setup_auth()
-    debugging_enabled = instance._cli_options.debug
-    client = shared_file_system_client(session=instance.session,
-                                       service_catalog_url=manila_endpoint_url,
-                                       endpoint_type=instance.interface,
-                                       region_name=instance.region_name,
-                                       service_type=service_type,
-                                       auth=instance.auth,
-                                       http_log_debug=debugging_enabled,
-                                       api_version=requested_api_version,
-                                       cert=instance.cert,
-                                       insecure=not instance.verify)
-    return client
+    client_args.update(dict(api_version=discovered_version))
+    return shared_file_system_client(**client_args)
 
 
 def build_option_parser(parser):
