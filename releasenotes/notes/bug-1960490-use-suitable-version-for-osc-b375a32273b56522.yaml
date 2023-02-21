@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    The OpenStackClient plugin will now use most suitable version for
+    openstack commmands client generation if user supplied version is above
+    max version supported by server. For more details, please refer `Launchpad
+    bug #1960490 <https://bugs.launchpad.net/python-manilaclient/+bug/1960490>`_
