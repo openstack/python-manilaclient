@@ -1,6 +1,14 @@
 The :program:`manila` shell utility
 =========================================
 
+.. important::
+
+    This shell client is deprecated as of version ``5.0.0``. A future
+    version of python-manilaclient may not ship this legacy shell client. If
+    you rely on it, it is highly recommended that you begin using the
+    openstack CLI client right away. Refer to the `mapping guide
+    <../cli/decoder.html>`_ to help with this transition.
+
 .. program:: manila
 .. highlight:: bash
 

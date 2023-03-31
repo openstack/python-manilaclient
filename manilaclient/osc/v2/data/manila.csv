@@ -1,0 +1,152 @@
+manila command,openstack command,command description
+--version,module list,List the client software version
+absolute-limits,share limits show --absolute,Print a list of absolute limits for a user
+access-allow,share access create,Allow access to a given share
+access-deny,share access delete,Deny access to a share
+access-list,share access list,Show access list for share
+access-metadata,share access set --property or share access unset --property,Set or delete metadata on a share access rule
+access-show,share access show,Show details about a NAS share access rule
+api-version,versions show --service sharev2,Display the API version information
+availability-zone-list,share availability zone list,List all availability zones
+create,share create,Creates a new share
+credentials,token issue,Show user credentials returned from auth
+delete,share delete,Remove one or more shares
+endpoints,endpoint list --service sharev2,Discover endpoints that get returned from the authenticate services
+extend,share resize,Increases the size of an existing share
+extra-specs-list,share type list,Print a list of current 'share types and extra specs' (Admin Only)
+force-delete,share delete --force,Attempt force-delete of share regardless of state
+list,share list,List NAS shares with filters
+manage,share adopt,Manage share not handled by Manila
+message-delete,share message delete,Remove one or more messages
+message-list,share message list,Lists all messages
+message-show,share message show,Show details about a message
+metadata,share set --property or share unset --property,Set or delete metadata on a share
+metadata-show,share show -c properties,Show metadata of given share
+metadata-update-all,,Update all metadata of a share
+migration-cancel,share migration cancel,Cancel migration of a given share when copying
+migration-complete,share migration complete,Complete migration for a given share
+migration-get-progress,share migration show,Get migration progress of a given share when copying
+migration-start,share migration start,Migrate share to a new host
+pool-list,share pool list,List all backend storage pools known to the scheduler
+quota-class-show,share quota show --class,List the quotas for a quota class
+quota-class-update,share quota update --class,Update the quotas for a quota class
+quota-defaults,share quota show --class default,List the default quotas for a project
+quota-delete,share quota delete,Delete quota for a project or project/user or project/share-type
+quota-show,share quota show,List the quotas for a project or user or share type
+quota-update,share quota set,Update the quotas for a project/user and/or share type
+rate-limits,share limits show --rate,Print a list of rate limits for a user
+reset-state,share set --status,Explicitly update the state of a share
+reset-task-state,share set --task-state,Explicitly update the task state of a share
+restore,share restore,Restore one or more shares from recycle bin
+revert-to-snapshot,share revert,Revert a share to the specified snapshot
+security-service-create,share security service create,Create security service used by project
+security-service-delete,share security service delete,Delete one or more security services
+security-service-list,share security service list,Get a list of security services
+security-service-show,share security service show,Show security service
+security-service-update,share security service set,Update security service
+service-disable,share service set --disable,Disables 'manila-share' or 'manila-scheduler' services
+service-enable,share service set --enable,Enables 'manila-share' or 'manila-scheduler' services
+service-list,share service list,List all services
+share-export-location-list,share export location list,List export locations of a given share
+share-export-location-show,share export location show,Show export location of the share
+share-group-create,share group create,Creates a new share group
+share-group-delete,share group delete,Delete one or more share groups
+share-group-list,share group list,List share groups with filters
+share-group-reset-state,share group set --status,Explicitly update the state of a share group
+share-group-show,share group show,Show details about a share group
+share-group-update,share group set or share group unset,Update a share group
+share-group-snapshot-create,share group snapshot create,Creates a new share group snapshot
+share-group-snapshot-delete,share group snapshot delete,Remove one or more share group snapshots
+share-group-snapshot-list,share group snapshot list,List share group snapshots with filters
+share-group-snapshot-list-members,share group snapshot members list,List members of a share group snapshot
+share-group-snapshot-reset-state,share group snapshot set --status,Explicitly update the state of a share group snapshot
+share-group-snapshot-show,share group snapshot show,Show details about a share group snapshot
+share-group-snapshot-update,share group snapshot set or share group snapshot unset,Update a share group snapshot
+share-group-type-access-add,share group type access create,Adds share group type access for the given project
+share-group-type-access-list,share group type access list,Print access information about a share group type
+share-group-type-access-remove,share group type access delete,Removes share group type access for the given project
+share-group-type-create,share group type create,Create a new share group type
+share-group-type-delete,share group type delete,Delete a specific share group type
+share-group-type-key,share group type set --group-specs,Set or unset group_spec for a share group type
+share-group-type-list,share group type list,Print a list of available 'share group types'
+share-group-type-specs-list,share group type list,Print a list of 'share group types specs' (Admin Only)
+share-instance-export-location-list,share instance export location list,List export locations of a given share instance
+share-instance-export-location-show,share instance export location show,Show export location for the share instance
+share-instance-force-delete,share instance delete,Force-delete the share instance regardless of state
+share-instance-list,share instance list,List share instances
+share-instance-reset-state,share instance set --status,Explicitly update the state of a share instance
+share-instance-show,share instance show,Show details about a share instance
+share-network-create,share network create,Create a share network to export shares to
+share-network-delete,share network delete,Delete one or more share networks
+share-network-list,share network list,Get a list of share networks
+share-network-reset-state,share network set --status,Explicitly update the state of a share network
+share-network-security-service-add,share network set --security-service,Associate security service with share network
+share-network-security-service-add-check,share network set --check-only --new-security-service,Associate security service with share network
+share-network-security-service-list,share network show,Get list of security services associated with a given share network
+share-network-security-service-remove,share network unset --security-service,Dissociate security service from share network
+share-network-security-service-update,share network set --current-security-service --new-security-service,Update a current security service to a new security service
+share-network-security-service-update-check,share network set --check-only --current-security-service --new-security-service,Check if a security service update on the share network is supported
+share-network-show,share network show,Retrieve details for a share network
+share-network-subnet-create,share network subnet create,Add a new subnet into a share network
+share-network-subnet-create-check,share network subnet create --check-only,Check if a new subnet can be added to a share network
+share-network-subnet-delete,share network subnet delete,Delete one or more share network subnets
+share-network-subnet-show,share network subnet show,Show share network subnet
+share-network-update,share network set or share network unset,Update share network data
+share-replica-create,share replica create,Create a share replica
+share-replica-delete,share replica delete,Remove one or more share replicas
+share-replica-export-location-list,share replica export location list,List export locations of a share replica
+share-replica-export-location-show,share replica export location show,Show details of a share replica's export location
+share-replica-list,share replica list,List share replicas
+share-replica-promote,share replica promote,Promote specified replica to 'active' replica_state
+share-replica-reset-replica-state,share replica set --replica-state,Explicitly update the 'replica_state' of a share replica
+share-replica-reset-state,share replica set --status,Explicitly update the 'status' of a share replica
+share-replica-resync,share replica resync,Attempt to update the share replica with its 'active' mirror
+share-replica-show,share replica show,Show details about a replica
+share-server-delete,share server delete,Delete one or more share servers
+share-server-details,share server show,Show share server details
+share-server-list,share server list,List all share servers
+share-server-manage,share server adopt,Manage share server not handled by Manila
+share-server-migration-cancel,share server migration cancel,Cancels migration of a given share server when copying
+share-server-migration-check,share server migration start --check-only,Check migration compatibility for a share server with desired properties
+share-server-migration-complete,share server migration complete,Complete migration for a given share server
+share-server-migration-get-progress,share server migration show,Get migration progress of a given share server when copying
+share-server-migration-start,share server migration start,Migrate share server to a new host
+share-server-reset-state,share server set --status,Explicitly update the state of a share server
+share-server-reset-task-state,share server set --task-state,Explicitly update the task state of a share
+share-server-show,share server show,Show share server info
+share-server-unmanage,share server abandon,Unmanage share server
+show,share show,Show details about a NAS share
+shrink,share resize,Decreases the size of an existing share
+snapshot-access-allow,share snapshot access create,Allow read only access to a snapshot
+snapshot-access-deny,share snapshot access delete,Deny access to a snapshot
+snapshot-access-list,share snapshot access list,Show access list for a snapshot
+snapshot-create,share snapshot create,Add a new snapshot
+snapshot-delete,share snapshot delete,Remove one or more snapshots
+snapshot-export-location-list,share snapshot export location list,List export locations of a given snapshot
+snapshot-export-location-show,share snapshot export location show,Show export location of the share snapshot
+snapshot-force-delete,share snapshot delete --force,Attempt force-deletion of one or more snapshots Regardless of the state
+snapshot-instance-export-location-list,share snapshot instance export location list,List export locations of a given snapshot instance
+snapshot-instance-export-location-show,share snapshot instance export location show,Show export location of the share instance snapshot
+snapshot-instance-list,share snapshot instance list,List share snapshot instances
+snapshot-instance-reset-state,share snapshot instance set --status,Explicitly update the state of a share snapshot instance
+snapshot-instance-show,share snapshot instance show,Show details about a share snapshot instance
+snapshot-list,share snapshot list,List all the snapshots
+snapshot-manage,share snapshot adopt,Manage share snapshot not handled by Manila
+snapshot-rename,share snapshot set --name,Rename a snapshot
+snapshot-reset-state,share snapshot set --status,Explicitly update the state of a snapshot
+snapshot-show,share snapshot show,Show details about a snapshot
+snapshot-unmanage,share snapshot abandon,Unmanage one or more share snapshots
+soft-delete,share delete --soft,Soft delete one or more shares
+type-access-add,share type access create,Add share type access for the given project
+type-access-list,share type access list,Print access information about the given share type
+type-access-remove,share type access delete,Remove share type access for the given project
+type-create,share type create,Create a new share type
+type-delete,share type delete,Delete one or more specific share types
+type-key,share type set --extra-specs,Set or unset extra_spec for a share type
+type-list,share type list,Print a list of available 'share types'
+type-show,share type show,Show share type details
+type-update,share type set or share type unset,Update share type name and/or description and/or visibility
+unmanage,share abandon,Unmanage share
+update,share set or share unset,Rename a share
+bash-completion,complete,Print arguments for bash_completion
+list-extensions,,List all the os-api extensions that are available
