@@ -1589,7 +1589,8 @@ class ManilaCLIClient(base.CLIClient):
 
     def create_security_service(self, type='ldap', name=None, description=None,
                                 dns_ip=None, ou=None, server=None, domain=None,
-                                user=None, password=None, microversion=None):
+                                user=None, password=None, default_ad_site=None,
+                                microversion=None):
         """Creates security service.
 
         :param type: security service type (ldap, kerberos or active_directory)
@@ -1601,6 +1602,7 @@ class ManilaCLIClient(base.CLIClient):
         :param domain: security service domain.
         :param user: user of the new security service.
         :param password: password used by user.
+        :param default_ad_site: default AD site
         """
 
         cmd = 'security-service-create %s ' % type
@@ -1612,7 +1614,8 @@ class ManilaCLIClient(base.CLIClient):
             server=server,
             domain=domain,
             user=user,
-            password=password)
+            password=password,
+            default_ad_site=default_ad_site)
 
         ss_raw = self.manila(cmd, microversion=microversion)
         security_service = output_parser.details(ss_raw)
@@ -1622,7 +1625,8 @@ class ManilaCLIClient(base.CLIClient):
     def update_security_service(self, security_service, name=None,
                                 description=None, dns_ip=None, ou=None,
                                 server=None, domain=None, user=None,
-                                password=None, microversion=None):
+                                password=None, default_ad_site=None,
+                                microversion=None):
         cmd = 'security-service-update %s ' % security_service
         cmd += self. _combine_security_service_data(
             name=name,
@@ -1632,13 +1636,15 @@ class ManilaCLIClient(base.CLIClient):
             server=server,
             domain=domain,
             user=user,
-            password=password)
+            password=password,
+            default_ad_site=default_ad_site)
         return output_parser.details(
             self.manila(cmd, microversion=microversion))
 
     def _combine_security_service_data(self, name=None, description=None,
                                        dns_ip=None, ou=None, server=None,
-                                       domain=None, user=None, password=None):
+                                       domain=None, user=None, password=None,
+                                       default_ad_site=None):
         data = ''
         if name is not None:
             data += '--name %s ' % name
@@ -1656,6 +1662,8 @@ class ManilaCLIClient(base.CLIClient):
             data += '--user %s ' % user
         if password is not None:
             data += '--password %s ' % password
+        if default_ad_site is not None:
+            data += '--default-ad-site %s ' % default_ad_site
         return data
 
     @not_found_wrapper

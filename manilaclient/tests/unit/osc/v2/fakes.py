@@ -979,6 +979,7 @@ class FakeShareSecurityService(object):
             "password": 'password',
             "project_id": uuid.uuid4().hex,
             "server": 'fake_hostname',
+            "default_ad_site": 'fake_default_ad_site',
             "status": 'new',
             "type": 'ldap',
             "updated_at": datetime.datetime.now().isoformat(),

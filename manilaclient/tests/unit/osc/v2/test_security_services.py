@@ -10,6 +10,7 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 #
+import ddt
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
@@ -36,6 +37,7 @@ class TestShareSecurityService(manila_fakes.TestShare):
         )
 
 
+@ddt.ddt
 class TestShareSecurityServiceCreate(TestShareSecurityService):
 
     def setUp(self):
@@ -67,7 +69,8 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
             '--user', self.security_service.user,
             '--password', self.security_service.password,
             '--name', self.security_service.name,
-            '--description', self.security_service.description
+            '--description', self.security_service.description,
+            '--default-ad-site', self.security_service.default_ad_site
         ]
         verifylist = [
             ('type', self.security_service.type),
@@ -78,7 +81,8 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
             ('user', self.security_service.user),
             ('password', self.security_service.password),
             ('name', self.security_service.name),
-            ('description', self.security_service.description)
+            ('description', self.security_service.description),
+            ('default_ad_site', self.security_service.default_ad_site)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -93,25 +97,36 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
             password=self.security_service.password,
             name=self.security_service.name,
             description=self.security_service.description,
-            ou=self.security_service.ou
+            ou=self.security_service.ou,
+            default_ad_site=self.security_service.default_ad_site
         )
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
-    def test_share_security_service_create_api_version_exception(self):
+    @ddt.data('2.43', '2.75')
+    def test_share_security_service_create_api_version_exception(self,
+                                                                 version):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.43'
+            version
         )
 
         arglist = [
             self.security_service.type,
-            '--ou', self.security_service.ou,
         ]
         verifylist = [
             ('type', self.security_service.type),
-            ('ou', self.security_service.ou),
         ]
+
+        if api_versions.APIVersion(version) <= api_versions.APIVersion("2.43"):
+            arglist.extend(['--ou', self.security_service.ou])
+            verifylist.append(('ou', self.security_service.ou))
+
+        if api_versions.APIVersion(version) <= api_versions.APIVersion("2.75"):
+            arglist.extend(['--default-ad-site',
+                           self.security_service.default_ad_site])
+            verifylist.append(('default_ad_site',
+                               self.security_service.default_ad_site))
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
@@ -215,6 +230,7 @@ class TestShareSecurityServiceShow(TestShareSecurityService):
         self.assertCountEqual(self.data, data)
 
 
+@ddt.ddt
 class TestShareSecurityServiceSet(TestShareSecurityService):
 
     def setUp(self):
@@ -243,7 +259,8 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
             '--user', self.security_service.user,
             '--password', self.security_service.password,
             '--name', self.security_service.name,
-            '--description', self.security_service.description
+            '--description', self.security_service.description,
+            '--default-ad-site', self.security_service.default_ad_site
         ]
         verifylist = [
             ('security_service', self.security_service.id),
@@ -254,7 +271,8 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
             ('user', self.security_service.user),
             ('password', self.security_service.password),
             ('name', self.security_service.name),
-            ('description', self.security_service.description)
+            ('description', self.security_service.description),
+            ('default_ad_site', self.security_service.default_ad_site)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -268,7 +286,8 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
             password=self.security_service.password,
             name=self.security_service.name,
             description=self.security_service.description,
-            ou=self.security_service.ou
+            ou=self.security_service.ou,
+            default_ad_site=self.security_service.default_ad_site,
         )
         self.assertIsNone(result)
 
@@ -289,25 +308,35 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
-    def test_share_security_service_set_api_version_exception(self):
+    @ddt.data('2.43', '2.75')
+    def test_share_security_service_set_api_version_exception(self, version):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.43'
+            version
         )
 
         arglist = [
             self.security_service.id,
-            '--ou', self.security_service.ou,
         ]
         verifylist = [
             ('security_service', self.security_service.id),
-            ('ou', self.security_service.ou),
         ]
+
+        if api_versions.APIVersion(version) <= api_versions.APIVersion("2.43"):
+            arglist.extend(['--ou', self.security_service.ou])
+            verifylist.append(('ou', self.security_service.ou))
+
+        if api_versions.APIVersion(version) <= api_versions.APIVersion("2.75"):
+            arglist.extend(['--default-ad-site',
+                           self.security_service.default_ad_site])
+            verifylist.append(('default_ad_site',
+                               self.security_service.default_ad_site))
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
 
+@ddt.ddt
 class TestShareSecurityServiceUnset(TestShareSecurityService):
 
     def setUp(self):
@@ -337,6 +366,7 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
             '--password',
             '--name',
             '--description',
+            '--default-ad-site',
         ]
         verifylist = [
             ('security_service', self.security_service.id),
@@ -347,7 +377,8 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
             ('user', True),
             ('password', True),
             ('name', True),
-            ('description', True)
+            ('description', True),
+            ('default_ad_site', True)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -361,7 +392,8 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
             password='',
             name='',
             description='',
-            ou=''
+            ou='',
+            default_ad_site=''
         )
         self.assertIsNone(result)
 
@@ -382,19 +414,27 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
         self.assertRaises(
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
-    def test_share_security_service_unset_api_version_exception(self):
+    @ddt.data('2.43', '2.75')
+    def test_share_security_service_unset_api_version_exception(self,
+                                                                version):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.43'
+            version
         )
 
         arglist = [
             self.security_service.id,
-            '--ou',
         ]
         verifylist = [
             ('security_service', self.security_service.id),
-            ('ou', True),
         ]
+
+        if api_versions.APIVersion(version) <= api_versions.APIVersion("2.43"):
+            arglist.extend(['--ou'])
+            verifylist.append(('ou', True))
+
+        if api_versions.APIVersion(version) <= api_versions.APIVersion("2.75"):
+            arglist.extend(['--default-ad-site']),
+            verifylist.append(('default_ad_site', True))
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
@@ -460,6 +500,7 @@ class TestShareSecurityServiceList(TestShareSecurityService):
             '--ou', self.services_list[0].ou,
             '--server', self.services_list[0].server,
             '--domain', self.services_list[0].domain,
+            '--default-ad-site', self.services_list[0].default_ad_site,
             '--limit', '1',
         ]
         verifylist = [
@@ -472,6 +513,7 @@ class TestShareSecurityServiceList(TestShareSecurityService):
             ('ou', self.services_list[0].ou),
             ('server', self.services_list[0].server),
             ('domain', self.services_list[0].domain),
+            ('default_ad_site', self.services_list[0].default_ad_site),
             ('limit', 1),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -488,6 +530,7 @@ class TestShareSecurityServiceList(TestShareSecurityService):
                 'dns_ip': self.services_list[0].dns_ip,
                 'server': self.services_list[0].server,
                 'domain': self.services_list[0].domain,
+                'default_ad_site': self.services_list[0].default_ad_site,
                 'offset': None,
                 'limit': 1,
                 'ou': self.services_list[0].ou,
@@ -507,6 +550,21 @@ class TestShareSecurityServiceList(TestShareSecurityService):
         ]
         verifylist = [
             ('ou', self.services_list[0].ou),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_share_security_service_list_ad_site_api_version_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.75'
+        )
+        arglist = [
+            '--default-ad-site', self.services_list[0].default_ad_site,
+        ]
+        verifylist = [
+            ('default_ad_site', self.services_list[0].default_ad_site),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 

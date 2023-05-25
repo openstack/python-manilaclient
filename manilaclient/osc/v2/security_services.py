@@ -87,6 +87,15 @@ class CreateShareSecurityService(command.ShowOne):
             default=None,
             help=_("Security service description.")
         )
+        parser.add_argument(
+            '--default-ad-site',
+            metavar='<default_ad_site>',
+            dest='default_ad_site',
+            default=None,
+            help=_("Default AD site. Available only for "
+                   "microversion >= 2.76. Can be provided in the "
+                   "place of '--server' but not along with it.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -104,11 +113,26 @@ class CreateShareSecurityService(command.ShowOne):
 
         if share_client.api_version >= api_versions.APIVersion("2.44"):
             kwargs['ou'] = parsed_args.ou
-
         elif parsed_args.ou:
             raise exceptions.CommandError(
                 "Defining a security service Organizational Unit is "
                 "available only for microversion >= 2.44")
+
+        if share_client.api_version >= api_versions.APIVersion("2.76"):
+            kwargs['default_ad_site'] = parsed_args.default_ad_site
+        elif parsed_args.default_ad_site:
+            raise exceptions.CommandError(
+                "Defining a security service Default AD site is "
+                "available only for microversion >= 2.76")
+
+        if parsed_args.type == 'active_directory':
+            server = parsed_args.server
+            default_ad_site = parsed_args.default_ad_site
+            if server and default_ad_site:
+                raise exceptions.CommandError(
+                    "Cannot create security service because both "
+                    "server and 'default_ad_site' were provided. "
+                    "Specify either server or 'default_ad_site'.")
 
         security_service = share_client.security_services.create(
             parsed_args.type, **kwargs)
@@ -243,6 +267,14 @@ class SetShareSecurityService(command.Command):
             default=None,
             help=_("Set security service description.")
         )
+        parser.add_argument(
+            '--default-ad-site',
+            metavar='<default_ad_site>',
+            dest='default_ad_site',
+            default=None,
+            help=_("Default AD site. "
+                   "Available only for microversion >= 2.76.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -264,11 +296,26 @@ class SetShareSecurityService(command.Command):
 
         if share_client.api_version >= api_versions.APIVersion("2.44"):
             kwargs['ou'] = parsed_args.ou
-
         elif parsed_args.ou:
             raise exceptions.CommandError(_(
                 "Setting a security service Organizational Unit is "
                 "available only for microversion >= 2.44"))
+
+        if share_client.api_version >= api_versions.APIVersion("2.76"):
+            kwargs['default_ad_site'] = parsed_args.default_ad_site
+        elif parsed_args.default_ad_site:
+            raise exceptions.CommandError(
+                "Defining a security service Default AD site is "
+                "available only for microversion >= 2.76")
+
+        if security_service.type == 'active_directory':
+            server = parsed_args.server
+            default_ad_site = parsed_args.default_ad_site
+            if server and default_ad_site:
+                raise exceptions.CommandError(
+                    "Cannot set security service because both "
+                    "server and 'default_ad_site' were provided. "
+                    "Specify either server or 'default_ad_site'.")
         try:
             security_service.update(**kwargs)
         except Exception as e:
@@ -328,6 +375,13 @@ class UnsetShareSecurityService(command.Command):
             action='store_true',
             help=_("Unset security service description.")
         )
+        parser.add_argument(
+            '--default-ad-site',
+            dest='default_ad_site',
+            action='store_true',
+            help=_("Default AD site. "
+                   "Available only for microversion >= 2.76.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -354,6 +408,16 @@ class UnsetShareSecurityService(command.Command):
             raise exceptions.CommandError(_(
                 "Unsetting a security service Organizational Unit is "
                 "available only for microversion >= 2.44"))
+
+        if (parsed_args.default_ad_site and
+                share_client.api_version >= api_versions.APIVersion("2.76")):
+            # the SDK unsets a value if it is an empty string
+            kwargs['default_ad_site'] = ''
+        elif parsed_args.default_ad_site:
+            raise exceptions.CommandError(_(
+                "Unsetting a security service Default AD site is "
+                "available only for microversion >= 2.76"))
+
         try:
             security_service.update(**kwargs)
         except Exception as e:
@@ -417,6 +481,14 @@ class ListShareSecurityService(command.Lister):
             help=_("Filter results by security service OU "
                    "(Organizational Unit). "
                    "Available only for microversion >= 2.44.")
+        )
+        parser.add_argument(
+            '--default-ad-site',
+            metavar='<default_ad_site>',
+            dest='default_ad_site',
+            default=None,
+            help=_("Filter results by security service default_ad_site. "
+                   "Available only for microversion >= 2.76.")
         )
         parser.add_argument(
             '--server',
@@ -484,6 +556,14 @@ class ListShareSecurityService(command.Lister):
             raise exceptions.CommandError(_(
                 "Filtering results by security service Organizational Unit is "
                 "available only for microversion >= 2.44"))
+
+        if (parsed_args.default_ad_site and
+                share_client.api_version >= api_versions.APIVersion("2.76")):
+            search_opts['default_ad_site'] = parsed_args.default_ad_site
+        elif parsed_args.default_ad_site:
+            raise exceptions.CommandError(_(
+                "Filtering results by security service Default AD site is "
+                "available only for microversion >= 2.76"))
 
         if parsed_args.share_network:
             search_opts['share_network_id'] = oscutils.find_resource(
