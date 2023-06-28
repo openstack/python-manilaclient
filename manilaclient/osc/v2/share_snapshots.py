@@ -475,6 +475,16 @@ class ListShareSnapshot(command.Lister):
                    'property. (repeat option to filter by multiple '
                    'properties)'),
         )
+        parser.add_argument(
+            '--count',
+            action='store_true',
+            default=False,
+            help=_("The total count of share snapshots before pagination is "
+                   "applied. This parameter is useful when applying "
+                   "pagination parameters '--limit' and '--offset'. Available "
+                   "only for microversion >= 2.79.")
+        )
+
         return parser
 
     def take_action(self, parsed_args):
@@ -508,6 +518,15 @@ class ListShareSnapshot(command.Lister):
                 "Pattern based filtering (name~, description~ and description)"
                 " is only available with manila API version >= 2.36")
 
+        if parsed_args.count:
+            if share_client.api_version < api_versions.APIVersion("2.79"):
+                raise exceptions.CommandError(
+                    "Displaying total number of share snapshots is only "
+                    "available with manila API version >= 2.79")
+            if parsed_args.formatter != 'table':
+                raise exceptions.CommandError(
+                    "Count can only be printed when using '--format table'")
+
         if parsed_args.detail:
             columns.extend([
                 'Status',
@@ -522,10 +541,20 @@ class ListShareSnapshot(command.Lister):
 
         if parsed_args.all_projects:
             columns.append('Project ID')
-        snapshots = share_client.share_snapshots.list(search_opts=search_opts)
+
+        total_count = 0
+        if parsed_args.count:
+            search_opts['with_count'] = True
+            snapshots, total_count = share_client.share_snapshots.list(
+                search_opts=search_opts)
+        else:
+            snapshots = share_client.share_snapshots.list(
+                search_opts=search_opts)
 
         snapshots = utils.sort_items(snapshots, parsed_args.sort, str)
 
+        if parsed_args.count:
+            print("Total number of snapshots: %s" % total_count)
         return (columns,
                 (utils.get_item_properties(s, columns) for s in snapshots))
 

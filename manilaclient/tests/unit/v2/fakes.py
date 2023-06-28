@@ -421,6 +421,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             'share_proto': 'type',
             'export_location': 'location',
         }]}
+        if kw.get('with_count'):
+            snapshots.update({'count': 2})
+
         return (200, {}, snapshots)
 
     def post_os_share_manage(self, body, **kw):

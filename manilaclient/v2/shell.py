@@ -2521,12 +2521,12 @@ def do_list(cs, args):
         search_opts['with_count'] = args.count
         shares, total_count = cs.shares.list(
             search_opts=search_opts, sort_key=args.sort_key,
-            sort_dir=args.sort_dir,
+            sort_dir=args.sort_dir
         )
     else:
         shares = cs.shares.list(
             search_opts=search_opts, sort_key=args.sort_key,
-            sort_dir=args.sort_dir,
+            sort_dir=args.sort_dir
         )
     # NOTE(vponomaryov): usage of 'export_location' and
     # 'export_locations' columns may cause scaling issue using API 2.9+ and
@@ -2839,6 +2839,14 @@ def do_share_instance_export_location_show(cs, args):
     nargs='*',
     help='Filters results by a metadata key and value. OPTIONAL: '
          'Default=None, Available only for microversion >= 2.73. ')
+@cliutils.arg(
+    '--count',
+    dest='count',
+    metavar='<True|False>',
+    choices=['True', 'False'],
+    default=False,
+    help='Display total number of share snapshots to return. '
+         'Available only for microversion >= 2.79.')
 def do_snapshot_list(cs, args):
     """List all the snapshots."""
     all_projects = int(
@@ -2878,12 +2886,29 @@ def do_snapshot_list(cs, args):
             "Pattern based filtering (name~, description~ and description)"
             " is only available with manila API version >= 2.36")
 
-    snapshots = cs.share_snapshots.list(
-        search_opts=search_opts,
-        sort_key=args.sort_key,
-        sort_dir=args.sort_dir,
-    )
+    if (args.count and
+            cs.api_version.matches(
+                api_versions.APIVersion(), api_versions.APIVersion("2.78"))):
+        raise exceptions.CommandError(
+            "Display total number of share snapshots is only "
+            "available with manila API version >= 2.79")
+
+    total_count = 0
+    if strutils.bool_from_string(args.count, strict=True):
+        search_opts['with_count'] = args.count
+        snapshots, total_count = cs.share_snapshots.list(
+            search_opts=search_opts,
+            sort_key=args.sort_key,
+            sort_dir=args.sort_dir)
+    else:
+        snapshots = cs.share_snapshots.list(
+            search_opts=search_opts,
+            sort_key=args.sort_key,
+            sort_dir=args.sort_dir)
+
     cliutils.print_list(snapshots, list_of_keys, sortby_index=None)
+    if args.count:
+        print("Share snapshots in total: %s" % total_count)
 
 
 @cliutils.arg(

@@ -17,6 +17,7 @@
 from unittest import mock
 import uuid
 
+import ddt
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
@@ -681,6 +682,7 @@ class TestShareSnapshotUnset(TestShareSnapshot):
             exceptions.CommandError, self.cmd.take_action, parsed_args)
 
 
+@ddt.ddt
 class TestShareSnapshotList(TestShareSnapshot):
 
     def setUp(self):
@@ -797,16 +799,24 @@ class TestShareSnapshotList(TestShareSnapshot):
         self.assertEqual(COLUMNS_DETAIL, columns)
         self.assertEqual(list(values), list(data))
 
-    def test_list_snapshots_api_version_exception(self):
-        self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.35")
+    @ddt.data('2.35', '2.78')
+    def test_list_snapshots_api_version_exception(self, v):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(v)
 
-        arglist = [
-            '--description', 'Description'
-        ]
-        verifylist = [
-            ('description', 'Description')
-        ]
+        if v == "2.35":
+            arglist = [
+                '--description', 'Description'
+            ]
+            verifylist = [
+                ('description', 'Description')
+            ]
+        elif v == "2.78":
+            arglist = [
+                '--count',
+            ]
+            verifylist = [
+                ('count', True)
+            ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -853,6 +863,39 @@ class TestShareSnapshotList(TestShareSnapshot):
 
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(values), list(data))
+
+    def test_list_snapshots_with_count(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.79')
+
+        self.snapshots_mock.list.return_value = self.snapshots_list, 2
+
+        arglist = [
+            '--count',
+        ]
+        verifylist = [
+            ('count', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.snapshots_mock.list.assert_called_with(
+            search_opts={
+                'offset': None,
+                'limit': None,
+                'all_tenants': False,
+                'name': None,
+                'status': None,
+                'share_id': None,
+                'usage': None,
+                'metadata': {},
+                'name~': None,
+                'description~': None,
+                'description': None,
+                'with_count': True,
+            })
 
 
 class TestShareSnapshotAdopt(TestShareSnapshot):

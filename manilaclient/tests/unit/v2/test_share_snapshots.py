@@ -140,6 +140,17 @@ class ShareSnapshotsTest(utils.TestCase):
         cs.share_snapshots.list(detailed=True)
         cs.assert_called('GET', '/snapshots/detail')
 
+    def test_list_share_snapshots_detail_with_count(self):
+        search_opts = {
+            'with_count': 'True',
+        }
+        snapshots, count = cs.share_snapshots.list(detailed=True,
+                                                   search_opts=search_opts)
+        cs.assert_called(
+            'GET', '/snapshots/detail?with_count=True')
+        self.assertEqual(2, count)
+        self.assertEqual(1, len(snapshots))
+
     def test_manage_snapshot(self):
         share_id = "1234"
         provider_location = "fake_location"

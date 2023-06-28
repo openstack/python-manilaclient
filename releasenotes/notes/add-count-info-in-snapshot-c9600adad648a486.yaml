@@ -1,0 +1,3 @@
+---
+features:
+  - Added ``count`` option in share snapshot's list commands since 2.79.

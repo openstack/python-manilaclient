@@ -1244,6 +1244,25 @@ class ShellTest(test_utils.TestCase):
             'snapshot-list --sort-key fake_sort_key',
         )
 
+    @ddt.data('True', 'False')
+    def test_list_snapshots_filter_with_count(self, value):
+        except_url = '/snapshots/detail?with_count=' + value
+        if value == 'False':
+            except_url = '/snapshots/detail'
+
+        for separator in self.separators:
+            self.run_command('snapshot-list --count' + separator + value)
+            self.assert_called('GET', except_url)
+
+    @ddt.data('True', 'False')
+    def test_list_snapshots_filter_with_count_invalid_version(self, value):
+        self.assertRaises(
+            exceptions.CommandError,
+            self.run_command,
+            'snapshot-list --count ' + value,
+            version='2.78'
+        )
+
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_extra_specs_list(self):
         self.run_command('extra-specs-list')
