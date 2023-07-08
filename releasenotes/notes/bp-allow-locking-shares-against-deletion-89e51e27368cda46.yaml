@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Added SDK and OSC commands to create, view, update and delete resource
+    locks, alongside support for API version 2.81.

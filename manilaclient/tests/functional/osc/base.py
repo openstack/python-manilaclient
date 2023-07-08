@@ -416,3 +416,21 @@ class OSCClientTestBase(base.ClientTestBase):
 
         check_result = self.dict_result('share', cmd)
         return check_result
+
+    def create_resource_lock(self, resource_id, resource_type='share',
+                             resource_action='delete', lock_reason=None,
+                             add_cleanup=True, client=None):
+
+        cmd = f'lock create {resource_id} {resource_type}'
+        cmd += f' --resource-action {resource_action}'
+
+        if lock_reason:
+            cmd += f' --reason "{lock_reason}"'
+
+        lock = self.dict_result('share', cmd, client=client)
+
+        if add_cleanup:
+            self.addCleanup(self.openstack,
+                            'share lock delete %s' % lock['id'],
+                            client=client)
+        return lock

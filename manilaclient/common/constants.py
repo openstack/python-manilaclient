@@ -79,6 +79,16 @@ SHARE_TRANSFER_SORT_KEY_VALUES = (
     'expires_at',
 )
 
+RESOURCE_LOCK_SORT_KEY_VALUES = (
+    'id',
+    'created_at',
+    'updated_at',
+    'resource_id',
+    'resource_type',
+    'resource_action'
+    'lock_reason',
+)
+
 TASK_STATE_MIGRATION_SUCCESS = 'migration_success'
 TASK_STATE_MIGRATION_ERROR = 'migration_error'
 TASK_STATE_MIGRATION_CANCELLED = 'migration_cancelled'
@@ -131,3 +141,4 @@ GROUP_BOOL_SPECS = (
 REPLICA_GRADUATION_VERSION = '2.56'
 REPLICA_PRE_GRADUATION_VERSION = '2.55'
 SHARE_TRANSFER_VERSION = '2.77'
+RESOURCE_LOCK_VERSION = '2.81'

@@ -23,6 +23,7 @@ from manilaclient.v2 import limits
 from manilaclient.v2 import messages
 from manilaclient.v2 import quota_classes
 from manilaclient.v2 import quotas
+from manilaclient.v2 import resource_locks
 from manilaclient.v2 import scheduler_stats
 from manilaclient.v2 import security_services
 from manilaclient.v2 import services
@@ -200,6 +201,8 @@ class Client(object):
 
         self.quota_classes = quota_classes.QuotaClassSetManager(self)
         self.quotas = quotas.QuotaSetManager(self)
+
+        self.resource_locks = resource_locks.ResourceLockManager(self)
 
         self.shares = shares.ShareManager(self)
         self.share_export_locations = (

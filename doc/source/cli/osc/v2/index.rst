@@ -214,3 +214,10 @@ share servers
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share server *
+
+==============
+resource locks
+==============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share lock *
