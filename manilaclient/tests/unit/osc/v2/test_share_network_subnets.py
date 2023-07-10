@@ -86,7 +86,8 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
             neutron_net_id=fake_neutron_net_id,
             neutron_subnet_id=fake_neutron_subnet_id,
             availability_zone='nova',
-            share_network_id=self.share_network.id
+            share_network_id=self.share_network.id,
+            metadata={}
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -162,6 +163,51 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
              share_network_id=self.share_network.id, neutron_net_id=None,
              neutron_subnet_id=None, availability_zone=None,
              reset_operation=restart_check))
+
+    def test_share_network_subnet_create_metadata(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.78'
+        )
+        arglist = [
+            self.share_network.id,
+            '--property', 'Manila=zorilla',
+            '--property', 'Zorilla=manila'
+        ]
+        verifylist = [
+            ('share_network', self.share_network.id),
+            ('property', {'Manila': 'zorilla', 'Zorilla': 'manila'}),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.share_subnets_mock.create.assert_called_once_with(
+            neutron_net_id=None,
+            neutron_subnet_id=None,
+            availability_zone=None,
+            share_network_id=self.share_network.id,
+            metadata={'Manila': 'zorilla', 'Zorilla': 'manila'},
+        )
+        self.assertEqual(set(self.columns), set(columns))
+        self.assertCountEqual(self.data, data)
+
+    def test_share_network_subnet_create_metadata_api_version_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.77'
+        )
+        arglist = [
+            self.share_network.id,
+            '--property', 'Manila=zorilla',
+        ]
+        verifylist = [
+            ('share_network', self.share_network.id),
+            ('property', {'Manila': 'zorilla'})
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
 
 
 class TestShareNetworkSubnetDelete(TestShareNetworkSubnet):
@@ -269,3 +315,142 @@ class TestShareNetworkSubnetShow(TestShareNetworkSubnet):
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
+
+
+class TestShareNetworkSubnetSet(TestShareNetworkSubnet):
+
+    def setUp(self):
+        super(TestShareNetworkSubnetSet, self).setUp()
+
+        self.share_network = (
+            manila_fakes.FakeShareNetwork.create_one_share_network())
+        self.share_networks_mock.get.return_value = self.share_network
+
+        self.share_network_subnet = (
+            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet())
+
+        self.cmd = osc_share_subnets.SetShareNetworkSubnet(
+            self.app, None)
+
+    def test_set_share_network_subnet_property(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.78'
+        )
+        arglist = [
+            self.share_network.id,
+            self.share_network_subnet.id,
+            '--property', 'Zorilla=manila',
+            '--property', 'test=my_test',
+        ]
+        verifylist = [
+            ('share_network', self.share_network.id),
+            ('share_network_subnet', self.share_network_subnet.id),
+            ('property', {'Zorilla': 'manila', 'test': 'my_test'}),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.share_subnets_mock.set_metadata.assert_called_once_with(
+            self.share_network.id, {'Zorilla': 'manila', 'test': 'my_test'},
+            subresource=self.share_network_subnet.id)
+
+    def test_set_share_network_subnet_property_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.78'
+        )
+        arglist = [
+            self.share_network.id,
+            self.share_network_subnet.id,
+            '--property', 'key=1',
+        ]
+        verifylist = [
+            ('share_network', self.share_network.id),
+            ('share_network_subnet', self.share_network_subnet.id),
+            ('property', {'key': '1'}),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.share_subnets_mock.set_metadata.assert_called_once_with(
+            self.share_network.id, {'key': '1'},
+            subresource=self.share_network_subnet.id)
+
+        self.share_subnets_mock.set_metadata.side_effect = (
+            exceptions.BadRequest)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action,
+            parsed_args)
+
+
+class TestShareNetworkSubnetUnset(TestShareNetworkSubnet):
+
+    def setUp(self):
+        super(TestShareNetworkSubnetUnset, self).setUp()
+
+        self.share_network = (
+            manila_fakes.FakeShareNetwork.create_one_share_network())
+        self.share_networks_mock.get.return_value = self.share_network
+
+        self.share_network_subnet = (
+            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet())
+
+        self.cmd = osc_share_subnets.UnsetShareNetworkSubnet(
+            self.app, None)
+
+    def test_unset_share_network_subnet_property(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.78'
+        )
+        arglist = [
+            self.share_network.id,
+            self.share_network_subnet.id,
+            '--property', 'Manila',
+        ]
+        verifylist = [
+            ('share_network', self.share_network.id),
+            ('share_network_subnet', self.share_network_subnet.id),
+            ('property', ['Manila']),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.share_subnets_mock.delete_metadata.assert_called_once_with(
+            self.share_network.id, ['Manila'],
+            subresource=self.share_network_subnet.id)
+
+    def test_unset_share_network_subnet_property_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.78'
+        )
+        arglist = [
+            self.share_network.id,
+            self.share_network_subnet.id,
+            '--property', 'Manila',
+            '--property', 'test',
+        ]
+        verifylist = [
+            ('share_network', self.share_network.id),
+            ('share_network_subnet', self.share_network_subnet.id),
+            ('property', ['Manila', 'test']),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.share_subnets_mock.delete_metadata.assert_has_calls([
+            mock.call(self.share_network.id, ['Manila'],
+                      subresource=self.share_network_subnet.id),
+            mock.call(self.share_network.id, ['test'],
+                      subresource=self.share_network_subnet.id)])
+
+        # 404 Not Found would be raised, if property 'Manila' doesn't exist.
+        self.share_subnets_mock.delete_metadata.side_effect = (
+            exceptions.NotFound)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
