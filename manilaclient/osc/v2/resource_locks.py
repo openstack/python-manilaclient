@@ -48,6 +48,7 @@ LOCK_SUMMARY_ATTRIBUTES = [
 
 RESOURCE_TYPE_MANAGERS = {
     'share': 'shares',
+    'access_rule': 'share_access_rules'
 }
 
 

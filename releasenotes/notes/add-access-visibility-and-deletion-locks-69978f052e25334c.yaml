@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    It is now possible to restrict the visibility of access rules' sensitive
+    fields, as well as lock the access rule deletion while allowing access to
+    a share. A lock reason can also be provided.
+  - |
+    It is now possible to filter access rules while listing them by its
+    `access_to`, `access_type`, `access_key` and `access_level`.

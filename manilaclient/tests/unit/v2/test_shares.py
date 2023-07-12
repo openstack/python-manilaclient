@@ -50,7 +50,7 @@ class SharesTest(utils.TestCase):
         self.share.allow(access_type, access_to, access_level)
 
         self.share.manager.allow.assert_called_once_with(
-            self.share, access_type, access_to, access_level, None)
+            self.share, access_type, access_to, access_level)
 
     # Testcases for class ShareManager
 

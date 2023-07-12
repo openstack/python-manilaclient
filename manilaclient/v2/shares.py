@@ -75,14 +75,13 @@ class Share(base.MetadataCapableResource):
         """Delete the specified share ignoring its current state."""
         self.manager.force_delete(self)
 
-    def allow(self, access_type, access, access_level, metadata=None):
+    def allow(self, *args, **kwargs):
         """Allow access to a share."""
-        return self.manager.allow(
-            self, access_type, access, access_level, metadata)
+        return self.manager.allow(self, *args, **kwargs)
 
-    def deny(self, id):
+    def deny(self, id, **kwargs):
         """Deny access from IP to a share."""
-        return self.manager.deny(self, id)
+        return self.manager.deny(self, id, **kwargs)
 
     def access_list(self):
         """Get access list from a share."""
@@ -570,7 +569,8 @@ class ShareManager(base.MetadataCapableManager):
             raise exceptions.CommandError(msg)
 
     def _do_allow(self, share, access_type, access, access_level, action_name,
-                  metadata=None):
+                  metadata=None, lock_visibility=False,
+                  lock_deletion=False, lock_reason=None):
         """Allow access to a share.
 
         :param share: either share object or text with its ID.
@@ -587,6 +587,12 @@ class ShareManager(base.MetadataCapableManager):
             access_params['access_level'] = access_level
         if metadata:
             access_params['metadata'] = metadata
+        if lock_visibility:
+            access_params['lock_visibility'] = lock_visibility
+        if lock_deletion:
+            access_params['lock_deletion'] = lock_deletion
+        if lock_reason:
+            access_params['lock_reason'] = lock_reason
         access = self._action(action_name, share,
                               access_params)[1]["access"]
         return access
@@ -618,29 +624,52 @@ class ShareManager(base.MetadataCapableManager):
         return self._do_allow(
             share, access_type, access, access_level, "allow_access")
 
-    @api_versions.wraps("2.45")  # noqa
+    @api_versions.wraps("2.45", "2.81")  # noqa
     def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types,
                               enable_ipv6=True)
         return self._do_allow(
-            share, access_type, access, access_level, "allow_access", metadata)
+            share, access_type, access, access_level, "allow_access",
+            metadata=metadata)
 
-    def _do_deny(self, share, access_id, action_name):
+    @api_versions.wraps("2.82")  # noqa
+    def allow(self, share, access_type, access, access_level, # pylint: disable=function-redefined  # noqa F811
+              metadata=None, lock_visibility=False, lock_deletion=False,
+              lock_reason=None):
+        valid_access_types = ('ip', 'user', 'cert', 'cephx')
+        self._validate_access(access_type, access, valid_access_types,
+                              enable_ipv6=True)
+        return self._do_allow(
+            share, access_type, access, access_level, "allow_access",
+            metadata=metadata, lock_visibility=lock_visibility,
+            lock_deletion=lock_deletion, lock_reason=lock_reason)
+
+    def _do_deny(self, share, access_id, action_name, unrestrict=False):
         """Deny access to a share.
 
         :param share: either share object or text with its ID.
         :param access_id: ID of share access rule
         """
-        return self._action(action_name, share, {"access_id": access_id})
+        body = {
+            "access_id": access_id,
+        }
+        if unrestrict:
+            body['unrestrict'] = True
+        return self._action(action_name, share, body)
 
     @api_versions.wraps("1.0", "2.6")
     def deny(self, share, access_id):
         return self._do_deny(share, access_id, "os-deny_access")
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.81")  # noqa
     def deny(self, share, access_id):   # noqa
         return self._do_deny(share, access_id, "deny_access")
+
+    @api_versions.wraps("2.82")  # noqa
+    def deny(self, share, access_id, unrestrict=False):  # noqa
+        return self._do_deny(share, access_id, "deny_access",
+                             unrestrict=unrestrict)
 
     def _do_access_list(self, share, action_name):
         """Get access list to a share.

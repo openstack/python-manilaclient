@@ -10,11 +10,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import ddt
+from tempest.lib import exceptions as tempest_exc
+
 from manilaclient.tests.functional.osc import base
 
-import ddt
 
-
+@ddt.ddt
 class ShareAccessAllowTestCase(base.OSCClientTestBase):
 
     def test_share_access_allow(self):
@@ -52,23 +54,63 @@ class ShareAccessAllowTestCase(base.OSCClientTestBase):
         self.assertEqual(access_rule['properties'], 'foo : bar')
         self.assertEqual(access_rule['access_level'], 'ro')
 
+    @ddt.data(
+        {'lock_visibility': True, 'lock_deletion': True,
+         'lock_reason': None},
+        {'lock_visibility': False, 'lock_deletion': True,
+         'lock_reason': None},
+        {'lock_visibility': True, 'lock_deletion': False,
+         'lock_reason': 'testing'},
+        {'lock_visibility': True, 'lock_deletion': False,
+         'lock_reason': 'testing'},
+    )
+    @ddt.unpack
+    def test_share_access_allow_restrict(self, lock_visibility,
+                                         lock_deletion, lock_reason):
+        share = self.create_share()
+        access_rule = self.create_share_access_rule(
+            share=share['id'],
+            access_type='ip',
+            access_to='0.0.0.0/0',
+            wait=True,
+            lock_visibility=lock_visibility,
+            lock_deletion=lock_deletion,
+            lock_reason=lock_reason)
 
+        if lock_deletion:
+            self.assertRaises(
+                tempest_exc.CommandFailed,
+                self.openstack,
+                'share',
+                params=f'access delete {share["id"]} {access_rule["id"]}'
+            )
+        self.openstack(
+            'share',
+            params=f'access delete {share["id"]} {access_rule["id"]} '
+                   f'--unrestrict --wait')
+
+
+@ddt.ddt
 class ShareAccessDenyTestCase(base.OSCClientTestBase):
-    def test_share_access_deny(self):
+    @ddt.data(True, False)
+    def test_share_access_deny(self, lock_deletion):
         share = self.create_share()
         access_rule = self.create_share_access_rule(
             share=share['name'],
             access_type='ip',
             access_to='0.0.0.0/0',
-            wait=True)
+            wait=True,
+            lock_deletion=lock_deletion)
 
         access_rules = self.listing_result('share',
                                            f'access list {share["id"]}')
         num_access_rules = len(access_rules)
 
-        self.openstack('share',
-                       params=f'access delete '
-                       f'{share["name"]} {access_rule["id"]} --wait')
+        delete_params = (
+            f'access delete {share["name"]} {access_rule["id"]} --wait')
+        if lock_deletion:
+            delete_params += ' --unrestrict'
+        self.openstack('share', params=delete_params)
 
         access_rules = self.listing_result('share',
                                            f'access list {share["id"]}')
@@ -126,6 +168,28 @@ class ListShareAccessRulesTestCase(base.OSCClientTestBase):
 
         self.assertEqual(access_rule_properties['id'],
                          access_rule_properties[0]['ID'])
+
+    def test_share_access_list_with_filters(self):
+        share = self.create_share()
+        access_to_filter = '20.0.0.0/0'
+        self.create_share_access_rule(
+            share=share['name'],
+            access_type='ip',
+            access_to='0.0.0.0/0',
+            wait=True)
+        self.create_share_access_rule(
+            share=share['name'],
+            access_type='ip',
+            access_to=access_to_filter,
+            wait=True)
+
+        output = self.openstack(
+            'share',
+            params=f'access list {share["id"]} --access-to {access_to_filter}',
+            flags=f'--os-share-api-version 2.82')
+        access_rule_list = self.parser.listing(output)
+
+        self.assertTrue(len(access_rule_list) == 1)
 
 
 class ShowShareAccessRulesTestCase(base.OSCClientTestBase):

@@ -10,8 +10,10 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 #
+
 from unittest import mock
 
+import ddt
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
@@ -48,6 +50,7 @@ class TestShareAccess(manila_fakes.TestShare):
         self.access_rules_mock.reset_mock()
 
 
+@ddt.ddt
 class TestShareAccessCreate(TestShareAccess):
 
     def setUp(self):
@@ -84,7 +87,7 @@ class TestShareAccessCreate(TestShareAccess):
             access_type="user",
             access="demo",
             access_level=None,
-            metadata={}
+            metadata={},
         )
         self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
         self.assertCountEqual(self.access_rule._info.values(), data)
@@ -100,7 +103,7 @@ class TestShareAccessCreate(TestShareAccess):
             ("share", self.share.id),
             ("access_type", "user"),
             ("access_to", "demo"),
-            ('properties', ['key=value'])
+            ('properties', ['key=value']),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
@@ -109,10 +112,91 @@ class TestShareAccessCreate(TestShareAccess):
             access_type="user",
             access="demo",
             access_level=None,
-            metadata={'key': 'value'}
+            metadata={'key': 'value'},
         )
         self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
         self.assertCountEqual(self.access_rule._info.values(), data)
+
+    @ddt.data(
+        {'lock_visibility': True, 'lock_deletion': True,
+         'lock_reason': 'testing resource locks'},
+        {'lock_visibility': False, 'lock_deletion': True, 'lock_reason': None},
+        {'lock_visibility': True, 'lock_deletion': False, 'lock_reason': None},
+    )
+    @ddt.unpack
+    def test_share_access_create_restrict(self, lock_visibility,
+                                          lock_deletion, lock_reason):
+        arglist = [
+            self.share.id,
+            'user',
+            'demo',
+            '--properties', 'key=value'
+        ]
+        verifylist = [
+            ("share", self.share.id),
+            ("access_type", "user"),
+            ("access_to", "demo"),
+            ('properties', ['key=value']),
+        ]
+        allow_call_kwargs = {}
+        if lock_visibility:
+            arglist.append('--lock-visibility')
+            verifylist.append(('lock_visibility', lock_visibility))
+            allow_call_kwargs['lock_visibility'] = lock_visibility
+        if lock_deletion:
+            arglist.append('--lock-deletion')
+            verifylist.append(('lock_deletion', lock_deletion))
+            allow_call_kwargs['lock_deletion'] = lock_deletion
+        if lock_reason:
+            arglist.append('--lock-reason')
+            arglist.append(lock_reason)
+            verifylist.append(('lock_reason', lock_reason))
+            allow_call_kwargs['lock_reason'] = lock_reason
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        self.shares_mock.get.assert_called_with(self.share.id)
+        self.share.allow.assert_called_with(
+            access_type="user",
+            access="demo",
+            access_level=None,
+            metadata={'key': 'value'},
+            **allow_call_kwargs
+        )
+        self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
+        self.assertCountEqual(self.access_rule._info.values(), data)
+
+    @ddt.data(
+        {'lock_visibility': True, 'lock_deletion': False},
+        {'lock_visibility': False, 'lock_deletion': True},
+    )
+    @ddt.unpack
+    def test_share_access_create_restrict_not_available(
+            self, lock_visibility, lock_deletion):
+        arglist = [
+            self.share.id,
+            'user',
+            'demo',
+        ]
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.79")
+        verifylist = [
+            ("share", self.share.id),
+            ("access_type", "user"),
+            ("access_to", "demo"),
+            ("lock_visibility", lock_visibility),
+            ("lock_deletion", lock_deletion),
+            ("lock_reason", None),
+        ]
+        if lock_visibility:
+            arglist.append('--lock-visibility')
+        if lock_deletion:
+            arglist.append('--lock-deletion')
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.assertRaises(
+            exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
 
     def test_access_rule_create_access_level(self):
         arglist = [
@@ -125,7 +209,7 @@ class TestShareAccessCreate(TestShareAccess):
             ("share", self.share.id),
             ("access_type", "user"),
             ("access_to", "demo"),
-            ('access_level', 'ro')
+            ('access_level', 'ro'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
@@ -134,7 +218,7 @@ class TestShareAccessCreate(TestShareAccess):
             access_type="user",
             access="demo",
             access_level='ro',
-            metadata={}
+            metadata={},
         )
         self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
         self.assertCountEqual(self.access_rule._info.values(), data)
@@ -150,7 +234,7 @@ class TestShareAccessCreate(TestShareAccess):
             ("share", self.share.id),
             ("access_type", "user"),
             ("access_to", "demo"),
-            ("wait", True)
+            ("wait", True),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
@@ -159,7 +243,7 @@ class TestShareAccessCreate(TestShareAccess):
             access_type="user",
             access="demo",
             access_level=None,
-            metadata={}
+            metadata={},
         )
         self.assertEqual(ACCESS_RULE_ATTRIBUTES, columns)
         self.assertCountEqual(self.access_rule._info.values(), data)
@@ -176,7 +260,7 @@ class TestShareAccessCreate(TestShareAccess):
             ("share", self.share.id),
             ("access_type", "user"),
             ("access_to", "demo"),
-            ("wait", True)
+            ("wait", True),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -188,7 +272,7 @@ class TestShareAccessCreate(TestShareAccess):
                 access_type="user",
                 access="demo",
                 access_level=None,
-                metadata={}
+                metadata={},
             )
 
             mock_logger.error.assert_called_with(
@@ -198,6 +282,7 @@ class TestShareAccessCreate(TestShareAccess):
             self.assertCountEqual(self.access_rule._info.values(), data)
 
 
+@ddt.ddt
 class TestShareAccessDelete(TestShareAccess):
 
     def setUp(self):
@@ -213,20 +298,46 @@ class TestShareAccessDelete(TestShareAccess):
         # Get the command object to test
         self.cmd = osc_share_access_rules.ShareAccessDeny(self.app, None)
 
-    def test_share_access_delete(self):
+    @ddt.data(True, False)
+    def test_share_access_delete(self, unrestrict):
         arglist = [
             self.share.id,
             self.access_rule.id
         ]
         verifylist = [
             ("share", self.share.id),
-            ("id", self.access_rule.id)
+            ("id", self.access_rule.id),
         ]
+        deny_kwargs = {}
+        if unrestrict:
+            arglist.append('--unrestrict')
+            verifylist.append(("unrestrict", unrestrict))
+            deny_kwargs['unrestrict'] = unrestrict
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
         self.shares_mock.get.assert_called_with(self.share.id)
-        self.share.deny.assert_called_with(self.access_rule.id)
+        self.share.deny.assert_called_with(
+            self.access_rule.id, **deny_kwargs)
         self.assertIsNone(result)
+
+    def test_share_access_delete_unrestrict_not_available(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.79")
+        arglist = [
+            self.share.id,
+            self.access_rule.id,
+            "--unrestrict"
+        ]
+        verifylist = [
+            ("share", self.share.id),
+            ("id", self.access_rule.id),
+            ("unrestrict", True)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.assertRaises(
+            exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
 
     def test_share_access_delete_wait(self):
         arglist = [
@@ -237,7 +348,7 @@ class TestShareAccessDelete(TestShareAccess):
         verifylist = [
             ("share", self.share.id),
             ("id", self.access_rule.id),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -246,7 +357,8 @@ class TestShareAccessDelete(TestShareAccess):
             result = self.cmd.take_action(parsed_args)
 
             self.shares_mock.get.assert_called_with(self.share.id)
-            self.share.deny.assert_called_with(self.access_rule.id)
+            self.share.deny.assert_called_with(
+                self.access_rule.id)
             self.assertIsNone(result)
 
     def test_share_access_delete_wait_error(self):
@@ -270,6 +382,7 @@ class TestShareAccessDelete(TestShareAccess):
             )
 
 
+@ddt.ddt
 class TestShareAccessList(TestShareAccess):
 
     access_rules_columns = [
@@ -338,6 +451,58 @@ class TestShareAccessList(TestShareAccess):
             {'metadata': {'key': 'value'}})
         self.assertEqual(self.access_rules_columns, columns)
         self.assertEqual(tuple(self.values_list), tuple(data))
+
+    @ddt.data(
+        {'access_to': '10.0.0.0/0', 'access_type': 'ip'},
+        {'access_key': '10.0.0.0/0', 'access_level': 'rw'},
+    )
+    def test_access_rules_list_access_filters(self, filters):
+        arglist = [
+            self.share.id,
+        ]
+
+        verifylist = [
+            ("share", self.share.id),
+        ]
+        for filter_key, filter_value in filters.items():
+            filter_arg = filter_key.replace("_", "-")
+            arglist.append(f'--{filter_arg}')
+            arglist.append(filter_value)
+            verifylist.append((filter_key, filter_value))
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.shares_mock.get.assert_called_with(self.share.id)
+        self.access_rules_mock.access_list.assert_called_with(
+            self.share,
+            filters)
+        self.assertEqual(self.access_rules_columns, columns)
+        self.assertEqual(tuple(self.values_list), tuple(data))
+
+    @ddt.data(
+        {'access_to': '10.0.0.0/0', 'access_type': 'ip'},
+        {'access_key': '10.0.0.0/0', 'access_level': 'rw'},
+    )
+    def test_access_rules_list_access_filters_command_error(self, filters):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.81")
+        arglist = [
+            self.share.id,
+        ]
+        verifylist = [
+            ("share", self.share.id),
+        ]
+        for filter_key, filter_value in filters.items():
+            filter_arg = filter_key.replace("_", "-")
+            arglist.append(f'--{filter_arg}')
+            arglist.append(filter_value)
+            verifylist.append((filter_key, filter_value))
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.assertRaises(
+            exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
 
 
 class TestShareAccessShow(TestShareAccess):

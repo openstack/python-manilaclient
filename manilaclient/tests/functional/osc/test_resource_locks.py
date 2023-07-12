@@ -37,7 +37,7 @@ LOCK_SUMMARY_ATTRIBUTES = [
 ]
 
 
-@utils.skip_if_microversion_not_supported('2.81')
+@utils.skip_if_microversion_not_supported('2.82')
 class ResourceLockTests(base.OSCClientTestBase):
     """Lock CLI test cases"""
 

@@ -259,7 +259,11 @@ class OSCClientTestBase(base.ClientTestBase):
 
     def create_share_access_rule(self, share, access_type,
                                  access_to, properties=None,
-                                 access_level=None, wait=False):
+                                 access_level=None, wait=False,
+                                 lock_visibility=False,
+                                 lock_deletion=False,
+                                 lock_reason=None,
+                                 add_cleanup=False):
         cmd = f'access create {share} {access_type} {access_to} '
 
         if access_level:
@@ -267,7 +271,13 @@ class OSCClientTestBase(base.ClientTestBase):
         if properties:
             cmd += f'--properties {properties} '
         if wait:
-            cmd += f'--wait'
+            cmd += '--wait '
+        if lock_visibility:
+            cmd += '--lock-visibility '
+        if lock_deletion:
+            cmd += '--lock-deletion '
+        if lock_reason:
+            cmd += f'--lock-reason {lock_reason}'
 
         access_rule = self.dict_result('share', cmd)
 

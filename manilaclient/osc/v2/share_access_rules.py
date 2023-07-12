@@ -84,6 +84,30 @@ class ShareAccessAllow(command.ShowOne):
             action='store_true',
             help=_("Wait for share access rule creation.")
         )
+        parser.add_argument(
+            "--lock-visibility",
+            action='store_true',
+            default=False,
+            help=_("Whether the sensitive fields of the access rule redacted "
+                   "to other users. Only available with API version >= 2.82.")
+        )
+        parser.add_argument(
+            "--lock-deletion",
+            action='store_true',
+            default=False,
+            help=_("When enabled, a 'delete' lock will be placed against the "
+                   "rule and the rule cannot be deleted while the lock "
+                   "exists. Only available with API version >= 2.82.")
+        )
+        parser.add_argument(
+            '--lock-reason',
+            metavar="<lock_reason>",
+            type=str,
+            default=None,
+            help=_("Reason for locking the access rule. Should only be "
+                   "provided alongside a deletion or visibility lock. "
+                   "Only available with API version >= 2.82.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -91,6 +115,28 @@ class ShareAccessAllow(command.ShowOne):
 
         share = apiutils.find_resource(share_client.shares,
                                        parsed_args.share)
+        lock_kwargs = {}
+        if parsed_args.lock_visibility:
+            lock_kwargs['lock_visibility'] = parsed_args.lock_visibility
+        if parsed_args.lock_deletion:
+            lock_kwargs['lock_deletion'] = parsed_args.lock_deletion
+        if parsed_args.lock_reason:
+            lock_kwargs['lock_reason'] = parsed_args.lock_reason
+
+        if (lock_kwargs
+                and share_client.api_version < api_versions.APIVersion(
+                    "2.82")):
+            raise exceptions.CommandError(
+                'Restricted access rules are only available starting '
+                'from API version 2.82.')
+
+        if (lock_kwargs.get('lock_reason', None)
+                and not (lock_kwargs.get('lock_visibility', None)
+                         or lock_kwargs.get('lock_deletion', None))):
+            raise exceptions.CommandError(
+                'Lock reason can only be set while locking the deletion or '
+                'visibility.')
+
         properties = {}
         if parsed_args.properties:
             if share_client.api_version >= api_versions.APIVersion("2.45"):
@@ -104,7 +150,8 @@ class ShareAccessAllow(command.ShowOne):
                 access_type=parsed_args.access_type,
                 access=parsed_args.access_to,
                 access_level=parsed_args.access_level,
-                metadata=properties
+                metadata=properties,
+                **lock_kwargs
             )
             if parsed_args.wait:
                 if not oscutils.wait_for_status(
@@ -154,6 +201,13 @@ class ShareAccessDeny(command.Command):
             default=False,
             help=_("Wait for share access rule deletion")
         )
+        parser.add_argument(
+            "--unrestrict",
+            action='store_true',
+            default=False,
+            help=_("Seek access rule deletion despite restrictions. Only "
+                   "available with API version >= 2.82.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -161,9 +215,17 @@ class ShareAccessDeny(command.Command):
 
         share = apiutils.find_resource(share_client.shares,
                                        parsed_args.share)
+        kwargs = {}
+        if parsed_args.unrestrict:
+            if share_client.api_version < api_versions.APIVersion("2.82"):
+                raise exceptions.CommandError(
+                    'Restricted access rules are only available starting from '
+                    'API version 2.82.')
+            kwargs['unrestrict'] = True
+
         error = None
         try:
-            share.deny(parsed_args.id)
+            share.deny(parsed_args.id, **kwargs)
             if parsed_args.wait:
                 if not oscutils.wait_for_delete(
                         manager=share_client.share_access_rules,
@@ -201,6 +263,30 @@ class ListShareAccess(command.Lister):
                    'OPTIONAL: Default=None. '
                    'Available only for API microversion >= 2.45'),
         )
+        parser.add_argument(
+            "--access-type",
+            metavar="<access_type>",
+            default=None,
+            help=_("Filter access rules by the access type.")
+        )
+        parser.add_argument(
+            "--access-key",
+            metavar="<access_key>",
+            default=None,
+            help=_("Filter access rules by the access key.")
+        )
+        parser.add_argument(
+            "--access-to",
+            metavar="<access_to>",
+            default=None,
+            help=_("Filter access rules by the access to field.")
+        )
+        parser.add_argument(
+            "--access-level",
+            metavar="<access_level>",
+            default=None,
+            help=_("Filter access rules by the access level.")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -208,9 +294,33 @@ class ListShareAccess(command.Lister):
 
         share = apiutils.find_resource(share_client.shares,
                                        parsed_args.share)
+        access_type = parsed_args.access_type
+        access_key = parsed_args.access_key
+        access_to = parsed_args.access_to
+        access_level = parsed_args.access_level
+
+        extended_filter_keys = {
+            'access_type': access_type,
+            'access_key': access_key,
+            'access_to': access_to,
+            'access_level': access_level
+        }
+
+        if (any(extended_filter_keys.values())
+                and share_client.api_version < api_versions.APIVersion(
+                    "2.82")):
+            raise exceptions.CommandError(
+                'Filtering access rules by access_type, access_key, access_to '
+                'and access_level is available starting from API version '
+                '2.82.')
+
+        search_opts = {}
+        if share_client.api_version >= api_versions.APIVersion("2.82"):
+            for filter_key, filter_value in extended_filter_keys.items():
+                if filter_value:
+                    search_opts[filter_key] = filter_value
 
         if share_client.api_version >= api_versions.APIVersion("2.45"):
-            search_opts = {}
             if parsed_args.properties:
                 search_opts = {
                     'metadata': utils.extract_properties(
