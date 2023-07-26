@@ -1179,8 +1179,15 @@ class ShareExportLocationShow(command.ShowOne):
             share=share,
             export_location=parsed_args.export_location
         )
+        data = export_location._info
+        data.update(
+            {
+                'properties':
+                    format_columns.DictColumn(data.pop('metadata', {})),
+            },
+        )
 
-        return self.dict2columns(export_location._info)
+        return self.dict2columns(data)
 
 
 class ShareExportLocationList(command.Lister):
@@ -1216,6 +1223,120 @@ class ShareExportLocationList(command.Lister):
 
         return (list_of_keys, (oscutils.get_item_properties
                 (s, list_of_keys) for s in export_locations))
+
+
+class ShareExportLocationSet(command.Command):
+    """Set an export location property."""
+
+    _description = _("Set an export location property.")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareExportLocationSet, self).get_parser(
+            prog_name)
+
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of share')
+        )
+        parser.add_argument(
+            'export_location',
+            metavar="<export_location>",
+            help=_('ID of the export location')
+        )
+        parser.add_argument(
+            "--property",
+            metavar="<key=value>",
+            default={},
+            action=parseractions.KeyValueAction,
+            help=_("Set a property to this export location "
+                   "(repeat option to set multiple properties). "
+                   "Available only for microversion >= 2.87."),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share_id = apiutils.find_resource(
+            share_client.shares,
+            parsed_args.share).id
+
+        if (parsed_args.property and
+                share_client.api_version < api_versions.APIVersion("2.87")):
+            raise exceptions.CommandError(
+                "Property can be specified only with manila API "
+                "version >= 2.87.")
+
+        if parsed_args.property:
+            try:
+                share_client.share_export_locations.set_metadata(
+                    share_id,
+                    parsed_args.property,
+                    subresource=parsed_args.export_location)
+            except Exception as e:
+                raise exceptions.CommandError(_(
+                    "Failed to set export location property "
+                    "'%(properties)s': %(e)s") %
+                    {'properties': parsed_args.property, 'e': e}
+                )
+
+
+class ShareExportLocationUnset(command.Command):
+    """Unset a share export location property"""
+    _description = _("Unset a share export location property")
+
+    def get_parser(self, prog_name):
+        parser = super(ShareExportLocationUnset, self).get_parser(
+            prog_name)
+
+        parser.add_argument(
+            'share',
+            metavar="<share>",
+            help=_('Name or ID of share')
+        )
+        parser.add_argument(
+            'export_location',
+            metavar="<export_location>",
+            help=_('ID of the export location')
+        )
+        parser.add_argument(
+            "--property",
+            metavar="<key>",
+            action='append',
+            help=_("Remove a property from export location "
+                   "(repeat option to remove multiple properties). "
+                   "Available only for microversion >= 2.87."),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+        share_id = apiutils.find_resource(
+            share_client.shares,
+            parsed_args.share).id
+
+        if (parsed_args.property and
+                share_client.api_version < api_versions.APIVersion("2.87")):
+            raise exceptions.CommandError(
+                "Property can be specified only with manila API "
+                "version >= 2.87.")
+
+        if parsed_args.property:
+            result = 0
+            for key in parsed_args.property:
+                try:
+                    share_client.share_export_locations.delete_metadata(
+                        share_id, [key],
+                        subresource=parsed_args.export_location)
+                except Exception as e:
+                    result += 1
+                    LOG.error("Failed to unset export location property "
+                              "'%(key)s': %(e)s", {'key': key, 'e': e})
+            if result > 0:
+                total = len(parsed_args.property)
+                raise exceptions.CommandError(
+                    f"{result} of {total} export location properties failed "
+                    f"to be unset.")
 
 
 class ShowShareProperties(command.ShowOne):

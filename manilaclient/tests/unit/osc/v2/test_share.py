@@ -1910,6 +1910,148 @@ class TestShareExportLocationList(TestShare):
         self.assertCountEqual(self.values, data)
 
 
+class TestExportLocationSet(TestShare):
+
+    def setUp(self):
+        super(TestExportLocationSet, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share(
+            methods={"set_metadata": None}
+        )
+        self.shares_mock.get.return_value = self._share
+
+        self._export_location = (
+            manila_fakes.FakeShareExportLocation.create_one_export_location(
+                {'fake_share_instance_id': self._share.id}))
+
+        self.export_locations_mock.get.return_value = (
+            self._export_location
+        )
+
+        self.cmd = osc_shares.ShareExportLocationSet(self.app, None)
+
+    def test_share_set_export_location_property(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.87'
+        )
+        arglist = [
+            self._share.id,
+            self._export_location.id,
+            '--property', 'Bobcat=manila',
+
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('export_location', self._export_location.id),
+            ('property', {'Bobcat': 'manila'}),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        self.export_locations_mock.set_metadata.assert_called_once_with(
+            self._share.id, {'Bobcat': 'manila'},
+            subresource=self._export_location.id)
+
+    def test_share_set_export_location_property_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.87'
+        )
+        arglist = [
+            self._share.id,
+            self._export_location.id,
+            '--property', 'key=',
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('export_location', self._export_location.id),
+            ('property', {'key': ''}),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+
+        self.export_locations_mock.set_metadata.assert_called_once_with(
+            self._share.id, {'key': ''},
+            subresource=self._export_location.id)
+
+        self.export_locations_mock.set_metadata.side_effect = (
+            exceptions.BadRequest)
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action,
+            parsed_args)
+
+
+class TestExportLocationUnset(TestShare):
+
+    def setUp(self):
+        super(TestExportLocationUnset, self).setUp()
+
+        self._share = manila_fakes.FakeShare.create_one_share(
+            methods={"set_metadata": None}
+        )
+        self.shares_mock.get.return_value = self._share
+
+        self._export_location = (
+            manila_fakes.FakeShareExportLocation.create_one_export_location(
+                {'fake_share_instance_id': self._share.id}))
+
+        self.export_locations_mock.get.return_value = (
+            self._export_location
+        )
+
+        self.cmd = osc_shares.ShareExportLocationUnset(self.app, None)
+
+    def test_share_unset_export_location_property(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.87'
+        )
+        arglist = [
+            self._share.id,
+            self._export_location.id,
+            '--property', 'Bobcat',
+
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('export_location', self._export_location.id),
+            ('property', ['Bobcat']),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        self.export_locations_mock.delete_metadata.assert_called_once_with(
+            self._share.id, ['Bobcat'],
+            subresource=self._export_location.id)
+
+    def test_share_unset_export_location_property_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.87'
+        )
+        arglist = [
+            self._share.id,
+            self._export_location.id,
+            '--property', 'key',
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('export_location', self._export_location.id),
+            ('property', ['key']),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+
+        self.export_locations_mock.delete_metadata.assert_has_calls([
+            mock.call(self._share.id, ['key'],
+                      subresource=self._export_location.id)])
+
+        self.export_locations_mock.delete_metadata.side_effect = (
+            exceptions.NotFound)
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action,
+            parsed_args)
+
+
 class TestShowShareProperties(TestShare):
 
     properties = {

@@ -27,9 +27,11 @@ class ShareExportLocation(base.Resource):
         return self._info[key]
 
 
-class ShareExportLocationManager(base.ManagerWithFind):
+class ShareExportLocationManager(base.MetadataCapableManager):
     """Manage :class:`ShareExportLocation` resources."""
     resource_class = ShareExportLocation
+    resource_path = '/shares'
+    subresource_path = '/export_locations'
 
     @api_versions.wraps("2.9")
     def list(self, share, search_opts=None):
@@ -47,3 +49,23 @@ class ShareExportLocationManager(base.ManagerWithFind):
             "/shares/%(share_id)s/export_locations/%(export_location_id)s" % {
                 "share_id": share_id,
                 "export_location_id": export_location_id}, "export_location")
+
+    @api_versions.wraps('2.87')
+    def get_metadata(self, share, share_export_location):
+        return super(ShareExportLocationManager, self).get_metadata(
+            share, subresource=share_export_location)
+
+    @api_versions.wraps('2.87')
+    def set_metadata(self, resource, metadata, subresource=None):
+        return super(ShareExportLocationManager, self).set_metadata(
+            resource, metadata, subresource=subresource)
+
+    @api_versions.wraps('2.87')
+    def delete_metadata(self, resource, keys, subresource=None):
+        return super(ShareExportLocationManager, self).delete_metadata(
+            resource, keys, subresource=subresource)
+
+    @api_versions.wraps('2.87')
+    def update_all_metadata(self, resource, metadata, subresource=None):
+        return super(ShareExportLocationManager, self).update_all_metadata(
+            resource, metadata, subresource=subresource)
