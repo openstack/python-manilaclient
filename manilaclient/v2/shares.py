@@ -121,7 +121,7 @@ class ShareManager(base.ManagerWithFind):
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False, availability_zone=None,
-               share_group_id=None):
+               share_group_id=None, return_raw=False):
         """Create a share.
 
         :param share_proto: text - share protocol for new share available
@@ -154,7 +154,8 @@ class ShareManager(base.ManagerWithFind):
         if share_group_id:
             body['share_group_id'] = share_group_id
 
-        return self._create('/shares', {'share': body}, 'share')
+        return self._create('/shares', {'share': body}, 'share',
+                            return_raw=return_raw)
 
     @api_versions.wraps("2.29")
     @api_versions.experimental_api
@@ -309,14 +310,15 @@ class ShareManager(base.ManagerWithFind):
         info = {'snapshot_id': snapshot_id}
         return self._action('revert', share, info=info)
 
-    def get(self, share):
+    def get(self, share, return_raw=False):
         """Get a share.
 
         :param share: either share object or text with its ID.
         :rtype: :class:`Share`
         """
         share_id = common_base.getid(share)
-        return self._get("/shares/%s" % share_id, "share")
+        return self._get("/shares/%s" % share_id, "share",
+                         return_raw=return_raw)
 
     def update(self, share, **kwargs):
         """Updates a share.
@@ -333,22 +335,24 @@ class ShareManager(base.ManagerWithFind):
 
     @api_versions.wraps("1.0", "2.34")
     def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
         search_opts = search_opts or {}
         search_opts.pop("export_location", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir)
+                            sort_key=sort_key, sort_dir=sort_dir,
+                            return_raw=return_raw)
 
     @api_versions.wraps("2.35")   # noqa
     def list(self, detailed=True, search_opts=None,   # noqa
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
         return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir)
+                            sort_key=sort_key, sort_dir=sort_dir,
+                            return_raw=return_raw)
 
     def do_list(self, detailed=True, search_opts=None,
-                sort_key=None, sort_dir=None):
+                sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares.
 
         :param detailed: Whether to return detailed share info or not.
@@ -418,7 +422,7 @@ class ShareManager(base.ManagerWithFind):
         else:
             path = "/shares%s" % (query_string,)
 
-        return self._list(path, 'shares')
+        return self._list(path, 'shares', return_raw=return_raw)
 
     def delete(self, share, share_group_id=None):
         """Delete a share.
