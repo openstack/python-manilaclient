@@ -125,7 +125,7 @@ class ShareManager(base.MetadataCapableManager):
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False, availability_zone=None,
-               share_group_id=None, scheduler_hints=None):
+               share_group_id=None, scheduler_hints=None, return_raw=False):
         """Create a share.
 
         :param share_proto: text - share protocol for new share available
@@ -164,7 +164,8 @@ class ShareManager(base.MetadataCapableManager):
         if share_group_id:
             body['share_group_id'] = share_group_id
 
-        return self._create('/shares', {'share': body}, 'share')
+        return self._create('/shares', {'share': body}, 'share',
+                            return_raw=return_raw)
 
     @api_versions.wraps("2.29")
     @api_versions.experimental_api
@@ -319,14 +320,15 @@ class ShareManager(base.MetadataCapableManager):
         info = {'snapshot_id': snapshot_id}
         return self._action('revert', share, info=info)
 
-    def get(self, share):
+    def get(self, share, return_raw=False):
         """Get a share.
 
         :param share: either share object or text with its ID.
         :rtype: :class:`Share`
         """
         share_id = base.getid(share)
-        return self._get("/shares/%s" % share_id, "share")
+        return self._get("/shares/%s" % share_id, "share",
+                         return_raw=return_raw)
 
     def update(self, share, **kwargs):
         """Updates a share.

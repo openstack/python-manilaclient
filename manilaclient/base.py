@@ -168,9 +168,11 @@ class Manager(utils.HookableMixin):
             except UnicodeEncodeError:
                 pass
 
-    def _get(self, url, response_key=None):
+    def _get(self, url, response_key, return_raw=False):
         resp, body = self.api.client.get(url)
         if response_key:
+            if return_raw:
+                return body[response_key]
             return self.resource_class(self, body[response_key], loaded=True)
         else:
             return self.resource_class(self, body, loaded=True)
