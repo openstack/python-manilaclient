@@ -64,7 +64,8 @@ class Manager(utils.HookableMixin):
     def api_version(self):
         return self.api.api_version
 
-    def _list(self, url, response_key, manager=None, body=None):
+    def _list(self, url, response_key, manager=None, body=None,
+              return_raw=None):
         """List the collection.
 
         :param url: a partial URL, e.g., '/shares'
@@ -97,6 +98,8 @@ class Manager(utils.HookableMixin):
                 pass
         with self.completion_cache('human_id', obj_class, mode="w"):
             with self.completion_cache('uuid', obj_class, mode="w"):
+                if return_raw:
+                    return data
                 resource = [obj_class(manager, res, loaded=True)
                             for res in data if res]
                 if 'count' in body:
@@ -168,9 +171,11 @@ class Manager(utils.HookableMixin):
             except UnicodeEncodeError:
                 pass
 
-    def _get(self, url, response_key=None):
+    def _get(self, url, response_key, return_raw=False):
         resp, body = self.api.client.get(url)
         if response_key:
+            if return_raw:
+                return body[response_key]
             return self.resource_class(self, body[response_key], loaded=True)
         else:
             return self.resource_class(self, body, loaded=True)

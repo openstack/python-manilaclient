@@ -332,15 +332,15 @@ class SharesTest(utils.TestCase):
             if version >= api_versions.APIVersion('2.69'):
                 manager.do_list.assert_called_once_with(
                     detailed=False, search_opts=search_opts3,
-                    sort_key=None, sort_dir=None)
+                    sort_key=None, sort_dir=None, return_raw=False)
             elif version >= api_versions.APIVersion('2.35'):
                 manager.do_list.assert_called_once_with(
                     detailed=False, search_opts=search_opts2,
-                    sort_key=None, sort_dir=None)
+                    sort_key=None, sort_dir=None, return_raw=False)
             else:
                 manager.do_list.assert_called_once_with(
                     detailed=False, search_opts=search_opts1,
-                    sort_key=None, sort_dir=None)
+                    sort_key=None, sort_dir=None, return_raw=False)
 
     def test_list_shares_index_with_search_opts(self):
         search_opts = {
