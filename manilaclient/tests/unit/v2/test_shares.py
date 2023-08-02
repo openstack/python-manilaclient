@@ -295,6 +295,29 @@ class SharesTest(utils.TestCase):
         cs.shares.list(detailed=False)
         cs.assert_called('GET', '/shares?is_public=True')
 
+    @ddt.data("1.0", "2.35")
+    def test_list_shares_index_diff_api_version(self, microversion):
+        version = api_versions.APIVersion(microversion)
+        mock_microversion = mock.Mock(api_version=version)
+        manager = shares.ShareManager(api=mock_microversion)
+        search_opts1 = {}
+        search_opts2 = {
+            'export_location': 'fake_export_id',
+        }
+
+        with mock.patch.object(manager, "do_list",
+                               mock.Mock(return_value="fake")):
+            manager.list(detailed=False, search_opts=search_opts2)
+
+            if version >= api_versions.APIVersion('2.35'):
+                manager.do_list.assert_called_once_with(
+                    detailed=False, search_opts=search_opts2,
+                    sort_key=None, sort_dir=None, return_raw=False)
+            else:
+                manager.do_list.assert_called_once_with(
+                    detailed=False, search_opts=search_opts1,
+                    sort_key=None, sort_dir=None, return_raw=False)
+
     def test_list_shares_index_with_search_opts(self):
         search_opts = {
             'fake_str': 'fake_str_value',
