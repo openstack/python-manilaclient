@@ -205,8 +205,8 @@ class CreateShare(command.ShowOne):
                                                 parsed_args.share_type).id
         elif not parsed_args.snapshot_id:
             try:
-                share_type = apiutils.find_resource(
-                    share_client.share_types, 'default').id
+                share_type = share_client.share_types.get(
+                    share_type='default').id
             except apiclient_exceptions.CommandError:
                 msg = ("There is no default share type available. You must "
                        "pick a valid share type to create a share.")

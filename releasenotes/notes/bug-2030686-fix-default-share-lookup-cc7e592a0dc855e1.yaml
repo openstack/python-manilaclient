@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Fixed default share type lookup associated with the "openstack share
+    create" command. The lookup now resolves default share types correctly
+    even on environments where the default type isn't named "default". See
+    `launchpad bug #2030686 <https://launchpad.net/bugs/2030686>`_ for more
+    details.
