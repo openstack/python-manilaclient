@@ -364,6 +364,8 @@ class TestShareCreate(TestShare):
             osc_exceptions.CommandError,
             self.cmd.take_action,
             parsed_args)
+        self.share_types_mock.get.assert_called_once_with(
+            share_type='default')
 
     @ddt.data('None', 'NONE', 'none')
     def test_create_share_with_the_name_none(self, name):
