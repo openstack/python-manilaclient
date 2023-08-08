@@ -345,31 +345,34 @@ class ShareManager(base.MetadataCapableManager):
 
     @api_versions.wraps("1.0", "2.34")
     def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
         search_opts = search_opts or {}
         search_opts.pop("export_location", None)
         search_opts.pop("is_soft_deleted", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir)
+                            sort_key=sort_key, sort_dir=sort_dir,
+                            return_raw=return_raw)
 
     @api_versions.wraps("2.35", "2.68")   # noqa
     def list(self, detailed=True, search_opts=None,   # noqa
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
         search_opts.pop("is_soft_deleted", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir)
+                            sort_key=sort_key, sort_dir=sort_dir,
+                            return_raw=return_raw)
 
     @api_versions.wraps("2.69")  # noqa
     def list(self, detailed=True, search_opts=None,  # noqa
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
         return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir)
+                            sort_key=sort_key, sort_dir=sort_dir,
+                            return_raw=return_raw)
 
     def do_list(self, detailed=True, search_opts=None,
-                sort_key=None, sort_dir=None):
+                sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares.
 
         :param detailed: Whether to return detailed share info or not.
@@ -440,7 +443,7 @@ class ShareManager(base.MetadataCapableManager):
         else:
             path = "/shares%s" % (query_string,)
 
-        return self._list(path, 'shares')
+        return self._list(path, 'shares', return_raw=return_raw)
 
     def delete(self, share, share_group_id=None):
         """Delete a share.
