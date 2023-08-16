@@ -43,7 +43,7 @@
       NEUTRON_NET=$(openstack network show {{ neutron_network_name }} -c id -f value)
       NEUTRON_SUBNET=$(openstack subnet show {{ neutron_subnet_name }} -c id -f value)
 
-      manila share-network-create \
+      openstack share network create \
               --name {{ share_network_name }} \
               --neutron-net $NEUTRON_NET \
               --neutron-subnet $NEUTRON_SUBNET
