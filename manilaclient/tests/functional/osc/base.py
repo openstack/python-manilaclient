@@ -444,3 +444,31 @@ class OSCClientTestBase(base.ClientTestBase):
                             'share lock delete %s' % lock['id'],
                             client=client)
         return lock
+
+    def create_backup(self, share_id, name=None, description=None,
+                      backup_options=None, add_cleanup=True):
+
+        name = name or data_utils.rand_name('autotest_backup_name')
+
+        cmd = (f'backup create {share_id} ')
+
+        if name:
+            cmd += f' --name {name}'
+        if description:
+            cmd += f' --description {description}'
+        if backup_options:
+            options = ' --backup-options'
+            for key, value in backup_options.items():
+                options += f' {key}={value}'
+            cmd += options
+
+        backup_object = self.dict_result('share', cmd)
+        self._wait_for_object_status(
+            'share backup', backup_object['id'], 'available')
+
+        if add_cleanup:
+            self.addCleanup(
+                self.openstack,
+                f'share backup delete {backup_object["id"]} --wait')
+
+        return backup_object
