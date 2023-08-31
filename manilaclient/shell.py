@@ -19,6 +19,7 @@ Command-line interface to the OpenStack Manila API.
 """
 
 import argparse
+import csv
 import glob
 from importlib import util as importlib_util
 import itertools
@@ -607,6 +608,32 @@ class OpenStackManilaShell(object):
         profile = osprofiler_profiler and options.profile
         if profile:
             osprofiler_profiler.init(options.profile)
+
+        try:
+            decoder_path = os.path.abspath(
+                'manilaclient/osc/v2/data/manila.csv'
+            )
+            with open(decoder_path) as f:
+                decoder_data = {
+                    r['manila command']: r['openstack command']
+                    for r in csv.DictReader(f, skipinitialspace=True)
+                }
+        except Exception:
+            # this is fine
+            decoder_data = {}
+
+        deprecation_message = ("manila CLI is deprecated and will be removed "
+                               "in the future. Use openstack CLI instead.")
+        cmd = args.func.__name__.lstrip('do_').replace("_", "-")
+        if decoder_data and cmd in decoder_data:
+            deprecation_message = " ".join([
+                deprecation_message,
+                "The equivalent command is \" openstack",
+                f"{decoder_data[cmd]}",
+                "\""
+            ])
+
+        print(deprecation_message, file=sys.stderr)
 
         args.func(self.cs, args)
 

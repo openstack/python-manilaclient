@@ -11,21 +11,31 @@ Manila API in order to use the manila client.
 
 Command-Line Reference
 ~~~~~~~~~~~~~~~~~~~~~~
-There are two shell implementations supported by python-manilaclient.
-The "manila" client supports full feature parity with the manila API:
+There are two shell implementations in python-manilaclient.
 
-.. toctree::
-   :maxdepth: 2
+.. important::
 
-   user/shell
+    The legacy "manila" shell client is deprecated as of version ``5.0.0``.
+    A future version of python-manilaclient may not ship this legacy shell
+    client. If you rely on it, it is highly recommended that you begin using
+    the openstack CLI client right away. Refer to the `mapping guide
+    <cli/decoder.html>`_ to help with this transition.
 
-From version 2.0.0, there is a growing support for the OpenStack client.
-It does not yet have full feature parity with the manila API:
+The "openstack" CLI client intends to be fully compatible with the manila API:
 
 .. toctree::
    :maxdepth: 1
 
    cli/osc_plugin_cli
+   cli/decoder
+
+The legacy "manila" client is deprecated and may not support newer API
+features:
+
+.. toctree::
+   :maxdepth: 2
+
+   user/shell
 
 Using the python module
 ~~~~~~~~~~~~~~~~~~~~~~~

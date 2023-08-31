@@ -1,0 +1,16 @@
+---
+prelude: >
+    OpenStackClient is the preferred CLI client supported by this package.
+    This CLI client has full feature parity to the legacy "manila" CLI client.
+upgrade:
+  - |
+    Usage of the "manila" CLI client is discouraged in favor of the
+    "openstack" CLI. The "manila" CLI client will be removed in a future
+    release.
+deprecations:
+  - |
+    The "manila" CLI client is now deprecated. The python-manilaclient
+    package provides an openstack CLI plugin. As a replacement, the
+    "openstack" CLI must be used. No new features will be added to the
+    "manila" CLI client. The "manilalient" SDK/python bindings are not
+    affected by this deprecation.
