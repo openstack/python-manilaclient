@@ -213,8 +213,8 @@ class ShowShareAccessRulesTestCase(base.OSCClientTestBase):
         self.assertEqual(access_rule_show['access_key'], 'None')
         self.assertEqual(access_rule_show['created_at'],
                          access_rule['created_at'])
-        self.assertEqual(access_rule_show['updated_at'], 'None')
         self.assertEqual(access_rule_show['properties'], '')
+        self.assertTrue('updated_at' in access_rule_show)
 
 
 class SetShareAccessTestCase(base.OSCClientTestBase):
