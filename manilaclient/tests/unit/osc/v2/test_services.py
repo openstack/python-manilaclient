@@ -10,9 +10,11 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 #
+import ddt
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
+from manilaclient import api_versions
 from manilaclient.osc import utils
 from manilaclient.osc.v2 import services as osc_services
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
@@ -96,6 +98,33 @@ class TestShareServiceSet(TestShareService):
             self.share_service.binary)
         self.assertIsNone(result)
 
+    def test_service_set_disable_with_reason(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.83")
+        reason = 'earthquake'
+        arglist = [
+            '--disable',
+            '--disable-reason', reason,
+            self.share_service.host,
+            self.share_service.binary,
+        ]
+        verifylist = [
+            ('host', self.share_service.host),
+            ('binary', self.share_service.binary),
+            ('disable', True),
+            ('disable_reason', reason),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.services_mock.disable.assert_called_with(
+            self.share_service.host,
+            self.share_service.binary,
+            disable_reason=reason
+        )
+        self.assertIsNone(result)
+
     def test_share_service_set_disable_exception(self):
         arglist = [
             self.share_service.host,
@@ -116,6 +145,7 @@ class TestShareServiceSet(TestShareService):
             parsed_args)
 
 
+@ddt.ddt
 class TestShareServiceList(TestShareService):
 
     columns = [
@@ -127,22 +157,31 @@ class TestShareServiceList(TestShareService):
         'state',
         'updated_at'
     ]
+    columns_with_reason = columns + ['disabled_reason']
 
     column_headers = utils.format_column_headers(columns)
+    column_headers_with_reason = utils.format_column_headers(
+        columns_with_reason)
 
     def setUp(self):
         super(TestShareServiceList, self).setUp()
 
         self.services_list = (
-            manila_fakes.FakeShareService.create_fake_services()
+            manila_fakes.FakeShareService.create_fake_services(
+                {'disabled_reason': ''})
         )
         self.services_mock.list.return_value = self.services_list
         self.values = (oscutils.get_dict_properties(
             i._info, self.columns) for i in self.services_list)
+        self.values_with_reason = (oscutils.get_dict_properties(
+            i._info, self.columns_with_reason) for i in self.services_list)
 
         self.cmd = osc_services.ListShareService(self.app, None)
 
-    def test_share_service_list(self):
+    @ddt.data('2.82', '2.83')
+    def test_share_service_list(self, version):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            version)
         arglist = []
         verifylist = []
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -157,10 +196,17 @@ class TestShareServiceList(TestShareService):
                 'state': None,
                 'zone': None
             })
-        self.assertEqual(self.column_headers, columns)
-        self.assertEqual(list(self.values), list(data))
+        if api_versions.APIVersion(version) >= api_versions.APIVersion("2.83"):
+            self.assertEqual(self.column_headers_with_reason, columns)
+            self.assertEqual(list(self.values_with_reason), list(data))
+        else:
+            self.assertEqual(self.column_headers, columns)
+            self.assertEqual(list(self.values), list(data))
 
-    def test_share_service_list_host_status(self):
+    @ddt.data('2.82', '2.83')
+    def test_share_service_list_host_status(self, version):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            version)
         arglist = [
             '--host', self.services_list[0].host,
             '--status', self.services_list[1].status
@@ -181,10 +227,17 @@ class TestShareServiceList(TestShareService):
                 'state': None,
                 'zone': None
             })
-        self.assertEqual(self.column_headers, columns)
-        self.assertEqual(list(self.values), list(data))
+        if api_versions.APIVersion(version) >= api_versions.APIVersion("2.83"):
+            self.assertEqual(self.column_headers_with_reason, columns)
+            self.assertEqual(list(self.values_with_reason), list(data))
+        else:
+            self.assertEqual(self.column_headers, columns)
+            self.assertEqual(list(self.values), list(data))
 
-    def test_share_service_list_binary_state_zone(self):
+    @ddt.data('2.82', '2.83')
+    def test_share_service_list_binary_state_zone(self, version):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            version)
         arglist = [
             '--binary', self.services_list[0].binary,
             '--state', self.services_list[1].state,
@@ -207,5 +260,9 @@ class TestShareServiceList(TestShareService):
                 'state': self.services_list[1].state,
                 'zone': self.services_list[1].zone
             })
-        self.assertEqual(self.column_headers, columns)
-        self.assertEqual(list(self.values), list(data))
+        if api_versions.APIVersion(version) >= api_versions.APIVersion("2.83"):
+            self.assertEqual(self.column_headers_with_reason, columns)
+            self.assertEqual(list(self.values_with_reason), list(data))
+        else:
+            self.assertEqual(self.column_headers, columns)
+            self.assertEqual(list(self.values), list(data))

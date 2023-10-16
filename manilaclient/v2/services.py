@@ -66,18 +66,26 @@ class ServiceManager(base.Manager):
     def enable(self, host, binary):  # noqa
         return self._do_enable(host, binary, RESOURCE_PATH)
 
-    def _do_disable(self, host, binary, resource_path=RESOURCE_PATH):
+    def _do_disable(self, host, binary, resource_path=RESOURCE_PATH,
+                    disable_reason=None):
         """Disable the service specified by hostname and binary."""
         body = {"host": host, "binary": binary}
+        if disable_reason:
+            body["disabled_reason"] = disable_reason
         return self._update("%s/disable" % resource_path, body)
 
     @api_versions.wraps("1.0", "2.6")
     def disable(self, host, binary):
         return self._do_disable(host, binary, RESOURCE_PATH_LEGACY)
 
-    @api_versions.wraps("2.7")  # noqa
+    @api_versions.wraps("2.7", "2.82")  # noqa
     def disable(self, host, binary):  # noqa
         return self._do_disable(host, binary, RESOURCE_PATH)
+
+    @api_versions.wraps("2.83")  # noqa
+    def disable(self, host, binary, disable_reason=None):  # noqa
+        return self._do_disable(host, binary, RESOURCE_PATH,
+                                disable_reason=disable_reason)
 
     def server_api_version(self, url_append=""):
         """Returns the API Version supported by the server.
