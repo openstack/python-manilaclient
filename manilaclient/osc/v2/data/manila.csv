@@ -115,6 +115,11 @@ share-server-reset-state,share server set --status,Explicitly update the state o
 share-server-reset-task-state,share server set --task-state,Explicitly update the task state of a share
 share-server-show,share server show,Show share server info
 share-server-unmanage,share server abandon,Unmanage share server
+share-transfer-accept,share transfer accept,Accepts a share transfer.
+share-transfer-create,share transfer create,Creates a share transfer.
+share-transfer-delete,share transfer delete,Remove one or more transfers
+share-transfer-list,share transfer list,Lists all transfers
+share-transfer-show,share transfer show,Delete a transfer
 show,share show,Show details about a NAS share
 shrink,share resize,Decreases the size of an existing share
 snapshot-access-allow,share snapshot access create,Allow read only access to a snapshot

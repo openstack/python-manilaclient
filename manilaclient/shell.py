@@ -610,8 +610,9 @@ class OpenStackManilaShell(object):
             osprofiler_profiler.init(options.profile)
 
         try:
-            decoder_path = os.path.abspath(
-                'manilaclient/osc/v2/data/manila.csv'
+            decoder_path = (
+                '%s/%s' % (os.path.dirname(os.path.abspath(__file__)),
+                           'osc/v2/data/manila.csv')
             )
             with open(decoder_path) as f:
                 decoder_data = {
