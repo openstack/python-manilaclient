@@ -73,6 +73,7 @@ def make_client(instance):
                        service_type=service_type,
                        auth=instance.auth,
                        http_log_debug=debugging_enabled,
+                       cacert=instance.cacert,
                        cert=instance.cert,
                        insecure=not instance.verify)
 
