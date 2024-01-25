@@ -122,10 +122,10 @@ class ShareTypeManager(base.ManagerWithFind):
         return self._list("/types%s" % query_string, "share_types")
 
     def show(self, share_type):
-        """Get a share.
+        """Get a share type.
 
-        :param share: either share object or text with its ID.
-        :rtype: :class:`Share`
+        :param share type: either share type object or text with its ID.
+        :rtype: :class:`ShareType`
         """
         type_id = base.getid(share_type)
         return self._get("/types/%s" % type_id, "share_type")
