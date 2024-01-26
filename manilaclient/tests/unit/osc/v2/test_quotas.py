@@ -78,8 +78,7 @@ class TestQuotaSet(TestQuotas):
                 share_networks=None,
                 shares=40,
                 snapshot_gigabytes=None,
-                snapshots=None,
-                per_share_gigabytes=None)
+                snapshots=None)
             self.assertIsNone(result)
             mock_find_resource.assert_not_called()
             self.quotas_mock.assert_not_called()
@@ -107,7 +106,6 @@ class TestQuotaSet(TestQuotas):
                 shares=40,
                 snapshot_gigabytes=None,
                 snapshots=None,
-                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -135,7 +133,6 @@ class TestQuotaSet(TestQuotas):
                 shares=None,
                 snapshot_gigabytes=None,
                 snapshots=None,
-                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -164,7 +161,6 @@ class TestQuotaSet(TestQuotas):
                 shares=None,
                 snapshot_gigabytes=None,
                 snapshots=None,
-                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -195,7 +191,6 @@ class TestQuotaSet(TestQuotas):
                 snapshot_gigabytes=None,
                 snapshots=None,
                 tenant_id=self.project.id,
-                per_share_gigabytes=None,
                 user_id=None)
             self.assertIsNone(result)
 
@@ -290,7 +285,6 @@ class TestQuotaSet(TestQuotas):
                 shares=None,
                 snapshot_gigabytes=None,
                 snapshots=None,
-                per_share_gigabytes=None,
                 tenant_id=self.project.id,
                 user_id=None)
             self.assertIsNone(result)
@@ -305,6 +299,22 @@ class TestQuotaSet(TestQuotas):
         verifylist = [
             ('project', self.project.id),
             ('replica_gigabytes', 10)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_quota_set_per_share_gigabytes_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.61')
+        arglist = [
+            self.project.id,
+            '--per-share-gigabytes', '10',
+        ]
+        verifylist = [
+            ('project', self.project.id),
+            ('per_share_gigabytes', 10)
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
