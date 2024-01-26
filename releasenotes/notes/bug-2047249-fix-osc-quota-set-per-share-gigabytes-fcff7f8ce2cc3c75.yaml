@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The `openstack share quota set` command has been fixed to not set
+    `per_share_gigabytes` unless the user has specified the parameter, and
+    unless the user requests, and the server supports API version 2.62.
