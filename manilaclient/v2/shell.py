@@ -4884,6 +4884,7 @@ def do_extend(cs, args):
         share = _find_share(cs, args.share)
     _print_share(cs, share)
 
+
 @cliutils.arg('share', metavar='<share>',
               help='Name or ID of share to shrink.')
 @cliutils.arg('new_size',

@@ -186,7 +186,7 @@ class ListShareAccessRulesTestCase(base.OSCClientTestBase):
         output = self.openstack(
             'share',
             params=f'access list {share["id"]} --access-to {access_to_filter}',
-            flags=f'--os-share-api-version 2.82')
+            flags='--os-share-api-version 2.82')
         access_rule_list = self.parser.listing(output)
 
         self.assertTrue(len(access_rule_list) == 1)
@@ -214,7 +214,7 @@ class ShowShareAccessRulesTestCase(base.OSCClientTestBase):
         self.assertEqual(access_rule_show['created_at'],
                          access_rule['created_at'])
         self.assertEqual(access_rule_show['properties'], '')
-        self.assertTrue('updated_at' in access_rule_show)
+        self.assertIn('updated_at', access_rule_show)
 
 
 class SetShareAccessTestCase(base.OSCClientTestBase):

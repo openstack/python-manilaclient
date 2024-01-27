@@ -50,7 +50,7 @@ class ShareNetworkTest(utils.TestCase):
         api_version = api_versions.APIVersion(microversion)
         values = self.values.copy()
         if (api_version >= api_versions.APIVersion("2.26")):
-            del(values['nova_net_id'])
+            del values['nova_net_id']
         body_expected = {share_networks.RESOURCE_NAME: values}
 
         manager = share_networks.ShareNetworkManager(
@@ -123,7 +123,7 @@ class ShareNetworkTest(utils.TestCase):
         api_version = api_versions.APIVersion(microversion)
         values = self.values.copy()
         if (api_version >= api_versions.APIVersion("2.26")):
-            del(values['nova_net_id'])
+            del values['nova_net_id']
         body_expected = {share_networks.RESOURCE_NAME: values}
 
         manager = share_networks.ShareNetworkManager(

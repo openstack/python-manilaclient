@@ -422,7 +422,7 @@ class OSCClientTestBase(base.ClientTestBase):
         if availability_zone:
             cmd += f' --availability-zone {availability_zone}'
         if restart_check:
-            cmd += f' --restart-check'
+            cmd += ' --restart-check'
 
         check_result = self.dict_result('share', cmd)
         return check_result
