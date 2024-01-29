@@ -98,7 +98,7 @@ class BaseTestCase(base.ClientTestBase):
                 res["deleted"] = False
             if "client" not in res:
                 res["client"] = cls.get_cleanup_client()
-            if not(res["deleted"]):
+            if not res["deleted"]:
                 res_id = res["id"]
                 client = res["client"]
                 deletion_params = res.get("deletion_params")

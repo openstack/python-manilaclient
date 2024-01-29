@@ -1087,7 +1087,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, {'extra_specs': {'k': 'v'}})
 
     def delete_types_1_extra_specs_k(self, **kw):
-        return(204, {}, None)
+        return (204, {}, None)
 
     def delete_types_1(self, **kw):
         return (202, {}, None)

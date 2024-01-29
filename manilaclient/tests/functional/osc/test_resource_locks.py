@@ -109,7 +109,7 @@ class ResourceLockTests(base.OSCClientTestBase):
                                     'lock list --lock-context user '
                                     f' --resource {self.share["id"]}')
         self.assertEqual(2, len(locks))
-        self.assertNotIn(lock_3['id'], [l['ID'] for l in locks])
+        self.assertNotIn(lock_3['id'], [lock['ID'] for lock in locks])
 
         locks = self.listing_result('share',
                                     'lock list --lock-context user'
@@ -118,9 +118,9 @@ class ResourceLockTests(base.OSCClientTestBase):
                                     ' --sort-dir desc '
                                     ' --limit 1')
         self.assertEqual(1, len(locks))
-        self.assertIn(lock_2['id'], [l['ID'] for l in locks])
-        self.assertNotIn(lock_1['id'], [l['ID'] for l in locks])
-        self.assertNotIn(lock_3['id'], [l['ID'] for l in locks])
+        self.assertIn(lock_2['id'], [lock['ID'] for lock in locks])
+        self.assertNotIn(lock_1['id'], [lock['ID'] for lock in locks])
+        self.assertNotIn(lock_3['id'], [lock['ID'] for lock in locks])
 
     def test_lock_set_unset_lock_reason(self):
         lock = self.create_resource_lock(self.share['id'],
