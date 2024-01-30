@@ -350,7 +350,7 @@ class DeleteShare(command.Command):
 
                 if parsed_args.force:
                     share_client.shares.force_delete(share_obj)
-                if parsed_args.soft:
+                elif parsed_args.soft:
                     if share_client.api_version >= api_versions.APIVersion(
                             '2.69'):
                         share_client.shares.soft_delete(share_obj)

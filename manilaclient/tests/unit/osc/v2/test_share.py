@@ -425,6 +425,8 @@ class TestShareDelete(TestShare):
 
         result = self.cmd.take_action(parsed_args)
         self.shares_mock.delete.assert_called_with(shares[0], None)
+        self.shares_mock.soft_delete.assert_not_called()
+        self.shares_mock.force_delete.assert_not_called()
         self.assertIsNone(result)
 
     def test_share_delete_many(self):
@@ -481,6 +483,8 @@ class TestShareDelete(TestShare):
         result = self.cmd.take_action(parsed_args)
 
         self.shares_mock.force_delete.assert_called_once_with(shares[0])
+        self.shares_mock.delete.assert_not_called()
+        self.shares_mock.soft_delete.assert_not_called()
         self.assertIsNone(result)
 
     def test_share_delete_with_soft(self):
@@ -500,6 +504,8 @@ class TestShareDelete(TestShare):
         result = self.cmd.take_action(parsed_args)
 
         self.shares_mock.soft_delete.assert_called_once_with(shares[0])
+        self.shares_mock.delete.assert_not_called()
+        self.shares_mock.force_delete.assert_not_called()
         self.assertIsNone(result)
 
     def test_share_delete_wrong_name(self):

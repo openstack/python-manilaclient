@@ -1,0 +1,5 @@
+---
+fixes:
+  - Share force delete command was sending two REST requests, first force delete and
+    then delete. Fixed it by removing delete request. For more details, please refer to
+    `launchpad bug 2051737 <https://bugs.launchpad.net/python-manilaclient/+bug/2051737>`_
