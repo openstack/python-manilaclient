@@ -140,6 +140,29 @@ class SharesTest(utils.TestCase):
                          availability_zone=availability_zone)
         cs.assert_called('POST', '/shares', body)
 
+    @ddt.data({'mount_point_name': 'fake_mount_pt1'},
+              {'mount_point_name': 'fake_mount_pt2'})
+    @ddt.unpack
+    def test_create_share_with_mount_point_name(self, mount_point_name):
+        body = {
+            'share': {
+                'is_public': False,
+                'share_type': None,
+                'name': None,
+                'snapshot_id': None,
+                'description': None,
+                'metadata': {},
+                'share_proto': 'nfs',
+                'share_network_id': None,
+                'size': 1,
+                'availability_zone': None,
+                'scheduler_hints': {},
+                'mount_point_name': mount_point_name,
+            }
+        }
+        cs.shares.create('nfs', 1, mount_point_name=mount_point_name)
+        cs.assert_called('POST', '/shares', body)
+
     @ddt.data(
         type('ShareUUID', (object, ), {'uuid': '1234'}),
         type('ShareID', (object, ), {'id': '1234'}),

@@ -124,7 +124,8 @@ class ShareManager(base.MetadataCapableManager):
     def create(self, share_proto, size, snapshot_id=None, name=None,
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False, availability_zone=None,
-               share_group_id=None, scheduler_hints=None, return_raw=False):
+               share_group_id=None, scheduler_hints=None, return_raw=False,
+               mount_point_name=None):
         """Create a share.
 
         :param share_proto: text - share protocol for new share available
@@ -142,6 +143,9 @@ class ShareManager(base.MetadataCapableManager):
         :param scheduler_hints: dict - hints for the scheduler to place share
             on most appropriate host e.g. keys are same_host for affinity and
             different_host for anti-affinity
+        :param mount_point_name: text - share human-readable mount point name.
+            This name will be reflected in export location once
+            share is created.
         :rtype: :class:`Share`
         """
         share_metadata = metadata if metadata is not None else dict()
@@ -162,6 +166,9 @@ class ShareManager(base.MetadataCapableManager):
         }
         if share_group_id:
             body['share_group_id'] = share_group_id
+
+        if mount_point_name:
+            body['mount_point_name'] = mount_point_name
 
         return self._create('/shares', {'share': body}, 'share',
                             return_raw=return_raw)

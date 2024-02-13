@@ -132,7 +132,8 @@ class TestShareCreate(TestShare):
             share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
-            scheduler_hints={}
+            scheduler_hints={},
+            mount_point_name=None,
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -180,7 +181,8 @@ class TestShareCreate(TestShare):
             share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
-            scheduler_hints={}
+            scheduler_hints={},
+            mount_point_name=None,
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -227,6 +229,49 @@ class TestShareCreate(TestShare):
             snapshot_id=None,
             scheduler_hints={'same_host': shares[0].id,
                              'different_host': shares[1].id},
+            mount_point_name=None,
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.datalist, data)
+
+    def test_share_create_mount_point_name(self):
+        """Verifies that the mount point name has been passed correctly."""
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.84")
+
+        mount_point_name = "fake_mp"
+
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+            '--share-type', self.share_type.id,
+            '--mount-point-name', mount_point_name,
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+            ('mount_point_name', mount_point_name),
+            ('share_type', self.share_type.id),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.shares_mock.create.assert_called_with(
+            availability_zone=None,
+            description=None,
+            is_public=False,
+            metadata={},
+            name=None,
+            share_group_id=None,
+            share_network=None,
+            share_proto=self.new_share.share_proto,
+            share_type=self.share_type.id,
+            size=self.new_share.size,
+            snapshot_id=None,
+            scheduler_hints={},
+            mount_point_name='fake_mp',
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -269,7 +314,8 @@ class TestShareCreate(TestShare):
             share_type=None,
             size=self.new_share.size,
             snapshot_id=self.share_snapshot.id,
-            scheduler_hints={}
+            scheduler_hints={},
+            mount_point_name=None,
         )
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.datalist, data)
@@ -305,7 +351,8 @@ class TestShareCreate(TestShare):
             share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
-            scheduler_hints={}
+            scheduler_hints={},
+            mount_point_name=None,
         )
 
         self.shares_mock.get.assert_called_with(self.new_share.id)
@@ -345,7 +392,8 @@ class TestShareCreate(TestShare):
                 share_type=self.share_type.id,
                 size=self.new_share.size,
                 snapshot_id=None,
-                scheduler_hints={}
+                scheduler_hints={},
+                mount_point_name=None,
             )
 
             mock_logger.error.assert_called_with(
