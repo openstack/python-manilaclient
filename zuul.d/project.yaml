@@ -8,6 +8,7 @@
     check:
       jobs:
         - python-manilaclient-functional
+        - python-manilaclient-tox-bandit
         - manila-rally-ss:
             voting: false
         - python-manilaclient-functional-fips:
