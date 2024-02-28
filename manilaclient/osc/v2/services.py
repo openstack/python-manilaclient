@@ -13,6 +13,7 @@ from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils as osc_utils
 
+from manilaclient import api_versions
 from manilaclient.common._i18n import _
 
 
@@ -44,9 +45,20 @@ class SetShareService(command.Command):
             action='store_true',
             help=_('Disable share service'),
         )
+        parser.add_argument(
+            "--disable-reason",
+            metavar="<reason>",
+            help=_("Reason for disabling the service "
+                   "(should be used with --disable option)")
+        )
         return parser
 
     def take_action(self, parsed_args):
+        if parsed_args.disable_reason and not parsed_args.disable:
+            msg = _("Cannot specify option --disable-reason without "
+                    "--disable specified.")
+            raise exceptions.CommandError(msg)
+
         share_client = self.app.client_manager.share
 
         if parsed_args.enable:
@@ -58,9 +70,19 @@ class SetShareService(command.Command):
                     "Failed to enable service: %s" % e))
 
         if parsed_args.disable:
+            if parsed_args.disable_reason:
+                if share_client.api_version < api_versions.APIVersion("2.83"):
+                    raise exceptions.CommandError(
+                        "Service disable reason can be specified only with "
+                        "manila API version >= 2.83")
             try:
-                share_client.services.disable(
-                    parsed_args.host, parsed_args.binary)
+                if parsed_args.disable_reason:
+                    share_client.services.disable(
+                        parsed_args.host, parsed_args.binary,
+                        disable_reason=parsed_args.disable_reason)
+                else:
+                    share_client.services.disable(
+                        parsed_args.host, parsed_args.binary)
             except Exception as e:
                 raise exceptions.CommandError(_(
                     "Failed to disable service: %s" % e))
@@ -127,6 +149,8 @@ class ListShareService(command.Lister):
             'State',
             'Updated At'
         ]
+        if share_client.api_version >= api_versions.APIVersion("2.83"):
+            columns.append('Disabled Reason')
 
         data = (osc_utils.get_dict_properties(
             service._info, columns) for service in services)

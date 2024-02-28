@@ -1,0 +1,5 @@
+---
+features:
+  - Support add disabled reason to services command.
+    See `bug 2037700 <https://bugs.launchpad.net/manila/+bug/2037700>`_
+    for more details.

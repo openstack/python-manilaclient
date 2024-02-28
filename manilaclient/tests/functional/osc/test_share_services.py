@@ -45,11 +45,12 @@ class ShareServicesTestCase(base.OSCClientTestBase):
         first_service = service[0]
         self.openstack(f'share service set {first_service["Host"]} '
                        f'{first_service["Binary"]} '
-                       '--disable')
+                       '--disable --disable-reason test')
         result = self.listing_result('share service',
                                      'list --status disabled')
         self.assertEqual(first_service['ID'], result[0]['ID'])
         self.assertEqual('disabled', result[0]['Status'])
+        self.assertEqual('test', result[0]['Disabled Reason'])
 
         # enable the share service again
         self.openstack(f'share service set {first_service["Host"]} '
