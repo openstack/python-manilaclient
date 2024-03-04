@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The format of the osc share network subnet create command output has been
+    updated to return a list of hosts instead of a dictionary, as we do for
+    other commands in the client.
