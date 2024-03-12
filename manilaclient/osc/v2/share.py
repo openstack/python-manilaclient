@@ -188,6 +188,13 @@ class CreateShare(command.ShowOne):
                    "possible keys are same_host, different_host."
                    "(repeat option to set multiple hints)"),
         )
+        parser.add_argument(
+            '--mount-point-name',
+            metavar="<mount_point_name>",
+            default=None,
+            help=_('Optional custom export location. Available for '
+                   'microversion >= 2.84')
+        )
 
         return parser
 
@@ -232,6 +239,15 @@ class CreateShare(command.ShowOne):
             snapshot_id = snapshot.id
             size = max(size or 0, snapshot.size)
 
+        mount_point_name = None
+        if parsed_args.mount_point_name:
+            if share_client.api_version < api_versions.APIVersion('2.84'):
+                raise exceptions.CommandError(
+                    'Setting share mount point name is '
+                    'available only for API microversion >= 2.84')
+            else:
+                mount_point_name = parsed_args.mount_point_name
+
         scheduler_hints = {}
         if parsed_args.scheduler_hint:
             if share_client.api_version < api_versions.APIVersion('2.65'):
@@ -271,7 +287,8 @@ class CreateShare(command.ShowOne):
             'is_public': parsed_args.public,
             'availability_zone': parsed_args.availability_zone,
             'share_group_id': share_group,
-            'scheduler_hints': scheduler_hints
+            'scheduler_hints': scheduler_hints,
+            'mount_point_name': mount_point_name,
         }
 
         share = share_client.shares.create(**body)

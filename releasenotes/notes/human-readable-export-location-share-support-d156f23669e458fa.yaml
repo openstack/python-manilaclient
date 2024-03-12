@@ -1,0 +1,19 @@
+---
+features:
+  - In the 2.84 API version, a new option, ``mount_point_name``, has been
+    introduced to the share creation command. This option allow users
+    to specify a more intuitive ``mount_point_name`` that will be reflected
+    in the share's export location. However, for this feature to be available
+    to users, administrators must first enable an extra-spec in the
+    share type. In addition, administrators need to set an extra-spec named
+    ``provisioning:mount_point_prefix``. The Manila service will combine
+    this prefix with the mount point name that user provides during share
+    creation. If the ``provisioning:mount_point_prefix`` is not set for
+    a share type, but ``mount_point_name_support`` is enabled, the share's
+    export location will default to using the project_id as a prefix.
+    Please note that shares created with a project_id prefix cannot be
+    transferred. To move these shares to a different project,
+    an admin must manually unmount them from the current project and mount
+    them to the target project. A new capability, ``mount_point_name_support``,
+    allows the driver to inform the scheduler about its support for the
+    mount_point_name feature.

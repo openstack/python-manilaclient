@@ -139,6 +139,7 @@ class FakeShare(object):
             "revert_to_snapshot_support": False,
             "source_share_group_snapshot_member_id": None,
             "scheduler_hints": {},
+            "mount_point_name": None,
         }
 
         # Overwrite default attributes.
