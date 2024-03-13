@@ -326,6 +326,11 @@ def _print_share_group_snapshot_members(cs, share_group_snapshot):
     cliutils.print_dict(info.get('members', {}))
 
 
+def _wait_for_snapshot_status(cs, snapshot, expected_status='available'):
+    return _wait_for_resource_status(
+        cs, snapshot, expected_status, resource_type='snapshot')
+
+
 def _find_share_snapshot(cs, snapshot):
     """Get a snapshot by ID."""
     return apiclient_utils.find_resource(cs.share_snapshots, snapshot)
@@ -1704,10 +1709,14 @@ def do_share_server_reset_state(cs, args):
     action='single_alias',
     help='Optional driver options as key=value pairs (Default=None).',
     default=None)
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share snapshot to be managed')
 def do_snapshot_manage(cs, args):
     """Manage share snapshot not handled by Manila (Admin only)."""
     share_ref = _find_share(cs, args.share)
-
     driver_options = _extract_key_value_options(args, 'driver_options')
 
     share_snapshot = cs.share_snapshots.manage(
@@ -1716,6 +1725,12 @@ def do_snapshot_manage(cs, args):
         name=args.name, description=args.description
     )
 
+    if args.wait:
+        try:
+            _wait_for_snapshot_status(cs, share_snapshot,
+                                      expected_status='available')
+        except exceptions.CommandError as e:
+            print(e, file=sys.stderr)
     _print_share_snapshot(cs, share_snapshot)
 
 
@@ -1771,6 +1786,11 @@ def do_share_server_unmanage(cs, args):
     metavar='<snapshot>',
     nargs='+',
     help='Name or ID of the snapshot(s).')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share snapshot to be unmanaged')
 def do_snapshot_unmanage(cs, args):
     """Unmanage one or more share snapshots (Admin only)."""
     failure_count = 0
@@ -1778,6 +1798,9 @@ def do_snapshot_unmanage(cs, args):
         try:
             snapshot_ref = _find_share_snapshot(cs, snapshot)
             snapshot_ref.unmanage_snapshot()
+            if args.wait:
+                _wait_for_snapshot_status(cs, snapshot_ref,
+                                          expected_status='deleted')
         except Exception as e:
             failure_count += 1
             print("Unmanage for share snapshot %s failed: %s" % (snapshot, e),

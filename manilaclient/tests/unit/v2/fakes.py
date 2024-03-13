@@ -250,7 +250,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, shares)
 
     def get_snapshots_1234(self, **kw):
-        snapshot = {'snapshot': {'id': 1234, 'name': 'sharename'}}
+        snapshot = {'snapshot': {'id': 1234, 'name': 'sharename',
+                                 'status': 'available'}}
         return (200, {}, snapshot)
 
     def get_share_servers(self, **kw):

@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    The commands "snapshot-manage" and "snapshot-unmanage" now accept
+    an optional "--wait" option that allows users to let the client
+    poll for the completion of the operation.

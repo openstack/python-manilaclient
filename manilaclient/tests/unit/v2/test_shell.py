@@ -981,13 +981,15 @@ class ShellTest(test_utils.TestCase):
               )
     @ddt.unpack
     @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_snapshot_manage(self, cmd_args, valid_params):
-        shell_v2._find_share.return_value = 'fake_share'
+        share_containing_snapshot = shares.Share('fake_share', {'id': '1234'})
+        shell_v2._find_share.return_value = share_containing_snapshot
         self.run_command('snapshot-manage fake_share fake_provider_location '
                          + cmd_args)
         expected = {
             'snapshot': {
-                'share_id': 'fake_share',
+                'share_id': '1234',
                 'provider_location': 'fake_provider_location',
                 'name': None,
                 'description': None,
@@ -995,11 +997,62 @@ class ShellTest(test_utils.TestCase):
         }
         expected['snapshot'].update(valid_params)
         self.assert_called('POST', '/snapshots/manage', body=expected)
+        # _wait_for_resource_status should not be triggered
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
 
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_snapshot_manage_with_wait(self):
+        share_containing_snapshot = shares.Share('fake_share', {'id': '1234'})
+        shell_v2._find_share.return_value = share_containing_snapshot
+        cmd_args = '--wait --driver_options opt1=opt1 opt2=opt2'
+        self.run_command('snapshot-manage fake_share fake_provider_location '
+                         + cmd_args)
+        expected = {
+            'snapshot': {
+                'share_id': '1234',
+                'provider_location': 'fake_provider_location',
+                'name': None,
+                'description': None,
+            }
+        }
+        valid_params = {'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'}}
+        expected['snapshot'].update(valid_params)
+        self.assert_called('POST', '/snapshots/manage', body=expected)
+
+        shell_v2._find_share.assert_has_calls(
+            [mock.call(self.shell.cs, 'fake_share')])
+        self.assertEqual(1, shell_v2._find_share.call_count)
+        # _wait_for_resource_status should be triggered once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, 'available', resource_type='snapshot')
+
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_snapshot_unmanage(self):
+        share_containing_snapshot = shares.Share('fake_share', {'id': '1234'})
+        shell_v2._find_share.return_value = share_containing_snapshot
         self.run_command('snapshot-unmanage 1234')
+
         self.assert_called('POST', '/snapshots/1234/action',
                            body={'unmanage': None})
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_snapshot_unmanage_with_wait(self):
+        share_containing_snapshot = shares.Share('fake_share', {'id': '1234'})
+        shell_v2._find_share.return_value = share_containing_snapshot
+        self.run_command('snapshot-unmanage 1234 --wait')
+
+        self.assert_called('POST', '/snapshots/1234/action',
+                           body={'unmanage': None})
+        expected_snapshot = shell_v2._find_share_snapshot(
+            self.shell.cs, '1234')
+        # _wait_for_resource_status should be trigerred once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, expected_snapshot, 'deleted',
+            resource_type='snapshot')
 
     def test_revert_to_snapshot(self):
 
