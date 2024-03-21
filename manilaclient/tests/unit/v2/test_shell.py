@@ -1054,6 +1054,7 @@ class ShellTest(test_utils.TestCase):
             self.shell.cs, expected_snapshot, 'deleted',
             resource_type='snapshot')
 
+    @mock.patch.object(shell_v2, '_wait_for_share_status', mock.Mock())
     def test_revert_to_snapshot(self):
 
         fake_share_snapshot = type(
@@ -1066,6 +1067,25 @@ class ShellTest(test_utils.TestCase):
 
         self.assert_called('POST', '/shares/1234/action',
                            body={'revert': {'snapshot_id': '5678'}})
+        # _wait_for_share_status should not be trigerred
+        self.assertEqual(0, shell_v2._wait_for_share_status.call_count)
+
+    @mock.patch.object(shell_v2, '_wait_for_share_status', mock.Mock())
+    def test_revert_to_snapshot_with_wait(self):
+
+        fake_share_snapshot = type(
+            'FakeShareSnapshot', (object,), {'id': '5678', 'share_id': '1234'})
+        self.mock_object(
+            shell_v2, '_find_share_snapshot',
+            mock.Mock(return_value=fake_share_snapshot))
+
+        self.run_command('revert-to-snapshot 5678 --wait')
+
+        self.assert_called('POST', '/shares/1234/action',
+                           body={'revert': {'snapshot_id': '5678'}})
+        # _wait_for_share_status should be trigerred once
+        shell_v2._wait_for_share_status.assert_called_once_with(
+            self.shell.cs, mock.ANY)
 
     def test_delete(self):
         self.run_command('delete 1234')
@@ -3693,6 +3713,39 @@ class ShellTest(test_utils.TestCase):
                 'DELETE', '/share-networks/%s' % sn.id,
                 clear_callstack=False)
 
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_snapshot_status', mock.Mock())
+    def test_snapshot_create(self):
+        share_to_create_snapshot = shares.Share('fake_share', {'id': '1234'})
+        shell_v2._find_share.return_value = share_to_create_snapshot
+
+        self.run_command(
+            'snapshot-create fake_share --name testshare1snapshot')
+
+        shell_v2._find_share.assert_has_calls([
+            mock.call(self.shell.cs, 'fake_share')])
+        self.assert_called_anytime(
+            'POST', '/snapshots', clear_callstack=False)
+        # _wait_for_snapshot_status should not be trigerred
+        self.assertEqual(0, shell_v2._wait_for_snapshot_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_snapshot_status', mock.Mock())
+    def test_snapshot_create_with_wait(self):
+        share_to_create_snapshot = shares.Share('fake_share', {'id': '1234'})
+        shell_v2._find_share.return_value = share_to_create_snapshot
+
+        self.run_command(
+            'snapshot-create fake_share --name testshare1snapshot --wait')
+
+        shell_v2._find_share.assert_has_calls([
+            mock.call(self.shell.cs, 'fake_share')])
+        self.assert_called_anytime(
+            'POST', '/snapshots', clear_callstack=False)
+        # _wait_for_snapshot_status should be trigerred once
+        shell_v2._wait_for_snapshot_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, expected_status='available')
+
     @ddt.data(('fake_snapshot1', ), ('fake_snapshot1', 'fake_snapshot2'))
     def test_snapshot_delete(self, snapshot_ids):
         fake_snapshots = [
@@ -3712,6 +3765,23 @@ class ShellTest(test_utils.TestCase):
             self.assert_called_anytime(
                 'DELETE', '/snapshots/%s' % snapshot.id,
                 clear_callstack=False)
+
+    @mock.patch.object(shell_v2, '_find_share_snapshot', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_snapshot_status', mock.Mock())
+    def test_snapshot_delete_with_wait(self):
+        fake_snapshot = share_snapshots.ShareSnapshot(
+            'fake', {'id': 'fake_snapshot1'}, True)
+        shell_v2._find_share_snapshot.return_value = fake_snapshot
+
+        self.run_command('snapshot-delete fake_snapshot1 --wait')
+
+        shell_v2._find_share_snapshot.assert_has_calls([
+            mock.call(self.shell.cs, 'fake_snapshot1')])
+        self.assert_called_anytime(
+            'DELETE', '/snapshots/fake_snapshot1', clear_callstack=False)
+        # _wait_for_resource_status should be trigerred once
+        shell_v2._wait_for_snapshot_status.assert_called_once_with(
+            self.shell.cs, 'fake_snapshot1', expected_status='deleted')
 
     @ddt.data(('snapshot_xyz', ), ('snapshot_abc', 'snapshot_xyz'))
     def test_snapshot_force_delete_wait(self, snapshots_to_delete):
