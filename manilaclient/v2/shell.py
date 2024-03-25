@@ -3314,15 +3314,6 @@ def do_reset_state(cs, args):
 
 @api_versions.wraps("1.0", "2.25")
 @cliutils.arg(
-    '--nova-net-id',
-    '--nova-net_id', '--nova_net_id', '--nova_net-id',  # aliases
-    metavar='<nova-net-id>',
-    default=None,
-    action='single_alias',
-    help="Nova net ID. Used to set up network for share servers. This "
-         "option is deprecated and will be rejected in newer releases "
-         "of OpenStack Manila.")
-@cliutils.arg(
     '--neutron-net-id',
     '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
     metavar='<neutron-net-id>',
@@ -3352,7 +3343,6 @@ def do_share_network_create(cs, args):
     values = {
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
-        'nova_net_id': args.nova_net_id,
         'name': args.name,
         'description': args.description,
     }
@@ -3422,15 +3412,6 @@ def do_share_network_create(cs, args):  # noqa
     metavar='<share-network>',
     help='Name or ID of share network to update.')
 @cliutils.arg(
-    '--nova-net-id',
-    '--nova-net_id', '--nova_net_id', '--nova_net-id',  # aliases
-    metavar='<nova-net-id>',
-    default=None,
-    action='single_alias',
-    help="Nova net ID. Used to set up network for share servers. This "
-         "option is deprecated and will be rejected in newer releases "
-         "of OpenStack Manila.")
-@cliutils.arg(
     '--neutron-net-id',
     '--neutron-net_id', '--neutron_net_id', '--neutron_net-id',
     metavar='<neutron-net-id>',
@@ -3460,7 +3441,6 @@ def do_share_network_update(cs, args):
     values = {
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
-        'nova_net_id': args.nova_net_id,
         'name': args.name,
         'description': args.description,
     }
@@ -3575,14 +3555,6 @@ def do_share_network_show(cs, args):
     default=None,
     help='Filter results by attached security service.')
 @cliutils.arg(
-    '--nova-net-id',
-    '--nova_net_id', '--nova_net-id', '--nova-net_id',  # aliases
-    metavar='<nova_net_id>',
-    action='single_alias',
-    default=None,
-    help='Filter results by Nova net ID. This option is deprecated and will '
-         'be rejected in newer releases of OpenStack Manila.')
-@cliutils.arg(
     '--neutron-net-id',
     '--neutron_net_id', '--neutron_net-id', '--neutron-net_id',  # aliases
     metavar='<neutron_net_id>',
@@ -3657,7 +3629,6 @@ def do_share_network_list(cs, args):
         'name': args.name,
         'created_since': args.created_since,
         'created_before': args.created_before,
-        'nova_net_id': args.nova_net_id,
         'neutron_net_id': args.neutron_net_id,
         'neutron_subnet_id': args.neutron_subnet_id,
         'network_type': args.network_type,

@@ -1,0 +1,4 @@
+---
+upgrade:
+  - |
+    The ``--nova-net-id`` option has been removed from the ``manila`` CLI.

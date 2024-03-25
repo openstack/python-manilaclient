@@ -453,24 +453,19 @@ class ManilaCLIClient(base.CLIClient):
     # Share networks
 
     def create_share_network(self, name=None, description=None,
-                             nova_net_id=None, neutron_net_id=None,
-                             neutron_subnet_id=None, availability_zone=None,
+                             neutron_net_id=None, neutron_subnet_id=None,
+                             availability_zone=None,
                              microversion=None):
         """Creates share network.
 
         :param name: text -- desired name of new share network
         :param description: text -- desired description of new share network
-        :param nova_net_id: text -- ID of Nova network
         :param neutron_net_id: text -- ID of Neutron network
         :param neutron_subnet_id: text -- ID of Neutron subnet
-
-        NOTE: 'nova_net_id' and 'neutron_net_id'/'neutron_subnet_id' are
-            mutually exclusive.
         """
         params = self._combine_share_network_data(
             name=name,
             description=description,
-            nova_net_id=nova_net_id,
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id,
             availability_zone=availability_zone
@@ -481,7 +476,7 @@ class ManilaCLIClient(base.CLIClient):
         return share_network
 
     def _combine_share_network_data(self, name=None, description=None,
-                                    nova_net_id=None, neutron_net_id=None,
+                                    neutron_net_id=None,
                                     neutron_subnet_id=None,
                                     availability_zone=None):
         """Combines params for share network operations 'create' and 'update'.
@@ -493,8 +488,6 @@ class ManilaCLIClient(base.CLIClient):
             data['--name'] = name
         if description is not None:
             data['--description'] = description
-        if nova_net_id is not None:
-            data['--nova_net_id'] = nova_net_id
         if neutron_net_id is not None:
             data['--neutron_net_id'] = neutron_net_id
         if neutron_subnet_id is not None:
@@ -516,23 +509,18 @@ class ManilaCLIClient(base.CLIClient):
 
     @not_found_wrapper
     def update_share_network(self, share_network, name=None, description=None,
-                             nova_net_id=None, neutron_net_id=None,
+                             neutron_net_id=None,
                              neutron_subnet_id=None, microversion=None):
         """Updates share-network by its name or ID.
 
         :param name: text -- new name for share network
         :param description: text -- new description for share network
-        :param nova_net_id: text -- ID of some Nova network
         :param neutron_net_id: text -- ID of some Neutron network
         :param neutron_subnet_id: text -- ID of some Neutron subnet
-
-        NOTE: 'nova_net_id' and 'neutron_net_id'/'neutron_subnet_id' are
-            mutually exclusive.
         """
         sn_params = self._combine_share_network_data(
             name=name,
             description=description,
-            nova_net_id=nova_net_id,
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id)
         share_network_raw = self.manila(
