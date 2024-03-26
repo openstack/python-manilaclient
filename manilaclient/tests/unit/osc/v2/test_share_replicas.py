@@ -617,7 +617,10 @@ class TestShareReplicaPromote(TestShareReplica):
         super(TestShareReplicaPromote, self).setUp()
 
         self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica()
+            manila_fakes.FakeShareReplica.create_one_replica(
+                attrs={
+                    'status': 'available'}
+            )
         )
         self.replicas_mock.get.return_value = self.share_replica
 
@@ -630,6 +633,7 @@ class TestShareReplicaPromote(TestShareReplica):
         ]
         verifylist = [
             ('replica', self.share_replica.id),
+            ('wait', False)
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -657,6 +661,28 @@ class TestShareReplicaPromote(TestShareReplica):
             self.share_replica,
             wait_time)
         self.assertIsNone(result)
+
+    @mock.patch.object(osc_share_replicas.osc_utils, 'wait_for_status',
+                       mock.Mock())
+    def test_share_replica_promote_wait(self):
+        arglist = [
+            self.share_replica.id,
+            '--wait'
+        ]
+        verifylist = [
+            ('replica', self.share_replica.id),
+            ('wait', True)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.replicas_mock.promote.assert_called_with(
+            self.share_replica)
+        self.assertIsNone(result)
+        osc_share_replicas.osc_utils.wait_for_status.assert_called_once_with(
+            status_f=self.replicas_mock.get, res_id=self.share_replica.id,
+            success_status=['active'], status_field='replica_state')
 
     def test_share_replica_promote_exception(self):
         arglist = [
