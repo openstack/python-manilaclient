@@ -224,12 +224,15 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_shares_detail(self, **kw):
         endpoint = "http://127.0.0.1:8786/v2"
-        share_id = '1234'
+        share_id1234 = '1234'
+        share_id1111 = '1111'
+        share_id2222 = '2222'
+        share_id3333 = '3333'
 
         shares = {
             'shares': [
                 {
-                    'id': share_id,
+                    'id': share_id1234,
                     'name': 'sharename',
                     'status': 'fake_status',
                     'size': 1,
@@ -237,9 +240,52 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'export_location': 'fake_export_location',
                     'snapshot_id': 'fake_snapshot_id',
                     'links': [
-                        {"href": endpoint + "/fake_project/shares/" + share_id,
-                         "rel": "self"},
+                        {"href": endpoint + "/fake_project/shares/"
+                         + share_id1234, "rel": "self"},
                     ],
+                    'metadata': {}
+                },
+                {
+                    'id': share_id1111,
+                    'name': 'sharename1',
+                    'status': 'fake_status1',
+                    'size': 1,
+                    'host': 'fake_host',
+                    'export_location': 'fake_export_location',
+                    'snapshot_id': 'fake_snapshot_id',
+                    'links': [
+                        {"href": endpoint + "/fake_project/shares/"
+                         + share_id1111, "rel": "self"},
+                    ],
+                    'metadata': {}
+                },
+                {
+                    'id': share_id2222,
+                    'name': 'sharename2',
+                    'status': 'fake_status2',
+                    'size': 1,
+                    'host': 'fake_host',
+                    'export_location': 'fake_export_location',
+                    'snapshot_id': 'fake_snapshot_id',
+                    'links': [
+                        {"href": endpoint + "/fake_project/shares/"
+                         + share_id2222, "rel": "self"},
+                    ],
+                    'metadata': {'key1': 'value1'}
+                },
+                {
+                    'id': share_id3333,
+                    'name': 'sharename3',
+                    'status': 'fake_status3',
+                    'size': 1,
+                    'host': 'fake_host',
+                    'export_location': 'fake_export_location',
+                    'snapshot_id': 'fake_snapshot_id',
+                    'links': [
+                        {"href": endpoint + "/fake_project/shares/"
+                         + share_id3333, "rel": "self"},
+                    ],
+                    'metadata': {'key1': 'value1', 'key2': 'value2'}
                 },
             ],
         }

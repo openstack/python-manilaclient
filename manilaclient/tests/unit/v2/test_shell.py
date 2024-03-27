@@ -231,8 +231,65 @@ class ShellTest(test_utils.TestCase):
 
     def test_list_filter_by_metadata(self):
         self.run_command('list --metadata key=value')
+        # /shares/detail?metadata={'key': 'value'}
         self.assert_called(
-            'GET', '/shares/detail?metadata=%7B%27key%27%3A+%27value%27%7D')
+            'GET', '/shares/detail?metadata='
+                   '%7B%27key%27%3A+%27value%27%7D')
+
+    def test_list_filter_by_metadata_with_multiple_key_values(self):
+        self.run_command('list --metadata key1=value1 '
+                         'key2=value2 key3=value3')
+        # /shares/detail?metadata={'key1': 'value1',
+        # 'key2': 'value2', 'key3': 'value3'}
+        self.assert_called(
+            'GET', '/shares/detail?metadata='
+                   '%7B%27key1%27%3A+%27value1%27%2C+%27key2%27%3A+'
+                   '%27value2%27%2C+%27key3%27%3A+%27value3%27%7D')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_filter_by_metadata_with_empty_metadata(self):
+        self.run_command('list --metadata \'\'')
+
+        self.assert_called(
+            'GET', '/shares/detail')
+        cliutils.print_list.assert_called()
+        args, _ = cliutils.print_list.call_args
+        shares = args[0]
+        # All 4 shares irrespective of metadata values printed
+        self.assertEqual(len(shares), 4)
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_filter_by_metadata_set_to_None(self):
+        self.run_command('list --metadata None')
+
+        self.assert_called(
+            'GET', '/shares/detail')
+        cliutils.print_list.assert_called()
+        args, _ = cliutils.print_list.call_args
+        shares = args[0]
+        # Check that the size of shares is 2(shares with metadata={})
+        self.assertEqual(len(shares), 2)
+        for share in shares:
+            self.assertEqual(share.metadata, {})
+
+    def test_list_filter_by_metadata_with_one_empty_of_many_metadata(self):
+        self.run_command('list --metadata key=value \'\'')
+        # /shares/detail?metadata={'key': 'value'}
+        self.assert_called(
+            'GET', '/shares/detail?metadata='
+                   '%7B%27key%27%3A+%27value%27%7D')
+
+    @mock.patch.object(cliutils, 'print_list', mock.Mock())
+    def test_list_filter_by_metadata_with_no_metadata(self):
+        self.run_command('list --metadata')
+        # /shares/detail
+        self.assert_called(
+            'GET', '/shares/detail')
+        cliutils.print_list.assert_called()
+        args, _ = cliutils.print_list.call_args
+        shares = args[0]
+        # All 4 shares printed
+        self.assertEqual(len(shares), 4)
 
     def test_list_filter_by_extra_specs_and_its_aliases(self):
         aliases = ['--extra-specs', '--extra_specs', ]

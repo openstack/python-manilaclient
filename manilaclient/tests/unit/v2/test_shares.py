@@ -421,7 +421,7 @@ class SharesTest(utils.TestCase):
         cs.assert_called(
             'GET', '/shares/detail?is_public=True&with_count=True')
         self.assertEqual(2, count)
-        self.assertEqual(1, len(shares))
+        self.assertEqual(4, len(shares))
 
     def test_list_shares_detailed_with_count(self):
         cs.shares.list(detailed=True)

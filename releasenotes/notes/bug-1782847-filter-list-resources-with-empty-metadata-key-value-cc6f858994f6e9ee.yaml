@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The --metadata command should handle empty metadata in proper way.
+    Introduced "None" metadata tag to filter list which have empty.
+    Example: "list --metadata None" will return only elements with metadata={}

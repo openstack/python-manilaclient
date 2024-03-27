@@ -396,8 +396,8 @@ def _translate_keys(collection, convert):
                 setattr(item, to_key, item._info[from_key])
 
 
-def _extract_metadata(args):
-    return _extract_key_value_options(args, 'metadata')
+def _extract_metadata(args, allow_empty_key=True):
+    return _extract_key_value_options(args, 'metadata', allow_empty_key)
 
 
 def _extract_extra_specs(args):
@@ -408,7 +408,7 @@ def _extract_group_specs(args):
     return _extract_key_value_options(args, 'group_specs')
 
 
-def _extract_key_value_options(args, option_name):
+def _extract_key_value_options(args, option_name, allow_empty_key=True):
     result_dict = {}
     duplicate_options = []
 
@@ -419,10 +419,12 @@ def _extract_key_value_options(args, option_name):
             # unset doesn't require a val, so we have the if/else
             if '=' in option:
                 (key, value) = option.split('=', 1)
-            else:
+            elif allow_empty_key:
                 key = option
                 value = None
-
+            else:
+                # disallow empty key
+                continue
             if key not in result_dict:
                 result_dict[key] = value
             else:
@@ -2502,7 +2504,7 @@ def do_list(cs, args):
         'share_network_id': share_network.id,
         'snapshot_id': snapshot.id,
         'share_type_id': share_type.id,
-        'metadata': _extract_metadata(args),
+        'metadata': _extract_metadata(args, allow_empty_key=False),
         'extra_specs': _extract_extra_specs(args),
         'share_server_id': args.share_server_id,
         'project_id': args.project_id,
@@ -2558,6 +2560,10 @@ def do_list(cs, args):
             search_opts=search_opts, sort_key=args.sort_key,
             sort_dir=args.sort_dir
         )
+    # When shell input is "--metadata None", filter metadata={}
+    if shares and args.metadata:
+        if "None" in args.metadata:
+            shares = [share for share in shares if share.metadata == {}]
     # NOTE(vponomaryov): usage of 'export_location' and
     # 'export_locations' columns may cause scaling issue using API 2.9+ and
     # when lots of shares are returned.
