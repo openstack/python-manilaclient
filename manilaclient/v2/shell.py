@@ -1817,11 +1817,18 @@ def do_snapshot_unmanage(cs, args):
     metavar='<snapshot>',
     help='Name or ID of the snapshot to restore. The snapshot must be the '
          'most recent one known to manila.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share to be reverted from snapshot.')
 def do_revert_to_snapshot(cs, args):
     """Revert a share to the specified snapshot."""
     snapshot = _find_share_snapshot(cs, args.snapshot)
     share = _find_share(cs, snapshot.share_id)
     share.revert_to_snapshot(snapshot)
+    if args.wait:
+        _wait_for_share_status(cs, share)
 
 
 @cliutils.arg(
@@ -3061,6 +3068,11 @@ def do_snapshot_instance_export_location_show(cs, args):
     metavar='<description>',
     default=None,
     help='Optional snapshot description. (Default=None)')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for snapshot to be created.')
 def do_snapshot_create(cs, args):
     """Add a new snapshot."""
     share = _find_share(cs, args.share)
@@ -3068,6 +3080,12 @@ def do_snapshot_create(cs, args):
                                          args.force,
                                          args.name,
                                          args.description)
+    if args.wait:
+        try:
+            _wait_for_snapshot_status(cs, snapshot,
+                                      expected_status='available')
+        except exceptions.CommandError as e:
+            print(e, file=sys.stderr)
     _print_share_snapshot(cs, snapshot)
 
 
@@ -3143,6 +3161,11 @@ def do_snapshot_rename(cs, args):
     metavar='<snapshot>',
     nargs='+',
     help='Name or ID of the snapshot(s) to delete.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for snapshot to be deleted')
 def do_snapshot_delete(cs, args):
     """Remove one or more snapshots."""
     failure_count = 0
@@ -3152,6 +3175,9 @@ def do_snapshot_delete(cs, args):
             snapshot_ref = _find_share_snapshot(
                 cs, snapshot)
             cs.share_snapshots.delete(snapshot_ref)
+            if args.wait:
+                _wait_for_snapshot_status(cs, snapshot,
+                                          expected_status='deleted')
         except Exception as e:
             failure_count += 1
             print("Delete for snapshot %s failed: %s" % (
