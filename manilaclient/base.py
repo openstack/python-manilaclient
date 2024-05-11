@@ -129,8 +129,8 @@ class Manager(utils.HookableMixin):
         # pair
         username = cliutils.env('OS_USERNAME', 'MANILA_USERNAME')
         url = cliutils.env('OS_URL', 'MANILA_URL')
-        uniqifier = hashlib.sha1(username.encode('utf-8') +
-                                 url.encode('utf-8')).hexdigest()
+        uniqifier = hashlib.sha256(username.encode('utf-8') +
+                                   url.encode('utf-8')).hexdigest()
 
         cache_dir = os.path.expanduser(os.path.join(base_dir, uniqifier))
 

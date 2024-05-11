@@ -92,3 +92,10 @@
     vars:
       configure_swap_size: 4096
       nslookup_target: 'opendev.org'
+
+- job:
+    name: python-manilaclient-tox-bandit
+    parent: openstack-tox
+    timeout: 2400
+    vars:
+      tox_envlist: bandit
