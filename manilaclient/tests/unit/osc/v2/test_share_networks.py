@@ -79,8 +79,7 @@ class TestShareNetworkCreate(TestShareNetwork):
             name=None,
             description=None,
             neutron_net_id=None,
-            neutron_subnet_id=None,
-            availability_zone=None)
+            neutron_subnet_id=None)
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(expected_data.values(), data)
