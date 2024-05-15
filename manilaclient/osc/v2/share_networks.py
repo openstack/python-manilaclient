@@ -211,6 +211,8 @@ class ShowShareNetwork(command.ShowOne):
             parsed_args.share_network)
 
         data = share_network._info
+        if 'share_network_subnets' not in data:
+            data['share_network_subnets'] = []
 
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
@@ -316,6 +318,8 @@ class CreateShareNetwork(command.ShowOne):
             availability_zone=availability_zone,
         )
         share_network_data = share_network._info
+        if 'share_network_subnets' not in share_network_data:
+            share_network_data['share_network_subnets'] = []
         share_network_data.pop('links', None)
         if parsed_args.formatter == 'table':
             share_network_data['share_network_subnets'] = (
