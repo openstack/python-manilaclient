@@ -160,7 +160,6 @@ class QuotaSet(command.Command):
             "gigabytes": parsed_args.gigabytes,
             "snapshot_gigabytes": parsed_args.snapshot_gigabytes,
             "share_networks": parsed_args.share_networks,
-            "per_share_gigabytes": parsed_args.per_share_gigabytes,
         }
 
         if parsed_args.share_type is not None:
