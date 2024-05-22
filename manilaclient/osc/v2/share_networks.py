@@ -310,13 +310,16 @@ class CreateShareNetwork(command.ShowOne):
         elif parsed_args.availability_zone:
             availability_zone = parsed_args.availability_zone
 
-        share_network = share_client.share_networks.create(
-            name=parsed_args.name,
-            description=parsed_args.description,
-            neutron_net_id=parsed_args.neutron_net_id,
-            neutron_subnet_id=parsed_args.neutron_subnet_id,
-            availability_zone=availability_zone,
-        )
+        kwargs = {
+            "name": parsed_args.name,
+            "description": parsed_args.description,
+            "neutron_net_id": parsed_args.neutron_net_id,
+            "neutron_subnet_id": parsed_args.neutron_subnet_id,
+        }
+        if availability_zone:
+            kwargs['availability_zone'] = availability_zone
+        share_network = share_client.share_networks.create(**kwargs)
+
         share_network_data = share_network._info
         if 'share_network_subnets' not in share_network_data:
             share_network_data['share_network_subnets'] = []

@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Share network create command failed with 2.32 version of api, due to set
+    availability zone argument for old version of create function, which doesn't have
+    this argument. The bug was fixed by adding a check that the user set the
+    availability zone in query.
