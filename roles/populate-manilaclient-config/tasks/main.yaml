@@ -17,7 +17,7 @@
 
       source {{ base_dir }}/devstack/openrc admin demo &>/dev/null
       iniset {{ manilaclient_config }} DEFAULT admin_username $OS_USERNAME
-      iniset {{ manilaclient_config }} DEFAULT admin_tenant_name $OS_TENANT_NAME
+      iniset {{ manilaclient_config }} DEFAULT admin_tenant_name $OS_PROJECT_NAME
       iniset {{ manilaclient_config }} DEFAULT admin_password $OS_PASSWORD
       iniset {{ manilaclient_config }} DEFAULT admin_auth_url $OS_AUTH_URL
       iniset {{ manilaclient_config }} DEFAULT admin_project_domain_id $OS_PROJECT_DOMAIN_ID
