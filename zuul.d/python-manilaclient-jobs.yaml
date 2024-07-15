@@ -82,6 +82,9 @@
         # Neutron services
         q-svc: true
         q-ovn-metadata-agent: true
+        # openstack-cli-server causes problem with credential switch in ansible
+        # task
+        openstack-cli-server: false
 
 - job:
     name: python-manilaclient-functional-fips
