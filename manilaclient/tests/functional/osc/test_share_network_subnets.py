@@ -25,7 +25,7 @@ class ShareNetworkSubnetsCLITest(base.OSCClientTestBase):
             share_network['id'])
 
         self.assertEqual('True', check_result['compatible'])
-        self.assertEqual('{}', check_result['hosts_check_result'])
+        self.assertEqual('', check_result['hosts_check_result'])
 
     def test_openstack_share_network_create_check_restart(self):
         share_network = self.create_share_network()
@@ -34,4 +34,4 @@ class ShareNetworkSubnetsCLITest(base.OSCClientTestBase):
             share_network['id'], restart_check=True)
 
         self.assertEqual('True', check_result['compatible'])
-        self.assertEqual('{}', check_result['hosts_check_result'])
+        self.assertEqual('', check_result['hosts_check_result'])
