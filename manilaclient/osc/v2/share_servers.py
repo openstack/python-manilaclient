@@ -146,6 +146,23 @@ class ListShareServer(command.Lister):
                    "Available for microversion >= 2.51 (Optional, "
                    "Default=None)")
         )
+        parser.add_argument(
+            '--source-share-server-id',
+            metavar='<source-share-server-id>',
+            type=str,
+            default=None,
+            help=_("Share server ID to be used as a filter. Available for "
+                   "microversion >= 2.57 (Optional, Default=None)")
+        )
+        parser.add_argument(
+            '--identifier',
+            metavar='<identifier>',
+            type=str,
+            default=None,
+            help=_("Identifier of the share server in the share back end. "
+                   "Available for microversion >= 2.49 "
+                   "(Optional, Default=None)")
+        )
         identity_common.add_project_domain_option_to_parser(parser)
         return parser
 
@@ -160,11 +177,23 @@ class ListShareServer(command.Lister):
                 parsed_args.project,
                 parsed_args.project_domain).id
 
+        if (parsed_args.identifier and
+                share_client.api_version < api_versions.APIVersion("2.49")):
+            raise exceptions.CommandError(
+                "Filtering by identifier is only allowed with manila API "
+                "version >= 2.49."
+            )
         if (parsed_args.share_network_subnet and
                 share_client.api_version < api_versions.APIVersion("2.51")):
             raise exceptions.CommandError(
                 "Share network subnet can be specified only with manila API "
                 "version >= 2.51"
+            )
+        if (parsed_args.source_share_server_id and
+                share_client.api_version < api_versions.APIVersion("2.57")):
+            raise exceptions.CommandError(
+                "Filtering by source_share_server_id is only allowed with "
+                "manila API version >= 2.57."
             )
 
         columns = [
@@ -186,6 +215,16 @@ class ListShareServer(command.Lister):
                 share_client.share_networks,
                 parsed_args.share_network).id
             search_opts['share_network'] = share_network_id
+
+        if parsed_args.source_share_server_id:
+            search_opts['source_share_server_id'] = (
+                parsed_args.source_share_server_id
+            )
+
+        if parsed_args.identifier:
+            search_opts['identifier'] = (
+                parsed_args.identifier
+            )
 
         if parsed_args.share_network_subnet:
             search_opts['share_network_subnet_id'] = (

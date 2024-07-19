@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Share server list command now support filtering share servers by source
+    share server IDs and identifiers. For more details, please refer to
+    `Launchpad bug #1896949 <https://bugs.launchpad.net/python-manilaclient/+bug/2068631>`_.

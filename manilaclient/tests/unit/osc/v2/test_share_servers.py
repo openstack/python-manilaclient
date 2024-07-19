@@ -219,6 +219,56 @@ class TestListShareServer(TestShareServer):
         self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
 
+    def test_share_server_list_by_source_share_server(self):
+        expected_source_share_server_id = (
+            self.servers_list[0].source_share_server_id
+        )
+        arglist = [
+            '--source-share-server-id', expected_source_share_server_id,
+        ]
+        verifylist = [
+            ('source_share_server_id', expected_source_share_server_id),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        search_opts = {
+            'status': None,
+            'host': None,
+            'project_id': None,
+            'source_share_server_id': expected_source_share_server_id,
+        }
+
+        self.servers_mock.list.assert_called_once_with(
+            search_opts=search_opts,
+        )
+
+        self.assertEqual(self.columns, columns)
+        self.assertEqual(list(self.values), list(data))
+
+    def test_share_server_list_by_identifier(self):
+        expected_identifier = self.servers_list[0].identifier
+        arglist = ['--identifier', expected_identifier,]
+        verifylist = [('identifier', expected_identifier),]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        search_opts = {
+            'status': None,
+            'host': None,
+            'project_id': None,
+            'identifier': expected_identifier,
+        }
+
+        self.servers_mock.list.assert_called_once_with(
+            search_opts=search_opts,
+        )
+
+        self.assertEqual(self.columns, columns)
+        self.assertEqual(list(self.values), list(data))
+
 
 class TestAdoptShareServer(TestShareServer):
 

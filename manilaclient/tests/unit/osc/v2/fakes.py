@@ -1495,6 +1495,7 @@ class FakeShareServer(object):
             'share_network_name': None,
             'share_network_id': str(uuid.uuid4()),
             'share_network_subnet_id': str(uuid.uuid4()),
+            'source_share_server_id': str(uuid.uuid4()),
             'created_at': datetime.datetime.now().isoformat(),
             'is_auto_deletable': False,
             'identifier': str(uuid.uuid4())
