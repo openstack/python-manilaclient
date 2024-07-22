@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Starting from API version 2.86, it is possible to run ensure shares
+    on a given manila-share host, in order to update the shares
+    information.

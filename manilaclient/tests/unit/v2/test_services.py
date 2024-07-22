@@ -98,3 +98,13 @@ class ServicesTest(utils.TestCase):
                 self._get_resource_path(microversion) + '/disable',
                 {"host": host, "binary": binary},
             )
+
+    def test_ensure_shares(self):
+        microversion = '2.86'
+        manager = self._get_manager(microversion)
+        manager.api.client.post = mock.Mock(return_value='fake')
+        host = 'fake_host'
+
+        result = manager.ensure_shares(host)
+
+        self.assertEqual(result, 'fake')
