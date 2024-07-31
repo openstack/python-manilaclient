@@ -3420,6 +3420,7 @@ class ShellTest(test_utils.TestCase):
 
     @ddt.data(True, False)
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_share_replica_delete_force(self, force):
 
         fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
@@ -3433,6 +3434,23 @@ class ShellTest(test_utils.TestCase):
                                body={'force_delete': None})
         else:
             self.assert_called('DELETE', '/share-replicas/1234')
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_replica_delete_with_wait(self):
+
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+
+        self.run_command('share-replica-delete fake-replica --wait')
+
+        self.assert_called('DELETE', '/share-replicas/1234')
+
+        # _wait_for_resource_status should be triggered once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, resource_type='share_replica',
+            expected_status='deleted')
 
     @ddt.data([1, 0], [1, 1], [2, 0], [2, 1], [2, 2])
     @ddt.unpack
@@ -3504,6 +3522,7 @@ class ShellTest(test_utils.TestCase):
         'fake-share-id --availability-zone fake-az',
     )
     @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_share_replica_create(self, data):
 
         fshare = type('FakeShare', (object,), {'id': 'fake-share-id'})
@@ -3515,6 +3534,26 @@ class ShellTest(test_utils.TestCase):
 
         shell_v2._find_share.assert_called_with(mock.ANY, fshare.id)
         self.assert_called('POST', '/share-replicas')
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_replica_create_with_wait(self):
+
+        fshare = type('FakeShare', (object,), {'id': 'fake-share-id'})
+        shell_v2._find_share.return_value = fshare
+
+        cmd = ('share-replica-create fake-share-id '
+               '--availability-zone fake-az --wait')
+
+        self.run_command(cmd)
+
+        shell_v2._find_share.assert_called_with(mock.ANY, fshare.id)
+        self.assert_called('POST', '/share-replicas')
+        # _wait_for_resource_status should be triggered once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, resource_type='share_replica',
+            expected_status='available')
 
     def test_share_replica_show(self):
 
@@ -3523,6 +3562,7 @@ class ShellTest(test_utils.TestCase):
         self.assert_called_anytime('GET', '/share-replicas/5678')
 
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_share_replica_promote_quiesce_wait_time(self):
         fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
         shell_v2._find_share_replica.return_value = fake_replica
@@ -3532,6 +3572,21 @@ class ShellTest(test_utils.TestCase):
         self.assert_called(
             'POST', '/share-replicas/1234/action',
             body={'promote': {'quiesce_wait_time': '5'}})
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_replica_promote_with_wait_(self):
+        fake_replica = type('FakeShareReplica', (object,), {'id': '1234'})
+        shell_v2._find_share_replica.return_value = fake_replica
+        cmd = ('share-replica-promote ' + fake_replica.id + ' --wait')
+        self.run_command(cmd)
+        self.assert_called(
+            'POST', '/share-replicas/1234/action')
+        # _wait_for_resource_status should be triggered once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, resource_type='share_replica',
+            expected_status='active', status_attr='replica_state')
 
     @ddt.data('promote', 'resync')
     @mock.patch.object(shell_v2, '_find_share_replica', mock.Mock())

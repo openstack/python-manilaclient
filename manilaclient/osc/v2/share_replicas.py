@@ -356,6 +356,12 @@ class PromoteShareReplica(command.Command):
             help=_('Quiesce wait time in seconds. Available for '
                    'microversion >= 2.75')
         )
+        parser.add_argument(
+            '--wait',
+            action='store_true',
+            default=False,
+            help=_('Wait for share replica promotion')
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -377,6 +383,15 @@ class PromoteShareReplica(command.Command):
 
         try:
             share_client.share_replicas.promote(*args)
+            if parsed_args.wait:
+                if not osc_utils.wait_for_status(
+                        status_f=share_client.share_replicas.get,
+                        res_id=replica.id,
+                        success_status=['active'],
+                        status_field='replica_state'
+                ):
+                    LOG.error(_("ERROR: Share replica is in error state."))
+
         except Exception as e:
             raise exceptions.CommandError(_(
                 "Failed to promote replica to 'active': %s" % (e)))

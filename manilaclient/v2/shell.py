@@ -6413,6 +6413,11 @@ def do_share_replica_create(cs, args):  # noqa
     action='single_alias',
     help='Optional network info ID or name. '
          'Available only for microversion >= 2.72')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share replica to be created')
 def do_share_replica_create(cs, args):  # noqa
     """Create a share replica."""
     share = _find_share(cs, args.share)
@@ -6441,6 +6446,10 @@ def do_share_replica_create(cs, args):  # noqa
         body['share_network'] = share_network
 
     replica = cs.share_replicas.create(**body)
+    if args.wait:
+        _wait_for_resource_status(
+            cs, replica, resource_type='share_replica',
+            expected_status='available')
     _print_share_replica(cs, replica)
 
 
@@ -6482,6 +6491,11 @@ def do_share_replica_show(cs, args):  # noqa
     help='Attempt to force deletion of a replica on its backend. Using '
          'this option will purge the replica from Manila even if it '
          'is not cleaned up on the backend. Defaults to False.')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share replica to be deleted')
 @api_versions.wraps("2.11")
 def do_share_replica_delete(cs, args):
     """Remove one or more share replicas."""
@@ -6494,6 +6508,10 @@ def do_share_replica_delete(cs, args):
         try:
             replica_ref = _find_share_replica(cs, replica)
             cs.share_replicas.delete(replica_ref, **kwargs)
+            if args.wait:
+                _wait_for_resource_status(
+                    cs, replica_ref, resource_type='share_replica',
+                    expected_status='deleted')
         except Exception as e:
             failure_count += 1
             print("Delete for share replica %s failed: %s" % (replica, e),
@@ -6525,6 +6543,11 @@ def do_share_replica_promote(cs, args):
     default=None,
     help='Quiesce wait time in seconds. Available for '
          'microversion >= 2.75')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share replica to be promoted')
 @api_versions.wraps("2.75")  # noqa
 def do_share_replica_promote(cs, args):  # noqa
     """Promote specified replica to 'active' replica_state."""
@@ -6534,6 +6557,12 @@ def do_share_replica_promote(cs, args):  # noqa
     if args.quiesce_wait_time:
         quiesce_wait_time = args.quiesce_wait_time
     cs.share_replicas.promote(replica, quiesce_wait_time)
+    if args.wait:
+        _wait_for_resource_status(
+            cs, replica,
+            resource_type='share_replica',
+            expected_status='active',
+            status_attr='replica_state')
 
 
 @api_versions.wraps("2.47")
