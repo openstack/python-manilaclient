@@ -64,13 +64,15 @@ class Client(object):
     Or, alternatively, you can create a client instance using the
     keystoneauth1.session API::
 
-        >>> from keystoneclient.auth.identity import v2
+        >>> from keystoneclient.auth.identity import v3
         >>> from keystoneauth1 import session
         >>> from manilaclient import client
-        >>> auth = v2.Password(auth_url=AUTH_URL,
+        >>> auth = v3.Password(auth_url=AUTH_URL,
                                username=USERNAME,
+                               user_domain_name=USER_DOMAIN_NAME,
                                password=PASSWORD,
-                               tenant_name=PROJECT_ID)
+                               project_name=PROJECT_ID,
+                               project_domain_name=PROJECT_DOMAIN_NAME)
         >>> sess = session.Session(auth=auth)
         >>> manila = client.Client(VERSION, session=sess)
 
@@ -261,43 +263,26 @@ class Client(object):
         # Discover the supported keystone versions using the given url
         ks_discover = session.discover.Discover(ks_session, self.auth_url)
 
-        # Inspect the auth_url to see the supported version. If both v3 and v2
-        # are supported, then use the highest version if possible.
-        v2_auth_url = ks_discover.url_for('v2.0')
-        v3_auth_url = ks_discover.url_for('v3.0')
-
-        if v3_auth_url:
-            keystone_client = ks_client.Client(
-                session=ks_session,
-                version=(3, 0),
-                auth_url=v3_auth_url,
-                username=self.username,
-                password=self.password,
-                user_id=self.user_id,
-                user_domain_name=self.user_domain_name,
-                user_domain_id=self.user_domain_id,
-                project_id=self.project_id or self.tenant_id,
-                project_name=self.project_name,
-                project_domain_name=self.project_domain_name,
-                project_domain_id=self.project_domain_id,
-                region_name=self.region_name)
-        elif v2_auth_url:
-            keystone_client = ks_client.Client(
-                session=ks_session,
-                version=(2, 0),
-                auth_url=v2_auth_url,
-                username=self.username,
-                password=self.password,
-                tenant_id=self.tenant_id,
-                tenant_name=self.tenant_name,
-                region_name=self.region_name,
-                cert=self.cert,
-                use_keyring=self.use_keyring,
-                force_new_token=self.force_new_token,
-                stale_duration=self.cached_token_lifetime)
-        else:
+        auth_url = ks_discover.url_for('v3.0')
+        if not auth_url:
             raise exceptions.CommandError(
                 'Unable to determine the Keystone version to authenticate '
                 'with using the given auth_url.')
+
+        keystone_client = ks_client.Client(
+            session=ks_session,
+            version=(3, 0),
+            auth_url=auth_url,
+            username=self.username,
+            password=self.password,
+            user_id=self.user_id,
+            user_domain_name=self.user_domain_name,
+            user_domain_id=self.user_domain_id,
+            project_id=self.project_id or self.tenant_id,
+            project_name=self.project_name,
+            project_domain_name=self.project_domain_name,
+            project_domain_id=self.project_domain_id,
+            region_name=self.region_name)
+
         keystone_client.authenticate()
         return keystone_client
