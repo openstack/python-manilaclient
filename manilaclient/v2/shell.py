@@ -6042,12 +6042,21 @@ def do_share_group_reset_state(cs, args):
     metavar='<description>',
     help='Optional share group snapshot description. (Default=None)',
     default=None)
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share group snapshot to be created')
 @cliutils.service_type('sharev2')
 def do_share_group_snapshot_create(cs, args):
     """Creates a new share group snapshot."""
     kwargs = {'name': args.name, 'description': args.description}
     share_group = _find_share_group(cs, args.share_group)
     sg_snapshot = cs.share_group_snapshots.create(share_group.id, **kwargs)
+    if args.wait:
+        _wait_for_resource_status(
+            cs, sg_snapshot, resource_type='share_group_snapshot',
+            expected_status='available')
     _print_share_group_snapshot(cs, sg_snapshot)
 
 
@@ -6248,6 +6257,11 @@ def do_share_group_snapshot_update(cs, args):
     default=False,
     help='Attempt to force delete the share group snapshot(s) (Default=False)'
          ' (Admin only).')
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share group snapshot to be deleted')
 @cliutils.service_type('sharev2')
 def do_share_group_snapshot_delete(cs, args):
     """Remove one or more share group snapshots."""
@@ -6260,6 +6274,10 @@ def do_share_group_snapshot_delete(cs, args):
         try:
             sg_snapshot_ref = _find_share_group_snapshot(cs, sg_snapshot)
             cs.share_group_snapshots.delete(sg_snapshot_ref, **kwargs)
+            if args.wait:
+                _wait_for_resource_status(
+                    cs, sg_snapshot, resource_type='share_group_snapshot',
+                    expected_status='deleted')
         except Exception as e:
             failure_count += 1
             print("Delete for share group snapshot %s failed: %s" % (

@@ -3143,6 +3143,7 @@ class ShellTest(test_utils.TestCase):
         '--description my_fake_description --name fake_name  fake-sg-id',
     )
     @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_share_group_snapshot_create(self, data):
         fake_sg = type('FakeShareGroup', (object,), {'id': '1234'})
         shell_v2._find_share_group.return_value = fake_sg
@@ -3151,6 +3152,21 @@ class ShellTest(test_utils.TestCase):
 
         shell_v2._find_share_group.assert_called_with(mock.ANY, 'fake-sg-id')
         self.assert_called('POST', '/share-group-snapshots')
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share_group', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_group_snapshot_create_with_wait(self):
+        fake_sg = type('FakeShareGroup', (object,), {'id': '1234'})
+        shell_v2._find_share_group.return_value = fake_sg
+        self.run_command('share-group-snapshot-create fake-sg-id --wait')
+
+        shell_v2._find_share_group.assert_called_with(mock.ANY, 'fake-sg-id')
+        self.assert_called('POST', '/share-group-snapshots')
+        # _wait_for_resource_status should be triggered once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, resource_type='share_group_snapshot',
+            expected_status='available')
 
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_group_snapshot_list(self):
@@ -3252,6 +3268,7 @@ class ShellTest(test_utils.TestCase):
             self.run_command, 'share-group-snapshot-update 1234')
 
     @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
     def test_share_group_snapshot_delete(self):
         fake_sg_snapshot = type('FakeSGSnapshot', (object,), {'id': '1234'})
         shell_v2._find_share_group_snapshot.return_value = fake_sg_snapshot
@@ -3259,6 +3276,22 @@ class ShellTest(test_utils.TestCase):
         self.run_command('share-group-snapshot-delete fake-group-snapshot')
 
         self.assert_called('DELETE', '/share-group-snapshots/1234')
+        self.assertEqual(0, shell_v2._wait_for_resource_status.call_count)
+
+    @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_group_snapshot_delete_with_wait(self):
+        fake_sg_snapshot = type('FakeSGSnapshot', (object,), {'id': '1234'})
+        shell_v2._find_share_group_snapshot.return_value = fake_sg_snapshot
+
+        self.run_command('share-group-snapshot-delete fake-group-snapshot'
+                         ' --wait')
+
+        self.assert_called('DELETE', '/share-group-snapshots/1234')
+        # _wait_for_resource_status should be triggered once
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, mock.ANY, resource_type='share_group_snapshot',
+            expected_status='deleted')
 
     @mock.patch.object(shell_v2, '_find_share_group_snapshot', mock.Mock())
     def test_share_group_snapshot_delete_force(self):
