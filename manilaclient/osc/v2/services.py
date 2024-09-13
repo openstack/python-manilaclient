@@ -138,6 +138,13 @@ class ListShareService(command.Lister):
             default=None,
             help=_("Filter services by their availability zone."),
         )
+        parser.add_argument(
+            "--ensuring",
+            metavar="<ensuring>",
+            choices=['True', 'False'],
+            default=None,
+            help=_("Filter services running ensure shares or not."),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -150,6 +157,14 @@ class ListShareService(command.Lister):
             'state': parsed_args.state,
             'zone': parsed_args.zone,
         }
+        if parsed_args.ensuring:
+            if share_client.api_version < api_versions.APIVersion("2.93"):
+                raise exceptions.CommandError(
+                    "Filtering services whether they are running ensure "
+                    "shares or not is only supported by manila API version "
+                    ">= 2.93"
+                )
+            search_opts['ensuring'] = parsed_args.ensuring
 
         services = share_client.services.list(search_opts=search_opts)
 
@@ -164,7 +179,7 @@ class ListShareService(command.Lister):
         ]
         if share_client.api_version >= api_versions.APIVersion("2.83"):
             columns.append('Disabled Reason')
-        if share_client.api_version >= api_versions.APIVersion("2.86"):
+        if share_client.api_version >= api_versions.APIVersion("2.93"):
             columns.append('Ensuring')
 
         data = (

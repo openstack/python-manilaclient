@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    It is now possible to filter services that have their status set to
+    `ensuring` with a new option in the `service list` command.
