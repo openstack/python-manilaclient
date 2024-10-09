@@ -330,6 +330,7 @@ class FakeShareExportLocation(object):
             "id": "id-" + uuid.uuid4().hex,
             "is_admin_only": False,
             "preferred": False,
+            "properties": {},
             "updated_at": 'time-' + uuid.uuid4().hex,
         }
 

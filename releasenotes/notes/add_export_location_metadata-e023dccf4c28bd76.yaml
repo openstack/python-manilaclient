@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Adds support to set and unset share export location properties
+    (only with the OpenStackClient).
