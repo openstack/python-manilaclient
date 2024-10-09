@@ -417,15 +417,35 @@ class SetShareAccess(command.Command):
                    '(Repeat option to set multiple properties) '
                    'Available only for API microversion >= 2.45.'),
         )
+        parser.add_argument(
+            "--access-level",
+            metavar="<access_level>",
+            default=None,
+            choices=['rw', 'ro'],
+            help=_('Share access level ("rw" and "ro" access levels '
+                   'are supported) to set.')
+        )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
 
-        if share_client.api_version >= api_versions.APIVersion("2.45"):
-            access_rule = share_client.share_access_rules.get(
-                parsed_args.access_id
-            )
+        if (parsed_args.property and
+                share_client.api_version < api_versions.APIVersion("2.45")):
+            raise exceptions.CommandError(
+                "Setting properties to access rule is supported only "
+                "with API microversion 2.45 and higher")
+
+        if (parsed_args.access_level and
+                share_client.api_version < api_versions.APIVersion("2.88")):
+            raise exceptions.CommandError(
+                "Setting access level to access rule is supported only "
+                "with API microversion 2.88 and higher")
+
+        access_rule = share_client.share_access_rules.get(
+            parsed_args.access_id
+        )
+        if parsed_args.property:
             try:
                 share_client.share_access_rules.set_metadata(
                     access_rule,
@@ -435,10 +455,15 @@ class SetShareAccess(command.Command):
                     "Failed to set properties to share access rule with ID "
                     "'%s': %s" % (access_rule.id, e))
 
-        else:
-            raise exceptions.CommandError(
-                "Setting properties to access rule is supported only "
-                "with API microversion 2.45 and higher")
+        if parsed_args.access_level:
+            try:
+                share_client.share_access_rules.set_access_level(
+                    access_rule,
+                    parsed_args.access_level)
+            except Exception as e:
+                raise exceptions.CommandError(
+                    "Failed to set access level to share access rule with ID "
+                    "'%s': %s" % (access_rule.id, e))
 
 
 class UnsetShareAccess(command.Command):

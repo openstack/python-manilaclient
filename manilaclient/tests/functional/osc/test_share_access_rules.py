@@ -218,7 +218,7 @@ class ShowShareAccessRulesTestCase(base.OSCClientTestBase):
 
 
 class SetShareAccessTestCase(base.OSCClientTestBase):
-    def test_set_share_access(self):
+    def test_set_share_access_metadata(self):
         share = self.create_share()
         access_rule = self.create_share_access_rule(
             share=share['name'],
@@ -236,6 +236,24 @@ class SetShareAccessTestCase(base.OSCClientTestBase):
             'share',
             f'access show {access_rule["id"]}')
         self.assertEqual(access_rule['properties'], 'foo : bar')
+
+    def test_set_share_access_level(self):
+        share = self.create_share()
+        access_rule = self.create_share_access_rule(
+            share=share['name'],
+            access_type='ip',
+            access_to='0.0.0.0/0',
+            wait=True)
+
+        self.assertEqual(access_rule['access_level'], 'rw')
+
+        self.openstack('share',
+                       params=f'access set {access_rule["id"]} '
+                       f'--access-level ro')
+        access_rule = self.dict_result(
+            'share',
+            f'access show {access_rule["id"]}')
+        self.assertEqual(access_rule['access_level'], 'ro')
 
 
 class UnsetShareAccessRulesTestCase(base.OSCClientTestBase):

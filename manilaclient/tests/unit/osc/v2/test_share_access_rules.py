@@ -548,7 +548,7 @@ class TestShareAccessSet(TestShareAccess):
         # Get the command object to test
         self.cmd = osc_share_access_rules.SetShareAccess(self.app, None)
 
-    def test_access_rule_set(self):
+    def test_access_rule_set_metadata(self):
         arglist = [
             self.access_rule.id,
             '--property', 'key1=value1'
@@ -563,6 +563,23 @@ class TestShareAccessSet(TestShareAccess):
         self.access_rules_mock.set_metadata.assert_called_with(
             self.access_rule,
             {'key1': 'value1'})
+        self.assertIsNone(result)
+
+    def test_access_rule_set_access_level(self):
+        arglist = [
+            self.access_rule.id,
+            '--access-level', 'ro'
+        ]
+        verifylist = [
+            ("access_id", self.access_rule.id),
+            ('access_level', 'ro')
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+
+        self.access_rules_mock.set_access_level.assert_called_with(
+            self.access_rule,
+            'ro')
         self.assertIsNone(result)
 
 
