@@ -28,10 +28,7 @@ import requests
 
 from manilaclient import exceptions
 
-try:
-    from eventlet import sleep
-except ImportError:
-    from time import sleep  # noqa
+from time import sleep  # noqa
 
 try:
     osprofiler_web = importutils.try_import("osprofiler.web")
