@@ -87,6 +87,12 @@ class ServiceManager(base.Manager):
         return self._do_disable(host, binary, RESOURCE_PATH,
                                 disable_reason=disable_reason)
 
+    @api_versions.wraps("2.86")
+    def ensure_shares(self, host):  # noqa
+        resource_path = f'{RESOURCE_PATH}/ensure_shares'
+        body = {"host": host}
+        return self.api.client.post(resource_path, body=body)
+
     def server_api_version(self, url_append=""):
         """Returns the API Version supported by the server.
 

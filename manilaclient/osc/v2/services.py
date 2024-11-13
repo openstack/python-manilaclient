@@ -151,8 +151,40 @@ class ListShareService(command.Lister):
         ]
         if share_client.api_version >= api_versions.APIVersion("2.83"):
             columns.append('Disabled Reason')
+        if share_client.api_version >= api_versions.APIVersion("2.86"):
+            columns.append('Ensuring')
 
         data = (osc_utils.get_dict_properties(
             service._info, columns) for service in services)
 
         return (columns, data)
+
+
+class EnsureShareService(command.Command):
+    """Run ensure shares in a back end (Admin only)."""
+    _description = _("Run ensure shares in a back end (Admin only).")
+
+    def get_parser(self, prog_name):
+        parser = super(EnsureShareService, self).get_parser(prog_name)
+        parser.add_argument(
+            'host',
+            metavar='<host>',
+            help=_("Host to run ensure shares. "
+                   "'example_host@example_backend'.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        share_client = self.app.client_manager.share
+
+        if share_client.api_version < api_versions.APIVersion("2.86"):
+            raise exceptions.CommandError(
+                "Ensure shares API is only available in "
+                "manila API version >= 2.86")
+
+        try:
+            share_client.services.ensure_shares(parsed_args.host)
+        except Exception as e:
+            raise exceptions.CommandError(
+                _("Failed to run ensure shares: %s" % e)
+            )

@@ -266,3 +266,61 @@ class TestShareServiceList(TestShareService):
         else:
             self.assertEqual(self.column_headers, columns)
             self.assertEqual(list(self.values), list(data))
+
+
+@ddt.ddt
+class TestShareServiceEnsureShares(TestShareService):
+
+    def setUp(self):
+        super(TestShareServiceEnsureShares, self).setUp()
+
+        self.cmd = osc_services.EnsureShareService(self.app, None)
+
+    def test_ensure_shares(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.86')
+        fake_host = 'fake_host@fakebackend'
+        arglist = [
+            fake_host,
+        ]
+        verifylist = [
+            ('host', fake_host),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.services_mock.ensure_shares.assert_called_with(fake_host)
+
+    def test_ensure_shares_invalid_version(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.85')
+        fake_host = 'fake_host@fakebackend'
+        arglist = [
+            fake_host,
+        ]
+        verifylist = [
+            ('host', fake_host),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(exceptions.CommandError,
+                          self.cmd.take_action,
+                          parsed_args)
+
+    def test_ensure_shares_command_error(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.86')
+        self.services_mock.ensure_shares.side_effect = Exception()
+        fake_host = 'fake_host@fakebackend'
+        arglist = [
+            fake_host,
+        ]
+        verifylist = [
+            ('host', fake_host),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(exceptions.CommandError,
+                          self.cmd.take_action,
+                          parsed_args)
