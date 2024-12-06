@@ -13,7 +13,6 @@
 #   under the License.
 #
 
-import argparse
 import ddt
 from unittest import mock
 import uuid
@@ -1052,7 +1051,7 @@ class TestShareList(TestShare):
         verifylist = [
             ("limit", -2),
         ]
-        self.assertRaises(argparse.ArgumentTypeError, self.check_parser,
+        self.assertRaises(osc_utils.ParserException, self.check_parser,
                           self.cmd, arglist, verifylist)
 
     def test_share_list_name_description_filter(self):

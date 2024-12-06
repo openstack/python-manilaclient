@@ -11,21 +11,17 @@
 #   under the License.
 #
 
-import argparse
 from unittest import mock
 import uuid
 
 from osc_lib import exceptions
 from osc_lib import exceptions as osc_exceptions
-
 from osc_lib import utils as oscutils
 
-from manilaclient.osc import utils
-
 from manilaclient import api_versions
-
+from manilaclient.osc import utils
 from manilaclient.osc.v2 import share_groups as osc_share_groups
-
+from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
@@ -795,7 +791,7 @@ class TestShareGroupList(TestShareGroup):
         verifylist = [
             ("limit", -2),
         ]
-        self.assertRaises(argparse.ArgumentTypeError, self.check_parser,
+        self.assertRaises(osc_utils.ParserException, self.check_parser,
                           self.cmd, arglist, verifylist)
 
     # TODO(archanaserver): Add test cases for share-server-id,
