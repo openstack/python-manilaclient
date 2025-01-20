@@ -349,6 +349,50 @@ class TestQuotaSet(TestQuotas):
                 user_id=None)
             self.assertIsNone(result)
 
+    def test_quota_set_encryption_keys_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.89')
+        arglist = [
+            self.project.id,
+            '--encryption-keys', '10',
+        ]
+        verifylist = [
+            ('project', self.project.id),
+            ('encryption_keys', 10)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args)
+
+    def test_quota_set_encryption_keys(self):
+        arglist = [
+            self.project.id,
+            '--encryption-keys', '10',
+        ]
+        verifylist = [
+            ('project', self.project.id),
+            ('encryption_keys', 10)
+        ]
+
+        with mock.patch('osc_lib.utils.find_resource') as mock_find_resource:
+            mock_find_resource.return_value = self.project
+
+            parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+            result = self.cmd.take_action(parsed_args)
+            self.quotas_mock.update.assert_called_with(
+                force=None,
+                gigabytes=None,
+                share_networks=None,
+                shares=None,
+                snapshot_gigabytes=None,
+                snapshots=None,
+                encryption_keys=10,
+                tenant_id=self.project.id,
+                user_id=None)
+            self.assertIsNone(result)
+
 
 class TestQuotaShow(TestQuotas):
     project = identity_fakes.FakeProject.create_one_project()

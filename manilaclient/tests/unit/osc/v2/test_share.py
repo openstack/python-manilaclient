@@ -133,6 +133,7 @@ class TestShareCreate(TestShare):
             snapshot_id=None,
             scheduler_hints={},
             mount_point_name=None,
+            encryption_key_ref=None,
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -182,6 +183,7 @@ class TestShareCreate(TestShare):
             snapshot_id=None,
             scheduler_hints={},
             mount_point_name=None,
+            encryption_key_ref=None,
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -229,6 +231,7 @@ class TestShareCreate(TestShare):
             scheduler_hints={'same_host': shares[0].id,
                              'different_host': shares[1].id},
             mount_point_name=None,
+            encryption_key_ref=None,
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -271,6 +274,49 @@ class TestShareCreate(TestShare):
             snapshot_id=None,
             scheduler_hints={},
             mount_point_name='fake_mp',
+            encryption_key_ref=None,
+        )
+
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.datalist, data)
+
+    def test_share_create_encryption_key_ref(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.90")
+
+        encryption_key_ref = 'fake_ekr'
+
+        arglist = [
+            self.new_share.share_proto,
+            str(self.new_share.size),
+            '--share-type', self.share_type.id,
+            '--encryption-key-ref', encryption_key_ref,
+        ]
+        verifylist = [
+            ('share_proto', self.new_share.share_proto),
+            ('size', self.new_share.size),
+            ('encryption_key_ref', encryption_key_ref),
+            ('share_type', self.share_type.id),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.shares_mock.create.assert_called_with(
+            availability_zone=None,
+            description=None,
+            is_public=False,
+            metadata={},
+            name=None,
+            share_group_id=None,
+            share_network=None,
+            share_proto=self.new_share.share_proto,
+            share_type=self.share_type.id,
+            size=self.new_share.size,
+            snapshot_id=None,
+            scheduler_hints={},
+            mount_point_name=None,
+            encryption_key_ref=encryption_key_ref,
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -315,6 +361,7 @@ class TestShareCreate(TestShare):
             snapshot_id=self.share_snapshot.id,
             scheduler_hints={},
             mount_point_name=None,
+            encryption_key_ref=None,
         )
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.datalist, data)
@@ -352,6 +399,7 @@ class TestShareCreate(TestShare):
             snapshot_id=None,
             scheduler_hints={},
             mount_point_name=None,
+            encryption_key_ref=None,
         )
 
         self.shares_mock.get.assert_called_with(self.new_share.id)
@@ -393,6 +441,7 @@ class TestShareCreate(TestShare):
                 snapshot_id=None,
                 scheduler_hints={},
                 mount_point_name=None,
+                encryption_key_ref=None,
             )
 
             mock_logger.error.assert_called_with(
@@ -701,6 +750,7 @@ class TestShareList(TestShare):
             'export_location': None,
             'name~': None,
             'description~': None,
+            'encryption_key_ref': None,
         }
         return search_opts
 
@@ -977,6 +1027,7 @@ class TestShareList(TestShare):
             'Has Replicas',
             'Created At',
             'Properties',
+            'Encryption Key Ref'
         ]
         self.assertEqual(collist, cmd_columns)
 
@@ -1008,7 +1059,8 @@ class TestShareList(TestShare):
             self.new_share.replication_type,
             self.new_share.has_replicas,
             self.new_share.created_at,
-            self.new_share.metadata
+            self.new_share.metadata,
+            self.new_share.encryption_key_ref
         ),)
 
         self.assertEqual(data, tuple(cmd_data))
@@ -1095,6 +1147,23 @@ class TestShareList(TestShare):
 
         search_opts = self._get_search_opts()
         search_opts['is_soft_deleted'] = True
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            osc_exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args)
+
+    def test_list_share_encryption_key_ref_api_version_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.89")
+        arglist = [
+            '--encryption-key-ref', 'fake',
+        ]
+        verifylist = [
+            ('encryption_key_ref', 'fake'),
+        ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 

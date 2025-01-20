@@ -163,6 +163,29 @@ class SharesTest(utils.TestCase):
         cs.shares.create('nfs', 1, mount_point_name=mount_point_name)
         cs.assert_called('POST', '/shares', body)
 
+    @ddt.data({'encryption_key_ref': 'fake_key1'},
+              {'encryption_key_ref': 'fake_key2'})
+    @ddt.unpack
+    def test_create_share_with_encryption_key_ref(self, encryption_key_ref):
+        body = {
+            'share': {
+                'is_public': False,
+                'share_type': None,
+                'name': None,
+                'snapshot_id': None,
+                'description': None,
+                'metadata': {},
+                'share_proto': 'nfs',
+                'share_network_id': None,
+                'size': 1,
+                'availability_zone': None,
+                'scheduler_hints': {},
+                'encryption_key_ref': encryption_key_ref,
+            }
+        }
+        cs.shares.create('nfs', 1, encryption_key_ref=encryption_key_ref)
+        cs.assert_called('POST', '/shares', body)
+
     @ddt.data(
         type('ShareUUID', (object, ), {'uuid': '1234'}),
         type('ShareID', (object, ), {'id': '1234'}),

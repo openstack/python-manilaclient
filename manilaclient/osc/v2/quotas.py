@@ -135,6 +135,14 @@ class QuotaSet(command.Command):
                    "Available only for microversion >= 2.62")
         )
         parser.add_argument(
+            '--encryption-keys',
+            metavar='<encryption-keys>',
+            type=int,
+            default=None,
+            help=_("New value for the 'encryption-keys' quota."
+                   "Available only for microversion >= 2.90")
+        )
+        parser.add_argument(
             '--force',
             dest='force',
             action="store_true",
@@ -200,6 +208,13 @@ class QuotaSet(command.Command):
                     "starting with '2.62' API microversion.")
                 )
             kwargs["per_share_gigabytes"] = parsed_args.per_share_gigabytes
+        if parsed_args.encryption_keys is not None:
+            if share_client.api_version < api_versions.APIVersion('2.90'):
+                raise exceptions.CommandError(_(
+                    "'encryption keys' quotas are available only "
+                    "starting with '2.90' API microversion.")
+                )
+            kwargs["encryption_keys"] = parsed_args.encryption_keys
 
         if all(value is None for value in kwargs.values()):
             raise exceptions.CommandError(_(
@@ -208,7 +223,8 @@ class QuotaSet(command.Command):
                 "resources: 'shares', 'snapshots', 'gigabytes', "
                 "'snapshot-gigabytes', 'share-networks', 'share-type', "
                 "'share-groups', 'share-group-snapshots', 'share-replicas', "
-                "'replica-gigabytes', 'per-share-gigabytes'"))
+                "'replica-gigabytes', 'per-share-gigabytes', "
+                "'encryption_keys'"))
 
         if parsed_args.quota_class:
             kwargs.update({

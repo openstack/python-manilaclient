@@ -58,7 +58,8 @@ SHARE_ATTRIBUTES = [
     'replication_type',
     'has_replicas',
     'created_at',
-    'metadata'
+    'metadata',
+    'encryption_key_ref'
 ]
 
 SHARE_ATTRIBUTES_HEADERS = [
@@ -90,6 +91,7 @@ SHARE_ATTRIBUTES_HEADERS = [
     'Has Replicas',
     'Created At',
     'Properties',
+    'Encryption Key Ref'
 ]
 
 
@@ -195,6 +197,14 @@ class CreateShare(command.ShowOne):
             help=_('Optional custom export location. Available for '
                    'microversion >= 2.84')
         )
+        parser.add_argument(
+            '--encryption-key-ref',
+            metavar="<encryption_key_ref>",
+            default=None,
+            help=_('Set encryption key reference i.e. UUID of the secret '
+                   'stored in the key manager. Available for '
+                   'microversion >= 2.90')
+        )
 
         return parser
 
@@ -248,6 +258,15 @@ class CreateShare(command.ShowOne):
             else:
                 mount_point_name = parsed_args.mount_point_name
 
+        encryption_key_ref = None
+        if parsed_args.encryption_key_ref:
+            if share_client.api_version < api_versions.APIVersion('2.90'):
+                raise exceptions.CommandError(
+                    'Setting share encryption key reference is '
+                    'available only for API microversion >= 2.90')
+            else:
+                encryption_key_ref = parsed_args.encryption_key_ref
+
         scheduler_hints = {}
         if parsed_args.scheduler_hint:
             if share_client.api_version < api_versions.APIVersion('2.65'):
@@ -289,6 +308,7 @@ class CreateShare(command.ShowOne):
             'share_group_id': share_group,
             'scheduler_hints': scheduler_hints,
             'mount_point_name': mount_point_name,
+            'encryption_key_ref': encryption_key_ref,
         }
 
         share = share_client.shares.create(**body)
@@ -537,6 +557,12 @@ class ListShare(command.Lister):
             help=_("Filter results matching a share description pattern."
                    "Available only for microversion >= 2.36.")
         )
+        parser.add_argument(
+            '--encryption-key-ref',
+            metavar="<encryption_key_ref>",
+            help=_('Filter shares by their encryption key ref. '
+                   'Available for microversion >= 2.90'),
+        )
 
         return parser
 
@@ -647,6 +673,13 @@ class ListShare(command.Lister):
             raise exceptions.CommandError(
                 "Filtering by export location is only "
                 "available with manila API version >= 2.35")
+
+        if share_client.api_version >= api_versions.APIVersion('2.90'):
+            search_opts['encryption_key_ref'] = parsed_args.encryption_key_ref
+        elif (getattr(parsed_args, 'encryption_key_ref')):
+            raise exceptions.CommandError(
+                "Filtering shares by encryption key ref is only "
+                "available with manila API version >= 2.90")
 
         # NOTE(vkmc) We implemented sorting and filtering in manilaclient
         # but we will use the one provided by osc

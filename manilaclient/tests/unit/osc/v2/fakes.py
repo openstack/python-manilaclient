@@ -140,6 +140,7 @@ class FakeShare(object):
             "source_share_group_snapshot_member_id": None,
             "scheduler_hints": {},
             "mount_point_name": None,
+            "encryption_key_ref": None,
         }
 
         # Overwrite default attributes.
@@ -420,6 +421,7 @@ class FakeQuotaSet(object):
             'shapshot_gigabytes': 1000,
             'snapshots': 50,
             'per_share_gigabytes': -1,
+            'encryption_keys': 100,
         }
 
         quotas_info.update(attrs)

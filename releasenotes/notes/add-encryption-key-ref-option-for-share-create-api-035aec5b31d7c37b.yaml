@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Starting microversion 2.90, Manila supports 'bring your own key' feature
+    that allows user to pass encryption key reference in share creation. The
+    encryption key reference must be the UUID of a secret encryption key that
+    is stored on a key manager configured in the Shared File Systems service.
+    Encryption key reference can belongs to either share or share-server which
+    will be decided by storage driver capability and the share type.
+    Added 'encryption_keys' per project quota which controls how many share
+    and share server encryption keys will be created within project.

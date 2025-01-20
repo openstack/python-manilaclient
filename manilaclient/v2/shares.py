@@ -125,7 +125,7 @@ class ShareManager(base.MetadataCapableManager):
                description=None, metadata=None, share_network=None,
                share_type=None, is_public=False, availability_zone=None,
                share_group_id=None, scheduler_hints=None, return_raw=False,
-               mount_point_name=None):
+               mount_point_name=None, encryption_key_ref=None):
         """Create a share.
 
         :param share_proto: text - share protocol for new share available
@@ -146,6 +146,8 @@ class ShareManager(base.MetadataCapableManager):
         :param mount_point_name: text - share human-readable mount point name.
             This name will be reflected in export location once
             share is created.
+        :param encryption_key_ref: text - encryption key reference, i.e. UUID
+            of the secret stored in the key manager.
         :rtype: :class:`Share`
         """
         share_metadata = metadata if metadata is not None else dict()
@@ -169,6 +171,9 @@ class ShareManager(base.MetadataCapableManager):
 
         if mount_point_name:
             body['mount_point_name'] = mount_point_name
+
+        if encryption_key_ref:
+            body['encryption_key_ref'] = encryption_key_ref
 
         return self._create('/shares', {'share': body}, 'share',
                             return_raw=return_raw)
@@ -356,6 +361,7 @@ class ShareManager(base.MetadataCapableManager):
         search_opts = search_opts or {}
         search_opts.pop("export_location", None)
         search_opts.pop("is_soft_deleted", None)
+        search_opts.pop("encryption_key_ref", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
                             sort_key=sort_key, sort_dir=sort_dir,
                             return_raw=return_raw)
@@ -367,11 +373,22 @@ class ShareManager(base.MetadataCapableManager):
         if search_opts is None:
             search_opts = {}
         search_opts.pop("is_soft_deleted", None)
+        search_opts.pop("encryption_key_ref", None)
         return self.do_list(detailed=detailed, search_opts=search_opts,
                             sort_key=sort_key, sort_dir=sort_dir,
                             return_raw=return_raw)
 
-    @api_versions.wraps("2.69")  # noqa
+    @api_versions.wraps("2.69", "2.89")  # noqa
+    def list(self, detailed=True, search_opts=None,  # noqa
+             sort_key=None, sort_dir=None, return_raw=False):
+        """Get a list of all shares."""
+        search_opts = search_opts or {}
+        search_opts.pop("encryption_key_ref", None)
+        return self.do_list(detailed=detailed, search_opts=search_opts,
+                            sort_key=sort_key, sort_dir=sort_dir,
+                            return_raw=return_raw)
+
+    @api_versions.wraps("2.90")  # noqa
     def list(self, detailed=True, search_opts=None,  # noqa
              sort_key=None, sort_dir=None, return_raw=False):
         """Get a list of all shares."""
@@ -400,6 +417,7 @@ class ShareManager(base.MetadataCapableManager):
             - (('share_type_id', 'share_type'), text)
             - (('snapshot_id', 'snapshot'), text)
             - ('is_soft_deleted', bool)
+            - ('encryption_key_ref', text)
             Note, that member context will have restricted set of
             available search opts. For admin context filtering also available
             by each share attr from its Model. So, this list is not full for
