@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    The ``access_level`` attributes of share access rule (of access type
+    ``ip``) can be updated with API version ``2.88`` and beyond.

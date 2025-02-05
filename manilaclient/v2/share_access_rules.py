@@ -60,8 +60,7 @@ class ShareAccessRuleManager(base.ManagerWithFind):
     def set_metadata(self, access, metadata):
         """Set or update metadata for share access rule.
 
-        :param share_access_rule: either share access rule object or
-            text with its ID.
+        :param access: either share access rule object or text with its ID.
         :param metadata: A list of keys to be set.
         """
         body = {'metadata': metadata}
@@ -73,12 +72,29 @@ class ShareAccessRuleManager(base.ManagerWithFind):
     def unset_metadata(self, access, keys):
         """Unset metadata on a share access rule.
 
+        :param access: either share access rule object or text with its ID.
         :param keys: A list of keys on this object to be unset
         :return: None if successful, else API response on failure
         """
         for k in keys:
             url = RESOURCE_METADATA_PATH % (base.getid(access), k)
             self._delete(url)
+
+    @api_versions.wraps("2.88")
+    def set_access_level(self, access, access_level):
+        """Set or update access level for share access rule.
+
+        :param access: either share access rule object or text with its ID.
+        :param access_level: value of access_level (e.g. ro/rw)
+        """
+        body = {
+            'update_access': {
+                'access_level': access_level
+            }
+        }
+        access_id = base.getid(access)
+        url = RESOURCE_PATH % access_id
+        return self._update(url, body)
 
     @api_versions.wraps("2.45")
     def access_list(self, share, search_opts=None):
