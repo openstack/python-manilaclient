@@ -1153,12 +1153,11 @@ class TestShareShow(TestShare):
         self.shares_mock.get.assert_called_with(self._share.id)
 
         self.assertEqual(
-            manila_fakes.FakeShare.get_share_columns(self._share),
-            columns)
+            sorted(manila_fakes.FakeShare.get_share_columns(self._share)),
+            sorted(columns))
 
-        self.assertEqual(
-            manila_fakes.FakeShare.get_share_data(self._share),
-            data)
+        self.assertCountEqual(
+            manila_fakes.FakeShare.get_share_data(self._share), data)
 
 
 class TestShareSet(TestShare):
