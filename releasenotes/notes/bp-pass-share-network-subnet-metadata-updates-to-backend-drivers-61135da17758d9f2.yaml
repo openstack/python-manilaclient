@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    With microversion 2.89, share network subnet metadata updates will be
+    passed to storage backend driver for processing driver specific things
+    if supported.
