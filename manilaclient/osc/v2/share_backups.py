@@ -20,9 +20,11 @@ from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils as osc_utils
 
+from manilaclient import api_versions
 from manilaclient.common._i18n import _
 from manilaclient.common import constants
 from manilaclient.osc import utils
+
 
 LOG = logging.getLogger(__name__)
 
@@ -282,14 +284,51 @@ class RestoreShareBackup(command.Command):
             metavar="<backup>",
             help=_('ID of backup to restore.')
         )
+        parser.add_argument(
+            "--target-share",
+            metavar="<target-share>",
+            default=None,
+            help=_('share to restore backup to. Source share if none supplied')
+        )
+        parser.add_argument(
+            '--wait',
+            action='store_true',
+            default=False,
+            help=_('Wait for restore conclusion')
+        )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
+        kwargs = {}
+
         share_backup = osc_utils.find_resource(
             share_client.share_backups,
-            parsed_args.backup)
-        share_client.share_backups.restore(share_backup.id)
+            parsed_args.backup
+        )
+        target_share_id = None
+        if parsed_args.target_share is not None:
+            if share_client.api_version < api_versions.APIVersion('2.91'):
+                raise exceptions.CommandError(
+                    'performing targeted restores is only available '
+                    'for API microversion >= 2.91')
+            else:
+                target_share_id = osc_utils.find_resource(
+                    share_client.shares,
+                    parsed_args.target_share
+                ).id
+                kwargs['target_share_id'] = target_share_id
+
+        share_client.share_backups.restore(share_backup.id, **kwargs)
+
+        if parsed_args.wait:
+            if not osc_utils.wait_for_status(
+                status_f=share_client.shares.get,
+                res_id=(target_share_id or share_backup.share_id),
+                success_status=['available'],
+                error_status=['error', 'backup_restoring_error']
+            ):
+                LOG.error(_("ERROR: share is in error state."))
 
 
 class SetShareBackup(command.Command):

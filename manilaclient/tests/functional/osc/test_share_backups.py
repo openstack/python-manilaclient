@@ -69,6 +69,24 @@ class ShareBackupCLITest(base.OSCClientTestBase):
         self.assertEqual('test_backup_show', show_result["name"])
         self.assertEqual('Description', show_result["description"])
 
+    def test_share_backup_restore(self):
+        share = self.create_share()
+
+        backup = self.create_backup(
+            share_id=share['id'],
+            backup_options={'dummy': True})
+
+        self.openstack(
+            f'share backup restore {backup["id"]} --wait')
+
+        backup = json.loads(self.openstack(
+            f'share backup show -f json {backup["id"]}'))
+        share = json.loads(self.openstack(
+            f'share show -f json {share["id"]}'))
+
+        self.assertEqual('available', backup['status'])
+        self.assertEqual('available', share['status'])
+
     def test_share_backup_set(self):
         share = self.create_share()
 
