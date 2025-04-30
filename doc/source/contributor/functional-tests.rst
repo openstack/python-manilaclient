@@ -28,7 +28,7 @@ run manila, a good place to start would be the `manila contributor guide`_.
 You can use the following local.conf file to configure DevStack including
 Manila using a few fake back ends:
 
-.. code-block:: console
+.. code-block:: bash
 
     [[local|localrc]]
 
@@ -117,7 +117,7 @@ For DevStack
 On your DevStack machine, you can run the following script. It assumes that
 ``devstack`` is cloned onto your base folder.
 
-.. code-block:: console
+.. code-block:: bash
 
     DEST=${DEST:-/opt/stack}
     MANILACLIENT_DIR=${MANILACLIENT_DIR:-$DEST/python-manilaclient}
@@ -163,7 +163,7 @@ On your DevStack machine, you can run the following script. It assumes that
     # Create share network and use it for functional tests if required
     USE_SHARE_NETWORK=$(trueorfalse True USE_SHARE_NETWORK)
 
-.. code-block:: console
+.. code-block:: bash
 
     if [[ ${USE_SHARE_NETWORK} = True ]]; then
         SHARE_NETWORK_NAME=${SHARE_NETWORK_NAME:-ci}
@@ -177,7 +177,7 @@ On your DevStack machine, you can run the following script. It assumes that
 
     fi
 
-.. code-block:: console
+.. code-block:: bash
 
     # Set share type if required
     if [[ "$SHARE_TYPE" ]]; then
