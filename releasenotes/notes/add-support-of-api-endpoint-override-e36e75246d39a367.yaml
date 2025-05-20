@@ -1,0 +1,6 @@
+---
+features:
+  - Manilaclient is updated to consider API endpoint override option
+    `--os-endpoint-override`. For example, "openstack share list" command
+    for different API endpoint will be "openstack --os-endpoint-override
+    <endpoint_url> share list".
