@@ -11,6 +11,8 @@
 #   under the License.
 
 
+from tempest.lib import exceptions
+
 from manilaclient.tests.functional.osc import base
 
 
@@ -101,3 +103,17 @@ class MessagesCLITest(base.OSCClientTestBase):
         messages = [msg for msg in messages
                     if msg['ID'] == message["ID"]]
         self.assertEqual(0, len(messages))
+
+    def test_delete_message_wrong_id(self):
+        self.assertRaises(
+            exceptions.CommandFailed,
+            self.openstack,
+            'share message delete 0'
+        )
+
+    def test_show_message_wrong_id(self):
+        self.assertRaises(
+            exceptions.CommandFailed,
+            self.openstack,
+            'share message show'
+        )
