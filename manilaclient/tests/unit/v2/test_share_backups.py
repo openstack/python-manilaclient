@@ -20,6 +20,7 @@ from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_backups
 
 FAKE_BACKUP = 'fake_backup'
+FAKE_TARGET_SHARE_ID = 'fake_target_share_id'
 
 
 @ddt.ddt
@@ -30,7 +31,7 @@ class ShareBackupsTest(utils.TestCase):
 
     def setUp(self):
         super(ShareBackupsTest, self).setUp()
-        microversion = api_versions.APIVersion("2.80")
+        microversion = api_versions.APIVersion("2.91")
         self.manager = share_backups.ShareBackupManager(
             fakes.FakeClient(api_version=microversion))
 
@@ -58,7 +59,16 @@ class ShareBackupsTest(utils.TestCase):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.restore(FAKE_BACKUP)
             self.manager._action.assert_called_once_with(
-                'restore', FAKE_BACKUP)
+                'restore', FAKE_BACKUP, info=None)
+
+    def test_restore_to_target(self):
+        with mock.patch.object(self.manager, '_action', mock.Mock()):
+            self.manager.restore(
+                FAKE_BACKUP,
+                target_share_id=FAKE_TARGET_SHARE_ID
+            )
+            self.manager._action.assert_called_once_with(
+                'restore', FAKE_BACKUP, info=FAKE_TARGET_SHARE_ID)
 
     def test_list(self):
         with mock.patch.object(self.manager, '_list', mock.Mock()):

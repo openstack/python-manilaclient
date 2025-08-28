@@ -110,10 +110,15 @@ class ShareBackupManager(base.ManagerWithFind):
         url = RESOURCE_PATH % backup_id
         self._delete(url)
 
-    @api_versions.wraps("2.80")
+    @api_versions.wraps("2.80", "2.90")
     @api_versions.experimental_api
-    def restore(self, backup):
-        return self._action('restore', backup)
+    def restore(self, backup_id):
+        return self._action('restore', backup_id)
+
+    @api_versions.wraps("2.91")
+    @api_versions.experimental_api
+    def restore(self, backup_id, target_share_id=None): # noqa F811
+        return self._action('restore', backup_id, info=target_share_id)
 
     @api_versions.wraps("2.80")
     @api_versions.experimental_api
