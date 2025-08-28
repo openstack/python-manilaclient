@@ -31,6 +31,13 @@ environment variables::
     export OS_AUTH_URL=http://...
     export OS_SHARE_API_VERSION=2.51
 
+It is possible to use different Manila endpoint while using Openstack
+Client. In this case, you can use configuration option
+``--os-endpoint-override`` or set the corresponding environment
+variable::
+
+    export OS_ENDPOINT_OVERRIDE=http://...
+
 
 Getting help
 ============
