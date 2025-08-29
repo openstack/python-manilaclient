@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixed an issue while running ensure shares and getting a not found
+    response. The command should now work properly.
