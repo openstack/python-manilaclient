@@ -89,7 +89,7 @@ class ServiceManager(base.Manager):
 
     @api_versions.wraps("2.86")
     def ensure_shares(self, host):  # noqa
-        resource_path = f'{RESOURCE_PATH}/ensure_shares'
+        resource_path = f'{RESOURCE_PATH}/ensure-shares'
         body = {"host": host}
         return self.api.client.post(resource_path, body=body)
 
