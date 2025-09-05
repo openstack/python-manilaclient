@@ -104,14 +104,14 @@ class MessagesCLITest(base.OSCClientTestBase):
                     if msg['ID'] == message["ID"]]
         self.assertEqual(0, len(messages))
 
-    def test_delete_message_wrong_id(self):
+    def test_delete_message_invalid_id(self):
         self.assertRaises(
             exceptions.CommandFailed,
             self.openstack,
             'share message delete 0'
         )
 
-    def test_show_message_wrong_id(self):
+    def test_show_message_missing_id(self):
         self.assertRaises(
             exceptions.CommandFailed,
             self.openstack,
