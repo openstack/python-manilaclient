@@ -22,13 +22,13 @@ RESOURCE_NAME = 'availability_zones'
 
 
 class AvailabilityZone(base.Resource):
-
     def __repr__(self):
-        return "<AvailabilityZone: %s>" % self.id
+        return f"<AvailabilityZone: {self.id}>"
 
 
 class AvailabilityZoneManager(base.Manager):
     """Manage :class:`Service` resources."""
+
     resource_class = AvailabilityZone
 
     @api_versions.wraps("1.0", "2.6")

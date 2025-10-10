@@ -28,19 +28,21 @@ FAKE_REPLICA = 'fake_replica'
 
 @ddt.ddt
 class ShareReplicasTest(utils.TestCase):
-
-    class _FakeShareReplica(object):
+    class _FakeShareReplica:
         id = 'fake_share_replica_id'
 
     def setUp(self):
-        super(ShareReplicasTest, self).setUp()
+        super().setUp()
         microversion = api_versions.APIVersion("2.67")
         self.manager = share_replicas.ShareReplicaManager(
-            fakes.FakeClient(api_version=microversion))
+            fakes.FakeClient(api_version=microversion)
+        )
 
-    @ddt.data("2.11",
-              constants.REPLICA_PRE_GRADUATION_VERSION,
-              constants.REPLICA_GRADUATION_VERSION)
+    @ddt.data(
+        "2.11",
+        constants.REPLICA_PRE_GRADUATION_VERSION,
+        constants.REPLICA_GRADUATION_VERSION,
+    )
     def test_create(self, microversion):
         api_version = api_versions.APIVersion(microversion)
         values = {
@@ -49,7 +51,8 @@ class ShareReplicasTest(utils.TestCase):
         }
 
         manager = share_replicas.ShareReplicaManager(
-            fakes.FakeClient(api_version=api_version))
+            fakes.FakeClient(api_version=api_version)
+        )
         with mock.patch.object(manager, '_create', fakes.fake_create):
             result = manager.create(**values)
 
@@ -69,7 +72,8 @@ class ShareReplicasTest(utils.TestCase):
         }
 
         manager = share_replicas.ShareReplicaManager(
-            fakes.FakeClient(api_version=api_version))
+            fakes.FakeClient(api_version=api_version)
+        )
         with mock.patch.object(manager, '_create', fakes.fake_create):
             result = manager.create(**values)
 
@@ -84,40 +88,46 @@ class ShareReplicasTest(utils.TestCase):
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(FAKE_REPLICA)
             self.manager._delete.assert_called_once_with(
-                share_replicas.RESOURCE_PATH % FAKE_REPLICA)
+                share_replicas.RESOURCE_PATH % FAKE_REPLICA
+            )
 
     def test_delete_obj(self):
         replica = self._FakeShareReplica
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(replica)
             self.manager._delete.assert_called_once_with(
-                share_replicas.RESOURCE_PATH % replica.id)
+                share_replicas.RESOURCE_PATH % replica.id
+            )
 
     def test_delete_with_force(self):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.delete(FAKE_REPLICA, force=True)
             self.manager._action.assert_called_once_with(
-                'force_delete', FAKE_REPLICA)
+                'force_delete', FAKE_REPLICA
+            )
 
     def test_get(self):
         with mock.patch.object(self.manager, '_get', mock.Mock()):
             self.manager.get(FAKE_REPLICA)
             self.manager._get.assert_called_once_with(
                 share_replicas.RESOURCE_PATH % FAKE_REPLICA,
-                share_replicas.RESOURCE_NAME)
+                share_replicas.RESOURCE_NAME,
+            )
 
     def test_promote(self):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.promote(FAKE_REPLICA)
             self.manager._action.assert_called_once_with(
-                'promote', FAKE_REPLICA)
+                'promote', FAKE_REPLICA
+            )
 
     def test_list(self):
         with mock.patch.object(self.manager, '_list', mock.Mock()):
             self.manager.list(search_opts=None)
             self.manager._list.assert_called_once_with(
                 share_replicas.RESOURCES_PATH + '/detail',
-                share_replicas.RESOURCES_NAME)
+                share_replicas.RESOURCES_NAME,
+            )
 
     def test_list_with_share(self):
         with mock.patch.object(self.manager, '_list', mock.Mock()):
@@ -125,13 +135,15 @@ class ShareReplicasTest(utils.TestCase):
             share_uri = '?share_id=share_id'
             self.manager._list.assert_called_once_with(
                 (share_replicas.RESOURCES_PATH + '/detail' + share_uri),
-                share_replicas.RESOURCES_NAME)
+                share_replicas.RESOURCES_NAME,
+            )
 
     def test_resync(self):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.resync(FAKE_REPLICA)
             self.manager._action.assert_called_once_with(
-                'resync', FAKE_REPLICA)
+                'resync', FAKE_REPLICA
+            )
 
     @ddt.data('reset_status', 'reset_replica_state')
     def test_reset_state_actions(self, action):
@@ -140,4 +152,5 @@ class ShareReplicasTest(utils.TestCase):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             method(FAKE_REPLICA, 'some_status')
             self.manager._action.assert_called_once_with(
-                action, FAKE_REPLICA, {attr: 'some_status'})
+                action, FAKE_REPLICA, {attr: 'some_status'}
+            )

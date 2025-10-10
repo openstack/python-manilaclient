@@ -25,11 +25,13 @@ class ShareBackupCLITest(base.OSCClientTestBase):
             share_id=share['id'],
             name='test_backup_create',
             description='Description',
-            backup_options={'dummy': True})
+            backup_options={'dummy': True},
+        )
 
         # fetch latest after periodic callback updates status
-        backup = json.loads(self.openstack(
-            f'share backup show -f json {backup["id"]}'))
+        backup = json.loads(
+            self.openstack(f'share backup show -f json {backup["id"]}')
+        )
 
         self.assertEqual(share["id"], backup["share_id"])
         self.assertEqual('test_backup_create', backup["name"])
@@ -37,8 +39,7 @@ class ShareBackupCLITest(base.OSCClientTestBase):
         self.assertEqual('available', backup["status"])
 
         backups_list = self.listing_result('share backup', 'list')
-        self.assertIn(backup['id'],
-                      [item['ID'] for item in backups_list])
+        self.assertIn(backup['id'], [item['ID'] for item in backups_list])
 
     def test_share_backup_delete(self):
         share = self.create_share()
@@ -46,10 +47,10 @@ class ShareBackupCLITest(base.OSCClientTestBase):
         backup = self.create_backup(
             share_id=share['id'],
             backup_options={'dummy': True},
-            add_cleanup=False)
+            add_cleanup=False,
+        )
 
-        self.openstack(
-            f'share backup delete {backup["id"]} --wait')
+        self.openstack(f'share backup delete {backup["id"]} --wait')
 
         self.check_object_deleted('share backup', backup["id"])
 
@@ -60,10 +61,10 @@ class ShareBackupCLITest(base.OSCClientTestBase):
             share_id=share['id'],
             name='test_backup_show',
             description='Description',
-            backup_options={'dummy': True})
+            backup_options={'dummy': True},
+        )
 
-        show_result = self.dict_result(
-            'share backup', f'show {backup["id"]}')
+        show_result = self.dict_result('share backup', f'show {backup["id"]}')
 
         self.assertEqual(backup["id"], show_result["id"])
         self.assertEqual('test_backup_show', show_result["name"])
@@ -73,16 +74,15 @@ class ShareBackupCLITest(base.OSCClientTestBase):
         share = self.create_share()
 
         backup = self.create_backup(
-            share_id=share['id'],
-            backup_options={'dummy': True})
+            share_id=share['id'], backup_options={'dummy': True}
+        )
 
-        self.openstack(
-            f'share backup restore {backup["id"]} --wait')
+        self.openstack(f'share backup restore {backup["id"]} --wait')
 
-        backup = json.loads(self.openstack(
-            f'share backup show -f json {backup["id"]}'))
-        share = json.loads(self.openstack(
-            f'share show -f json {share["id"]}'))
+        backup = json.loads(
+            self.openstack(f'share backup show -f json {backup["id"]}')
+        )
+        share = json.loads(self.openstack(f'share show -f json {share["id"]}'))
 
         self.assertEqual('available', backup['status'])
         self.assertEqual('available', share['status'])
@@ -90,15 +90,16 @@ class ShareBackupCLITest(base.OSCClientTestBase):
     def test_share_backup_set(self):
         share = self.create_share()
 
-        backup = self.create_backup(share_id=share['id'],
-                                    backup_options={'dummy': True})
+        backup = self.create_backup(
+            share_id=share['id'], backup_options={'dummy': True}
+        )
 
         self.openstack(
             f'share backup set {backup["id"]} '
-            f'--name test_backup_set --description Description')
+            f'--name test_backup_set --description Description'
+        )
 
-        show_result = self.dict_result(
-            'share backup ', f'show {backup["id"]}')
+        show_result = self.dict_result('share backup ', f'show {backup["id"]}')
 
         self.assertEqual(backup['id'], show_result["id"])
         self.assertEqual('test_backup_set', show_result["name"])
@@ -111,13 +112,16 @@ class ShareBackupCLITest(base.OSCClientTestBase):
             share_id=share['id'],
             name='test_backup_unset',
             description='Description',
-            backup_options={'dummy': True})
+            backup_options={'dummy': True},
+        )
 
         self.openstack(
-            f'share backup unset {backup["id"]} --name --description')
+            f'share backup unset {backup["id"]} --name --description'
+        )
 
-        show_result = json.loads(self.openstack(
-            f'share backup show -f json {backup["id"]}'))
+        show_result = json.loads(
+            self.openstack(f'share backup show -f json {backup["id"]}')
+        )
 
         self.assertEqual(backup['id'], show_result["id"])
         self.assertIsNone(show_result["name"])
@@ -127,44 +131,44 @@ class ShareBackupCLITest(base.OSCClientTestBase):
         share_1 = self.create_share()
         share_2 = self.create_share()
 
-        backup_1 = self.create_backup(share_id=share_1['id'],
-                                      backup_options={'dummy': True})
-        backup_2 = self.create_backup(share_id=share_2['id'],
-                                      backup_options={'dummy': True})
+        backup_1 = self.create_backup(
+            share_id=share_1['id'], backup_options={'dummy': True}
+        )
+        backup_2 = self.create_backup(
+            share_id=share_2['id'], backup_options={'dummy': True}
+        )
 
         backups_list = self.listing_result(
             'share backup', f'list --name {backup_2["name"]} '
         )
 
-        self.assertTableStruct(backups_list, [
-            'ID',
-            'Name',
-            'Share ID',
-            'Status'
-        ])
+        self.assertTableStruct(
+            backups_list, ['ID', 'Name', 'Share ID', 'Status']
+        )
         self.assertEqual(1, len(backups_list))
-        self.assertIn(backup_2['id'],
-                      [item['ID'] for item in backups_list])
+        self.assertIn(backup_2['id'], [item['ID'] for item in backups_list])
 
         backups_list = self.listing_result(
             'share backup', f'list --share {share_1["id"]} --detail'
         )
 
-        self.assertTableStruct(backups_list, [
-            'ID',
-            'Name',
-            'Share ID',
-            'Status',
-            'Description',
-            'Availability Zone',
-            'Created At',
-            'Updated At',
-            'Size',
-            'Progress',
-            'Restore Progress',
-            'Host',
-            'Topic',
-        ])
+        self.assertTableStruct(
+            backups_list,
+            [
+                'ID',
+                'Name',
+                'Share ID',
+                'Status',
+                'Description',
+                'Availability Zone',
+                'Created At',
+                'Updated At',
+                'Size',
+                'Progress',
+                'Restore Progress',
+                'Host',
+                'Topic',
+            ],
+        )
         self.assertEqual(1, len(backups_list))
-        self.assertIn(backup_1['id'],
-                      [item['ID'] for item in backups_list])
+        self.assertIn(backup_1['id'], [item['ID'] for item in backups_list])

@@ -17,42 +17,57 @@ from manilaclient.tests.functional.osc import base
 
 
 class TransfersCLITest(base.OSCClientTestBase):
-
     def setUp(self):
-        super(TransfersCLITest, self).setUp()
+        super().setUp()
         self.share_type = self.create_share_type()
 
     def test_transfer_create_list_show_delete(self):
-        share = self.create_share(share_type=self.share_type['name'],
-                                  wait_for_status='available',
-                                  client=self.user_client)
+        share = self.create_share(
+            share_type=self.share_type['name'],
+            wait_for_status='available',
+            client=self.user_client,
+        )
         # create share transfer
         self.create_share_transfer(share['id'], name='transfer_test')
         self._wait_for_object_status('share', share['id'], 'awaiting_transfer')
 
         # Get all transfers
         transfers = self.listing_result(
-            'share', 'transfer list', client=self.user_client)
+            'share', 'transfer list', client=self.user_client
+        )
         # We must have at least one transfer
         self.assertTrue(len(transfers) > 0)
-        self.assertTableStruct(transfers, [
-            'ID',
-            'Name',
-            'Resource Type',
-            'Resource Id',
-        ])
+        self.assertTableStruct(
+            transfers,
+            [
+                'ID',
+                'Name',
+                'Resource Type',
+                'Resource Id',
+            ],
+        )
 
         # grab the transfer we created
-        transfer = [transfer for transfer in transfers
-                    if transfer['Resource Id'] == share['id']]
+        transfer = [
+            transfer
+            for transfer in transfers
+            if transfer['Resource Id'] == share['id']
+        ]
         self.assertEqual(1, len(transfer))
 
-        show_transfer = self.dict_result('share',
-                                         f'transfer show {transfer[0]["ID"]}')
+        show_transfer = self.dict_result(
+            'share', f'transfer show {transfer[0]["ID"]}'
+        )
         self.assertEqual(transfer[0]['ID'], show_transfer['id'])
         expected_keys = (
-            'id', 'created_at', 'name', 'resource_type', 'resource_id',
-            'source_project_id', 'destination_project_id', 'accepted',
+            'id',
+            'created_at',
+            'name',
+            'resource_type',
+            'resource_id',
+            'source_project_id',
+            'destination_project_id',
+            'accepted',
             'expires_at',
         )
         for key in expected_keys:
@@ -62,7 +77,8 @@ class TransfersCLITest(base.OSCClientTestBase):
         filtered_transfers = self.listing_result(
             'share',
             f'transfer list --resource-id {share["id"]}',
-            client=self.user_client)
+            client=self.user_client,
+        )
         self.assertEqual(1, len(filtered_transfers))
         self.assertEqual(show_transfer['resource_id'], share["id"])
 
@@ -71,15 +87,19 @@ class TransfersCLITest(base.OSCClientTestBase):
         self._wait_for_object_status('share', share['id'], 'available')
 
     def test_transfer_accept(self):
-        share = self.create_share(share_type=self.share_type['name'],
-                                  wait_for_status='available',
-                                  client=self.user_client)
+        share = self.create_share(
+            share_type=self.share_type['name'],
+            wait_for_status='available',
+            client=self.user_client,
+        )
         # create share transfer
-        transfer = self.create_share_transfer(share['id'],
-                                              name='transfer_test')
+        transfer = self.create_share_transfer(
+            share['id'], name='transfer_test'
+        )
         self._wait_for_object_status('share', share['id'], 'awaiting_transfer')
 
         # accept share transfer
         self.openstack(
-            f'share transfer accept {transfer["id"]} {transfer["auth_key"]}')
+            f'share transfer accept {transfer["id"]} {transfer["auth_key"]}'
+        )
         self._wait_for_object_status('share', share['id'], 'available')

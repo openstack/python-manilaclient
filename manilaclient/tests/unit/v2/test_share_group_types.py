@@ -26,9 +26,8 @@ from manilaclient.v2 import share_group_types as types
 
 @ddt.ddt
 class ShareGroupTypeTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareGroupTypeTest, self).setUp()
+        super().setUp()
         self.manager = types.ShareGroupTypeManager(fake.FakeClient())
         self.fake_group_specs = {'key1': 'value1', 'key2': 'value2'}
         self.fake_share_group_type_info = {
@@ -39,13 +38,15 @@ class ShareGroupTypeTest(utils.TestCase):
             'group_specs': self.fake_group_specs,
         }
         self.share_group_type = types.ShareGroupType(
-            self.manager, self.fake_share_group_type_info, loaded=True)
+            self.manager, self.fake_share_group_type_info, loaded=True
+        )
 
     def test_repr(self):
         result = str(self.share_group_type)
 
         self.assertEqual(
-            '<Share Group Type: %s>' % fake.ShareGroupType.name, result)
+            f'<Share Group Type: {fake.ShareGroupType.name}>', result
+        )
 
     @ddt.data((True, True), (False, False), (None, 'N/A'))
     @ddt.unpack
@@ -54,7 +55,8 @@ class ShareGroupTypeTest(utils.TestCase):
         if is_public is not None:
             fake_share_group_type_info['is_public'] = is_public
         share_group_type = types.ShareGroupType(
-            self.manager, fake_share_group_type_info, loaded=True)
+            self.manager, fake_share_group_type_info, loaded=True
+        )
 
         result = share_group_type.is_public
 
@@ -70,21 +72,26 @@ class ShareGroupTypeTest(utils.TestCase):
 
     def test_get_keys_force_api_call(self):
         share_group_type = types.ShareGroupType(
-            self.manager, self.fake_share_group_type_info, loaded=True)
+            self.manager, self.fake_share_group_type_info, loaded=True
+        )
         share_group_type._group_specs = {}
-        self.manager.api.client.get = mock.Mock(return_value=(
-            None, self.fake_share_group_type_info))
+        self.manager.api.client.get = mock.Mock(
+            return_value=(None, self.fake_share_group_type_info)
+        )
 
         result = share_group_type.get_keys(prefer_resource_data=False)
 
         self.assertEqual(self.fake_group_specs, result)
         self.manager.api.client.get.assert_called_once_with(
-            types.GROUP_SPECS_RESOURCES_PATH % fake.ShareGroupType.id)
+            types.GROUP_SPECS_RESOURCES_PATH % fake.ShareGroupType.id
+        )
 
     def test_set_keys(self):
         mock_manager_create = self.mock_object(
-            self.manager, '_create',
-            mock.Mock(return_value=self.fake_group_specs))
+            self.manager,
+            '_create',
+            mock.Mock(return_value=self.fake_group_specs),
+        )
 
         result = self.share_group_type.set_keys(self.fake_group_specs)
 
@@ -92,47 +99,62 @@ class ShareGroupTypeTest(utils.TestCase):
         expected_body = {'group_specs': self.fake_group_specs}
         mock_manager_create.assert_called_once_with(
             types.GROUP_SPECS_RESOURCES_PATH % fake.ShareGroupType.id,
-            expected_body, types.GROUP_SPECS_RESOURCES_NAME, return_raw=True)
+            expected_body,
+            types.GROUP_SPECS_RESOURCES_NAME,
+            return_raw=True,
+        )
 
     def test_unset_keys(self):
         mock_manager_delete = self.mock_object(
-            self.manager, '_delete', mock.Mock(return_value=None))
+            self.manager, '_delete', mock.Mock(return_value=None)
+        )
 
         result = self.share_group_type.unset_keys(self.fake_group_specs.keys())
 
         self.assertIsNone(result)
-        mock_manager_delete.assert_has_calls([
-            mock.call(types.GROUP_SPECS_RESOURCE_PATH %
-                      (fake.ShareGroupType.id, 'key1')),
-            mock.call(types.GROUP_SPECS_RESOURCE_PATH %
-                      (fake.ShareGroupType.id, 'key2')),
-        ], any_order=True)
+        mock_manager_delete.assert_has_calls(
+            [
+                mock.call(
+                    types.GROUP_SPECS_RESOURCE_PATH
+                    % (fake.ShareGroupType.id, 'key1')
+                ),
+                mock.call(
+                    types.GROUP_SPECS_RESOURCE_PATH
+                    % (fake.ShareGroupType.id, 'key2')
+                ),
+            ],
+            any_order=True,
+        )
 
     def test_unset_keys_error(self):
         mock_manager_delete = self.mock_object(
-            self.manager, '_delete', mock.Mock(return_value='error'))
+            self.manager, '_delete', mock.Mock(return_value='error')
+        )
 
         result = self.share_group_type.unset_keys(
-            sorted(self.fake_group_specs.keys()))
+            sorted(self.fake_group_specs.keys())
+        )
 
         self.assertEqual('error', result)
         mock_manager_delete.assert_called_once_with(
-            types.GROUP_SPECS_RESOURCE_PATH % (fake.ShareGroupType.id, 'key1'))
+            types.GROUP_SPECS_RESOURCE_PATH % (fake.ShareGroupType.id, 'key1')
+        )
 
 
 @ddt.ddt
 class ShareGroupTypeManagerTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareGroupTypeManagerTest, self).setUp()
+        super().setUp()
         self.manager = types.ShareGroupTypeManager(fake.FakeClient())
         self.fake_group_specs = {'key1': 'value1', 'key2': 'value2'}
 
     def test_create(self):
         fake_share_group_type = fake.ShareGroupType()
         mock_create = self.mock_object(
-            self.manager, '_create',
-            mock.Mock(return_value=fake_share_group_type))
+            self.manager,
+            '_create',
+            mock.Mock(return_value=fake_share_group_type),
+        )
         create_args = {
             'name': fake.ShareGroupType.name,
             'share_types': [fake.ShareType()],
@@ -152,7 +174,8 @@ class ShareGroupTypeManagerTest(utils.TestCase):
             },
         }
         mock_create.assert_called_once_with(
-            types.RESOURCES_PATH, expected_body, types.RESOURCE_NAME)
+            types.RESOURCES_PATH, expected_body, types.RESOURCE_NAME
+        )
 
     def test_create_no_share_type(self):
         create_args = {
@@ -172,38 +195,45 @@ class ShareGroupTypeManagerTest(utils.TestCase):
     def test_get(self):
         fake_share_group_type = fake.ShareGroupType()
         mock_get = self.mock_object(
-            self.manager, '_get',
-            mock.Mock(return_value=fake_share_group_type))
+            self.manager, '_get', mock.Mock(return_value=fake_share_group_type)
+        )
 
         result = self.manager.get(fake.ShareGroupType.id)
 
         self.assertIs(fake_share_group_type, result)
         mock_get.assert_called_once_with(
-            types.RESOURCE_PATH % fake.ShareGroupType.id, types.RESOURCE_NAME)
+            types.RESOURCE_PATH % fake.ShareGroupType.id, types.RESOURCE_NAME
+        )
 
     def test_list(self):
         fake_share_group_type = fake.ShareGroupType()
         mock_list = self.mock_object(
-            self.manager, '_list',
-            mock.Mock(return_value=[fake_share_group_type]))
+            self.manager,
+            '_list',
+            mock.Mock(return_value=[fake_share_group_type]),
+        )
 
         result = self.manager.list(search_opts=None)
 
         self.assertEqual([fake_share_group_type], result)
         mock_list.assert_called_once_with(
-            types.RESOURCES_PATH + '?is_public=all', types.RESOURCES_NAME)
+            types.RESOURCES_PATH + '?is_public=all', types.RESOURCES_NAME
+        )
 
     def test_list_no_public(self):
         fake_share_group_type = fake.ShareGroupType()
         mock_list = self.mock_object(
-            self.manager, '_list',
-            mock.Mock(return_value=[fake_share_group_type]))
+            self.manager,
+            '_list',
+            mock.Mock(return_value=[fake_share_group_type]),
+        )
 
         result = self.manager.list(show_all=False)
 
         self.assertEqual([fake_share_group_type], result)
         mock_list.assert_called_once_with(
-            types.RESOURCES_PATH, types.RESOURCES_NAME)
+            types.RESOURCES_PATH, types.RESOURCES_NAME
+        )
 
     def test_delete(self):
         mock_delete = self.mock_object(self.manager, '_delete')
@@ -211,4 +241,5 @@ class ShareGroupTypeManagerTest(utils.TestCase):
         self.manager.delete(fake.ShareGroupType())
 
         mock_delete.assert_called_once_with(
-            types.RESOURCE_PATH % fake.ShareGroupType.id)
+            types.RESOURCE_PATH % fake.ShareGroupType.id
+        )

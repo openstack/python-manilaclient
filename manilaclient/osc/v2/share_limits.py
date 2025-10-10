@@ -24,20 +24,20 @@ class ShareLimitsShow(command.Lister):
     _description = _("Show a list of share limits for a user.")
 
     def get_parser(self, prog_name):
-        parser = super(ShareLimitsShow, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         limit_type_group = parser.add_mutually_exclusive_group(required=True)
 
         limit_type_group.add_argument(
             '--absolute',
             action='store_true',
             default=False,
-            help=_('Get the absolute limits for the user')
+            help=_('Get the absolute limits for the user'),
         )
         limit_type_group.add_argument(
             '--rate',
             action='store_true',
             default=False,
-            help=_('Get the API rate limits for the user')
+            help=_('Get the API rate limits for the user'),
         )
 
         return parser
@@ -66,5 +66,7 @@ class ShareLimitsShow(command.Lister):
 
             data = list(share_client.limits.get().absolute)
 
-        return (columns, (oscutils.get_item_properties(s, columns)
-                          for s in data))
+        return (
+            columns,
+            (oscutils.get_item_properties(s, columns) for s in data),
+        )

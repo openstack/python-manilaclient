@@ -21,7 +21,7 @@ class ShareSnapshotInstance(base.Resource):
     """A snapshot instance is an instance of a snapshot."""
 
     def __repr__(self):
-        return "<SnapshotInstance: %s>" % self.id
+        return f"<SnapshotInstance: {self.id}>"
 
     def reset_state(self, state):
         """Update snapshot instance's 'status' attr."""
@@ -30,6 +30,7 @@ class ShareSnapshotInstance(base.Resource):
 
 class ShareSnapshotInstanceManager(base.ManagerWithFind):
     """Manage :class:`SnapshotInstances` resources."""
+
     resource_class = ShareSnapshotInstance
 
     @api_versions.wraps("2.19")
@@ -40,8 +41,9 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
         :rtype: :class:`ShareSnapshotInstance`
         """
         snapshot_instance_id = base.getid(instance)
-        return self._get("/snapshot-instances/%s" % snapshot_instance_id,
-                         "snapshot_instance")
+        return self._get(
+            f"/snapshot-instances/{snapshot_instance_id}", "snapshot_instance"
+        )
 
     @api_versions.wraps("2.19")
     def list(self, detailed=False, snapshot=None, search_opts=None):
@@ -52,7 +54,7 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
             url = '/snapshot-instances'
 
         if snapshot:
-            url += '?snapshot_id=%s' % base.getid(snapshot)
+            url += f'?snapshot_id={base.getid(snapshot)}'
         return self._list(url, 'snapshot_instances')
 
     @api_versions.wraps("2.19")
@@ -68,6 +70,5 @@ class ShareSnapshotInstanceManager(base.ManagerWithFind):
         """Perform a snapshot instance 'action'."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = ('/snapshot-instances/%s/action' %
-               base.getid(instance))
+        url = f'/snapshot-instances/{base.getid(instance)}/action'
         return self.api.client.post(url, body=body)

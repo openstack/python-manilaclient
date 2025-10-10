@@ -35,23 +35,23 @@ COLUMNS = [
 
 
 class TestShareGroupType(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareGroupType, self).setUp()
+        super().setUp()
 
         self.sgt_mock = self.app.client_manager.share.share_group_types
         self.sgt_mock.reset_mock()
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
 
 class TestShareGroupTypeCreate(TestShareGroupType):
-
     def setUp(self):
-        super(TestShareGroupTypeCreate, self).setUp()
+        super().setUp()
 
-        self.share_types = (
-            manila_fakes.FakeShareType.create_share_types(count=2))
+        self.share_types = manila_fakes.FakeShareType.create_share_types(
+            count=2
+        )
 
         formatted_share_types = []
 
@@ -60,22 +60,23 @@ class TestShareGroupTypeCreate(TestShareGroupType):
 
         self.share_group_type = (
             manila_fakes.FakeShareGroupType.create_one_share_group_type(
-                attrs={
-                    'share_types': formatted_share_types
-                }
-            ))
+                attrs={'share_types': formatted_share_types}
+            )
+        )
 
         self.share_group_type_formatted = (
             manila_fakes.FakeShareGroupType.create_one_share_group_type(
                 attrs={
                     'id': self.share_group_type['id'],
                     'name': self.share_group_type['name'],
-                    'share_types': formatted_share_types
+                    'share_types': formatted_share_types,
                 }
-            ))
+            )
+        )
 
         formatted_sgt = utils.format_share_group_type(
-            self.share_group_type_formatted)
+            self.share_group_type_formatted
+        )
 
         self.sgt_mock.create.return_value = self.share_group_type
         self.sgt_mock.get.return_value = self.share_group_type
@@ -96,13 +97,16 @@ class TestShareGroupTypeCreate(TestShareGroupType):
         ]
         verifylist = [
             ('name', self.share_group_type.name),
-            ('share_types', [self.share_types[0].name,
-                             self.share_types[1].name])
+            (
+                'share_types',
+                [self.share_types[0].name, self.share_types[1].name],
+            ),
         ]
 
         with mock.patch(
             'manilaclient.common.apiclient.utils.find_resource',
-                side_effect=[self.share_types[0], self.share_types[1]]):
+            side_effect=[self.share_types[0], self.share_types[1]],
+        ):
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
             columns, data = self.cmd.take_action(parsed_args)
@@ -112,7 +116,9 @@ class TestShareGroupTypeCreate(TestShareGroupType):
                 is_public=True,
                 name=self.share_group_type.name,
                 share_types=[
-                    self.share_types[0].name, self.share_types[1].name]
+                    self.share_types[0].name,
+                    self.share_types[1].name,
+                ],
             )
 
             self.assertCountEqual(self.columns, columns)
@@ -124,31 +130,37 @@ class TestShareGroupTypeCreate(TestShareGroupType):
         arglist = [
             self.share_group_type.name,
         ]
-        verifylist = [
-            ('name', self.share_group_type.name)
-        ]
+        verifylist = [('name', self.share_group_type.name)]
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_group_type_create_private(self):
         arglist = [
             self.share_group_type.name,
             self.share_types[0].name,
             self.share_types[1].name,
-            '--public', 'False'
+            '--public',
+            'False',
         ]
         verifylist = [
             ('name', self.share_group_type.name),
-            ('share_types', [self.share_types[0].name,
-                             self.share_types[1].name]),
-            ('public', 'False')
+            (
+                'share_types',
+                [self.share_types[0].name, self.share_types[1].name],
+            ),
+            ('public', 'False'),
         ]
 
         with mock.patch(
             'manilaclient.common.apiclient.utils.find_resource',
-            side_effect=[self.share_types[0],
-                         self.share_types[1]]):
+            side_effect=[self.share_types[0], self.share_types[1]],
+        ):
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
             columns, data = self.cmd.take_action(parsed_args)
@@ -157,32 +169,36 @@ class TestShareGroupTypeCreate(TestShareGroupType):
                 group_specs={},
                 is_public=False,
                 name=self.share_group_type.name,
-                share_types=[self.share_types[0].name,
-                             self.share_types[1].name]
+                share_types=[
+                    self.share_types[0].name,
+                    self.share_types[1].name,
+                ],
             )
 
             self.assertCountEqual(self.columns, columns)
             self.assertCountEqual(self.data, data)
 
     def test_share_group_type_create_group_specs(self):
-
         arglist = [
             self.share_group_type.name,
             self.share_types[0].name,
             self.share_types[1].name,
-            '--group-specs', 'consistent_snapshot_support=true'
+            '--group-specs',
+            'consistent_snapshot_support=true',
         ]
         verifylist = [
             ('name', self.share_group_type.name),
-            ('share_types', [self.share_types[0].name,
-                             self.share_types[1].name]),
-            ('group_specs', ['consistent_snapshot_support=true'])
+            (
+                'share_types',
+                [self.share_types[0].name, self.share_types[1].name],
+            ),
+            ('group_specs', ['consistent_snapshot_support=true']),
         ]
 
         with mock.patch(
             'manilaclient.common.apiclient.utils.find_resource',
-            side_effect=[self.share_types[0],
-                         self.share_types[1]]):
+            side_effect=[self.share_types[0], self.share_types[1]],
+        ):
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
             columns, data = self.cmd.take_action(parsed_args)
@@ -192,7 +208,9 @@ class TestShareGroupTypeCreate(TestShareGroupType):
                 is_public=True,
                 name=self.share_group_type.name,
                 share_types=[
-                    self.share_types[0].name, self.share_types[1].name]
+                    self.share_types[0].name,
+                    self.share_types[1].name,
+                ],
             )
 
             self.assertCountEqual(self.columns, columns)
@@ -202,19 +220,24 @@ class TestShareGroupTypeCreate(TestShareGroupType):
         arglist = [
             self.share_group_type.name,
             self.share_types[0].name,
-            self.share_types[1].name
+            self.share_types[1].name,
         ]
         verifylist = [
             ('name', self.share_group_type.name),
-            ('share_types', [self.share_types[0].name,
-                             self.share_types[1].name])
+            (
+                'share_types',
+                [self.share_types[0].name, self.share_types[1].name],
+            ),
         ]
 
         with mock.patch(
             'manilaclient.common.apiclient.utils.find_resource',
-            side_effect=[self.share_types[0],
-                         self.share_types[1],
-                         self.share_group_type]):
+            side_effect=[
+                self.share_types[0],
+                self.share_types[1],
+                self.share_group_type,
+            ],
+        ):
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
             columns, data = self.cmd.take_action(parsed_args)
 
@@ -222,8 +245,10 @@ class TestShareGroupTypeCreate(TestShareGroupType):
                 group_specs={},
                 is_public=True,
                 name=self.share_group_type.name,
-                share_types=[self.share_types[0].name,
-                             self.share_types[1].name]
+                share_types=[
+                    self.share_types[0].name,
+                    self.share_types[1].name,
+                ],
             )
 
             self.assertCountEqual(self.columns, columns)
@@ -231,34 +256,31 @@ class TestShareGroupTypeCreate(TestShareGroupType):
 
 
 class TestShareGroupTypeDelete(TestShareGroupType):
-
     def setUp(self):
-        super(TestShareGroupTypeDelete, self).setUp()
+        super().setUp()
 
         self.share_group_types = (
-            manila_fakes.FakeShareGroupType.create_share_group_types(count=2))
+            manila_fakes.FakeShareGroupType.create_share_group_types(count=2)
+        )
 
         self.sgt_mock.delete.return_value = None
         self.sgt_mock.get = (
             manila_fakes.FakeShareGroupType.get_share_group_types(
-                self.share_group_types))
+                self.share_group_types
+            )
+        )
 
         # Get the command object to test
         self.cmd = osc_share_group_types.DeleteShareGroupType(self.app, None)
 
     def test_share_group_type_delete_one(self):
-        arglist = [
-            self.share_group_types[0].name
-        ]
+        arglist = [self.share_group_types[0].name]
 
-        verifylist = [
-            ('share_group_types', [self.share_group_types[0].name])
-        ]
+        verifylist = [('share_group_types', [self.share_group_types[0].name])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        self.sgt_mock.delete.assert_called_with(
-            self.share_group_types[0])
+        self.sgt_mock.delete.assert_called_with(self.share_group_types[0])
         self.assertIsNone(result)
 
     def test_share_group_type_delete_multiple(self):
@@ -289,16 +311,13 @@ class TestShareGroupTypeDelete(TestShareGroupType):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.sgt_mock.delete.side_effect = exceptions.CommandError()
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_delete_share_group_type(self):
-        arglist = [
-            self.share_group_types[0].name
-        ]
+        arglist = [self.share_group_types[0].name]
 
-        verifylist = [
-            ('share_group_types', [self.share_group_types[0].name])
-        ]
+        verifylist = [('share_group_types', [self.share_group_types[0].name])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -309,13 +328,14 @@ class TestShareGroupTypeDelete(TestShareGroupType):
 
 
 class TestShareGroupTypeSet(TestShareGroupType):
-
     def setUp(self):
-        super(TestShareGroupTypeSet, self).setUp()
+        super().setUp()
 
         self.share_group_type = (
             manila_fakes.FakeShareGroupType.create_one_share_group_type(
-                methods={'set_keys': None, 'update': None}))
+                methods={'set_keys': None, 'update': None}
+            )
+        )
         self.sgt_mock.get.return_value = self.share_group_type
 
         # Get the command object to test
@@ -324,106 +344,106 @@ class TestShareGroupTypeSet(TestShareGroupType):
     def test_share_group_type_set_group_specs(self):
         arglist = [
             self.share_group_type.id,
-            '--group-specs', 'consistent_snapshot_support=true'
+            '--group-specs',
+            'consistent_snapshot_support=true',
         ]
         verifylist = [
             ('share_group_type', self.share_group_type.id),
-            ('group_specs', ['consistent_snapshot_support=true'])
+            ('group_specs', ['consistent_snapshot_support=true']),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
         self.share_group_type.set_keys.assert_called_with(
-            {'consistent_snapshot_support': 'True'})
+            {'consistent_snapshot_support': 'True'}
+        )
         self.assertIsNone(result)
 
     def test_share_group_type_set_extra_specs_exception(self):
         arglist = [
             self.share_group_type.id,
-            '--group-specs', 'snapshot_support=true'
+            '--group-specs',
+            'snapshot_support=true',
         ]
         verifylist = [
             ('share_group_type', self.share_group_type.id),
-            ('group_specs', ['snapshot_support=true'])
+            ('group_specs', ['snapshot_support=true']),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.share_group_type.set_keys.side_effect = BadRequest()
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareGroupTypeUnset(TestShareGroupType):
-
     def setUp(self):
-        super(TestShareGroupTypeUnset, self).setUp()
+        super().setUp()
 
         self.share_group_type = (
             manila_fakes.FakeShareGroupType.create_one_share_group_type(
-                methods={'unset_keys': None}))
+                methods={'unset_keys': None}
+            )
+        )
         self.sgt_mock.get.return_value = self.share_group_type
 
         # Get the command object to test
         self.cmd = osc_share_group_types.UnsetShareGroupType(self.app, None)
 
     def test_share_group_type_unset_extra_specs(self):
-        arglist = [
-            self.share_group_type.id,
-            'consistent_snapshot_support'
-        ]
+        arglist = [self.share_group_type.id, 'consistent_snapshot_support']
         verifylist = [
             ('share_group_type', self.share_group_type.id),
-            ('group_specs', ['consistent_snapshot_support'])
+            ('group_specs', ['consistent_snapshot_support']),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
         self.share_group_type.unset_keys.assert_called_with(
-            ['consistent_snapshot_support'])
+            ['consistent_snapshot_support']
+        )
         self.assertIsNone(result)
 
     def test_share_group_type_unset_exception(self):
-        arglist = [
-            self.share_group_type.id,
-            'snapshot_support'
-        ]
+        arglist = [self.share_group_type.id, 'snapshot_support']
         verifylist = [
             ('share_group_type', self.share_group_type.id),
-            ('group_specs', ['snapshot_support'])
+            ('group_specs', ['snapshot_support']),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.share_group_type.unset_keys.side_effect = NotFound()
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareGroupTypeList(TestShareGroupType):
-
     def setUp(self):
-        super(TestShareGroupTypeList, self).setUp()
+        super().setUp()
 
         self.share_group_types = (
-            manila_fakes.FakeShareGroupType.create_share_group_types())
+            manila_fakes.FakeShareGroupType.create_share_group_types()
+        )
 
         self.sgt_mock.list.return_value = self.share_group_types
 
         # Get the command object to test
         self.cmd = osc_share_group_types.ListShareGroupType(self.app, None)
 
-        self.values = (oscutils.get_dict_properties(
-            s._info, COLUMNS) for s in self.share_group_types)
+        self.values = (
+            oscutils.get_dict_properties(s._info, COLUMNS)
+            for s in self.share_group_types
+        )
 
     def test_share_group_type_list_no_options(self):
         arglist = []
-        verifylist = [
-            ('all', False)
-        ]
+        verifylist = [('all', False)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
         self.sgt_mock.list.assert_called_once_with(
-            search_opts={},
-            show_all=False
+            search_opts={}, show_all=False
         )
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(self.values), list(data))
@@ -432,45 +452,41 @@ class TestShareGroupTypeList(TestShareGroupType):
         arglist = [
             '--all',
         ]
-        verifylist = [
-            ('all', True)
-        ]
+        verifylist = [('all', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
         self.sgt_mock.list.assert_called_once_with(
-            search_opts={},
-            show_all=True)
+            search_opts={}, show_all=True
+        )
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(self.values), list(data))
 
     def test_share_group_type_list_group_specs(self):
-        arglist = [
-            '--group-specs', 'consistent_snapshot_support=true'
-        ]
-        verifylist = [
-            ('group_specs', ['consistent_snapshot_support=true'])
-        ]
+        arglist = ['--group-specs', 'consistent_snapshot_support=true']
+        verifylist = [('group_specs', ['consistent_snapshot_support=true'])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
         self.sgt_mock.list.assert_called_once_with(
-            search_opts={'group_specs': {
-                'consistent_snapshot_support': 'True'}},
-            show_all=False)
+            search_opts={
+                'group_specs': {'consistent_snapshot_support': 'True'}
+            },
+            show_all=False,
+        )
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(self.values), list(data))
 
 
 class TestShareGroupTypeShow(TestShareGroupType):
-
     def setUp(self):
-        super(TestShareGroupTypeShow, self).setUp()
+        super().setUp()
 
-        self.share_types = (
-            manila_fakes.FakeShareType.create_share_types(count=2))
+        self.share_types = manila_fakes.FakeShareType.create_share_types(
+            count=2
+        )
 
         formatted_share_types = []
 
@@ -479,22 +495,23 @@ class TestShareGroupTypeShow(TestShareGroupType):
 
         self.share_group_type = (
             manila_fakes.FakeShareGroupType.create_one_share_group_type(
-                attrs={
-                    'share_types': formatted_share_types
-                }
-            ))
+                attrs={'share_types': formatted_share_types}
+            )
+        )
 
         self.share_group_type_formatted = (
             manila_fakes.FakeShareGroupType.create_one_share_group_type(
                 attrs={
                     'id': self.share_group_type['id'],
                     'name': self.share_group_type['name'],
-                    'share_types': formatted_share_types
+                    'share_types': formatted_share_types,
                 }
-            ))
+            )
+        )
 
         formatted_sgt = utils.format_share_group_type(
-            self.share_group_type_formatted)
+            self.share_group_type_formatted
+        )
 
         self.sgt_mock.get.return_value = self.share_group_type
 
@@ -505,12 +522,8 @@ class TestShareGroupTypeShow(TestShareGroupType):
         self.columns = tuple(formatted_sgt.keys())
 
     def test_share_group_type_show(self):
-        arglist = [
-            self.share_group_type.name
-        ]
-        verifylist = [
-            ("share_group_type", self.share_group_type.name)
-        ]
+        arglist = [self.share_group_type.name]
+        verifylist = [("share_group_type", self.share_group_type.name)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)

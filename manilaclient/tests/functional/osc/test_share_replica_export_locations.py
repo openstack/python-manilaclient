@@ -16,44 +16,51 @@ from tempest.lib.common.utils import data_utils
 
 
 class ShareReplicaExportLocationsCLITest(base.OSCClientTestBase):
-
     def test_openstack_share_replica_export_location_list(self):
         slug = 'replica-supported'
         share_type = self.create_share_type(
-            data_utils.rand_name(slug), 'False', extra_specs={
-                'replication_type': 'readable'})
+            data_utils.rand_name(slug),
+            'False',
+            extra_specs={'replication_type': 'readable'},
+        )
         share = self.create_share(share_type=share_type['name'])
         replica = self.create_share_replica(share['id'], wait=True)
         rep_exp_loc_list = self.listing_result(
-            'share replica export location', f'list {replica["id"]}')
-        self.assertTableStruct(rep_exp_loc_list, [
-            'ID',
-            'Availability Zone',
-            'Replica State',
-            'Preferred',
-            'Path'
-        ])
+            'share replica export location', f'list {replica["id"]}'
+        )
+        self.assertTableStruct(
+            rep_exp_loc_list,
+            ['ID', 'Availability Zone', 'Replica State', 'Preferred', 'Path'],
+        )
         exp_loc_list = self.openstack(
-            f'share replica show {replica["id"]} -f json')
+            f'share replica show {replica["id"]} -f json'
+        )
         exp_loc_list = json.loads(exp_loc_list)
 
-        self.assertIn(exp_loc_list.get('export_locations')[0]['id'],
-                      [item['ID'] for item in rep_exp_loc_list])
+        self.assertIn(
+            exp_loc_list.get('export_locations')[0]['id'],
+            [item['ID'] for item in rep_exp_loc_list],
+        )
 
     def test_openstack_share_replica_export_location_show(self):
         slug = 'replica-supported'
         share_type = self.create_share_type(
-            data_utils.rand_name(slug), 'False', extra_specs={
-                'replication_type': 'readable'})
+            data_utils.rand_name(slug),
+            'False',
+            extra_specs={'replication_type': 'readable'},
+        )
         share = self.create_share(share_type=share_type['name'])
         replica = self.create_share_replica(share['id'], wait=True)
         rep_exp_loc_obj = self.get_share_replica_export_locations(
-            replica['id'])[0]
+            replica['id']
+        )[0]
         exp_loc_list = self.openstack(
-            f'share replica show {replica["id"]} -f json')
+            f'share replica show {replica["id"]} -f json'
+        )
         exp_loc_list = json.loads(exp_loc_list)
         result = self.dict_result(
             'share replica export location',
-            f'show {replica["id"]} {rep_exp_loc_obj["ID"]}')
+            f'show {replica["id"]} {rep_exp_loc_obj["ID"]}',
+        )
         export_location = exp_loc_list['export_locations'][0]
         self.assertEqual(result['id'], export_location['id'])

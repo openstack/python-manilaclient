@@ -22,22 +22,21 @@ from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestShareLimits(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareLimits, self).setUp()
+        super().setUp()
 
         self.share_limits_mock = self.app.client_manager.share.limits
         self.share_limits_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            MAX_VERSION)
+            MAX_VERSION
+        )
 
 
 @ddt.ddt
 class TestShareLimitsShow(TestShareLimits):
-
     def setUp(self):
-        super(TestShareLimitsShow, self).setUp()
+        super().setUp()
 
         # Get the command object to test
         self.cmd = osc_share_limits.ShareLimitsShow(self.app, None)
@@ -54,9 +53,7 @@ class TestShareLimitsShow(TestShareLimits):
 
     @ddt.data('absolute', 'rate')
     def test_limits(self, limit_type):
-        share_limits = (
-            manila_fakes.FakeShareLimits.create_one_share_limit()
-        )
+        share_limits = manila_fakes.FakeShareLimits.create_one_share_limit()
         self.share_limits_mock.get.return_value = share_limits
 
         expected_data = share_limits._info[f"{limit_type}_limit"]
@@ -66,28 +63,23 @@ class TestShareLimitsShow(TestShareLimits):
 
         if limit_type == 'absolute':
             arglist.append('--absolute')
-            verifylist.extend([
-                ('absolute', True),
-                ('rate', False)
-            ])
+            verifylist.extend([('absolute', True), ('rate', False)])
         else:
             arglist.append('--rate')
-            verifylist.extend([
-                ('absolute', False),
-                ('rate', True)
-            ])
+            verifylist.extend([('absolute', False), ('rate', True)])
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         actual_columns, actual_data = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(getattr(self, f"{limit_type}_limit_columns"),
-                         actual_columns)
+        self.assertEqual(
+            getattr(self, f"{limit_type}_limit_columns"), actual_columns
+        )
         if limit_type == 'rate':
             expected_data_tuple = tuple(expected_data.values())
-            self.assertEqual(sorted(expected_data_tuple),
-                             sorted(next(actual_data)))
+            self.assertEqual(
+                sorted(expected_data_tuple), sorted(next(actual_data))
+            )
         else:
             expected_data_tuple = tuple(expected_data.items())
-            self.assertEqual(sorted(expected_data_tuple),
-                             sorted(actual_data))
+            self.assertEqual(sorted(expected_data_tuple), sorted(actual_data))

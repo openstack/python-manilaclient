@@ -40,62 +40,75 @@ def _get_share_type_quota_values(project_quota_value):
 @ddt.ddt
 @utils.skip_if_microversion_not_supported("2.39")
 class QuotasReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
         super(self.__class__, self).setUp()
         self.microversion = "2.39"
         self.project_id = self.admin_client.get_project_id(
-            self.admin_client.tenant_name)
+            self.admin_client.tenant_name
+        )
 
         # Create share type
         self.share_type = self.create_share_type(
             name=data_utils.rand_name("manilaclient_functional_test"),
             driver_handles_share_servers=False,
             is_public=True,
-            microversion=self.microversion
+            microversion=self.microversion,
         )
         self.st_id = self.share_type["ID"]
 
     def _verify_current_st_quotas_equal_to(self, quotas, microversion):
         # Read share type quotas
-        cmd = 'quota-show --tenant-id %s --share-type %s' % (
-            self.project_id, self.st_id)
+        cmd = f'quota-show --tenant-id {self.project_id} --share-type {self.st_id}'
         st_quotas_raw = self.admin_client.manila(
-            cmd, microversion=microversion)
+            cmd, microversion=microversion
+        )
         st_quotas = output_parser.details(st_quotas_raw)
 
         # Verify that quotas
         self.assertGreater(len(st_quotas), 3)
         for key, value in st_quotas.items():
-            if key not in ('shares', 'gigabytes', 'snapshots',
-                           'snapshot_gigabytes'):
+            if key not in (
+                'shares',
+                'gigabytes',
+                'snapshots',
+                'snapshot_gigabytes',
+            ):
                 continue
             self.assertIn(key, quotas)
             self.assertEqual(int(quotas[key]), int(value))
 
     def _verify_current_quotas_equal_to(self, quotas, microversion):
         # Read quotas
-        cmd = 'quota-show --tenant-id %s' % self.project_id
-        quotas_raw = self.admin_client.manila(
-            cmd, microversion=microversion)
+        cmd = f'quota-show --tenant-id {self.project_id}'
+        quotas_raw = self.admin_client.manila(cmd, microversion=microversion)
         quotas = output_parser.details(quotas_raw)
 
         # Verify that quotas
         self.assertGreater(len(quotas), 3)
         for key, value in quotas.items():
-            if key not in ('shares', 'gigabytes', 'snapshots',
-                           'snapshot_gigabytes',
-                           'share_groups', 'share_group_snapshots'):
+            if key not in (
+                'shares',
+                'gigabytes',
+                'snapshots',
+                'snapshot_gigabytes',
+                'share_groups',
+                'share_group_snapshots',
+            ):
                 continue
             self.assertIn(key, quotas)
             self.assertEqual(int(quotas[key]), int(value))
 
-    @ddt.data(*set([
-        "2.40", api_versions.MAX_VERSION,
-    ]))
+    @ddt.data(
+        *set(
+            [
+                "2.40",
+                api_versions.MAX_VERSION,
+            ]
+        )
+    )
     def test_update_quotas_for_share_groups(self, microversion):
         if not utils.is_microversion_supported(microversion):
-            msg = "Microversion '%s' not supported." % microversion
+            msg = f"Microversion '{microversion}' not supported."
             raise self.skipException(msg)
 
         # Get default quotas
@@ -104,20 +117,22 @@ class QuotasReadWriteTest(base.BaseTestCase):
         default_quotas = output_parser.details(quotas_raw)
 
         # Get project quotas
-        cmd = 'quota-show --tenant-id %s ' % self.project_id
+        cmd = f'quota-show --tenant-id {self.project_id} '
         quotas_raw = self.admin_client.manila(cmd, microversion=microversion)
         p_quotas = output_parser.details(quotas_raw)
 
         # Define custom share group quotas for project
         p_custom_quotas = {
             'share_groups': -1 if int(p_quotas['share_groups']) != -1 else 999,
-            'share_group_snapshots': -1 if int(
-                p_quotas['share_group_snapshots']) != -1 else 999,
+            'share_group_snapshots': -1
+            if int(p_quotas['share_group_snapshots']) != -1
+            else 999,
         }
 
         # Update share group quotas for project
-        cmd = ('quota-update %s --share-groups %s '
-               '--share-group-snapshots %s') % (
+        cmd = (
+            'quota-update {} --share-groups {} --share-group-snapshots {}'
+        ).format(
             self.project_id,
             p_custom_quotas['share_groups'],
             p_custom_quotas['share_group_snapshots'],
@@ -128,18 +143,20 @@ class QuotasReadWriteTest(base.BaseTestCase):
         self._verify_current_quotas_equal_to(p_custom_quotas, microversion)
 
         # Reset quotas
-        cmd = 'quota-delete --tenant-id %s --share-type %s' % (
-            self.project_id, self.st_id)
+        cmd = f'quota-delete --tenant-id {self.project_id} --share-type {self.st_id}'
         self.admin_client.manila(cmd, microversion=microversion)
 
         # Verify quotas after reset
         self._verify_current_quotas_equal_to(default_quotas, microversion)
 
         # Return project quotas back
-        cmd = ('quota-update %s --share-groups %s '
-               '--share-group-snapshots %s') % (
+        cmd = (
+            'quota-update {} --share-groups {} --share-group-snapshots {}'
+        ).format(
             self.project_id,
-            p_quotas['share_groups'], p_quotas['share_group_snapshots'])
+            p_quotas['share_groups'],
+            p_quotas['share_group_snapshots'],
+        )
         self.admin_client.manila(cmd, microversion=microversion)
 
         # Verify quotas after reset
@@ -147,44 +164,58 @@ class QuotasReadWriteTest(base.BaseTestCase):
 
     @ddt.data('--share-groups', '--share-group-snapshots')
     @utils.skip_if_microversion_not_supported("2.39")
-    def test_update_quotas_for_share_groups_using_too_old_microversion(self,
-                                                                       arg):
-        cmd = 'quota-update %s %s 13' % (self.project_id, arg)
+    def test_update_quotas_for_share_groups_using_too_old_microversion(
+        self, arg
+    ):
+        cmd = f'quota-update {self.project_id} {arg} 13'
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
-            cmd, microversion='2.39')
+            cmd,
+            microversion='2.39',
+        )
 
     @ddt.data('--share-replicas', '--replica-gigabytes')
     @utils.skip_if_microversion_not_supported("2.52")
-    def test_update_quotas_for_share_replicas_using_too_old_microversion(self,
-                                                                         arg):
-        cmd = 'quota-update %s %s 10' % (self.project_id, arg)
+    def test_update_quotas_for_share_replicas_using_too_old_microversion(
+        self, arg
+    ):
+        cmd = f'quota-update {self.project_id} {arg} 10'
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
-            cmd, microversion='2.52')
+            cmd,
+            microversion='2.52',
+        )
 
     @ddt.data('--share-groups', '--share-group-snapshots')
     @utils.skip_if_microversion_not_supported("2.40")
     def test_update_share_type_quotas_for_share_groups(self, arg):
-        cmd = 'quota-update %s --share-type %s %s 13' % (
-            self.project_id, self.st_id, arg)
+        cmd = f'quota-update {self.project_id} --share-type {self.st_id} {arg} 13'
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
-            cmd, microversion='2.40')
+            cmd,
+            microversion='2.40',
+        )
 
-    @ddt.data(*set([
-        "2.39", "2.40", REPLICA_QUOTAS_MICROVERSION, api_versions.MAX_VERSION,
-    ]))
+    @ddt.data(
+        *set(
+            [
+                "2.39",
+                "2.40",
+                REPLICA_QUOTAS_MICROVERSION,
+                api_versions.MAX_VERSION,
+            ]
+        )
+    )
     def test_update_share_type_quotas_positive(self, microversion):
         if not utils.is_microversion_supported(microversion):
-            msg = "Microversion '%s' not supported." % microversion
+            msg = f"Microversion '{microversion}' not supported."
             raise self.skipException(msg)
 
         # Get project quotas
-        cmd = 'quota-show --tenant-id %s ' % self.project_id
+        cmd = f'quota-show --tenant-id {self.project_id} '
         quotas_raw = self.admin_client.manila(cmd, microversion=microversion)
         p_quotas = output_parser.details(quotas_raw)
 
@@ -194,32 +225,40 @@ class QuotasReadWriteTest(base.BaseTestCase):
             'snapshots': _get_share_type_quota_values(p_quotas['snapshots']),
             'gigabytes': _get_share_type_quota_values(p_quotas['gigabytes']),
             'snapshot_gigabytes': _get_share_type_quota_values(
-                p_quotas['snapshot_gigabytes']),
+                p_quotas['snapshot_gigabytes']
+            ),
         }
-        supports_share_replica_quotas = (
-            api_versions.APIVersion(microversion) >= api_versions.APIVersion(
-                REPLICA_QUOTAS_MICROVERSION))
+        supports_share_replica_quotas = api_versions.APIVersion(
+            microversion
+        ) >= api_versions.APIVersion(REPLICA_QUOTAS_MICROVERSION)
 
         if supports_share_replica_quotas:
             st_custom_quotas['share_replicas'] = _get_share_type_quota_values(
                 p_quotas['share_replicas']
             )
             st_custom_quotas['replica_gigabytes'] = (
-                _get_share_type_quota_values(p_quotas['replica_gigabytes']))
-            replica_params = (' --share-replicas %s '
-                              '--replica-gigabytes %s') % (
+                _get_share_type_quota_values(p_quotas['replica_gigabytes'])
+            )
+            replica_params = (
+                ' --share-replicas {} --replica-gigabytes {}'
+            ).format(
                 st_custom_quotas['share_replicas'],
-                st_custom_quotas['replica_gigabytes'])
+                st_custom_quotas['replica_gigabytes'],
+            )
 
         # Update quotas for share type
-        cmd = ('quota-update %s --share-type %s '
-               '--shares %s --gigabytes %s --snapshots %s '
-               '--snapshot-gigabytes %s') % (
-                   self.project_id, self.st_id,
-                   st_custom_quotas['shares'],
-                   st_custom_quotas['gigabytes'],
-                   st_custom_quotas['snapshots'],
-                   st_custom_quotas['snapshot_gigabytes'])
+        cmd = (
+            'quota-update {} --share-type {} '
+            '--shares {} --gigabytes {} --snapshots {} '
+            '--snapshot-gigabytes {}'
+        ).format(
+            self.project_id,
+            self.st_id,
+            st_custom_quotas['shares'],
+            st_custom_quotas['gigabytes'],
+            st_custom_quotas['snapshots'],
+            st_custom_quotas['snapshot_gigabytes'],
+        )
 
         if supports_share_replica_quotas:
             cmd += replica_params
@@ -229,8 +268,7 @@ class QuotasReadWriteTest(base.BaseTestCase):
         self._verify_current_st_quotas_equal_to(st_custom_quotas, microversion)
 
         # Reset share type quotas
-        cmd = 'quota-delete --tenant-id %s --share-type %s' % (
-            self.project_id, self.st_id)
+        cmd = f'quota-delete --tenant-id {self.project_id} --share-type {self.st_id}'
         self.admin_client.manila(cmd, microversion=microversion)
 
         # Verify share type quotas after reset
@@ -238,38 +276,43 @@ class QuotasReadWriteTest(base.BaseTestCase):
 
     @utils.skip_if_microversion_not_supported("2.38")
     def test_read_share_type_quotas_with_too_old_microversion(self):
-        cmd = 'quota-show --tenant-id %s --share-type %s' % (
-            self.project_id, self.st_id)
+        cmd = f'quota-show --tenant-id {self.project_id} --share-type {self.st_id}'
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
-            cmd, microversion='2.38')
+            cmd,
+            microversion='2.38',
+        )
 
     @utils.skip_if_microversion_not_supported("2.38")
     def test_update_share_type_quotas_with_too_old_microversion(self):
-        cmd = 'quota-update --tenant-id %s --share-type %s --shares %s' % (
-            self.project_id, self.st_id, '0')
+        cmd = 'quota-update --tenant-id {} --share-type {} --shares {}'.format(
+            self.project_id, self.st_id, '0'
+        )
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
-            cmd, microversion='2.38')
+            cmd,
+            microversion='2.38',
+        )
 
     @utils.skip_if_microversion_not_supported("2.38")
     def test_delete_share_type_quotas_with_too_old_microversion(self):
-        cmd = 'quota-delete --tenant-id %s --share-type %s' % (
-            self.project_id, self.st_id)
+        cmd = f'quota-delete --tenant-id {self.project_id} --share-type {self.st_id}'
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
-            cmd, microversion='2.38')
+            cmd,
+            microversion='2.38',
+        )
 
 
 @ddt.ddt
 class ManilaClientTestQuotasReadOnly(base.BaseTestCase):
-
     def test_quota_class_show_by_admin(self):
         roles = self.parser.listing(
-            self.clients['admin'].manila('quota-class-show', params='abc'))
+            self.clients['admin'].manila('quota-class-show', params='abc')
+        )
         self.assertTableStruct(roles, ('Property', 'Value'))
 
     def test_quota_class_show_by_user(self):
@@ -277,11 +320,15 @@ class ManilaClientTestQuotasReadOnly(base.BaseTestCase):
             exceptions.CommandFailed,
             self.clients['user'].manila,
             'quota-class-show',
-            params='abc')
+            params='abc',
+        )
 
     def _get_quotas(self, role, operation, microversion):
-        roles = self.parser.listing(self.clients[role].manila(
-            'quota-%s' % operation, microversion=microversion))
+        roles = self.parser.listing(
+            self.clients[role].manila(
+                f'quota-{operation}', microversion=microversion
+            )
+        )
         self.assertTableStruct(roles, ('Property', 'Value'))
 
     @ddt.data('admin', 'user')

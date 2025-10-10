@@ -22,7 +22,6 @@ REPLICA_QUOTAS_MICROVERSION = "2.53"
 
 
 class QuotaClassSet(base.Resource):
-
     @property
     def id(self):
         """Needed by base.Resource to self-refresh and be indexed."""
@@ -38,24 +37,28 @@ class QuotaClassSetManager(base.ManagerWithFind):
     @api_versions.wraps("1.0", "2.6")
     def get(self, class_name):
         return self._get(
-            "%(resource_path)s/%(class_name)s" % {
-                "resource_path": RESOURCE_PATH_LEGACY,
-                "class_name": class_name},
-            "quota_class_set")
+            f"{RESOURCE_PATH_LEGACY}/{class_name}", "quota_class_set"
+        )
 
     @api_versions.wraps("2.7")  # noqa
     def get(self, class_name):  # noqa
-        return self._get(
-            "%(resource_path)s/%(class_name)s" % {
-                "resource_path": RESOURCE_PATH, "class_name": class_name},
-            "quota_class_set")
+        return self._get(f"{RESOURCE_PATH}/{class_name}", "quota_class_set")
 
-    def _do_update(self, class_name, shares=None, gigabytes=None,
-                   snapshots=None, snapshot_gigabytes=None,
-                   share_networks=None, share_replicas=None,
-                   replica_gigabytes=None, per_share_gigabytes=None,
-                   share_groups=None, share_group_snapshots=None,
-                   resource_path=RESOURCE_PATH):
+    def _do_update(
+        self,
+        class_name,
+        shares=None,
+        gigabytes=None,
+        snapshots=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+        per_share_gigabytes=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        resource_path=RESOURCE_PATH,
+    ):
         body = {
             'quota_class_set': {
                 'class_name': class_name,
@@ -76,64 +79,126 @@ class QuotaClassSetManager(base.ManagerWithFind):
             if body['quota_class_set'][key] is None:
                 body['quota_class_set'].pop(key)
 
-        self._update(
-            "%(resource_path)s/%(class_name)s" % {
-                "resource_path": resource_path,
-                "class_name": class_name},
-            body)
+        self._update(f"{resource_path}/{class_name}", body)
 
     @api_versions.wraps("1.0", "2.6")
-    def update(self, class_name, shares=None, gigabytes=None,
-               snapshots=None, snapshot_gigabytes=None, share_networks=None):
+    def update(
+        self,
+        class_name,
+        shares=None,
+        gigabytes=None,
+        snapshots=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+    ):
         return self._do_update(
-            class_name, shares=shares, gigabytes=gigabytes,
-            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, resource_path=RESOURCE_PATH_LEGACY)
+            class_name,
+            shares=shares,
+            gigabytes=gigabytes,
+            snapshots=snapshots,
+            snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks,
+            resource_path=RESOURCE_PATH_LEGACY,
+        )
 
     @api_versions.wraps("2.7", "2.39")  # noqa
-    def update(self, class_name, shares=None, gigabytes=None,  # noqa
-               snapshots=None, snapshot_gigabytes=None, share_networks=None):
+    def update(  # noqa
+        self,
+        class_name,
+        shares=None,
+        gigabytes=None,
+        snapshots=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+    ):
         return self._do_update(
-            class_name, shares=shares, gigabytes=gigabytes,
-            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, resource_path=RESOURCE_PATH)
+            class_name,
+            shares=shares,
+            gigabytes=gigabytes,
+            snapshots=snapshots,
+            snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks,
+            resource_path=RESOURCE_PATH,
+        )
 
     @api_versions.wraps("2.40", "2.52")  # noqa
-    def update(self, class_name, shares=None, gigabytes=None,  # noqa
-               snapshots=None, snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None):
+    def update(  # noqa
+        self,
+        class_name,
+        shares=None,
+        gigabytes=None,
+        snapshots=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+    ):
         return self._do_update(
-            class_name, shares=shares, gigabytes=gigabytes,
-            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, share_groups=share_groups,
+            class_name,
+            shares=shares,
+            gigabytes=gigabytes,
+            snapshots=snapshots,
+            snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks,
+            share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
-            resource_path=RESOURCE_PATH)
+            resource_path=RESOURCE_PATH,
+        )
 
     @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION, "2.61")  # noqa
-    def update(self, class_name, shares=None, gigabytes=None,  # noqa
-               snapshots=None, snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None,
-               share_replicas=None, replica_gigabytes=None):
+    def update(  # noqa
+        self,
+        class_name,
+        shares=None,
+        gigabytes=None,
+        snapshots=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+    ):
         return self._do_update(
-            class_name, shares=shares, gigabytes=gigabytes,
-            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, share_groups=share_groups,
+            class_name,
+            shares=shares,
+            gigabytes=gigabytes,
+            snapshots=snapshots,
+            snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks,
+            share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
-            share_replicas=share_replicas, replica_gigabytes=replica_gigabytes,
-            resource_path=RESOURCE_PATH)
+            share_replicas=share_replicas,
+            replica_gigabytes=replica_gigabytes,
+            resource_path=RESOURCE_PATH,
+        )
 
     @api_versions.wraps("2.62")  # noqa
-    def update(self, class_name, shares=None, gigabytes=None,  # noqa
-               snapshots=None, snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None,
-               share_replicas=None, replica_gigabytes=None,
-               per_share_gigabytes=None):
+    def update(  # noqa
+        self,
+        class_name,
+        shares=None,
+        gigabytes=None,
+        snapshots=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+        per_share_gigabytes=None,
+    ):
         return self._do_update(
-            class_name, shares=shares, gigabytes=gigabytes,
-            snapshots=snapshots, snapshot_gigabytes=snapshot_gigabytes,
-            share_networks=share_networks, share_groups=share_groups,
+            class_name,
+            shares=shares,
+            gigabytes=gigabytes,
+            snapshots=snapshots,
+            snapshot_gigabytes=snapshot_gigabytes,
+            share_networks=share_networks,
+            share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
             share_replicas=share_replicas,
             replica_gigabytes=replica_gigabytes,
             per_share_gigabytes=per_share_gigabytes,
-            resource_path=RESOURCE_PATH)
+            resource_path=RESOURCE_PATH,
+        )

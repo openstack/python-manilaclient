@@ -24,16 +24,17 @@ from manilaclient.v2 import availability_zones
 
 @ddt.ddt
 class AvailabilityZoneTest(utils.TestCase):
-
     def _get_manager(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
         return availability_zones.AvailabilityZoneManager(
-            api=mock_microversion)
+            api=mock_microversion
+        )
 
     def _get_resource_path(self, microversion):
-        if (api_versions.APIVersion(microversion) >
-                api_versions.APIVersion("2.6")):
+        if api_versions.APIVersion(microversion) > api_versions.APIVersion(
+            "2.6"
+        ):
             return availability_zones.RESOURCE_PATH
         return availability_zones.RESOURCE_PATH_LEGACY
 
@@ -46,7 +47,8 @@ class AvailabilityZoneTest(utils.TestCase):
         result = manager.list()
 
         manager._list.assert_called_once_with(
-            resource_path, availability_zones.RESOURCE_NAME)
+            resource_path, availability_zones.RESOURCE_NAME
+        )
         self.assertEqual(manager._list.return_value, result)
 
     def test_representation(self):

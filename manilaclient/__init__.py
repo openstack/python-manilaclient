@@ -32,4 +32,5 @@ except AttributeError:
 API_MAX_VERSION = api_versions.APIVersion(api_versions.MAX_VERSION)
 API_MIN_VERSION = api_versions.APIVersion(api_versions.MIN_VERSION)
 API_DEPRECATED_VERSION = api_versions.APIVersion(
-    api_versions.DEPRECATED_VERSION)
+    api_versions.DEPRECATED_VERSION
+)

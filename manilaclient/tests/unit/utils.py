@@ -24,13 +24,17 @@ class TestCase(testtools.TestCase):
     }
 
     def setUp(self):
-        super(TestCase, self).setUp()
-        if (os.environ.get('OS_STDOUT_CAPTURE') == 'True' or
-                os.environ.get('OS_STDOUT_CAPTURE') == '1'):
+        super().setUp()
+        if (
+            os.environ.get('OS_STDOUT_CAPTURE') == 'True'
+            or os.environ.get('OS_STDOUT_CAPTURE') == '1'
+        ):
             stdout = self.useFixture(fixtures.StringStream('stdout')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stdout', stdout))
-        if (os.environ.get('OS_STDERR_CAPTURE') == 'True' or
-                os.environ.get('OS_STDERR_CAPTURE') == '1'):
+        if (
+            os.environ.get('OS_STDERR_CAPTURE') == 'True'
+            or os.environ.get('OS_STDERR_CAPTURE') == '1'
+        ):
             stderr = self.useFixture(fixtures.StringStream('stderr')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
 
@@ -50,7 +54,8 @@ class TestCase(testtools.TestCase):
 
     def mock_completion(self):
         patcher = mock.patch(
-            'manilaclient.base.Manager.write_to_completion_cache')
+            'manilaclient.base.Manager.write_to_completion_cache'
+        )
         patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -68,12 +73,13 @@ class TestResponse(requests.Response):
 
     def __init__(self, data):
         self._text = None
-        super(TestResponse, self)
+        super()
         if isinstance(data, dict):
             self.status_code = data.get('status_code', None)
             self.headers = data.get('headers', {})
             self.headers['x-openstack-request-id'] = data.get(
-                'x-openstack-request-id', 'fake-request-id')
+                'x-openstack-request-id', 'fake-request-id'
+            )
             # Fake the text attribute to streamline Response creation
             self._text = data.get('text', None)
         else:

@@ -59,8 +59,9 @@ class APIVersionTestCase(utils.TestCase):
         "2.",
     )
     def test_invalid_version_strings(self, version):
-        self.assertRaises(exceptions.UnsupportedVersion,
-                          api_versions.APIVersion, version)
+        self.assertRaises(
+            exceptions.UnsupportedVersion, api_versions.APIVersion, version
+        )
 
     def test_version_comparisons(self):
         v1 = api_versions.APIVersion("2.0")
@@ -116,24 +117,17 @@ class APIVersionTestCase(utils.TestCase):
         v1 = api_versions.APIVersion(v1_string)
         self.assertEqual(v1_string, v1.get_string())
 
-        self.assertRaises(ValueError,
-                          api_versions.APIVersion().get_string)
+        self.assertRaises(ValueError, api_versions.APIVersion().get_string)
 
-    @ddt.data("2.0",
-              "2.5",
-              "2.45",
-              "3.3",
-              "3.23",
-              "2.0",
-              "3.3",
-              "4.0")
+    @ddt.data("2.0", "2.5", "2.45", "3.3", "3.23", "2.0", "3.3", "4.0")
     def test_representation(self, version):
         version_major, version_minor = version.split('.')
         api_version = api_versions.APIVersion(version)
-        self.assertEqual(str(api_version),
-                         ("API Version Major: %s, Minor: %s" %
-                          (version_major, version_minor)))
-        self.assertEqual(repr(api_version), "<APIVersion: %s>" % version)
+        self.assertEqual(
+            str(api_version),
+            (f"API Version Major: {version_major}, Minor: {version_minor}"),
+        )
+        self.assertEqual(repr(api_version), f"<APIVersion: {version}>")
 
     def test_is_latest(self):
         v1 = api_versions.APIVersion("1.0")
@@ -143,25 +137,28 @@ class APIVersionTestCase(utils.TestCase):
 
 
 class GetAPIVersionTestCase(utils.TestCase):
-
     def test_wrong_format(self):
-        self.assertRaises(exceptions.UnsupportedVersion,
-                          api_versions.get_api_version, "something_wrong")
+        self.assertRaises(
+            exceptions.UnsupportedVersion,
+            api_versions.get_api_version,
+            "something_wrong",
+        )
 
     def test_wrong_major_version(self):
-        self.assertRaises(exceptions.UnsupportedVersion,
-                          api_versions.get_api_version, "1")
+        self.assertRaises(
+            exceptions.UnsupportedVersion, api_versions.get_api_version, "1"
+        )
 
     @mock.patch("manilaclient.api_versions.APIVersion")
     def test_major_and_minor_parts_is_presented(self, mock_apiversion):
         version = "2.7"
-        self.assertEqual(mock_apiversion.return_value,
-                         api_versions.get_api_version(version))
+        self.assertEqual(
+            mock_apiversion.return_value, api_versions.get_api_version(version)
+        )
         mock_apiversion.assert_called_once_with(version)
 
 
 class WrapsTestCase(utils.TestCase):
-
     def _get_obj_with_vers(self, vers):
         return mock.MagicMock(api_version=api_versions.APIVersion(vers))
 
@@ -184,13 +181,17 @@ class WrapsTestCase(utils.TestCase):
         foo(self._get_obj_with_vers('2.4'))
 
         mock_versioned_method.assert_called_once_with(
-            func_name, api_versions.APIVersion('2.2'),
-            api_versions.APIVersion(api_versions.MAX_VERSION), mock.ANY)
+            func_name,
+            api_versions.APIVersion('2.2'),
+            api_versions.APIVersion(api_versions.MAX_VERSION),
+            mock.ANY,
+        )
 
     @mock.patch("manilaclient.utils.get_function_name")
     @mock.patch("manilaclient.api_versions.VersionedMethod")
-    def test_start_and_end_version_are_presented(self, mock_versioned_method,
-                                                 mock_name):
+    def test_start_and_end_version_are_presented(
+        self, mock_versioned_method, mock_name
+    ):
         func_name = "foo"
         mock_name.return_value = func_name
         mock_versioned_method.side_effect = self._side_effect_of_vers_method
@@ -202,8 +203,11 @@ class WrapsTestCase(utils.TestCase):
         foo(self._get_obj_with_vers("2.4"))
 
         mock_versioned_method.assert_called_once_with(
-            func_name, api_versions.APIVersion("2.2"),
-            api_versions.APIVersion("2.6"), mock.ANY)
+            func_name,
+            api_versions.APIVersion("2.2"),
+            api_versions.APIVersion("2.6"),
+            mock.ANY,
+        )
 
     @mock.patch("manilaclient.utils.get_function_name")
     @mock.patch("manilaclient.api_versions.VersionedMethod")
@@ -216,12 +220,16 @@ class WrapsTestCase(utils.TestCase):
         def foo(*args, **kwargs):
             pass
 
-        self.assertRaises(exceptions.UnsupportedVersion,
-                          foo, self._get_obj_with_vers("2.1"))
+        self.assertRaises(
+            exceptions.UnsupportedVersion, foo, self._get_obj_with_vers("2.1")
+        )
 
         mock_versioned_method.assert_called_once_with(
-            func_name, api_versions.APIVersion("2.2"),
-            api_versions.APIVersion("2.6"), mock.ANY)
+            func_name,
+            api_versions.APIVersion("2.2"),
+            api_versions.APIVersion("2.6"),
+            mock.ANY,
+        )
 
     def test_define_method_is_actually_called(self):
         checker = mock.MagicMock()
@@ -239,7 +247,6 @@ class WrapsTestCase(utils.TestCase):
         checker.assert_called_once_with(*((obj,) + some_args), **some_kwargs)
 
     def test_cli_args_are_copied(self):
-
         @api_versions.wraps("2.2", "2.6")
         @cliutils.arg("name_1", help="Name of the something")
         @cliutils.arg("action_1", help="Some action")
@@ -252,18 +259,22 @@ class WrapsTestCase(utils.TestCase):
         def some_func_2(cs, args):
             pass
 
-        args_1 = [(('name_1',), {'help': 'Name of the something'}),
-                  (('action_1',), {'help': 'Some action'})]
+        args_1 = [
+            (('name_1',), {'help': 'Name of the something'}),
+            (('action_1',), {'help': 'Some action'}),
+        ]
         self.assertEqual(args_1, some_func_1.arguments)
 
-        args_2 = [(('name_2',), {'help': 'Name of the something'}),
-                  (('action_2',), {'help': 'Some action'})]
+        args_2 = [
+            (('name_2',), {'help': 'Name of the something'}),
+            (('action_2',), {'help': 'Some action'}),
+        ]
         self.assertEqual(args_2, some_func_2.arguments)
 
 
 class DiscoverVersionTestCase(utils.TestCase):
     def setUp(self):
-        super(DiscoverVersionTestCase, self).setUp()
+        super().setUp()
         self.orig_max = manilaclient.API_MAX_VERSION
         self.orig_min = manilaclient.API_MIN_VERSION
         self.addCleanup(self._clear_fake_version)
@@ -273,11 +284,14 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = self.orig_max
         manilaclient.API_MIN_VERSION = self.orig_min
 
-    def _mock_returned_server_version(self, server_version,
-                                      server_min_version):
-        version_mock = mock.MagicMock(version=server_version,
-                                      min_version=server_min_version,
-                                      status='CURRENT')
+    def _mock_returned_server_version(
+        self, server_version, server_min_version
+    ):
+        version_mock = mock.MagicMock(
+            version=server_version,
+            min_version=server_min_version,
+            status='CURRENT',
+        )
         val = [version_mock]
         self.fake_client.services.server_api_version.return_value = val
 
@@ -286,11 +300,13 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = api_versions.APIVersion("2.3")
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.1")
 
-        self.assertRaisesRegex(exceptions.UnsupportedVersion,
-                               ".*range is '2.4' to '2.7'.*",
-                               api_versions.discover_version,
-                               self.fake_client,
-                               api_versions.APIVersion("2.3"))
+        self.assertRaisesRegex(
+            exceptions.UnsupportedVersion,
+            ".*range is '2.4' to '2.7'.*",
+            api_versions.discover_version,
+            self.fake_client,
+            api_versions.APIVersion("2.3"),
+        )
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
     def test_server_is_too_old(self):
@@ -298,10 +314,12 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = api_versions.APIVersion("2.10")
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.9")
 
-        self.assertRaises(exceptions.UnsupportedVersion,
-                          api_versions.discover_version,
-                          self.fake_client,
-                          api_versions.APIVersion("2.10"))
+        self.assertRaises(
+            exceptions.UnsupportedVersion,
+            api_versions.discover_version,
+            self.fake_client,
+            api_versions.APIVersion("2.10"),
+        )
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
     def test_requested_version_is_less_than_server_max(self):
@@ -329,8 +347,8 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.5")
 
         discovered_version = api_versions.discover_version(
-            self.fake_client,
-            manilaclient.API_MAX_VERSION)
+            self.fake_client, manilaclient.API_MAX_VERSION
+        )
         self.assertEqual("2.5", discovered_version.get_string())
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
@@ -339,8 +357,8 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = api_versions.APIVersion("2.5")
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.5")
         discovered_version = api_versions.discover_version(
-            self.fake_client,
-            manilaclient.API_MAX_VERSION)
+            self.fake_client, manilaclient.API_MAX_VERSION
+        )
         self.assertEqual("1.0", discovered_version.get_string())
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
@@ -350,8 +368,8 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.1")
 
         discovered_version = api_versions.discover_version(
-            self.fake_client,
-            api_versions.APIVersion('2.7'))
+            self.fake_client, api_versions.APIVersion('2.7')
+        )
         self.assertEqual('2.7', discovered_version.get_string())
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
@@ -361,10 +379,11 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.1")
 
         discovered_version = api_versions.discover_version(
-            self.fake_client,
-            api_versions.APIVersion('2.7'))
-        self.assertEqual(api_versions.DEPRECATED_VERSION,
-                         discovered_version.get_string())
+            self.fake_client, api_versions.APIVersion('2.7')
+        )
+        self.assertEqual(
+            api_versions.DEPRECATED_VERSION, discovered_version.get_string()
+        )
 
         self.assertTrue(self.fake_client.services.server_api_version.called)
 
@@ -373,8 +392,10 @@ class DiscoverVersionTestCase(utils.TestCase):
         manilaclient.API_MAX_VERSION = api_versions.APIVersion("2.5")
         manilaclient.API_MIN_VERSION = api_versions.APIVersion("2.5")
 
-        self.assertRaisesRegex(exceptions.UnsupportedVersion,
-                               ".*range is '2.0' to '2.5'.*",
-                               api_versions.discover_version,
-                               self.fake_client,
-                               api_versions.APIVersion("1.0"))
+        self.assertRaisesRegex(
+            exceptions.UnsupportedVersion,
+            ".*range is '2.0' to '2.5'.*",
+            api_versions.discover_version,
+            self.fake_client,
+            api_versions.APIVersion("1.0"),
+        )

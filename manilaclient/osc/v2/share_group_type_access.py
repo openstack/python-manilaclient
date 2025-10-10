@@ -25,21 +25,23 @@ LOG = logging.getLogger(__name__)
 
 class ShareGroupTypeAccessAllow(command.Command):
     """Allow a project to access a share group type."""
-    _description = _("Allow a project to access a share group type "
-                     "(Admin only).")
+
+    _description = _(
+        "Allow a project to access a share group type (Admin only)."
+    )
 
     def get_parser(self, prog_name):
-        parser = super(ShareGroupTypeAccessAllow, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             'share_group_type',
             metavar="<share-group-type>",
-            help=_("Share group type name or ID to allow access to.")
+            help=_("Share group type name or ID to allow access to."),
         )
         parser.add_argument(
             'projects',
             metavar="<project>",
             nargs="+",
-            help=_("Project Name or ID to add share group type access for.")
+            help=_("Project Name or ID to add share group type access for."),
         )
         identity_common.add_project_domain_option_to_parser(parser)
         return parser
@@ -50,42 +52,52 @@ class ShareGroupTypeAccessAllow(command.Command):
         result = 0
 
         share_group_type = apiutils.find_resource(
-            share_client.share_group_types, parsed_args.share_group_type)
+            share_client.share_group_types, parsed_args.share_group_type
+        )
 
         for project in parsed_args.projects:
             try:
                 project_obj = identity_common.find_project(
-                    identity_client, project, parsed_args.project_domain)
+                    identity_client, project, parsed_args.project_domain
+                )
 
                 share_client.share_group_type_access.add_project_access(
-                    share_group_type, project_obj.id)
+                    share_group_type, project_obj.id
+                )
             except Exception as e:
                 result += 1
-                LOG.error(_(
-                    "Failed to allow access for project '%(project)s' "
-                    "to share group type with name or ID "
-                    "'%(share_group_type)s': %(e)s"),
-                    {'project': project,
-                     'share_group_type': share_group_type, 'e': e})
+                LOG.error(
+                    _(
+                        "Failed to allow access for project '%(project)s' "
+                        "to share group type with name or ID "
+                        "'%(share_group_type)s': %(e)s"
+                    ),
+                    {
+                        'project': project,
+                        'share_group_type': share_group_type,
+                        'e': e,
+                    },
+                )
 
         if result > 0:
             total = len(parsed_args.projects)
-            msg = (_("Failed to allow access to "
-                     "%(result)s of %(total)s projects") % {'result': result,
-                                                            'total': total})
+            msg = _(
+                "Failed to allow access to %(result)s of %(total)s projects"
+            ) % {'result': result, 'total': total}
             raise exceptions.CommandError(msg)
 
 
 class ListShareGroupTypeAccess(command.Lister):
     """Get access list for share group type."""
+
     _description = _("Get access list for share group type (Admin only).")
 
     def get_parser(self, prog_name):
-        parser = super(ListShareGroupTypeAccess, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             'share_group_type',
             metavar="<share-group-type>",
-            help=_("Filter results by share group type name or ID.")
+            help=_("Filter results by share group type name or ID."),
         )
         return parser
 
@@ -93,11 +105,13 @@ class ListShareGroupTypeAccess(command.Lister):
         share_client = self.app.client_manager.share
 
         share_group_type = apiutils.find_resource(
-            share_client.share_group_types, parsed_args.share_group_type)
+            share_client.share_group_types, parsed_args.share_group_type
+        )
 
         if share_group_type._info.get('is_public'):
             raise exceptions.CommandError(
-                'Forbidden to get access list for public share group type.')
+                'Forbidden to get access list for public share group type.'
+            )
 
         data = share_client.share_group_type_access.list(share_group_type)
 
@@ -109,22 +123,25 @@ class ListShareGroupTypeAccess(command.Lister):
 
 class ShareGroupTypeAccessDeny(command.Command):
     """Deny a project to access a share group type."""
-    _description = _("Deny a project to access a share group type "
-                     "(Admin only).")
+
+    _description = _(
+        "Deny a project to access a share group type (Admin only)."
+    )
 
     def get_parser(self, prog_name):
-        parser = super(ShareGroupTypeAccessDeny, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             'share_group_type',
             metavar="<share-group-type>",
-            help=_("Share group type name or ID to deny access from")
+            help=_("Share group type name or ID to deny access from"),
         )
         parser.add_argument(
             'projects',
             metavar="<project>",
             nargs="+",
-            help=_("Project Name(s) or ID(s) "
-                   "to deny share group type access for.")
+            help=_(
+                "Project Name(s) or ID(s) to deny share group type access for."
+            ),
         )
         identity_common.add_project_domain_option_to_parser(parser)
         return parser
@@ -135,29 +152,36 @@ class ShareGroupTypeAccessDeny(command.Command):
         result = 0
 
         share_group_type = apiutils.find_resource(
-            share_client.share_group_types, parsed_args.share_group_type)
+            share_client.share_group_types, parsed_args.share_group_type
+        )
 
         for project in parsed_args.projects:
             try:
                 project_obj = identity_common.find_project(
-                    identity_client,
-                    project,
-                    parsed_args.project_domain)
+                    identity_client, project, parsed_args.project_domain
+                )
 
                 share_client.share_group_type_access.remove_project_access(
-                    share_group_type, project_obj.id)
+                    share_group_type, project_obj.id
+                )
             except Exception as e:
                 result += 1
-                LOG.error(_(
-                    "Failed to deny access for project '%(project)s' "
-                    "to share group type with name or ID "
-                    "'%(share_group_type)s': %(e)s"),
-                    {'project': project,
-                     'share_group_type': share_group_type, 'e': e})
+                LOG.error(
+                    _(
+                        "Failed to deny access for project '%(project)s' "
+                        "to share group type with name or ID "
+                        "'%(share_group_type)s': %(e)s"
+                    ),
+                    {
+                        'project': project,
+                        'share_group_type': share_group_type,
+                        'e': e,
+                    },
+                )
 
         if result > 0:
             total = len(parsed_args.projects)
-            msg = (_("Failed to deny access to "
-                     "%(result)s of %(total)s projects") % {'result': result,
-                                                            'total': total})
+            msg = _(
+                "Failed to deny access to %(result)s of %(total)s projects"
+            ) % {'result': result, 'total': total}
             raise exceptions.CommandError(msg)

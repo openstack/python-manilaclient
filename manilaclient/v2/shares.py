@@ -28,10 +28,10 @@ from manilaclient.v2 import share_instances
 
 
 class Share(base.MetadataCapableResource):
-
     """A share is an extra block level storage to the OpenStack instances."""
+
     def __repr__(self):
-        return "<Share: %s>" % self.id
+        return f"<Share: {self.id}>"
 
     def update(self, **kwargs):
         """Update this share."""
@@ -41,15 +41,29 @@ class Share(base.MetadataCapableResource):
         """Unmanage this share."""
         self.manager.unmanage(self, **kwargs)
 
-    def migration_start(self, host, force_host_assisted_migration,
-                        preserve_metadata, writable, nondisruptive,
-                        preserve_snapshots, new_share_network_id=None,
-                        new_share_type_id=None):
+    def migration_start(
+        self,
+        host,
+        force_host_assisted_migration,
+        preserve_metadata,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+        new_share_type_id=None,
+    ):
         """Migrate the share to a new host."""
-        self.manager.migration_start(self, host, force_host_assisted_migration,
-                                     preserve_metadata, writable,
-                                     nondisruptive, preserve_snapshots,
-                                     new_share_network_id, new_share_type_id)
+        self.manager.migration_start(
+            self,
+            host,
+            force_host_assisted_migration,
+            preserve_metadata,
+            writable,
+            nondisruptive,
+            preserve_snapshots,
+            new_share_network_id,
+            new_share_type_id,
+        )
 
     def migration_complete(self):
         """Complete migration of a share."""
@@ -118,14 +132,28 @@ class Share(base.MetadataCapableResource):
 
 class ShareManager(base.MetadataCapableManager):
     """Manage :class:`Share` resources."""
+
     resource_class = Share
     resource_path = '/shares'
 
-    def create(self, share_proto, size, snapshot_id=None, name=None,
-               description=None, metadata=None, share_network=None,
-               share_type=None, is_public=False, availability_zone=None,
-               share_group_id=None, scheduler_hints=None, return_raw=False,
-               mount_point_name=None, encryption_key_ref=None):
+    def create(
+        self,
+        share_proto,
+        size,
+        snapshot_id=None,
+        name=None,
+        description=None,
+        metadata=None,
+        share_network=None,
+        share_type=None,
+        is_public=False,
+        availability_zone=None,
+        share_group_id=None,
+        scheduler_hints=None,
+        return_raw=False,
+        mount_point_name=None,
+        encryption_key_ref=None,
+    ):
         """Create a share.
 
         :param share_proto: text - share protocol for new share available
@@ -151,8 +179,9 @@ class ShareManager(base.MetadataCapableManager):
         :rtype: :class:`Share`
         """
         share_metadata = metadata if metadata is not None else dict()
-        scheduler_hints = (scheduler_hints if scheduler_hints is not None
-                           else dict())
+        scheduler_hints = (
+            scheduler_hints if scheduler_hints is not None else dict()
+        )
         body = {
             'size': size,
             'snapshot_id': snapshot_id,
@@ -175,17 +204,28 @@ class ShareManager(base.MetadataCapableManager):
         if encryption_key_ref:
             body['encryption_key_ref'] = encryption_key_ref
 
-        return self._create('/shares', {'share': body}, 'share',
-                            return_raw=return_raw)
+        return self._create(
+            '/shares', {'share': body}, 'share', return_raw=return_raw
+        )
 
     @api_versions.wraps("2.29")
     @api_versions.experimental_api
-    def migration_start(self, share, host, force_host_assisted_migration,
-                        preserve_metadata, writable, nondisruptive,
-                        preserve_snapshots, new_share_network_id=None,
-                        new_share_type_id=None):
+    def migration_start(
+        self,
+        share,
+        host,
+        force_host_assisted_migration,
+        preserve_metadata,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+        new_share_type_id=None,
+    ):
         return self._action(
-            "migration_start", share, {
+            "migration_start",
+            share,
+            {
                 "host": host,
                 "force_host_assisted_migration": force_host_assisted_migration,
                 "preserve_metadata": preserve_metadata,
@@ -194,7 +234,8 @@ class ShareManager(base.MetadataCapableManager):
                 "nondisruptive": nondisruptive,
                 "new_share_network_id": new_share_network_id,
                 "new_share_type_id": new_share_type_id,
-            })
+            },
+        )
 
     @api_versions.wraps("2.22")
     @api_versions.experimental_api
@@ -204,8 +245,9 @@ class ShareManager(base.MetadataCapableManager):
         :param share: either share object or text with its ID.
         :param task_state: text with new task state to set for share.
         """
-        return self._action('reset_task_state', share,
-                            {"task_state": task_state})
+        return self._action(
+            'reset_task_state', share, {"task_state": task_state}
+        )
 
     @api_versions.wraps("2.22")
     @api_versions.experimental_api
@@ -234,10 +276,19 @@ class ShareManager(base.MetadataCapableManager):
         """
         return self._action('migration_get_progress', share)
 
-    def _do_manage(self, service_host, protocol, export_path,
-                   driver_options=None, share_type=None,
-                   name=None, description=None, is_public=None,
-                   share_server_id=None, resource_path="/shares/manage"):
+    def _do_manage(
+        self,
+        service_host,
+        protocol,
+        export_path,
+        driver_options=None,
+        share_type=None,
+        name=None,
+        description=None,
+        is_public=None,
+        share_server_id=None,
+        resource_path="/shares/manage",
+    ):
         """Manage some existing share.
 
         :param service_host: text - host where manila share service is running
@@ -268,38 +319,98 @@ class ShareManager(base.MetadataCapableManager):
         return self._create(resource_path, {'share': body}, 'share')
 
     @api_versions.wraps("1.0", "2.6")
-    def manage(self, service_host, protocol, export_path, driver_options=None,
-               share_type=None, name=None, description=None):
+    def manage(
+        self,
+        service_host,
+        protocol,
+        export_path,
+        driver_options=None,
+        share_type=None,
+        name=None,
+        description=None,
+    ):
         return self._do_manage(
-            service_host, protocol, export_path, driver_options=driver_options,
-            share_type=share_type, name=name, description=description,
-            resource_path="/os-share-manage")
+            service_host,
+            protocol,
+            export_path,
+            driver_options=driver_options,
+            share_type=share_type,
+            name=name,
+            description=description,
+            resource_path="/os-share-manage",
+        )
 
     @api_versions.wraps("2.7", "2.7")  # noqa
-    def manage(self, service_host, protocol, export_path, driver_options=None,  # noqa
-               share_type=None, name=None, description=None):
+    def manage(  # noqa
+        self,
+        service_host,
+        protocol,
+        export_path,
+        driver_options=None,
+        share_type=None,
+        name=None,
+        description=None,
+    ):
         return self._do_manage(
-            service_host, protocol, export_path, driver_options=driver_options,
-            share_type=share_type, name=name, description=description,
-            resource_path="/shares/manage")
+            service_host,
+            protocol,
+            export_path,
+            driver_options=driver_options,
+            share_type=share_type,
+            name=name,
+            description=description,
+            resource_path="/shares/manage",
+        )
 
     @api_versions.wraps("2.8", "2.48")  # noqa
-    def manage(self, service_host, protocol, export_path, driver_options=None,  # noqa
-               share_type=None, name=None, description=None, is_public=False):
+    def manage(  # noqa
+        self,
+        service_host,
+        protocol,
+        export_path,
+        driver_options=None,
+        share_type=None,
+        name=None,
+        description=None,
+        is_public=False,
+    ):
         return self._do_manage(
-            service_host, protocol, export_path, driver_options=driver_options,
-            share_type=share_type, name=name, description=description,
-            is_public=is_public, resource_path="/shares/manage")
+            service_host,
+            protocol,
+            export_path,
+            driver_options=driver_options,
+            share_type=share_type,
+            name=name,
+            description=description,
+            is_public=is_public,
+            resource_path="/shares/manage",
+        )
 
     @api_versions.wraps("2.49")  # noqa
-    def manage(self, service_host, protocol, export_path, driver_options=None,  # noqa
-               share_type=None, name=None, description=None, is_public=False,
-               share_server_id=None):
+    def manage(  # noqa
+        self,
+        service_host,
+        protocol,
+        export_path,
+        driver_options=None,
+        share_type=None,
+        name=None,
+        description=None,
+        is_public=False,
+        share_server_id=None,
+    ):
         return self._do_manage(
-            service_host, protocol, export_path, driver_options=driver_options,
-            share_type=share_type, name=name, description=description,
-            is_public=is_public, share_server_id=share_server_id,
-            resource_path="/shares/manage")
+            service_host,
+            protocol,
+            export_path,
+            driver_options=driver_options,
+            share_type=share_type,
+            name=name,
+            description=description,
+            is_public=is_public,
+            share_server_id=share_server_id,
+            resource_path="/shares/manage",
+        )
 
     @api_versions.wraps("1.0", "2.6")
     def unmanage(self, share):
@@ -308,10 +419,11 @@ class ShareManager(base.MetadataCapableManager):
         :param share: either share object or text with its ID.
         """
         return self.api.client.post(
-            "/os-share-unmanage/%s/unmanage" % base.getid(share))
+            f"/os-share-unmanage/{base.getid(share)}/unmanage"
+        )
 
     @api_versions.wraps("2.7")  # noqa
-    def unmanage(self, share):   # noqa
+    def unmanage(self, share):  # noqa
         """Unmanage a share.
 
         :param share: either share object or text with its ID.
@@ -338,8 +450,7 @@ class ShareManager(base.MetadataCapableManager):
         :rtype: :class:`Share`
         """
         share_id = base.getid(share)
-        return self._get("/shares/%s" % share_id, "share",
-                         return_raw=return_raw)
+        return self._get(f"/shares/{share_id}", "share", return_raw=return_raw)
 
     def update(self, share, **kwargs):
         """Updates a share.
@@ -350,54 +461,102 @@ class ShareManager(base.MetadataCapableManager):
         if not kwargs:
             return
 
-        body = {'share': kwargs, }
+        body = {
+            'share': kwargs,
+        }
         share_id = base.getid(share)
-        return self._update("/shares/%s" % share_id, body)
+        return self._update(f"/shares/{share_id}", body)
 
     @api_versions.wraps("1.0", "2.34")
-    def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None, return_raw=False):
+    def list(
+        self,
+        detailed=True,
+        search_opts=None,
+        sort_key=None,
+        sort_dir=None,
+        return_raw=False,
+    ):
         """Get a list of all shares."""
         search_opts = search_opts or {}
         search_opts.pop("export_location", None)
         search_opts.pop("is_soft_deleted", None)
         search_opts.pop("encryption_key_ref", None)
-        return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir,
-                            return_raw=return_raw)
+        return self.do_list(
+            detailed=detailed,
+            search_opts=search_opts,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            return_raw=return_raw,
+        )
 
-    @api_versions.wraps("2.35", "2.68")   # noqa
-    def list(self, detailed=True, search_opts=None,   # noqa
-             sort_key=None, sort_dir=None, return_raw=False):
+    @api_versions.wraps("2.35", "2.68")  # noqa
+    def list(  # noqa
+        self,
+        detailed=True,
+        search_opts=None,
+        sort_key=None,
+        sort_dir=None,
+        return_raw=False,
+    ):
         """Get a list of all shares."""
         if search_opts is None:
             search_opts = {}
         search_opts.pop("is_soft_deleted", None)
         search_opts.pop("encryption_key_ref", None)
-        return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir,
-                            return_raw=return_raw)
+        return self.do_list(
+            detailed=detailed,
+            search_opts=search_opts,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            return_raw=return_raw,
+        )
 
     @api_versions.wraps("2.69", "2.89")  # noqa
-    def list(self, detailed=True, search_opts=None,  # noqa
-             sort_key=None, sort_dir=None, return_raw=False):
+    def list(  # noqa
+        self,
+        detailed=True,
+        search_opts=None,
+        sort_key=None,
+        sort_dir=None,
+        return_raw=False,
+    ):
         """Get a list of all shares."""
         search_opts = search_opts or {}
         search_opts.pop("encryption_key_ref", None)
-        return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir,
-                            return_raw=return_raw)
+        return self.do_list(
+            detailed=detailed,
+            search_opts=search_opts,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            return_raw=return_raw,
+        )
 
     @api_versions.wraps("2.90")  # noqa
-    def list(self, detailed=True, search_opts=None,  # noqa
-             sort_key=None, sort_dir=None, return_raw=False):
+    def list(  # noqa
+        self,
+        detailed=True,
+        search_opts=None,
+        sort_key=None,
+        sort_dir=None,
+        return_raw=False,
+    ):
         """Get a list of all shares."""
-        return self.do_list(detailed=detailed, search_opts=search_opts,
-                            sort_key=sort_key, sort_dir=sort_dir,
-                            return_raw=return_raw)
+        return self.do_list(
+            detailed=detailed,
+            search_opts=search_opts,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            return_raw=return_raw,
+        )
 
-    def do_list(self, detailed=True, search_opts=None,
-                sort_key=None, sort_dir=None, return_raw=False):
+    def do_list(
+        self,
+        detailed=True,
+        search_opts=None,
+        sort_key=None,
+        sort_dir=None,
+        return_raw=False,
+    ):
         """Get a list of all shares.
 
         :param detailed: Whether to return detailed share info or not.
@@ -442,15 +601,21 @@ class ShareManager(base.MetadataCapableManager):
                 elif sort_key == 'availability_zone':
                     search_opts['sort_key'] = 'availability_zone_id'
             else:
-                raise ValueError('sort_key must be one of the following: %s.'
-                                 % ', '.join(constants.SHARE_SORT_KEY_VALUES))
+                raise ValueError(
+                    'sort_key must be one of the following: {}.'.format(
+                        ', '.join(constants.SHARE_SORT_KEY_VALUES)
+                    )
+                )
 
         if sort_dir is not None:
             if sort_dir in constants.SORT_DIR_VALUES:
                 search_opts['sort_dir'] = sort_dir
             else:
-                raise ValueError('sort_dir must be one of the following: %s.'
-                                 % ', '.join(constants.SORT_DIR_VALUES))
+                raise ValueError(
+                    'sort_dir must be one of the following: {}.'.format(
+                        ', '.join(constants.SORT_DIR_VALUES)
+                    )
+                )
 
         if 'is_public' not in search_opts:
             search_opts['is_public'] = True
@@ -465,9 +630,9 @@ class ShareManager(base.MetadataCapableManager):
         query_string = self._build_query_string(search_opts)
 
         if detailed:
-            path = "/shares/detail%s" % (query_string,)
+            path = f"/shares/detail{query_string}"
         else:
-            path = "/shares%s" % (query_string,)
+            path = f"/shares{query_string}"
 
         return self._list(path, 'shares', return_raw=return_raw)
 
@@ -478,9 +643,9 @@ class ShareManager(base.MetadataCapableManager):
         :param share_group_id: text - ID of the share group to which the share
             belongs
         """
-        url = "/shares/%s" % base.getid(share)
+        url = f"/shares/{base.getid(share)}"
         if share_group_id:
-            url += "?share_group_id=%s" % share_group_id
+            url += f"?share_group_id={share_group_id}"
         self._delete(url)
 
     def _do_force_delete(self, share, action_name):
@@ -495,7 +660,7 @@ class ShareManager(base.MetadataCapableManager):
         return self._do_force_delete(share, "os-force_delete")
 
     @api_versions.wraps("2.7")  # noqa
-    def force_delete(self, share):   # noqa
+    def force_delete(self, share):  # noqa
         return self._do_force_delete(share, "force_delete")
 
     @api_versions.wraps("2.69")
@@ -517,7 +682,7 @@ class ShareManager(base.MetadataCapableManager):
     @staticmethod
     def _validate_common_name(access):
         if len(access) == 0 or len(access) > 64:
-            exc_str = ('Invalid CN (common name). Must be 1-64 chars long.')
+            exc_str = 'Invalid CN (common name). Must be 1-64 chars long.'
             raise exceptions.CommandError(exc_str)
 
     '''
@@ -528,6 +693,7 @@ class ShareManager(base.MetadataCapableManager):
     2:https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/
             windows-server-2000/bb726984(v=technet.10)
     '''
+
     @staticmethod
     def _validate_username(access):
         sole_periods_spaces_re = r'[\s|\.]+$'
@@ -535,38 +701,42 @@ class ShareManager(base.MetadataCapableManager):
         username = access
 
         if re.match(sole_periods_spaces_re, username):
-            exc_str = ('Invalid user or group name,cannot consist solely '
-                       'of periods or spaces.')
+            exc_str = (
+                'Invalid user or group name,cannot consist solely '
+                'of periods or spaces.'
+            )
             raise exceptions.CommandError(exc_str)
 
         if not re.match(valid_username_re, username):
-            exc_str = ('Invalid user or group name. Must be 4-255 characters '
-                       'and consist of alphanumeric characters and '
-                       'exclude special characters "/\\[]:;|=,+*?<>')
+            exc_str = (
+                'Invalid user or group name. Must be 4-255 characters '
+                'and consist of alphanumeric characters and '
+                'exclude special characters "/\\[]:;|=,+*?<>'
+            )
             raise exceptions.CommandError(exc_str)
 
     @staticmethod
     def _validate_cephx_id(cephx_id):
         if not cephx_id:
-            raise exceptions.CommandError(
-                'Ceph IDs may not be empty.')
+            raise exceptions.CommandError('Ceph IDs may not be empty.')
 
         # This restriction may be lifted in Ceph in the future:
         # http://tracker.ceph.com/issues/14626
         if not set(cephx_id) <= set(string.printable):
             raise exceptions.CommandError(
-                'Ceph IDs must consist of ASCII printable characters.')
+                'Ceph IDs must consist of ASCII printable characters.'
+            )
 
         # Periods are technically permitted, but we restrict them here
         # to avoid confusion where users are unsure whether they should
         # include the "client." prefix: otherwise they could accidentally
         # create "client.client.foobar".
         if '.' in cephx_id:
-            raise exceptions.CommandError(
-                'Ceph IDs may not contain periods.')
+            raise exceptions.CommandError('Ceph IDs may not contain periods.')
 
-    def _validate_access(self, access_type, access, valid_access_types=None,
-                         enable_ipv6=False):
+    def _validate_access(
+        self, access_type, access, valid_access_types=None, enable_ipv6=False
+    ):
         if not valid_access_types:
             valid_access_types = ('ip', 'user', 'cert')
 
@@ -591,13 +761,23 @@ class ShareManager(base.MetadataCapableManager):
             elif access_type == 'cephx':
                 self._validate_cephx_id(access.strip())
         else:
-            msg = ('Only following access types are supported: %s' %
-                   ', '.join(valid_access_types))
+            msg = 'Only following access types are supported: {}'.format(
+                ', '.join(valid_access_types)
+            )
             raise exceptions.CommandError(msg)
 
-    def _do_allow(self, share, access_type, access, access_level, action_name,
-                  metadata=None, lock_visibility=False,
-                  lock_deletion=False, lock_reason=None):
+    def _do_allow(
+        self,
+        share,
+        access_type,
+        access,
+        access_level,
+        action_name,
+        metadata=None,
+        lock_visibility=False,
+        lock_deletion=False,
+        lock_reason=None,
+    ):
         """Allow access to a share.
 
         :param share: either share object or text with its ID.
@@ -620,57 +800,83 @@ class ShareManager(base.MetadataCapableManager):
             access_params['lock_deletion'] = lock_deletion
         if lock_reason:
             access_params['lock_reason'] = lock_reason
-        access = self._action(action_name, share,
-                              access_params)[1]["access"]
+        access = self._action(action_name, share, access_params)[1]["access"]
         return access
 
     @api_versions.wraps("1.0", "2.6")
     def allow(self, share, access_type, access, access_level, metadata=None):
         self._validate_access(access_type, access)
         return self._do_allow(
-            share, access_type, access, access_level, "os-allow_access")
+            share, access_type, access, access_level, "os-allow_access"
+        )
 
     @api_versions.wraps("2.7", "2.12")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
+    def allow(self, share, access_type, access, access_level, metadata=None):  # noqa
         self._validate_access(access_type, access)
         return self._do_allow(
-            share, access_type, access, access_level, "allow_access")
+            share, access_type, access, access_level, "allow_access"
+        )
 
     @api_versions.wraps("2.13", "2.37")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
+    def allow(self, share, access_type, access, access_level, metadata=None):  # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
         self._validate_access(access_type, access, valid_access_types)
         return self._do_allow(
-            share, access_type, access, access_level, "allow_access")
+            share, access_type, access, access_level, "allow_access"
+        )
 
     @api_versions.wraps("2.38", "2.44")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
+    def allow(self, share, access_type, access, access_level, metadata=None):  # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
-        self._validate_access(access_type, access, valid_access_types,
-                              enable_ipv6=True)
+        self._validate_access(
+            access_type, access, valid_access_types, enable_ipv6=True
+        )
         return self._do_allow(
-            share, access_type, access, access_level, "allow_access")
+            share, access_type, access, access_level, "allow_access"
+        )
 
     @api_versions.wraps("2.45", "2.81")  # noqa
-    def allow(self, share, access_type, access, access_level, metadata=None):   # noqa
+    def allow(self, share, access_type, access, access_level, metadata=None):  # noqa
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
-        self._validate_access(access_type, access, valid_access_types,
-                              enable_ipv6=True)
+        self._validate_access(
+            access_type, access, valid_access_types, enable_ipv6=True
+        )
         return self._do_allow(
-            share, access_type, access, access_level, "allow_access",
-            metadata=metadata)
+            share,
+            access_type,
+            access,
+            access_level,
+            "allow_access",
+            metadata=metadata,
+        )
 
     @api_versions.wraps("2.82")  # noqa
-    def allow(self, share, access_type, access, access_level, # pylint: disable=function-redefined  # noqa F811
-              metadata=None, lock_visibility=False, lock_deletion=False,
-              lock_reason=None):
+    def allow(  # noqa
+        self,
+        share,
+        access_type,
+        access,
+        access_level,  # pylint: disable=function-redefined  # noqa F811
+        metadata=None,
+        lock_visibility=False,
+        lock_deletion=False,
+        lock_reason=None,
+    ):
         valid_access_types = ('ip', 'user', 'cert', 'cephx')
-        self._validate_access(access_type, access, valid_access_types,
-                              enable_ipv6=True)
+        self._validate_access(
+            access_type, access, valid_access_types, enable_ipv6=True
+        )
         return self._do_allow(
-            share, access_type, access, access_level, "allow_access",
-            metadata=metadata, lock_visibility=lock_visibility,
-            lock_deletion=lock_deletion, lock_reason=lock_reason)
+            share,
+            access_type,
+            access,
+            access_level,
+            "allow_access",
+            metadata=metadata,
+            lock_visibility=lock_visibility,
+            lock_deletion=lock_deletion,
+            lock_reason=lock_reason,
+        )
 
     def _do_deny(self, share, access_id, action_name, unrestrict=False):
         """Deny access to a share.
@@ -690,13 +896,14 @@ class ShareManager(base.MetadataCapableManager):
         return self._do_deny(share, access_id, "os-deny_access")
 
     @api_versions.wraps("2.7", "2.81")  # noqa
-    def deny(self, share, access_id):   # noqa
+    def deny(self, share, access_id):  # noqa
         return self._do_deny(share, access_id, "deny_access")
 
     @api_versions.wraps("2.82")  # noqa
     def deny(self, share, access_id, unrestrict=False):  # noqa
-        return self._do_deny(share, access_id, "deny_access",
-                             unrestrict=unrestrict)
+        return self._do_deny(
+            share, access_id, "deny_access", unrestrict=unrestrict
+        )
 
     def _do_access_list(self, share, action_name):
         """Get access list to a share.
@@ -715,7 +922,7 @@ class ShareManager(base.MetadataCapableManager):
         return self._do_access_list(share, "os-access_list")
 
     @api_versions.wraps("2.7", "2.44")  # noqa
-    def access_list(self, share):   # noqa
+    def access_list(self, share):  # noqa
         return self._do_access_list(share, "access_list")
 
     def _action(self, action, share, info=None, **kwargs):
@@ -728,7 +935,7 @@ class ShareManager(base.MetadataCapableManager):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/shares/%s/action' % base.getid(share)
+        url = f'/shares/{base.getid(share)}/action'
         return self.api.client.post(url, body=body)
 
     def _do_reset_state(self, share, state, action_name):
@@ -786,7 +993,7 @@ class ShareManager(base.MetadataCapableManager):
         return self._do_shrink(share, new_size, "os-shrink")
 
     @api_versions.wraps("2.7")  # noqa
-    def shrink(self, share, new_size):   # noqa
+    def shrink(self, share, new_size):  # noqa
         return self._do_shrink(share, new_size, "shrink")
 
     def list_instances(self, share):
@@ -795,7 +1002,7 @@ class ShareManager(base.MetadataCapableManager):
         :param share: either share object or text with its ID.
         """
         return self._list(
-            '/shares/%s/instances' % base.getid(share),
+            f'/shares/{base.getid(share)}/instances',
             'share_instances',
-            manager=share_instances.ShareInstanceManager(self)
+            manager=share_instances.ShareInstanceManager(self),
         )

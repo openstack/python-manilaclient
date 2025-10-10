@@ -25,57 +25,62 @@ FAKE_TARGET_SHARE_ID = 'fake_target_share_id'
 
 @ddt.ddt
 class ShareBackupsTest(utils.TestCase):
-
-    class _FakeShareBackup(object):
+    class _FakeShareBackup:
         id = 'fake_share_backup_id'
 
     def setUp(self):
-        super(ShareBackupsTest, self).setUp()
+        super().setUp()
         microversion = api_versions.APIVersion("2.91")
         self.manager = share_backups.ShareBackupManager(
-            fakes.FakeClient(api_version=microversion))
+            fakes.FakeClient(api_version=microversion)
+        )
 
     def test_delete_str(self):
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(FAKE_BACKUP)
             self.manager._delete.assert_called_once_with(
-                share_backups.RESOURCE_PATH % FAKE_BACKUP)
+                share_backups.RESOURCE_PATH % FAKE_BACKUP
+            )
 
     def test_delete_obj(self):
         backup = self._FakeShareBackup
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(backup)
             self.manager._delete.assert_called_once_with(
-                share_backups.RESOURCE_PATH % backup.id)
+                share_backups.RESOURCE_PATH % backup.id
+            )
 
     def test_get(self):
         with mock.patch.object(self.manager, '_get', mock.Mock()):
             self.manager.get(FAKE_BACKUP)
             self.manager._get.assert_called_once_with(
                 share_backups.RESOURCE_PATH % FAKE_BACKUP,
-                share_backups.RESOURCE_NAME)
+                share_backups.RESOURCE_NAME,
+            )
 
     def test_restore(self):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.restore(FAKE_BACKUP)
             self.manager._action.assert_called_once_with(
-                'restore', FAKE_BACKUP, info=None)
+                'restore', FAKE_BACKUP, info=None
+            )
 
     def test_restore_to_target(self):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.restore(
-                FAKE_BACKUP,
-                target_share_id=FAKE_TARGET_SHARE_ID
+                FAKE_BACKUP, target_share_id=FAKE_TARGET_SHARE_ID
             )
             self.manager._action.assert_called_once_with(
-                'restore', FAKE_BACKUP, info=FAKE_TARGET_SHARE_ID)
+                'restore', FAKE_BACKUP, info=FAKE_TARGET_SHARE_ID
+            )
 
     def test_list(self):
         with mock.patch.object(self.manager, '_list', mock.Mock()):
             self.manager.list()
             self.manager._list.assert_called_once_with(
                 share_backups.RESOURCES_PATH + '/detail',
-                share_backups.RESOURCES_NAME)
+                share_backups.RESOURCES_NAME,
+            )
 
     def test_list_with_share(self):
         with mock.patch.object(self.manager, '_list', mock.Mock()):
@@ -83,13 +88,15 @@ class ShareBackupsTest(utils.TestCase):
             share_uri = '?share_id=fake_share_id'
             self.manager._list.assert_called_once_with(
                 (share_backups.RESOURCES_PATH + '/detail' + share_uri),
-                share_backups.RESOURCES_NAME)
+                share_backups.RESOURCES_NAME,
+            )
 
     def test_reset_state(self):
         with mock.patch.object(self.manager, '_action', mock.Mock()):
             self.manager.reset_status(FAKE_BACKUP, 'fake_status')
             self.manager._action.assert_called_once_with(
-                'reset_status', FAKE_BACKUP, {'status': 'fake_status'})
+                'reset_status', FAKE_BACKUP, {'status': 'fake_status'}
+            )
 
     def test_update(self):
         backup = self._FakeShareBackup
@@ -97,5 +104,5 @@ class ShareBackupsTest(utils.TestCase):
             data = dict(name='backup1')
             self.manager.update(backup, **data)
             self.manager._update.assert_called_once_with(
-                share_backups.RESOURCE_PATH % backup.id,
-                {'share_backup': data})
+                share_backups.RESOURCE_PATH % backup.id, {'share_backup': data}
+            )

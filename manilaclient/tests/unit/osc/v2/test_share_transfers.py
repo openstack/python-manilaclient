@@ -30,14 +30,13 @@ COLUMNS = [
     'Source Project Id',
     'Destination Project Id',
     'Accepted',
-    'Expires At'
+    'Expires At',
 ]
 
 
 class TestShareTransfer(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareTransfer, self).setUp()
+        super().setUp()
 
         self.shares_mock = self.app.client_manager.share.shares
         self.shares_mock.reset_mock()
@@ -46,13 +45,13 @@ class TestShareTransfer(manila_fakes.TestShare):
         self.transfers_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
 
 class TestShareTransferCreate(TestShareTransfer):
-
     def setUp(self):
-        super(TestShareTransferCreate, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.create.return_value = self.share
@@ -60,7 +59,8 @@ class TestShareTransferCreate(TestShareTransfer):
         self.shares_mock.get.return_value = self.share
 
         self.share_transfer = (
-            manila_fakes.FakeShareTransfer.create_one_transfer())
+            manila_fakes.FakeShareTransfer.create_one_transfer()
+        )
         self.transfers_mock.get.return_value = self.share_transfer
         self.transfers_mock.create.return_value = self.share_transfer
 
@@ -73,37 +73,33 @@ class TestShareTransferCreate(TestShareTransfer):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_transfer_create_required_args(self):
-        arglist = [
-            self.share.id
-        ]
-        verifylist = [
-            ('share', self.share.id)
-        ]
+        arglist = [self.share.id]
+        verifylist = [('share', self.share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
 
-        self.transfers_mock.create.assert_called_with(
-            self.share.id,
-            name=None
-        )
+        self.transfers_mock.create.assert_called_with(self.share.id, name=None)
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
 
 class TestShareTransferDelete(TestShareTransfer):
-
     def setUp(self):
-        super(TestShareTransferDelete, self).setUp()
+        super().setUp()
 
-        self.transfer = (
-            manila_fakes.FakeShareTransfer.create_one_transfer())
+        self.transfer = manila_fakes.FakeShareTransfer.create_one_transfer()
 
         self.transfers_mock.get.return_value = self.transfer
 
@@ -113,16 +109,17 @@ class TestShareTransferDelete(TestShareTransfer):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_transfer_delete(self):
-        arglist = [
-            self.transfer.id
-        ]
-        verifylist = [
-            ('transfer', [self.transfer.id])
-        ]
+        arglist = [self.transfer.id]
+        verifylist = [('transfer', [self.transfer.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -132,47 +129,35 @@ class TestShareTransferDelete(TestShareTransfer):
         self.assertIsNone(result)
 
     def test_share_transfer_delete_multiple(self):
-        transfers = (
-            manila_fakes.FakeShareTransfer.create_share_transfers(
-                count=2))
-        arglist = [
-            transfers[0].id,
-            transfers[1].id
-        ]
-        verifylist = [
-            ('transfer', [transfers[0].id, transfers[1].id])
-        ]
+        transfers = manila_fakes.FakeShareTransfer.create_share_transfers(
+            count=2
+        )
+        arglist = [transfers[0].id, transfers[1].id]
+        verifylist = [('transfer', [transfers[0].id, transfers[1].id])]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.transfers_mock.delete.call_count,
-                         len(transfers))
+        self.assertEqual(self.transfers_mock.delete.call_count, len(transfers))
         self.assertIsNone(result)
 
     def test_share_transfer_delete_exception(self):
-        arglist = [
-            self.transfer.id
-        ]
-        verifylist = [
-            ('transfer', [self.transfer.id])
-        ]
+        arglist = [self.transfer.id]
+        verifylist = [('transfer', [self.transfer.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.transfers_mock.delete.side_effect = exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareTransferShow(TestShareTransfer):
-
     def setUp(self):
-        super(TestShareTransferShow, self).setUp()
+        super().setUp()
 
-        self.transfer = (
-            manila_fakes.FakeShareTransfer.create_one_transfer())
+        self.transfer = manila_fakes.FakeShareTransfer.create_one_transfer()
         self.transfers_mock.get.return_value = self.transfer
 
         self.cmd = osc_share_transfers.ShowShareTransfer(self.app, None)
@@ -185,16 +170,17 @@ class TestShareTransferShow(TestShareTransfer):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_transfer_show(self):
-        arglist = [
-            self.transfer.id
-        ]
-        verifylist = [
-            ('transfer', self.transfer.id)
-        ]
+        arglist = [self.transfer.id]
+        verifylist = [('transfer', self.transfer.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
@@ -204,28 +190,25 @@ class TestShareTransferShow(TestShareTransfer):
 
 
 class TestShareTransferList(TestShareTransfer):
-
     def setUp(self):
-        super(TestShareTransferList, self).setUp()
+        super().setUp()
 
-        self.transfers = (
-            manila_fakes.FakeShareTransfer.create_share_transfers(
-                count=2))
+        self.transfers = manila_fakes.FakeShareTransfer.create_share_transfers(
+            count=2
+        )
 
         self.transfers_mock.list.return_value = self.transfers
 
-        self.values = (oscutils.get_dict_properties(
-            m._info, COLUMNS) for m in self.transfers)
+        self.values = (
+            oscutils.get_dict_properties(m._info, COLUMNS)
+            for m in self.transfers
+        )
 
         self.cmd = osc_share_transfers.ListShareTransfer(self.app, None)
 
     def test_list_transfers(self):
-        arglist = [
-            '--detailed'
-        ]
-        verifylist = [
-            ('detailed', True)
-        ]
+        arglist = ['--detailed']
+        verifylist = [('detailed', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -241,9 +224,10 @@ class TestShareTransferList(TestShareTransfer):
                 'offset': None,
                 'resource_type': None,
                 'resource_id': None,
-                'source_project_id': None},
+                'source_project_id': None,
+            },
             sort_key=None,
-            sort_dir=None
+            sort_dir=None,
         )
 
         self.assertEqual(COLUMNS, columns)
@@ -251,12 +235,10 @@ class TestShareTransferList(TestShareTransfer):
 
 
 class TestShareTransferAccept(TestShareTransfer):
-
     def setUp(self):
-        super(TestShareTransferAccept, self).setUp()
+        super().setUp()
 
-        self.transfer = (
-            manila_fakes.FakeShareTransfer.create_one_transfer())
+        self.transfer = manila_fakes.FakeShareTransfer.create_one_transfer()
 
         self.transfers_mock.get.return_value = self.transfer
 
@@ -266,24 +248,26 @@ class TestShareTransferAccept(TestShareTransfer):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_transfer_accept(self):
-        arglist = [
-            self.transfer.id,
-            self.transfer.auth_key
-        ]
+        arglist = [self.transfer.id, self.transfer.auth_key]
         verifylist = [
             ('transfer', self.transfer.id),
-            ('auth_key', self.transfer.auth_key)
+            ('auth_key', self.transfer.auth_key),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.transfers_mock.accept.assert_called_with(self.transfer.id,
-                                                      self.transfer.auth_key,
-                                                      clear_access_rules=False)
+        self.transfers_mock.accept.assert_called_with(
+            self.transfer.id, self.transfer.auth_key, clear_access_rules=False
+        )
         self.assertIsNone(result)

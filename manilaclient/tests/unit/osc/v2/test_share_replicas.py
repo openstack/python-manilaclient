@@ -26,9 +26,8 @@ from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestShareReplica(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareReplica, self).setUp()
+        super().setUp()
 
         self.shares_mock = self.app.client_manager.share.shares
         self.shares_mock.reset_mock()
@@ -36,28 +35,25 @@ class TestShareReplica(manila_fakes.TestShare):
         self.replicas_mock = self.app.client_manager.share.share_replicas
         self.replicas_mock.reset_mock()
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
         self.replica_el_mock = (
-            self.app.client_manager
-                .share.share_replica_export_locations)
+            self.app.client_manager.share.share_replica_export_locations
+        )
         self.replica_el_mock.reset_mock()
 
 
 class TestShareReplicaCreate(TestShareReplica):
-
     def setUp(self):
-        super(TestShareReplicaCreate, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.get.return_value = self.share
 
-        self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica(
-                attrs={
-                    'availability_zone': 'manila-zone-1',
-                    'status': 'available'}
-            ))
+        self.share_replica = manila_fakes.FakeShareReplica.create_one_replica(
+            attrs={'availability_zone': 'manila-zone-1', 'status': 'available'}
+        )
         self.replicas_mock.create.return_value = self.share_replica
         self.replicas_mock.get.return_value = self.share_replica
 
@@ -72,23 +68,22 @@ class TestShareReplicaCreate(TestShareReplica):
 
         self.assertRaises(
             osc_utils.ParserException,
-            self.check_parser, self.cmd, arglist, verifylist)
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_replica_create(self):
-        arglist = [
-            self.share.id
-        ]
-        verifylist = [
-            ('share', self.share.id)
-        ]
+        arglist = [self.share.id]
+        verifylist = [('share', self.share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.create.assert_called_with(
-            share=self.share,
-            availability_zone=None
+            share=self.share, availability_zone=None
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -97,11 +92,12 @@ class TestShareReplicaCreate(TestShareReplica):
     def test_share_replica_create_az(self):
         arglist = [
             self.share.id,
-            '--availability-zone', self.share.availability_zone
+            '--availability-zone',
+            self.share.availability_zone,
         ]
         verifylist = [
             ('share', self.share.id),
-            ('availability_zone', self.share.availability_zone)
+            ('availability_zone', self.share.availability_zone),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -109,8 +105,7 @@ class TestShareReplicaCreate(TestShareReplica):
         columns, data = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.create.assert_called_with(
-            share=self.share,
-            availability_zone=self.share.availability_zone
+            share=self.share, availability_zone=self.share.availability_zone
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -119,13 +114,15 @@ class TestShareReplicaCreate(TestShareReplica):
     def test_share_replica_create_scheduler_hint_valid(self):
         arglist = [
             self.share.id,
-            '--availability-zone', self.share.availability_zone,
-            '--scheduler-hint', ('only_host=host1@backend1#pool1'),
+            '--availability-zone',
+            self.share.availability_zone,
+            '--scheduler-hint',
+            ('only_host=host1@backend1#pool1'),
         ]
         verifylist = [
             ('share', self.share.id),
             ('availability_zone', self.share.availability_zone),
-            ('scheduler_hint', {'only_host': 'host1@backend1#pool1'})
+            ('scheduler_hint', {'only_host': 'host1@backend1#pool1'}),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -135,7 +132,7 @@ class TestShareReplicaCreate(TestShareReplica):
         self.replicas_mock.create.assert_called_with(
             share=self.share,
             availability_zone=self.share.availability_zone,
-            scheduler_hints={'only_host': 'host1@backend1#pool1'}
+            scheduler_hints={'only_host': 'host1@backend1#pool1'},
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -144,53 +141,61 @@ class TestShareReplicaCreate(TestShareReplica):
     def test_share_replica_create_scheduler_hint_invalid_hint(self):
         arglist = [
             self.share.id,
-            '--availability-zone', self.share.availability_zone,
-            '--scheduler-hint', 'fake_hint=host1@backend1#pool1'
+            '--availability-zone',
+            self.share.availability_zone,
+            '--scheduler-hint',
+            'fake_hint=host1@backend1#pool1',
         ]
         verifylist = [
             ('share', self.share.id),
             ('availability_zone', self.share.availability_zone),
-            ('scheduler_hint', {'fake_hint': 'host1@backend1#pool1'})
+            ('scheduler_hint', {'fake_hint': 'host1@backend1#pool1'}),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_replica_create_scheduler_hint_invalid_version(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.66")
+            "2.66"
+        )
 
         arglist = [
             self.share.id,
-            '--availability-zone', self.share.availability_zone,
-            '--scheduler-hint', 'only_host=host1@backend1#pool1'
+            '--availability-zone',
+            self.share.availability_zone,
+            '--scheduler-hint',
+            'only_host=host1@backend1#pool1',
         ]
         verifylist = [
             ('share', self.share.id),
             ('availability_zone', self.share.availability_zone),
-            ('scheduler_hint', {'only_host': 'host1@backend1#pool1'})
+            ('scheduler_hint', {'only_host': 'host1@backend1#pool1'}),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_replica_create_share_network(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.72")
+            "2.72"
+        )
 
         arglist = [
             self.share.id,
-            '--availability-zone', self.share.availability_zone,
-            '--share-network', self.share.share_network_id
+            '--availability-zone',
+            self.share.availability_zone,
+            '--share-network',
+            self.share.share_network_id,
         ]
         verifylist = [
             ('share', self.share.id),
             ('availability_zone', self.share.availability_zone),
-            ('share_network', self.share.share_network_id)
+            ('share_network', self.share.share_network_id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -200,7 +205,7 @@ class TestShareReplicaCreate(TestShareReplica):
             self.replicas_mock.create.assert_called_with(
                 share=self.share,
                 availability_zone=self.share.availability_zone,
-                share_network=self.share.share_network_id
+                share_network=self.share.share_network_id,
             )
         else:
             self.replicas_mock.create.assert_called_with(
@@ -212,22 +217,15 @@ class TestShareReplicaCreate(TestShareReplica):
         self.assertCountEqual(self.data, data)
 
     def test_share_replica_create_wait(self):
-        arglist = [
-            self.share.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('share', self.share.id),
-            ('wait', True)
-        ]
+        arglist = [self.share.id, '--wait']
+        verifylist = [('share', self.share.id), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.create.assert_called_with(
-            share=self.share,
-            availability_zone=None
+            share=self.share, availability_zone=None
         )
 
         self.replicas_mock.get.assert_called_with(self.share_replica.id)
@@ -236,14 +234,8 @@ class TestShareReplicaCreate(TestShareReplica):
 
     @mock.patch('manilaclient.osc.v2.share_replicas.LOG')
     def test_share_replica_create_wait_exception(self, mock_logger):
-        arglist = [
-            self.share.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('share', self.share.id),
-            ('wait', True)
-        ]
+        arglist = [self.share.id, '--wait']
+        verifylist = [('share', self.share.id), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -251,12 +243,12 @@ class TestShareReplicaCreate(TestShareReplica):
             columns, data = self.cmd.take_action(parsed_args)
 
             self.replicas_mock.create.assert_called_with(
-                share=self.share,
-                availability_zone=None
+                share=self.share, availability_zone=None
             )
 
             mock_logger.error.assert_called_with(
-                "ERROR: Share replica is in error state.")
+                "ERROR: Share replica is in error state."
+            )
 
             self.replicas_mock.get.assert_called_with(self.share_replica.id)
             self.assertCountEqual(self.columns, columns)
@@ -264,12 +256,10 @@ class TestShareReplicaCreate(TestShareReplica):
 
 
 class TestShareReplicaDelete(TestShareReplica):
-
     def setUp(self):
-        super(TestShareReplicaDelete, self).setUp()
+        super().setUp()
 
-        self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica())
+        self.share_replica = manila_fakes.FakeShareReplica.create_one_replica()
         self.replicas_mock.get.return_value = self.share_replica
 
         self.cmd = osc_share_replicas.DeleteShareReplica(self.app, None)
@@ -278,53 +268,45 @@ class TestShareReplicaDelete(TestShareReplica):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_replica_delete(self):
-        arglist = [
-            self.share_replica.id
-        ]
-        verifylist = [
-            ('replica', [self.share_replica.id])
-        ]
+        arglist = [self.share_replica.id]
+        verifylist = [('replica', [self.share_replica.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.delete.assert_called_with(
-            self.share_replica,
-            force=False)
+            self.share_replica, force=False
+        )
         self.assertIsNone(result)
 
     def test_share_replica_delete_force(self):
-        arglist = [
-            self.share_replica.id,
-            '--force'
-        ]
-        verifylist = [
-            ('replica', [self.share_replica.id]),
-            ('force', True)
-        ]
+        arglist = [self.share_replica.id, '--force']
+        verifylist = [('replica', [self.share_replica.id]), ('force', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.delete.assert_called_with(
-            self.share_replica,
-            force=True)
+            self.share_replica, force=True
+        )
         self.assertIsNone(result)
 
     def test_share_replica_delete_multiple(self):
-        share_replicas = (
-            manila_fakes.FakeShareReplica.create_share_replicas(
-                count=2))
-        arglist = [
-            share_replicas[0].id,
-            share_replicas[1].id
-        ]
+        share_replicas = manila_fakes.FakeShareReplica.create_share_replicas(
+            count=2
+        )
+        arglist = [share_replicas[0].id, share_replicas[1].id]
         verifylist = [
             ('replica', [share_replicas[0].id, share_replicas[1].id])
         ]
@@ -332,34 +314,25 @@ class TestShareReplicaDelete(TestShareReplica):
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.replicas_mock.delete.call_count,
-                         len(share_replicas))
+        self.assertEqual(
+            self.replicas_mock.delete.call_count, len(share_replicas)
+        )
         self.assertIsNone(result)
 
     def test_share_snapshot_delete_exception(self):
-        arglist = [
-            self.share_replica.id
-        ]
-        verifylist = [
-            ('replica', [self.share_replica.id])
-        ]
+        arglist = [self.share_replica.id]
+        verifylist = [('replica', [self.share_replica.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.replicas_mock.delete.side_effect = exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_replica_delete_wait(self):
-        arglist = [
-            self.share_replica.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('replica', [self.share_replica.id]),
-            ('wait', True)
-        ]
+        arglist = [self.share_replica.id, '--wait']
+        verifylist = [('replica', [self.share_replica.id]), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -367,33 +340,24 @@ class TestShareReplicaDelete(TestShareReplica):
             result = self.cmd.take_action(parsed_args)
 
             self.replicas_mock.delete.assert_called_with(
-                self.share_replica,
-                force=False)
+                self.share_replica, force=False
+            )
             self.replicas_mock.get.assert_called_with(self.share_replica.id)
             self.assertIsNone(result)
 
     def test_share_replica_delete_wait_exception(self):
-        arglist = [
-            self.share_replica.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('replica', [self.share_replica.id]),
-            ('wait', True)
-        ]
+        arglist = [self.share_replica.id, '--wait']
+        verifylist = [('replica', [self.share_replica.id]), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
             self.assertRaises(
-                exceptions.CommandError,
-                self.cmd.take_action,
-                parsed_args
+                exceptions.CommandError, self.cmd.take_action, parsed_args
             )
 
 
 class TestShareReplicaList(TestShareReplica):
-
     columns = [
         'id',
         'status',
@@ -407,18 +371,20 @@ class TestShareReplicaList(TestShareReplica):
     column_headers = utils.format_column_headers(columns)
 
     def setUp(self):
-        super(TestShareReplicaList, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.get.return_value = self.share
 
         self.replicas_list = (
-            manila_fakes.FakeShareReplica.create_share_replicas(
-                count=2))
+            manila_fakes.FakeShareReplica.create_share_replicas(count=2)
+        )
         self.replicas_mock.list.return_value = self.replicas_list
 
-        self.values = (oscutils.get_dict_properties(
-            i._info, self.columns) for i in self.replicas_list)
+        self.values = (
+            oscutils.get_dict_properties(i._info, self.columns)
+            for i in self.replicas_list
+        )
 
         self.cmd = osc_share_replicas.ListShareReplica(self.app, None)
 
@@ -436,12 +402,8 @@ class TestShareReplicaList(TestShareReplica):
         self.assertEqual(list(self.values), list(data))
 
     def test_share_replica_list_for_share(self):
-        arglist = [
-            '--share', self.share.id
-        ]
-        verifylist = [
-            ('share', self.share.id)
-        ]
+        arglist = ['--share', self.share.id]
+        verifylist = [('share', self.share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -454,28 +416,25 @@ class TestShareReplicaList(TestShareReplica):
 
 
 class TestShareReplicaShow(TestShareReplica):
-
     def setUp(self):
-        super(TestShareReplicaShow, self).setUp()
+        super().setUp()
 
-        self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica()
-        )
+        self.share_replica = manila_fakes.FakeShareReplica.create_one_replica()
         self.replicas_mock.get.return_value = self.share_replica
 
         self.replica_el_list = (
-            manila_fakes.FakeShareExportLocation.
-            create_share_export_locations(count=2)
+            manila_fakes.FakeShareExportLocation.create_share_export_locations(
+                count=2
+            )
         )
 
-        self.replica_el_mock.list.return_value = (
-            self.replica_el_list)
+        self.replica_el_mock.list.return_value = self.replica_el_list
 
         self.cmd = osc_share_replicas.ShowShareReplica(self.app, None)
 
         self.share_replica._info['export_locations'] = (
-            cliutils.convert_dict_list_to_string(
-                self.replica_el_list))
+            cliutils.convert_dict_list_to_string(self.replica_el_list)
+        )
 
         self.data = tuple(self.share_replica._info.values())
         self.columns = tuple(self.share_replica._info.keys())
@@ -486,115 +445,96 @@ class TestShareReplicaShow(TestShareReplica):
 
         self.assertRaises(
             osc_utils.ParserException,
-            self.check_parser, self.cmd, arglist, verifylist)
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_replica_show(self):
-        arglist = [
-            self.share_replica.id
-        ]
-        verifylist = [
-            ('replica', self.share_replica.id)
-        ]
+        arglist = [self.share_replica.id]
+        verifylist = [('replica', self.share_replica.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
 
-        self.replicas_mock.get.assert_called_with(
-            self.share_replica.id
-        )
+        self.replicas_mock.get.assert_called_with(self.share_replica.id)
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
 
 class TestShareReplicaSet(TestShareReplica):
-
     def setUp(self):
-        super(TestShareReplicaSet, self).setUp()
+        super().setUp()
 
-        self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica()
-        )
+        self.share_replica = manila_fakes.FakeShareReplica.create_one_replica()
         self.replicas_mock.get.return_value = self.share_replica
 
         self.cmd = osc_share_replicas.SetShareReplica(self.app, None)
 
     def test_share_replica_set_replica_state(self):
         new_replica_state = 'in_sync'
-        arglist = [
-            self.share_replica.id,
-            '--replica-state', new_replica_state
-        ]
+        arglist = [self.share_replica.id, '--replica-state', new_replica_state]
         verifylist = [
             ('replica', self.share_replica.id),
-            ('replica_state', new_replica_state)
+            ('replica_state', new_replica_state),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.reset_replica_state.assert_called_with(
-            self.share_replica,
-            new_replica_state)
+            self.share_replica, new_replica_state
+        )
         self.assertIsNone(result)
 
     def test_share_replica_set_replica_state_exception(self):
         new_replica_state = 'in_sync'
-        arglist = [
-            self.share_replica.id,
-            '--replica-state', new_replica_state
-        ]
+        arglist = [self.share_replica.id, '--replica-state', new_replica_state]
         verifylist = [
             ('replica', self.share_replica.id),
-            ('replica_state', new_replica_state)
+            ('replica_state', new_replica_state),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.replicas_mock.reset_replica_state.side_effect = Exception()
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_replica_set_status(self):
         new_status = 'available'
-        arglist = [
-            self.share_replica.id,
-            '--status', new_status
-        ]
+        arglist = [self.share_replica.id, '--status', new_status]
         verifylist = [
             ('replica', self.share_replica.id),
-            ('status', new_status)
+            ('status', new_status),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.reset_state.assert_called_with(
-            self.share_replica,
-            new_status)
+            self.share_replica, new_status
+        )
         self.assertIsNone(result)
 
     def test_share_replica_set_status_exception(self):
         new_status = 'available'
-        arglist = [
-            self.share_replica.id,
-            '--status', new_status
-        ]
+        arglist = [self.share_replica.id, '--status', new_status]
         verifylist = [
             ('replica', self.share_replica.id),
-            ('status', new_status)
+            ('status', new_status),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.replicas_mock.reset_state.side_effect = Exception()
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_replica_set_nothing_defined(self):
         arglist = [
@@ -606,83 +546,67 @@ class TestShareReplicaSet(TestShareReplica):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareReplicaPromote(TestShareReplica):
-
     def setUp(self):
-        super(TestShareReplicaPromote, self).setUp()
+        super().setUp()
 
-        self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica(
-                attrs={
-                    'status': 'available'}
-            )
+        self.share_replica = manila_fakes.FakeShareReplica.create_one_replica(
+            attrs={'status': 'available'}
         )
         self.replicas_mock.get.return_value = self.share_replica
 
-        self.cmd = osc_share_replicas.PromoteShareReplica(
-            self.app, None)
+        self.cmd = osc_share_replicas.PromoteShareReplica(self.app, None)
 
     def test_share_replica_promote(self):
         arglist = [
             self.share_replica.id,
         ]
-        verifylist = [
-            ('replica', self.share_replica.id),
-            ('wait', False)
-        ]
+        verifylist = [('replica', self.share_replica.id), ('wait', False)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.replicas_mock.promote.assert_called_with(
-            self.share_replica)
+        self.replicas_mock.promote.assert_called_with(self.share_replica)
         self.assertIsNone(result)
 
     def test_share_replica_promote_quiesce_wait_time(self):
         wait_time = '5'
-        arglist = [
-            self.share_replica.id,
-            '--quiesce-wait-time', wait_time
-        ]
+        arglist = [self.share_replica.id, '--quiesce-wait-time', wait_time]
         verifylist = [
             ('replica', self.share_replica.id),
-            ('quiesce_wait_time', wait_time)
+            ('quiesce_wait_time', wait_time),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.replicas_mock.promote.assert_called_with(
-            self.share_replica,
-            wait_time)
+            self.share_replica, wait_time
+        )
         self.assertIsNone(result)
 
-    @mock.patch.object(osc_share_replicas.osc_utils, 'wait_for_status',
-                       mock.Mock())
+    @mock.patch.object(
+        osc_share_replicas.osc_utils, 'wait_for_status', mock.Mock()
+    )
     def test_share_replica_promote_wait(self):
-        arglist = [
-            self.share_replica.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('replica', self.share_replica.id),
-            ('wait', True)
-        ]
+        arglist = [self.share_replica.id, '--wait']
+        verifylist = [('replica', self.share_replica.id), ('wait', True)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.replicas_mock.promote.assert_called_with(
-            self.share_replica)
+        self.replicas_mock.promote.assert_called_with(self.share_replica)
         self.assertIsNone(result)
         osc_share_replicas.osc_utils.wait_for_status.assert_called_once_with(
-            status_f=self.replicas_mock.get, res_id=self.share_replica.id,
-            success_status=['active'], status_field='replica_state')
+            status_f=self.replicas_mock.get,
+            res_id=self.share_replica.id,
+            success_status=['active'],
+            status_field='replica_state',
+        )
 
     def test_share_replica_promote_exception(self):
         arglist = [
@@ -696,23 +620,18 @@ class TestShareReplicaPromote(TestShareReplica):
         self.replicas_mock.promote.side_effect = Exception()
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareReplicaResync(TestShareReplica):
-
     def setUp(self):
-        super(TestShareReplicaResync, self).setUp()
+        super().setUp()
 
-        self.share_replica = (
-            manila_fakes.FakeShareReplica.create_one_replica()
-        )
+        self.share_replica = manila_fakes.FakeShareReplica.create_one_replica()
         self.replicas_mock.get.return_value = self.share_replica
 
-        self.cmd = osc_share_replicas.ResyncShareReplica(
-            self.app, None)
+        self.cmd = osc_share_replicas.ResyncShareReplica(self.app, None)
 
     def test_share_replica_resync(self):
         arglist = [
@@ -725,8 +644,7 @@ class TestShareReplicaResync(TestShareReplica):
 
         result = self.cmd.take_action(parsed_args)
 
-        self.replicas_mock.resync.assert_called_with(
-            self.share_replica)
+        self.replicas_mock.resync.assert_called_with(self.share_replica)
         self.assertIsNone(result)
 
     def test_share_replica_resync_exception(self):
@@ -741,6 +659,5 @@ class TestShareReplicaResync(TestShareReplica):
         self.replicas_mock.resync.side_effect = Exception()
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )

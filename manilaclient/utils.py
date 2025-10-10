@@ -13,8 +13,9 @@
 from urllib import parse
 
 
-class HookableMixin(object):
+class HookableMixin:
     """Mixin so classes can register and run hooks."""
+
     _hooks_map = {}
 
     @classmethod
@@ -44,7 +45,7 @@ def safe_issubclass(*args):
 
 
 def get_function_name(func):
-    return "%s.%s" % (func.__module__, func.__qualname__)
+    return f"{func.__module__}.{func.__qualname__}"
 
 
 def safe_urlencode(params_dict):

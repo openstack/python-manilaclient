@@ -41,87 +41,107 @@ from manilaclient.common._i18n import _
 
 class ClientException(Exception):
     """The base exception class for all exceptions this library raises."""
+
     pass
 
 
 class ValidationError(ClientException):
     """Error in validation on API client side."""
+
     pass
 
 
 class UnsupportedVersion(ClientException):
     """User is trying to use an unsupported version of the API."""
+
     pass
 
 
 class CommandError(ClientException):
     """Error in CLI tool."""
+
     pass
 
 
 class AuthorizationFailure(ClientException):
     """Cannot authorize API client."""
+
     pass
 
 
 class ConnectionError(ClientException):
     """Cannot connect to API service."""
+
     pass
 
 
 class ConnectionRefused(ConnectionError):
     """Connection refused while trying to connect to API service."""
+
     pass
 
 
 class AuthPluginOptionsMissing(AuthorizationFailure):
     """Auth plugin misses some options."""
+
     def __init__(self, opt_names):
-        super(AuthPluginOptionsMissing, self).__init__(
-            _("Authentication failed. Missing options: %s") %
-            ", ".join(opt_names))
+        super().__init__(
+            _("Authentication failed. Missing options: %s")
+            % ", ".join(opt_names)
+        )
         self.opt_names = opt_names
 
 
 class AuthSystemNotFound(AuthorizationFailure):
     """User has specified an AuthSystem that is not installed."""
+
     def __init__(self, auth_system):
-        super(AuthSystemNotFound, self).__init__(
-            _("AuthSystemNotFound: %r") % auth_system)
+        super().__init__(_("AuthSystemNotFound: %r") % auth_system)
         self.auth_system = auth_system
 
 
 class NoUniqueMatch(ClientException):
     """Multiple entities found instead of one."""
+
     pass
 
 
 class EndpointException(ClientException):
     """Something is rotten in Service Catalog."""
+
     pass
 
 
 class EndpointNotFound(EndpointException):
     """Could not find requested endpoint in Service Catalog."""
+
     pass
 
 
 class AmbiguousEndpoints(EndpointException):
     """Found more than one matching endpoint in Service Catalog."""
+
     def __init__(self, endpoints=None):
-        super(AmbiguousEndpoints, self).__init__(
-            _("AmbiguousEndpoints: %r") % endpoints)
+        super().__init__(_("AmbiguousEndpoints: %r") % endpoints)
         self.endpoints = endpoints
 
 
 class HttpError(ClientException):
     """The base exception class for all HTTP exceptions."""
+
     http_status = 0
     message = _("HTTP Error")
 
-    def __init__(self, message=None, details=None,
-                 response=None, request_id=None,
-                 url=None, method=None, http_status=None):
+    def __init__(
+        self,
+        message=None,
+        details=None,
+        response=None,
+        request_id=None,
+        url=None,
+        method=None,
+        http_status=None,
+    ):
         self.http_status = http_status or self.http_status
         self.message = message or self.message
         self.details = details
@@ -129,14 +149,15 @@ class HttpError(ClientException):
         self.response = response
         self.url = url
         self.method = method
-        formatted_string = "%s (HTTP %s)" % (self.message, self.http_status)
+        formatted_string = f"{self.message} (HTTP {self.http_status})"
         if request_id:
-            formatted_string += " (Request-ID: %s)" % request_id
-        super(HttpError, self).__init__(formatted_string)
+            formatted_string += f" (Request-ID: {request_id})"
+        super().__init__(formatted_string)
 
 
 class HTTPRedirection(HttpError):
     """HTTP Redirection."""
+
     message = _("HTTP Redirection")
 
 
@@ -145,6 +166,7 @@ class HTTPClientError(HttpError):
 
     Exception for cases in which the client seems to have erred.
     """
+
     message = _("HTTP Client Error")
 
 
@@ -154,6 +176,7 @@ class HttpServerError(HttpError):
     Exception for cases in which the server is aware that it has
     erred or is incapable of performing the request.
     """
+
     message = _("HTTP Server Error")
 
 
@@ -172,6 +195,7 @@ class BadRequest(HTTPClientError):
 
     The request cannot be fulfilled due to bad syntax.
     """
+
     http_status = 400
     message = _("Bad Request")
 
@@ -182,6 +206,7 @@ class Unauthorized(HTTPClientError):
     Similar to 403 Forbidden, but specifically for use when authentication
     is required and has failed or has not yet been provided.
     """
+
     http_status = 401
     message = _("Unauthorized")
 
@@ -191,6 +216,7 @@ class PaymentRequired(HTTPClientError):
 
     Reserved for future use.
     """
+
     http_status = 402
     message = _("Payment Required")
 
@@ -201,6 +227,7 @@ class Forbidden(HTTPClientError):
     The request was a valid request, but the server is refusing to respond
     to it.
     """
+
     http_status = 403
     message = _("Forbidden")
 
@@ -211,6 +238,7 @@ class NotFound(HTTPClientError):
     The requested resource could not be found but may be available again
     in the future.
     """
+
     http_status = 404
     message = _("Not Found")
 
@@ -221,6 +249,7 @@ class MethodNotAllowed(HTTPClientError):
     A request was made of a resource using a request method not supported
     by that resource.
     """
+
     http_status = 405
     message = _("Method Not Allowed")
 
@@ -231,6 +260,7 @@ class NotAcceptable(HTTPClientError):
     The requested resource is only capable of generating content not
     acceptable according to the Accept headers sent in the request.
     """
+
     http_status = 406
     message = _("Not Acceptable")
 
@@ -240,6 +270,7 @@ class ProxyAuthenticationRequired(HTTPClientError):
 
     The client must first authenticate itself with the proxy.
     """
+
     http_status = 407
     message = _("Proxy Authentication Required")
 
@@ -249,6 +280,7 @@ class RequestTimeout(HTTPClientError):
 
     The server timed out waiting for the request.
     """
+
     http_status = 408
     message = _("Request Timeout")
 
@@ -259,6 +291,7 @@ class Conflict(HTTPClientError):
     Indicates that the request could not be processed because of conflict
     in the request, such as an edit conflict.
     """
+
     http_status = 409
     message = _("Conflict")
 
@@ -269,6 +302,7 @@ class Gone(HTTPClientError):
     Indicates that the resource requested is no longer available and will
     not be available again.
     """
+
     http_status = 410
     message = _("Gone")
 
@@ -279,6 +313,7 @@ class LengthRequired(HTTPClientError):
     The request did not specify the length of its content, which is
     required by the requested resource.
     """
+
     http_status = 411
     message = _("Length Required")
 
@@ -289,6 +324,7 @@ class PreconditionFailed(HTTPClientError):
     The server does not meet one of the preconditions that the requester
     put on the request.
     """
+
     http_status = 412
     message = _("Precondition Failed")
 
@@ -298,6 +334,7 @@ class RequestEntityTooLarge(HTTPClientError):
 
     The request is larger than the server is willing or able to process.
     """
+
     http_status = 413
     message = _("Request Entity Too Large")
 
@@ -307,7 +344,7 @@ class RequestEntityTooLarge(HTTPClientError):
         except (KeyError, ValueError):
             self.retry_after = 0
 
-        super(RequestEntityTooLarge, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class RequestUriTooLong(HTTPClientError):
@@ -315,6 +352,7 @@ class RequestUriTooLong(HTTPClientError):
 
     The URI provided was too long for the server to process.
     """
+
     http_status = 414
     message = _("Request-URI Too Long")
 
@@ -325,6 +363,7 @@ class UnsupportedMediaType(HTTPClientError):
     The request entity has a media type which the server or resource does
     not support.
     """
+
     http_status = 415
     message = _("Unsupported Media Type")
 
@@ -335,6 +374,7 @@ class RequestedRangeNotSatisfiable(HTTPClientError):
     The client has asked for a portion of the file, but the server cannot
     supply that portion.
     """
+
     http_status = 416
     message = _("Requested Range Not Satisfiable")
 
@@ -344,6 +384,7 @@ class ExpectationFailed(HTTPClientError):
 
     The server cannot meet the requirements of the Expect request-header field.
     """
+
     http_status = 417
     message = _("Expectation Failed")
 
@@ -354,6 +395,7 @@ class UnprocessableEntity(HTTPClientError):
     The request was well-formed but was unable to be followed due to semantic
     errors.
     """
+
     http_status = 422
     message = _("Unprocessable Entity")
 
@@ -363,6 +405,7 @@ class InternalServerError(HttpServerError):
 
     A generic error message, given when no more specific message is suitable.
     """
+
     http_status = 500
     message = _("Internal Server Error")
 
@@ -374,6 +417,7 @@ class HttpNotImplemented(HttpServerError):
     The server either does not recognize the request method, or it lacks
     the ability to fulfill the request.
     """
+
     http_status = 501
     message = _("Not Implemented")
 
@@ -384,6 +428,7 @@ class BadGateway(HttpServerError):
     The server was acting as a gateway or proxy and received an invalid
     response from the upstream server.
     """
+
     http_status = 502
     message = _("Bad Gateway")
 
@@ -393,6 +438,7 @@ class ServiceUnavailable(HttpServerError):
 
     The server is currently unavailable.
     """
+
     http_status = 503
     message = _("Service Unavailable")
 
@@ -403,6 +449,7 @@ class GatewayTimeout(HttpServerError):
     The server was acting as a gateway or proxy and did not receive a timely
     response from the upstream server.
     """
+
     http_status = 504
     message = _("Gateway Timeout")
 
@@ -412,6 +459,7 @@ class HttpVersionNotSupported(HttpServerError):
 
     The server does not support the HTTP protocol version used in the request.
     """
+
     http_status = 505
     message = _("HTTP Version Not Supported")
 
@@ -456,8 +504,9 @@ def from_response(response, method, url):
             if isinstance(body, dict):
                 error = body.get(list(body)[0])
                 if isinstance(error, dict):
-                    kwargs["message"] = (error.get("message") or
-                                         error.get("faultstring"))
+                    kwargs["message"] = error.get("message") or error.get(
+                        "faultstring"
+                    )
                     kwargs["details"] = error.get("details") or str(body)
     elif content_type.startswith("text/"):
         kwargs["details"] = response.text

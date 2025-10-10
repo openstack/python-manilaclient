@@ -25,15 +25,16 @@ RESOURCES_NAME = 'security_services'
 
 class SecurityService(base.Resource):
     """Security service for Manila shares."""
+
     def __repr__(self):
-        return "<SecurityService: %s>" % self.id
+        return f"<SecurityService: {self.id}>"
 
     def update(self, **kwargs):
         """Update this security service."""
         return self.manager.update(self, **kwargs)
 
     def delete(self):
-        """"Delete this security service."""
+        """Delete this security service."""
         self.manager.delete(self)
 
 
@@ -43,9 +44,18 @@ class SecurityServiceManager(base.ManagerWithFind):
     resource_class = SecurityService
 
     @api_versions.wraps("1.0", "2.75")
-    def create(self, type, dns_ip=None, ou=None, server=None, domain=None,
-               user=None, password=None, name=None,
-               description=None):
+    def create(
+        self,
+        type,
+        dns_ip=None,
+        ou=None,
+        server=None,
+        domain=None,
+        user=None,
+        password=None,
+        name=None,
+        description=None,
+    ):
         """Create security service for NAS.
 
         :param type: security service type - 'ldap', 'kerberos' or
@@ -60,16 +70,32 @@ class SecurityServiceManager(base.ManagerWithFind):
         :param description: security service description
         :rtype: :class:`SecurityService`
         """
-        return self._create_security_service(type, dns_ip=dns_ip, ou=ou,
-                                             server=server, domain=domain,
-                                             user=user, password=password,
-                                             name=name,
-                                             description=description)
+        return self._create_security_service(
+            type,
+            dns_ip=dns_ip,
+            ou=ou,
+            server=server,
+            domain=domain,
+            user=user,
+            password=password,
+            name=name,
+            description=description,
+        )
 
     @api_versions.wraps("2.76")  # noqa
-    def create(self, type, dns_ip=None, ou=None, server=None,   # noqa
-               domain=None, user=None, password=None, name=None,
-               description=None, default_ad_site=None):
+    def create(  # noqa
+        self,
+        type,
+        dns_ip=None,
+        ou=None,
+        server=None,
+        domain=None,
+        user=None,
+        password=None,
+        name=None,
+        description=None,
+        default_ad_site=None,
+    ):
         """Create security service for NAS.
 
         :param type: security service type - 'ldap', 'kerberos' or
@@ -85,17 +111,32 @@ class SecurityServiceManager(base.ManagerWithFind):
         :param default_ad_site: default AD-Site
         :rtype: :class:`SecurityService`
         """
-        return self._create_security_service(type, dns_ip=dns_ip, ou=ou,
-                                             server=server, domain=domain,
-                                             user=user, password=password,
-                                             name=name,
-                                             description=description,
-                                             default_ad_site=default_ad_site)
+        return self._create_security_service(
+            type,
+            dns_ip=dns_ip,
+            ou=ou,
+            server=server,
+            domain=domain,
+            user=user,
+            password=password,
+            name=name,
+            description=description,
+            default_ad_site=default_ad_site,
+        )
 
-    def _create_security_service(self, type, dns_ip=None, ou=None,
-                                 server=None, domain=None, user=None,
-                                 password=None, name=None,
-                                 description=None, default_ad_site=None):
+    def _create_security_service(
+        self,
+        type,
+        dns_ip=None,
+        ou=None,
+        server=None,
+        domain=None,
+        user=None,
+        password=None,
+        name=None,
+        description=None,
+        default_ad_site=None,
+    ):
         values = {'type': type}
         if dns_ip:
             values['dns_ip'] = dns_ip
@@ -132,9 +173,18 @@ class SecurityServiceManager(base.ManagerWithFind):
         )
 
     @api_versions.wraps("1.0", "2.75")
-    def update(self, security_service, dns_ip=None, ou=None, server=None,
-               domain=None, password=None, user=None, name=None,
-               description=None):
+    def update(
+        self,
+        security_service,
+        dns_ip=None,
+        ou=None,
+        server=None,
+        domain=None,
+        password=None,
+        user=None,
+        name=None,
+        description=None,
+    ):
         """Updates a security service.
 
         :param security_service: security service to update.
@@ -148,16 +198,32 @@ class SecurityServiceManager(base.ManagerWithFind):
         :param description: security service description
         :rtype: :class:`SecurityService`
         """
-        return self._update_security_service(security_service, dns_ip=dns_ip,
-                                             ou=ou, server=server,
-                                             domain=domain, password=password,
-                                             user=user, name=name,
-                                             description=description)
+        return self._update_security_service(
+            security_service,
+            dns_ip=dns_ip,
+            ou=ou,
+            server=server,
+            domain=domain,
+            password=password,
+            user=user,
+            name=name,
+            description=description,
+        )
 
     @api_versions.wraps("2.76")  # noqa
-    def update(self, security_service, dns_ip=None, ou=None,     # noqa
-               server=None, domain=None, password=None, user=None,
-               name=None, description=None, default_ad_site=None):
+    def update(  # noqa
+        self,
+        security_service,
+        dns_ip=None,
+        ou=None,
+        server=None,
+        domain=None,
+        password=None,
+        user=None,
+        name=None,
+        description=None,
+        default_ad_site=None,
+    ):
         """Updates a security service.
 
         :param security_service: security service to update.
@@ -172,17 +238,32 @@ class SecurityServiceManager(base.ManagerWithFind):
         :param default_ad_site: default AD-Site
         :rtype: :class:`SecurityService`
         """
-        return self._update_security_service(security_service, dns_ip=dns_ip,
-                                             ou=ou, server=server,
-                                             domain=domain, password=password,
-                                             user=user, name=name,
-                                             description=description,
-                                             default_ad_site=default_ad_site)
+        return self._update_security_service(
+            security_service,
+            dns_ip=dns_ip,
+            ou=ou,
+            server=server,
+            domain=domain,
+            password=password,
+            user=user,
+            name=name,
+            description=description,
+            default_ad_site=default_ad_site,
+        )
 
-    def _update_security_service(self, security_service, dns_ip=None, ou=None,
-                                 server=None, domain=None, password=None,
-                                 user=None, name=None, description=None,
-                                 default_ad_site=None):
+    def _update_security_service(
+        self,
+        security_service,
+        dns_ip=None,
+        ou=None,
+        server=None,
+        domain=None,
+        password=None,
+        user=None,
+        name=None,
+        description=None,
+        default_ad_site=None,
+    ):
         values = {}
         if dns_ip is not None:
             values['dns_ip'] = dns_ip

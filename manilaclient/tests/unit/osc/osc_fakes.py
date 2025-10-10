@@ -27,8 +27,7 @@ REGION_NAME = "richie"
 INTERFACE = "catchy"
 VERSION = "3"
 
-TEST_RESPONSE_DICT = fixture.V2Token(token_id=AUTH_TOKEN,
-                                     user_name=USERNAME)
+TEST_RESPONSE_DICT = fixture.V2Token(token_id=AUTH_TOKEN, user_name=USERNAME)
 _s = TEST_RESPONSE_DICT.add_service('identity', name='keystone')
 _s.add_endpoint(AUTH_URL + ':5000/v2.0')
 _s = TEST_RESPONSE_DICT.add_service('network', name='neutron')
@@ -46,8 +45,7 @@ TEST_RESPONSE_DICT_V3.set_project_scope()
 TEST_VERSIONS = fixture.DiscoveryList(href=AUTH_URL)
 
 
-class FakeStdout(object):
-
+class FakeStdout:
     def __init__(self):
         self.content = []
 
@@ -61,8 +59,7 @@ class FakeStdout(object):
         return result
 
 
-class FakeLog(object):
-
+class FakeLog:
     def __init__(self):
         self.messages = {}
 
@@ -82,8 +79,7 @@ class FakeLog(object):
         self.messages['critical'] = msg
 
 
-class FakeApp(object):
-
+class FakeApp:
     def __init__(self, _stdout, _log):
         self.stdout = _stdout
         self.client_manager = None
@@ -93,19 +89,18 @@ class FakeApp(object):
         self.log = _log
 
 
-class FakeOptions(object):
+class FakeOptions:
     def __init__(self, **kwargs):
         self.os_beta_command = False
 
 
-class FakeClient(object):
-
+class FakeClient:
     def __init__(self, **kwargs):
         self.endpoint = kwargs['endpoint']
         self.token = kwargs['token']
 
 
-class FakeClientManager(object):
+class FakeClientManager:
     _api_version = {
         'image': '2',
     }
@@ -137,8 +132,7 @@ class FakeClientManager(object):
         return self.network_endpoint_enabled
 
 
-class FakeResource(object):
-
+class FakeResource:
     def __init__(self, manager=None, info=None, loaded=False, methods=None):
         """Set attributes and methods for a resource.
 
@@ -162,7 +156,7 @@ class FakeResource(object):
         self._loaded = loaded
 
     def _add_details(self, info):
-        for (k, v) in info.items():
+        for k, v in info.items():
             setattr(self, k, v)
 
     def _add_methods(self, methods):
@@ -173,15 +167,16 @@ class FakeResource(object):
         @value. When users access the attribute with (), @value will be
         returned, which looks like a function call.
         """
-        for (name, ret) in methods.items():
+        for name, ret in methods.items():
             method = mock.Mock(return_value=ret)
             setattr(self, name, method)
 
     def __repr__(self):
-        reprkeys = sorted(k for k in self.__dict__.keys() if k[0] != '_' and
-                          k != 'manager')
-        info = ", ".join("%s=%s" % (k, getattr(self, k)) for k in reprkeys)
-        return "<%s %s>" % (self.__class__.__name__, info)
+        reprkeys = sorted(
+            k for k in self.__dict__.keys() if k[0] != '_' and k != 'manager'
+        )
+        info = ", ".join(f"{k}={getattr(self, k)}" for k in reprkeys)
+        return f"<{self.__class__.__name__} {info}>"
 
     def keys(self):
         return self._info.keys()
@@ -201,15 +196,15 @@ class FakeResource(object):
 
 
 class FakeLimitsResource(FakeResource):
-
     class AbsoluteLimit:
         def __init__(self, name, value):
             self.name = name
             self.value = value
 
     class RateLimit:
-        def __init__(self, verb, uri, regex, value, remaining,
-                     unit, next_available):
+        def __init__(
+            self, verb, uri, regex, value, remaining, unit, next_available
+        ):
             self.verb = verb
             self.uri = uri
             self.regex = regex
@@ -236,5 +231,6 @@ class FakeLimitsResource(FakeResource):
                 rate['value'],
                 rate['remaining'],
                 rate['unit'],
-                rate['next-available'])
+                rate['next-available'],
+            )
         ]

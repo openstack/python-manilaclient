@@ -15,7 +15,6 @@ from tempest.lib.common.utils import data_utils
 
 
 class SharesCLITest(base.OSCClientTestBase):
-
     def test_openstack_share_create(self):
         share_name = 'test_create_share'
         share = self.create_share(name=share_name)
@@ -30,30 +29,32 @@ class SharesCLITest(base.OSCClientTestBase):
     def test_openstack_share_list(self):
         share = self.create_share()
         shares_list = self.listing_result('share', 'list')
-        self.assertTableStruct(shares_list, [
-            'ID',
-            'Name',
-            'Size',
-            'Share Proto',
-            'Status',
-            'Is Public',
-            'Share Type Name',
-            'Host',
-            'Availability Zone'
-        ])
+        self.assertTableStruct(
+            shares_list,
+            [
+                'ID',
+                'Name',
+                'Size',
+                'Share Proto',
+                'Status',
+                'Is Public',
+                'Share Type Name',
+                'Host',
+                'Availability Zone',
+            ],
+        )
         self.assertIn(share['id'], [item['ID'] for item in shares_list])
 
     def test_openstack_share_show(self):
         share = self.create_share()
 
-        result = self.dict_result('share', 'show %s' % share['id'])
+        result = self.dict_result('share', 'show {}'.format(share['id']))
         self.assertEqual(share['id'], result['id'])
 
-        listing_result = self.listing_result('share', 'show %s' % share['id'])
-        self.assertTableStruct(listing_result, [
-            'Field',
-            'Value'
-        ])
+        listing_result = self.listing_result(
+            'share', 'show {}'.format(share['id'])
+        )
+        self.assertTableStruct(listing_result, ['Field', 'Value'])
 
     def test_openstack_share_delete(self):
         share = self.create_share(add_cleanup=False)
@@ -61,30 +62,35 @@ class SharesCLITest(base.OSCClientTestBase):
 
         self.assertIn(share['id'], [item['ID'] for item in shares_list])
 
-        self.openstack('share delete %s' % share['id'])
+        self.openstack('share delete {}'.format(share['id']))
         self.check_object_deleted('share', share['id'])
         shares_list_after_delete = self.listing_result('share', 'list')
 
         self.assertNotIn(
-            share['id'], [item['ID'] for item in shares_list_after_delete])
+            share['id'], [item['ID'] for item in shares_list_after_delete]
+        )
 
     def test_openstack_share_set(self):
         share = self.create_share()
-        self.openstack(f'share set {share["id"]} --name new_name '
-                       f'--property key=value')
+        self.openstack(
+            f'share set {share["id"]} --name new_name --property key=value'
+        )
         result = self.dict_result('share', f'show {share["id"]}')
         self.assertEqual(share['id'], result['id'])
         self.assertEqual('new_name', result['name'])
         self.assertEqual("key='value'", result['properties'])
 
     def test_openstack_share_unset(self):
-        share = self.create_share(name='test_name', properties={
-            'foo': 'bar', 'test_key': 'test_value'})
+        share = self.create_share(
+            name='test_name',
+            properties={'foo': 'bar', 'test_key': 'test_value'},
+        )
         result1 = self.dict_result('share', f'show {share["id"]}')
         self.assertEqual(share['id'], result1['id'])
         self.assertEqual(share['name'], result1['name'])
-        self.assertEqual("foo='bar', test_key='test_value'",
-                         result1['properties'])
+        self.assertEqual(
+            "foo='bar', test_key='test_value'", result1['properties']
+        )
 
         self.openstack(f'share unset {share["id"]} --name --property test_key')
         result2 = self.dict_result('share', f'show {share["id"]}')
@@ -100,10 +106,12 @@ class SharesCLITest(base.OSCClientTestBase):
 
         self.openstack(f'share delete {share["id"]} --soft')
         self.check_object_deleted('share', share['id'])
-        shares_list_after_delete = self.listing_result('share', 'list '
-                                                       '--soft-deleted')
+        shares_list_after_delete = self.listing_result(
+            'share', 'list --soft-deleted'
+        )
         self.assertIn(
-            share['id'], [item['ID'] for item in shares_list_after_delete])
+            share['id'], [item['ID'] for item in shares_list_after_delete]
+        )
 
     def test_openstack_share_resize(self):
         share = self.create_share()
@@ -116,7 +124,8 @@ class SharesCLITest(base.OSCClientTestBase):
         share_type = self.create_share_type(
             name=data_utils.rand_name(slug),
             snapshot_support=True,
-            revert_to_snapshot_support=True)
+            revert_to_snapshot_support=True,
+        )
         share = self.create_share(share_type=share_type['id'], size=10)
         snapshot = self.create_snapshot(share['id'], wait=True)
         self.assertEqual(snapshot['size'], share['size'])
@@ -146,11 +155,14 @@ class SharesCLITest(base.OSCClientTestBase):
         self.check_object_deleted('share', share['id'])
         shares_list_after_delete = self.listing_result('share', 'list')
         self.assertNotIn(
-            share['id'], [item['ID'] for item in shares_list_after_delete])
+            share['id'], [item['ID'] for item in shares_list_after_delete]
+        )
 
         result = self.dict_result(
-            'share', f'adopt {host} {protocol} {export_location} '
-                     f'--share-type {share_type} --wait')
+            'share',
+            f'adopt {host} {protocol} {export_location} '
+            f'--share-type {share_type} --wait',
+        )
 
         # verify adopted
         self.assertEqual(host, result['host'])
@@ -161,24 +173,26 @@ class SharesCLITest(base.OSCClientTestBase):
         share = self.create_share()
         share_export_locations = self.get_share_export_locations(share["id"])
         result_export_locations = self.listing_result(
-            'share', f'export location list {share["id"]}')
+            'share', f'export location list {share["id"]}'
+        )
         for share_export in share_export_locations:
             export_location = self.dict_result(
-                'share', f'export location show {share["id"]} '
-                         f'{share_export["ID"]}')
-            self.assertIn(export_location["id"], [item["ID"] for item in
-                          result_export_locations])
+                'share',
+                f'export location show {share["id"]} {share_export["ID"]}',
+            )
+            self.assertIn(
+                export_location["id"],
+                [item["ID"] for item in result_export_locations],
+            )
 
     def test_openstack_share_export_location_list(self):
         share = self.create_share()
         share_export_locations = self.get_share_export_locations(share["id"])
         result_export_locations = self.listing_result(
-            'share', f'export location list {share["id"]}')
+            'share', f'export location list {share["id"]}'
+        )
 
-        self.assertTableStruct(result_export_locations, [
-            'ID',
-            'Path'
-        ])
+        self.assertTableStruct(result_export_locations, ['ID', 'Path'])
         export_location_ids = [el['ID'] for el in share_export_locations]
         for share_export in result_export_locations:
             self.assertIn(share_export["ID"], export_location_ids)
@@ -193,10 +207,12 @@ class SharesCLITest(base.OSCClientTestBase):
         self.check_object_deleted('share', share['id'])
         shares_list_after_delete = self.listing_result('share', 'list')
         self.assertNotIn(
-            share['id'], [item['ID'] for item in shares_list_after_delete])
+            share['id'], [item['ID'] for item in shares_list_after_delete]
+        )
 
         self.openstack(f'share restore {share["id"]} ')
 
         shares_list_after_restore = self.listing_result('share', 'list')
         self.assertIn(
-            share['id'], [item['ID'] for item in shares_list_after_restore])
+            share['id'], [item['ID'] for item in shares_list_after_restore]
+        )

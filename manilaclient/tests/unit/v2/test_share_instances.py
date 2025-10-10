@@ -32,7 +32,6 @@ cs = fakes.FakeClient(extensions=extensions)
 
 @ddt.ddt
 class ShareInstancesTest(utils.TestCase):
-
     def _get_manager(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
@@ -42,25 +41,28 @@ class ShareInstancesTest(utils.TestCase):
         cs.share_instances.list(search_opts=None)
         cs.assert_called('GET', '/share_instances')
 
-    @ddt.data(('id', 'b4991315-eb7d-43ec-979e-5715d4399827'),
-              ('path', '//0.0.0.0/fake_path'))
+    @ddt.data(
+        ('id', 'b4991315-eb7d-43ec-979e-5715d4399827'),
+        ('path', '//0.0.0.0/fake_path'),
+    )
     @ddt.unpack
     def test_list_by_export_location(self, filter_type, value):
         cs.share_instances.list(export_location=value)
         cs.assert_called(
-            'GET', '/share_instances?export_location_' +
-            filter_type + '=' + value)
+            'GET',
+            '/share_instances?export_location_' + filter_type + '=' + value,
+        )
 
     def test_get(self):
-        instance = type('None', (object, ), {'id': '1234'})
+        instance = type('None', (object,), {'id': '1234'})
         cs.share_instances.get(instance)
         cs.assert_called('GET', '/share_instances/1234')
 
     @ddt.data(
-        ("2.6", type("InstanceUUID", (object, ), {"uuid": "1234"})),
-        ("2.7", type("InstanceUUID", (object, ), {"uuid": "1234"})),
-        ("2.6", type("InstanceID", (object, ), {"id": "1234"})),
-        ("2.7", type("InstanceID", (object, ), {"id": "1234"})),
+        ("2.6", type("InstanceUUID", (object,), {"uuid": "1234"})),
+        ("2.7", type("InstanceUUID", (object,), {"uuid": "1234"})),
+        ("2.6", type("InstanceID", (object,), {"id": "1234"})),
+        ("2.7", type("InstanceID", (object,), {"id": "1234"})),
         ("2.6", "1234"),
         ("2.7", "1234"),
     )
@@ -68,8 +70,9 @@ class ShareInstancesTest(utils.TestCase):
     def test_reset_instance_state(self, microversion, instance):
         manager = self._get_manager(microversion)
         state = 'available'
-        if (api_versions.APIVersion(microversion) >
-                api_versions.APIVersion("2.6")):
+        if api_versions.APIVersion(microversion) > api_versions.APIVersion(
+            "2.6"
+        ):
             action_name = "reset_status"
         else:
             action_name = "os-reset_status"
@@ -78,19 +81,21 @@ class ShareInstancesTest(utils.TestCase):
             manager.reset_state(instance, state)
 
             manager._action.assert_called_once_with(
-                action_name, instance, {"status": state})
+                action_name, instance, {"status": state}
+            )
 
     @ddt.data(
-        ("2.6", type('InstanceUUID', (object, ), {"uuid": "1234"})),
+        ("2.6", type('InstanceUUID', (object,), {"uuid": "1234"})),
         ("2.6", "1234"),
-        ("2.7", type('InstanceUUID', (object, ), {"uuid": "1234"})),
+        ("2.7", type('InstanceUUID', (object,), {"uuid": "1234"})),
         ("2.7", "1234"),
     )
     @ddt.unpack
     def test_force_delete_share_snapshot(self, microversion, instance):
         manager = self._get_manager(microversion)
-        if (api_versions.APIVersion(microversion) >
-                api_versions.APIVersion("2.6")):
+        if api_versions.APIVersion(microversion) > api_versions.APIVersion(
+            "2.6"
+        ):
             action_name = "force_delete"
         else:
             action_name = "os-force_delete"
@@ -111,8 +116,9 @@ class ShareInstancesTest(utils.TestCase):
     @ddt.unpack
     def test_valid_instance_state(self, microversion, instance, state):
         manager = self._get_manager(microversion)
-        if (api_versions.APIVersion(microversion) >
-                api_versions.APIVersion("2.6")):
+        if api_versions.APIVersion(microversion) > api_versions.APIVersion(
+            "2.6"
+        ):
             action_name = "reset_status"
         else:
             action_name = "os-reset_status"
@@ -121,4 +127,5 @@ class ShareInstancesTest(utils.TestCase):
             manager.reset_state(instance, state)
 
             manager._action.assert_called_once_with(
-                action_name, instance, {"status": state})
+                action_name, instance, {"status": state}
+            )

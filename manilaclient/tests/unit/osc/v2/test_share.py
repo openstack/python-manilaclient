@@ -32,9 +32,8 @@ from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestShare(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShare, self).setUp()
+        super().setUp()
         self.shares_mock = self.app.client_manager.share.shares
         self.shares_mock.reset_mock()
 
@@ -59,14 +58,13 @@ class TestShare(manila_fakes.TestShare):
         self.share_networks_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            MAX_VERSION)
+            MAX_VERSION
+        )
 
     def setup_shares_mock(self, count):
         shares = manila_fakes.FakeShare.create_shares(count=count)
 
-        self.shares_mock.get = manila_fakes.FakeShare.get_shares(
-            shares,
-            0)
+        self.shares_mock.get = manila_fakes.FakeShare.get_shares(shares, 0)
         return shares
 
     def setup_share_groups_mock(self):
@@ -80,9 +78,8 @@ class TestShare(manila_fakes.TestShare):
 
 @ddt.ddt
 class TestShareCreate(TestShare):
-
     def setUp(self):
-        super(TestShareCreate, self).setUp()
+        super().setUp()
 
         self.new_share = manila_fakes.FakeShare.create_one_share(
             attrs={'status': 'available'}
@@ -91,7 +88,8 @@ class TestShareCreate(TestShare):
 
         self.shares_mock.get.return_value = self.new_share
         self.share_snapshot = (
-            manila_fakes.FakeShareSnapshot.create_one_snapshot())
+            manila_fakes.FakeShareSnapshot.create_one_snapshot()
+        )
         self.snapshots_mock.get.return_value = self.share_snapshot
         self.share_type = manila_fakes.FakeShareType.create_one_sharetype()
         self.share_types_mock.get.return_value = self.share_type
@@ -108,12 +106,13 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
+            '--share-type',
+            self.share_type.id,
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
-            ('share_type', self.share_type.id)
+            ('share_type', self.share_type.id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -145,19 +144,25 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
         ]
-        verifylist = [
-            ('share_proto', self.new_share.share_proto)
-        ]
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        verifylist = [('share_proto', self.new_share.share_proto)]
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_create_metadata(self):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
-            '--property', 'Manila=zorilla',
-            '--property', 'Zorilla=manila'
+            '--share-type',
+            self.share_type.id,
+            '--property',
+            'Manila=zorilla',
+            '--property',
+            'Zorilla=manila',
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
@@ -192,7 +197,8 @@ class TestShareCreate(TestShare):
     def test_share_create_scheduler_hints(self):
         """Verifies scheduler hints are parsed correctly."""
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.65")
+            "2.65"
+        )
 
         shares = self.setup_shares_mock(count=2)
         share1_name = shares[0].name
@@ -201,16 +207,21 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
-            '--scheduler-hint', ('same_host=%s' % share1_name),
-            '--scheduler-hint', ('different_host=%s' % share2_name),
+            '--share-type',
+            self.share_type.id,
+            '--scheduler-hint',
+            (f'same_host={share1_name}'),
+            '--scheduler-hint',
+            (f'different_host={share2_name}'),
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
             ('share_type', self.share_type.id),
-            ('scheduler_hint',
-                {'same_host': share1_name, 'different_host': share2_name}),
+            (
+                'scheduler_hint',
+                {'same_host': share1_name, 'different_host': share2_name},
+            ),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -228,8 +239,10 @@ class TestShareCreate(TestShare):
             share_type=self.share_type.id,
             size=self.new_share.size,
             snapshot_id=None,
-            scheduler_hints={'same_host': shares[0].id,
-                             'different_host': shares[1].id},
+            scheduler_hints={
+                'same_host': shares[0].id,
+                'different_host': shares[1].id,
+            },
             mount_point_name=None,
             encryption_key_ref=None,
         )
@@ -240,15 +253,18 @@ class TestShareCreate(TestShare):
     def test_share_create_mount_point_name(self):
         """Verifies that the mount point name has been passed correctly."""
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.84")
+            "2.84"
+        )
 
         mount_point_name = "fake_mp"
 
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
-            '--mount-point-name', mount_point_name,
+            '--share-type',
+            self.share_type.id,
+            '--mount-point-name',
+            mount_point_name,
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
@@ -282,15 +298,18 @@ class TestShareCreate(TestShare):
 
     def test_share_create_encryption_key_ref(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.90")
+            "2.90"
+        )
 
         encryption_key_ref = 'fake_ekr'
 
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
-            '--encryption-key-ref', encryption_key_ref,
+            '--share-type',
+            self.share_type.id,
+            '--encryption-key-ref',
+            encryption_key_ref,
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
@@ -328,24 +347,26 @@ class TestShareCreate(TestShare):
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--snapshot-id', self.share_snapshot.id
-
+            '--snapshot-id',
+            self.share_snapshot.id,
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
-            ('snapshot_id', self.share_snapshot.id)
+            ('snapshot_id', self.share_snapshot.id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         with mock.patch(
-                'manilaclient.common.apiclient.utils.find_resource',
-                mock.Mock(return_value=self.share_snapshot)):
+            'manilaclient.common.apiclient.utils.find_resource',
+            mock.Mock(return_value=self.share_snapshot),
+        ):
             columns, data = self.cmd.take_action(parsed_args)
 
             osc_shares.apiutils.find_resource.assert_called_once_with(
-                mock.ANY, self.share_snapshot.id)
+                mock.ANY, self.share_snapshot.id
+            )
 
         self.shares_mock.create.assert_called_with(
             availability_zone=None,
@@ -367,18 +388,18 @@ class TestShareCreate(TestShare):
         self.assertCountEqual(self.datalist, data)
 
     def test_share_create_wait(self):
-
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
-            '--wait'
+            '--share-type',
+            self.share_type.id,
+            '--wait',
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
             ('share_type', self.share_type.id),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -408,18 +429,18 @@ class TestShareCreate(TestShare):
 
     @mock.patch('manilaclient.osc.v2.share.LOG')
     def test_share_create_wait_error(self, mock_logger):
-
         arglist = [
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
-            '--wait'
+            '--share-type',
+            self.share_type.id,
+            '--wait',
         ]
         verifylist = [
             ('share_proto', self.new_share.share_proto),
             ('size', self.new_share.size),
             ('share_type', self.share_type.id),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -445,7 +466,8 @@ class TestShareCreate(TestShare):
             )
 
             mock_logger.error.assert_called_with(
-                "ERROR: Share is in error state.")
+                "ERROR: Share is in error state."
+            )
 
             self.shares_mock.get.assert_called_with(self.new_share.id)
             self.assertCountEqual(self.columns, columns)
@@ -465,19 +487,19 @@ class TestShareCreate(TestShare):
         self.share_types_mock.get.side_effect = osc_exceptions.CommandError()
 
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
-        self.share_types_mock.get.assert_called_once_with(
-            share_type='default')
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
+        self.share_types_mock.get.assert_called_once_with(share_type='default')
 
     @ddt.data('None', 'NONE', 'none')
     def test_create_share_with_the_name_none(self, name):
         arglist = [
-            '--name', name,
+            '--name',
+            name,
             self.new_share.share_proto,
             str(self.new_share.size),
-            '--share-type', self.share_type.id,
+            '--share-type',
+            self.share_type.id,
         ]
         verifylist = [
             ('name', name),
@@ -489,15 +511,13 @@ class TestShareCreate(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareDelete(TestShare):
-
     def setUp(self):
-        super(TestShareDelete, self).setUp()
+        super().setUp()
 
         self.shares_mock.delete = mock.Mock()
         self.shares_mock.delete.return_value = None
@@ -508,13 +528,11 @@ class TestShareDelete(TestShare):
     def test_share_delete_one(self):
         shares = self.setup_shares_mock(count=1)
 
-        arglist = [
-            shares[0].name
-        ]
+        arglist = [shares[0].name]
         verifylist = [
             ("force", False),
             ("share_group", None),
-            ('shares', [shares[0].name])
+            ('shares', [shares[0].name]),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -546,20 +564,18 @@ class TestShareDelete(TestShare):
         shares = self.setup_shares_mock(count=1)
         share_group = self.setup_share_groups_mock()
 
-        arglist = [
-            shares[0].name,
-            '--share-group', share_group['id']
-        ]
+        arglist = [shares[0].name, '--share-group', share_group['id']]
         verifylist = [
             ("share_group", share_group['id']),
-            ('shares', [shares[0].name])
+            ('shares', [shares[0].name]),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
         self.shares_mock.delete.assert_called_with(
-            shares[0], share_group['id'])
+            shares[0], share_group['id']
+        )
         self.assertIsNone(result)
 
     def test_share_delete_with_force(self):
@@ -607,13 +623,11 @@ class TestShareDelete(TestShare):
     def test_share_delete_wrong_name(self):
         shares = self.setup_shares_mock(count=1)
 
-        arglist = [
-            shares[0].name + '-wrong-name'
-        ]
+        arglist = [shares[0].name + '-wrong-name']
         verifylist = [
             ("force", False),
             ("share_group", None),
-            ('shares', [shares[0].name + '-wrong-name'])
+            ('shares', [shares[0].name + '-wrong-name']),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -623,33 +637,32 @@ class TestShareDelete(TestShare):
 
         self.shares_mock.delete.side_effect = exceptions.CommandError()
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_delete_no_name(self):
         # self.setup_shares_mock(count=1)
 
         arglist = []
-        verifylist = [
-            ("force", False),
-            ("share_group", None),
-            ('shares', '')
-        ]
+        verifylist = [("force", False), ("share_group", None), ('shares', '')]
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_delete_wait(self):
         shares = self.setup_shares_mock(count=1)
 
-        arglist = [
-            shares[0].name,
-            '--wait'
-        ]
+        arglist = [shares[0].name, '--wait']
         verifylist = [
             ("force", False),
             ("share_group", None),
             ('shares', [shares[0].name]),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -663,29 +676,23 @@ class TestShareDelete(TestShare):
     def test_share_delete_wait_error(self):
         shares = self.setup_shares_mock(count=1)
 
-        arglist = [
-            shares[0].name,
-            '--wait'
-        ]
+        arglist = [shares[0].name, '--wait']
         verifylist = [
             ("force", False),
             ("share_group", None),
             ('shares', [shares[0].name]),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
             self.assertRaises(
-                osc_exceptions.CommandError,
-                self.cmd.take_action,
-                parsed_args
+                osc_exceptions.CommandError, self.cmd.take_action, parsed_args
             )
 
 
 class TestShareList(TestShare):
-
     project = identity_fakes.FakeProject.create_one_project()
     user = identity_fakes.FakeUser.create_one_user()
 
@@ -698,11 +705,11 @@ class TestShareList(TestShare):
         'Is Public',
         'Share Type Name',
         'Host',
-        'Availability Zone'
+        'Availability Zone',
     ]
 
     def setUp(self):
-        super(TestShareList, self).setUp()
+        super().setUp()
 
         self.new_share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.list.return_value = [self.new_share]
@@ -715,17 +722,19 @@ class TestShareList(TestShare):
         self.cmd = osc_shares.ListShare(self.app, None)
 
     def _get_data(self):
-        data = ((
-            self.new_share.id,
-            self.new_share.name,
-            self.new_share.size,
-            self.new_share.share_proto,
-            self.new_share.status,
-            self.new_share.is_public,
-            self.new_share.share_type_name,
-            self.new_share.host,
-            self.new_share.availability_zone,
-        ),)
+        data = (
+            (
+                self.new_share.id,
+                self.new_share.name,
+                self.new_share.size,
+                self.new_share.share_proto,
+                self.new_share.status,
+                self.new_share.is_public,
+                self.new_share.share_type_name,
+                self.new_share.host,
+                self.new_share.availability_zone,
+            ),
+        )
         return data
 
     def _get_search_opts(self):
@@ -780,7 +789,8 @@ class TestShareList(TestShare):
 
     def test_share_list_project(self):
         arglist = [
-            '--project', self.project.name,
+            '--project',
+            self.project.name,
         ]
         verifylist = [
             ('project', self.project.name),
@@ -809,8 +819,10 @@ class TestShareList(TestShare):
 
     def test_share_list_project_domain(self):
         arglist = [
-            '--project', self.project.name,
-            '--project-domain', self.project.domain_id,
+            '--project',
+            self.project.name,
+            '--project-domain',
+            self.project.domain_id,
         ]
         verifylist = [
             ('project', self.project.name),
@@ -840,7 +852,8 @@ class TestShareList(TestShare):
 
     def test_share_list_user(self):
         arglist = [
-            '--user', self.user.name,
+            '--user',
+            self.user.name,
         ]
         verifylist = [
             ('user', self.user.name),
@@ -867,8 +880,10 @@ class TestShareList(TestShare):
 
     def test_share_list_user_domain(self):
         arglist = [
-            '--user', self.user.name,
-            '--user-domain', self.user.domain_id,
+            '--user',
+            self.user.name,
+            '--user-domain',
+            self.user.domain_id,
         ]
         verifylist = [
             ('user', self.user.name),
@@ -897,7 +912,8 @@ class TestShareList(TestShare):
 
     def test_share_list_name(self):
         arglist = [
-            '--name', self.new_share.name,
+            '--name',
+            self.new_share.name,
         ]
         verifylist = [
             ('long', False),
@@ -925,7 +941,8 @@ class TestShareList(TestShare):
 
     def test_share_list_status(self):
         arglist = [
-            '--status', self.new_share.status,
+            '--status',
+            self.new_share.status,
         ]
         verifylist = [
             ('long', False),
@@ -1027,48 +1044,52 @@ class TestShareList(TestShare):
             'Has Replicas',
             'Created At',
             'Properties',
-            'Encryption Key Ref'
+            'Encryption Key Ref',
         ]
         self.assertEqual(collist, cmd_columns)
 
-        data = ((
-            self.new_share.id,
-            self.new_share.name,
-            self.new_share.size,
-            self.new_share.share_proto,
-            self.new_share.status,
-            self.new_share.is_public,
-            self.new_share.share_type_name,
-            self.new_share.availability_zone,
-            self.new_share.description,
-            self.new_share.share_network_id,
-            self.new_share.share_server_id,
-            self.new_share.share_type,
-            self.new_share.share_group_id,
-            self.new_share.host,
-            self.new_share.user_id,
-            self.new_share.project_id,
-            self.new_share.access_rules_status,
-            self.new_share.snapshot_id,
-            self.new_share.snapshot_support,
-            self.new_share.create_share_from_snapshot_support,
-            self.new_share.mount_snapshot_support,
-            self.new_share.revert_to_snapshot_support,
-            self.new_share.task_state,
-            self.new_share.source_share_group_snapshot_member_id,
-            self.new_share.replication_type,
-            self.new_share.has_replicas,
-            self.new_share.created_at,
-            self.new_share.metadata,
-            self.new_share.encryption_key_ref
-        ),)
+        data = (
+            (
+                self.new_share.id,
+                self.new_share.name,
+                self.new_share.size,
+                self.new_share.share_proto,
+                self.new_share.status,
+                self.new_share.is_public,
+                self.new_share.share_type_name,
+                self.new_share.availability_zone,
+                self.new_share.description,
+                self.new_share.share_network_id,
+                self.new_share.share_server_id,
+                self.new_share.share_type,
+                self.new_share.share_group_id,
+                self.new_share.host,
+                self.new_share.user_id,
+                self.new_share.project_id,
+                self.new_share.access_rules_status,
+                self.new_share.snapshot_id,
+                self.new_share.snapshot_support,
+                self.new_share.create_share_from_snapshot_support,
+                self.new_share.mount_snapshot_support,
+                self.new_share.revert_to_snapshot_support,
+                self.new_share.task_state,
+                self.new_share.source_share_group_snapshot_member_id,
+                self.new_share.replication_type,
+                self.new_share.has_replicas,
+                self.new_share.created_at,
+                self.new_share.metadata,
+                self.new_share.encryption_key_ref,
+            ),
+        )
 
         self.assertEqual(data, tuple(cmd_data))
 
     def test_share_list_with_marker_and_limit(self):
         arglist = [
-            "--marker", self.new_share.id,
-            "--limit", "2",
+            "--marker",
+            self.new_share.id,
+            "--limit",
+            "2",
         ]
         verifylist = [
             ('long', False),
@@ -1091,25 +1112,31 @@ class TestShareList(TestShare):
 
         data = self._get_data()
 
-        self.shares_mock.list.assert_called_once_with(
-            search_opts=search_opts
-        )
+        self.shares_mock.list.assert_called_once_with(search_opts=search_opts)
         self.assertEqual(data, tuple(cmd_data))
 
     def test_share_list_negative_limit(self):
         arglist = [
-            "--limit", "-2",
+            "--limit",
+            "-2",
         ]
         verifylist = [
             ("limit", -2),
         ]
-        self.assertRaises(osc_utils.ParserException, self.check_parser,
-                          self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_list_name_description_filter(self):
         arglist = [
-            '--name~', self.new_share.name,
-            '--description~', self.new_share.description,
+            '--name~',
+            self.new_share.name,
+            '--description~',
+            self.new_share.description,
         ]
 
         verifylist = [
@@ -1137,7 +1164,8 @@ class TestShareList(TestShare):
 
     def test_list_share_soft_deleted_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.60")
+            "2.60"
+        )
         arglist = [
             '--soft-deleted',
         ]
@@ -1151,15 +1179,16 @@ class TestShareList(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_list_share_encryption_key_ref_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.89")
+            "2.89"
+        )
         arglist = [
-            '--encryption-key-ref', 'fake',
+            '--encryption-key-ref',
+            'fake',
         ]
         verifylist = [
             ('encryption_key_ref', 'fake'),
@@ -1168,17 +1197,19 @@ class TestShareList(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_list_share_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.35")
+            "2.35"
+        )
 
         arglist = [
-            '--name~', 'Name',
-            '--description~', 'Description',
+            '--name~',
+            'Name',
+            '--description~',
+            'Description',
         ]
         verifylist = [
             ('name~', 'Name'),
@@ -1188,55 +1219,55 @@ class TestShareList(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareShow(TestShare):
-
     def setUp(self):
-        super(TestShareShow, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.get.return_value = self._share
 
         self._export_location = (
-            manila_fakes.FakeShareExportLocation.create_one_export_location())
+            manila_fakes.FakeShareExportLocation.create_one_export_location()
+        )
 
         # Get the command object to test
         self.cmd = osc_shares.ShowShare(self.app, None)
 
     def test_share_show(self):
-        arglist = [
-            self._share.id
-        ]
-        verifylist = [
-            ("share", self._share.id)
-        ]
+        arglist = [self._share.id]
+        verifylist = [("share", self._share.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         cliutils.convert_dict_list_to_string = mock.Mock()
         cliutils.convert_dict_list_to_string.return_value = dict(
-            self._export_location)
+            self._export_location
+        )
         columns, data = self.cmd.take_action(parsed_args)
         self.shares_mock.get.assert_called_with(self._share.id)
 
         self.assertEqual(
             sorted(manila_fakes.FakeShare.get_share_columns(self._share)),
-            sorted(columns))
+            sorted(columns),
+        )
 
         self.assertCountEqual(
-            manila_fakes.FakeShare.get_share_data(self._share), data)
+            manila_fakes.FakeShare.get_share_data(self._share), data
+        )
 
 
 class TestShareSet(TestShare):
-
     def setUp(self):
-        super(TestShareSet, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            methods={"reset_state": None, "reset_task_state": None,
-                     "set_metadata": None}
+            methods={
+                "reset_state": None,
+                "reset_task_state": None,
+                "set_metadata": None,
+            }
         )
         self.shares_mock.get.return_value = self._share
 
@@ -1245,127 +1276,118 @@ class TestShareSet(TestShare):
 
     def test_share_set_property(self):
         arglist = [
-            '--property', 'Zorilla=manila',
+            '--property',
+            'Zorilla=manila',
             self._share.id,
         ]
         verifylist = [
             ('property', {'Zorilla': 'manila'}),
-            ('share', self._share.id)
+            ('share', self._share.id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self._share.set_metadata.assert_called_with(
-            {'Zorilla': 'manila'})
+        self._share.set_metadata.assert_called_with({'Zorilla': 'manila'})
 
     def test_share_set_name(self):
         new_name = uuid.uuid4().hex
         arglist = [
-            '--name', new_name,
+            '--name',
+            new_name,
             self._share.id,
         ]
-        verifylist = [
-            ('name', new_name),
-            ('share', self._share.id)
-        ]
+        verifylist = [('name', new_name), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
         self.shares_mock.update.assert_called_with(
-            self._share.id,
-            display_name=parsed_args.name)
+            self._share.id, display_name=parsed_args.name
+        )
 
     def test_share_set_description(self):
         new_description = uuid.uuid4().hex
         arglist = [
-            '--description', new_description,
+            '--description',
+            new_description,
             self._share.id,
         ]
         verifylist = [
             ('description', new_description),
-            ('share', self._share.id)
+            ('share', self._share.id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
         self.shares_mock.update.assert_called_with(
-            self._share.id,
-            display_description=parsed_args.description)
+            self._share.id, display_description=parsed_args.description
+        )
 
     def test_share_set_visibility(self):
         arglist = [
-            '--public', 'true',
+            '--public',
+            'true',
             self._share.id,
         ]
-        verifylist = [
-            ('public', 'true'),
-            ('share', self._share.id)
-        ]
+        verifylist = [('public', 'true'), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
         self.shares_mock.update.assert_called_with(
-            self._share.id,
-            is_public='true')
+            self._share.id, is_public='true'
+        )
 
     def test_share_set_visibility_exception(self):
         arglist = [
-            '--public', 'not_a_boolean_value',
+            '--public',
+            'not_a_boolean_value',
             self._share.id,
         ]
         verifylist = [
             ('public', 'not_a_boolean_value'),
-            ('share', self._share.id)
+            ('share', self._share.id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
         self.shares_mock.update.assert_called_with(
-            self._share.id,
-            is_public='not_a_boolean_value')
+            self._share.id, is_public='not_a_boolean_value'
+        )
 
         # '--public' takes only boolean value, would raise a BadRequest
         self.shares_mock.update.side_effect = exceptions.BadRequest()
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_set_property_exception(self):
         arglist = [
-            '--property', 'key=',
+            '--property',
+            'key=',
             self._share.id,
         ]
-        verifylist = [
-            ('property', {'key': ''}),
-            ('share', self._share.id)
-        ]
+        verifylist = [('property', {'key': ''}), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self._share.set_metadata.assert_called_with(
-            {'key': ''})
+        self._share.set_metadata.assert_called_with({'key': ''})
 
         # '--property' takes key=value arguments
         # missing a value would raise a BadRequest
         self._share.set_metadata.side_effect = exceptions.BadRequest
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_set_status(self):
         new_status = 'available'
-        arglist = [
-            self._share.id,
-            '--status', new_status
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('status', new_status)
-        ]
+        arglist = [self._share.id, '--status', new_status]
+        verifylist = [('share', self._share.id), ('status', new_status)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -1375,30 +1397,22 @@ class TestShareSet(TestShare):
 
     def test_share_set_status_exception(self):
         new_status = 'available'
-        arglist = [
-            self._share.id,
-            '--status', new_status
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('status', new_status)
-        ]
+        arglist = [self._share.id, '--status', new_status]
+        verifylist = [('share', self._share.id), ('status', new_status)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self._share.reset_state.side_effect = Exception()
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_set_task_state(self):
         new_task_state = 'migration_starting'
-        arglist = [
-            self._share.id,
-            '--task-state', new_task_state
-        ]
+        arglist = [self._share.id, '--task-state', new_task_state]
         verifylist = [
             ('share', self._share.id),
-            ('task_state', new_task_state)
+            ('task_state', new_task_state),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -1407,28 +1421,16 @@ class TestShareSet(TestShare):
         self.assertIsNone(result)
 
     def test_share_set_task_state_none(self):
-        arglist = [
-            self._share.id,
-            '--task-state'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('task_state', None)
-        ]
+        arglist = [self._share.id, '--task-state']
+        verifylist = [('share', self._share.id), ('task_state', None)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
         self._share.reset_task_state.assert_called_with(None)
         self.assertIsNone(result)
 
     def test_share_set_task_state_string_none(self):
-        arglist = [
-            self._share.id,
-            '--task-state', 'None'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('task_state', 'None')
-        ]
+        arglist = [self._share.id, '--task-state', 'None']
+        verifylist = [('share', self._share.id), ('task_state', 'None')]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
         self._share.reset_task_state.assert_called_with(None)
@@ -1436,9 +1438,8 @@ class TestShareSet(TestShare):
 
 
 class TestShareUnset(TestShare):
-
     def setUp(self):
-        super(TestShareUnset, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
             methods={"delete_metadata": None}
@@ -1450,248 +1451,181 @@ class TestShareUnset(TestShare):
 
     def test_share_unset_property(self):
         arglist = [
-            '--property', 'Manila',
+            '--property',
+            'Manila',
             self._share.id,
         ]
-        verifylist = [
-            ('property', ['Manila']),
-            ('share', self._share.id)
-        ]
+        verifylist = [('property', ['Manila']), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self._share.delete_metadata.assert_called_with(
-            parsed_args.property)
+        self._share.delete_metadata.assert_called_with(parsed_args.property)
 
     def test_share_unset_name(self):
         arglist = [
             '--name',
             self._share.id,
         ]
-        verifylist = [
-            ('name', True),
-            ('share', self._share.id)
-        ]
+        verifylist = [('name', True), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
         self.shares_mock.update.assert_called_with(
-            self._share.id,
-            display_name=None)
+            self._share.id, display_name=None
+        )
 
     def test_share_unset_description(self):
         arglist = [
             '--description',
             self._share.id,
         ]
-        verifylist = [
-            ('description', True),
-            ('share', self._share.id)
-        ]
+        verifylist = [('description', True), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
         self.shares_mock.update.assert_called_with(
-            self._share.id,
-            display_description=None)
+            self._share.id, display_description=None
+        )
 
     def test_share_unset_name_exception(self):
         arglist = [
             '--name',
             self._share.id,
         ]
-        verifylist = [
-            ('name', True),
-            ('share', self._share.id)
-        ]
+        verifylist = [('name', True), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.shares_mock.update.side_effect = exceptions.BadRequest()
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_unset_property_exception(self):
         arglist = [
-            '--property', 'Manila',
+            '--property',
+            'Manila',
             self._share.id,
         ]
-        verifylist = [
-            ('property', ['Manila']),
-            ('share', self._share.id)
-        ]
+        verifylist = [('property', ['Manila']), ('share', self._share.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.cmd.take_action(parsed_args)
-        self._share.delete_metadata.assert_called_with(
-            parsed_args.property)
+        self._share.delete_metadata.assert_called_with(parsed_args.property)
 
         # 404 Not Found would be raised, if property 'Manila' doesn't exist
         self._share.delete_metadata.side_effect = exceptions.NotFound
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestResizeShare(TestShare):
-
     def setUp(self):
-        super(TestResizeShare, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={'size': 2,
-                   'status': 'available'})
+            attrs={'size': 2, 'status': 'available'}
+        )
         self.shares_mock.get.return_value = self._share
 
         # Get the command objects to test
         self.cmd = osc_shares.ResizeShare(self.app, None)
 
     def test_share_shrink(self):
-        arglist = [
-            self._share.id,
-            '1'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('new_size', 1)
-        ]
+        arglist = [self._share.id, '1']
+        verifylist = [('share', self._share.id), ('new_size', 1)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
-        self.shares_mock.shrink.assert_called_with(
-            self._share,
-            1
-        )
+        self.shares_mock.shrink.assert_called_with(self._share, 1)
 
     def test_share_shrink_exception(self):
-        arglist = [
-            self._share.id,
-            '1'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('new_size', 1)
-        ]
+        arglist = [self._share.id, '1']
+        verifylist = [('share', self._share.id), ('new_size', 1)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.shares_mock.shrink.side_effect = Exception()
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_extend(self):
-        arglist = [
-            self._share.id,
-            '3'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('new_size', 3)
-        ]
+        arglist = [self._share.id, '3']
+        verifylist = [('share', self._share.id), ('new_size', 3)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
-        self.shares_mock.extend.assert_called_with(
-            self._share,
-            3
-        )
+        self.shares_mock.extend.assert_called_with(self._share, 3)
 
     def test_share_extend_exception(self):
-        arglist = [
-            self._share.id,
-            '3'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('new_size', 3)
-        ]
+        arglist = [self._share.id, '3']
+        verifylist = [('share', self._share.id), ('new_size', 3)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.shares_mock.extend.side_effect = Exception()
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_resize_already_required_size(self):
-        arglist = [
-            self._share.id,
-            '2'
-        ]
-        verifylist = [
-            ('share', self._share.id),
-            ('new_size', 2)
-        ]
+        arglist = [self._share.id, '2']
+        verifylist = [('share', self._share.id), ('new_size', 2)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            osc_exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
         )
 
     def test_share_missing_args(self):
-        arglist = [
-            self._share.id
-        ]
-        verifylist = [
-            ('share', self._share.id)
-        ]
+        arglist = [self._share.id]
+        verifylist = [('share', self._share.id)]
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_resize_wait(self):
-        arglist = [
-            self._share.id,
-            '3',
-            '--wait'
-        ]
+        arglist = [self._share.id, '3', '--wait']
         verifylist = [
             ('share', self._share.id),
             ('new_size', 3),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
-        self.shares_mock.extend.assert_called_with(
-            self._share,
-            3
-        )
+        self.shares_mock.extend.assert_called_with(self._share, 3)
         self.shares_mock.get.assert_called_with(self._share.id)
 
     def test_share_resize_wait_error(self):
-        arglist = [
-            self._share.id,
-            '3',
-            '--wait'
-        ]
+        arglist = [self._share.id, '3', '--wait']
         verifylist = [
             ('share', self._share.id),
             ('new_size', 3),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         with mock.patch('osc_lib.utils.wait_for_status', return_value=False):
             self.assertRaises(
-                osc_exceptions.CommandError,
-                self.cmd.take_action,
-                parsed_args
+                osc_exceptions.CommandError, self.cmd.take_action, parsed_args
             )
 
 
 class TestAdoptShare(TestShare):
-
     def setUp(self):
-        super(TestAdoptShare, self).setUp()
+        super().setUp()
 
         self._share_type = manila_fakes.FakeShareType.create_one_sharetype()
         self.share_types_mock.get.return_value = self._share_type
@@ -1700,7 +1634,9 @@ class TestAdoptShare(TestShare):
             attrs={
                 'status': 'available',
                 'share_type': self._share_type.id,
-                'share_server_id': 'server-id' + uuid.uuid4().hex})
+                'share_server_id': 'server-id' + uuid.uuid4().hex,
+            }
+        )
         self.shares_mock.get.return_value = self._share
 
         self.shares_mock.manage.return_value = self._share
@@ -1715,19 +1651,20 @@ class TestAdoptShare(TestShare):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_adopt_required_args(self):
-        arglist = [
-            'some.host@driver#pool',
-            'NFS',
-            '10.0.0.1:/example_path'
-        ]
+        arglist = ['some.host@driver#pool', 'NFS', '10.0.0.1:/example_path']
         verifylist = [
             ('service_host', 'some.host@driver#pool'),
             ('protocol', 'NFS'),
-            ('export_path', '10.0.0.1:/example_path')
+            ('export_path', '10.0.0.1:/example_path'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
@@ -1736,7 +1673,7 @@ class TestAdoptShare(TestShare):
             export_path='10.0.0.1:/example_path',
             name=None,
             protocol='NFS',
-            service_host='some.host@driver#pool'
+            service_host='some.host@driver#pool',
         )
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.datalist, data)
@@ -1746,14 +1683,19 @@ class TestAdoptShare(TestShare):
             'some.host@driver#pool',
             'NFS',
             '10.0.0.1:/example_path',
-            '--name', self._share.id,
-            '--description', self._share.description,
-            '--share-type', self._share.share_type,
-            '--driver-options', 'key1=value1', 'key2=value2',
+            '--name',
+            self._share.id,
+            '--description',
+            self._share.description,
+            '--share-type',
+            self._share.share_type,
+            '--driver-options',
+            'key1=value1',
+            'key2=value2',
             '--wait',
             '--public',
-            '--share-server-id', self._share.share_server_id
-
+            '--share-server-id',
+            self._share.share_server_id,
         ]
         verifylist = [
             ('service_host', 'some.host@driver#pool'),
@@ -1765,8 +1707,7 @@ class TestAdoptShare(TestShare):
             ('driver_options', ['key1=value1', 'key2=value2']),
             ('wait', True),
             ('public', True),
-            ('share_server_id', self._share.share_server_id)
-
+            ('share_server_id', self._share.share_server_id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -1780,7 +1721,7 @@ class TestAdoptShare(TestShare):
             service_host='some.host@driver#pool',
             share_server_id=self._share.share_server_id,
             share_type=self._share_type.id,
-            public=True
+            public=True,
         )
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.datalist, data)
@@ -1791,13 +1732,13 @@ class TestAdoptShare(TestShare):
             'some.host@driver#pool',
             'NFS',
             '10.0.0.1:/example_path',
-            '--wait'
+            '--wait',
         ]
         verifylist = [
             ('service_host', 'some.host@driver#pool'),
             ('protocol', 'NFS'),
             ('export_path', '10.0.0.1:/example_path'),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -1809,11 +1750,12 @@ class TestAdoptShare(TestShare):
                 export_path='10.0.0.1:/example_path',
                 name=None,
                 protocol='NFS',
-                service_host='some.host@driver#pool'
+                service_host='some.host@driver#pool',
             )
 
             mock_logger.error.assert_called_with(
-                "ERROR: Share is in error state.")
+                "ERROR: Share is in error state."
+            )
 
             self.shares_mock.get.assert_called_with(self._share.id)
             self.assertCountEqual(self.columns, columns)
@@ -1821,56 +1763,59 @@ class TestAdoptShare(TestShare):
 
     def test_share_adopt_visibility_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.7")
+            "2.7"
+        )
 
         arglist = [
             'some.host@driver#pool',
             'NFS',
             '10.0.0.1:/example_path',
-            '--public'
-
+            '--public',
         ]
         verifylist = [
             ('service_host', 'some.host@driver#pool'),
             ('protocol', 'NFS'),
             ('export_path', '10.0.0.1:/example_path'),
-            ('public', True)
+            ('public', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_adopt_share_server_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.48")
+            "2.48"
+        )
 
         arglist = [
             'some.host@driver#pool',
             'NFS',
             '10.0.0.1:/example_path',
-            '--share-server-id', self._share.share_server_id
-
+            '--share-server-id',
+            self._share.share_server_id,
         ]
         verifylist = [
             ('service_host', 'some.host@driver#pool'),
             ('protocol', 'NFS'),
             ('export_path', '10.0.0.1:/example_path'),
-            ('share_server_id', self._share.share_server_id)
+            ('share_server_id', self._share.share_server_id),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestAbandonShare(TestShare):
-
     def setUp(self):
-        super(TestAbandonShare, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={'status': 'available'})
+            attrs={'status': 'available'}
+        )
         self.shares_mock.get.return_value = self._share
 
         # Get the command objects to test
@@ -1891,14 +1836,8 @@ class TestAbandonShare(TestShare):
         self.assertIsNone(result)
 
     def test_share_abandon_wait(self):
-        arglist = [
-            self._share.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('share', [self._share.id]),
-            ('wait', True)
-        ]
+        arglist = [self._share.id, '--wait']
+        verifylist = [('share', [self._share.id]), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -1908,57 +1847,43 @@ class TestAbandonShare(TestShare):
             self.assertIsNone(result)
 
     def test_share_abandon_wait_error(self):
-        arglist = [
-            self._share.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('share', [self._share.id]),
-            ('wait', True)
-        ]
+        arglist = [self._share.id, '--wait']
+        verifylist = [('share', [self._share.id]), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
             self.assertRaises(
-                osc_exceptions.CommandError,
-                self.cmd.take_action,
-                parsed_args
+                osc_exceptions.CommandError, self.cmd.take_action, parsed_args
             )
 
 
 class TestShareExportLocationShow(TestShare):
-
     def setUp(self):
-        super(TestShareExportLocationShow, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.get.return_value = self._share
 
         self._export_location = (
-            manila_fakes.FakeShareExportLocation.create_one_export_location())
-
-        self.export_locations_mock.get.return_value = (
-            self._export_location
+            manila_fakes.FakeShareExportLocation.create_one_export_location()
         )
+
+        self.export_locations_mock.get.return_value = self._export_location
 
         # Get the command object to test
         self.cmd = osc_shares.ShareExportLocationShow(self.app, None)
 
     def test_share_show_export_location(self):
-        arglist = [
-            self._share.id,
-            self._export_location.fake_uuid
-        ]
+        arglist = [self._share.id, self._export_location.fake_uuid]
         verifylist = [
             ('share', self._share.id),
-            ('export_location', self._export_location.fake_uuid)
+            ('export_location', self._export_location.fake_uuid),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         self.export_locations_mock.get.assert_called_with(
-            share=self._share,
-            export_location=self._export_location.fake_uuid
+            share=self._share, export_location=self._export_location.fake_uuid
         )
 
         self.assertEqual(tuple(self._export_location._info.keys()), columns)
@@ -1966,49 +1891,42 @@ class TestShareExportLocationShow(TestShare):
 
 
 class TestShareExportLocationList(TestShare):
-
     columns = ['ID', 'Path', 'Preferred']
 
     def setUp(self):
-        super(TestShareExportLocationList, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.get.return_value = self._share
 
         self._export_locations = [
-            manila_fakes.FakeShareExportLocation.create_one_export_location()]
+            manila_fakes.FakeShareExportLocation.create_one_export_location()
+        ]
 
-        self.export_locations_mock.list.return_value = (
-            self._export_locations
+        self.export_locations_mock.list.return_value = self._export_locations
+
+        self.values = (
+            oscutils.get_dict_properties(e._info, self.columns)
+            for e in self._export_locations
         )
-
-        self.values = (oscutils.get_dict_properties(
-            e._info, self.columns) for e in self._export_locations)
 
         # Get the command object to test
         self.cmd = osc_shares.ShareExportLocationList(self.app, None)
 
     def test_share_list_export_location(self):
-        arglist = [
-            self._share.id
-        ]
-        verifylist = [
-            ('share', self._share.id)
-        ]
+        arglist = [self._share.id]
+        verifylist = [('share', self._share.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        self.export_locations_mock.list.assert_called_with(
-            share=self._share
-        )
+        self.export_locations_mock.list.assert_called_with(share=self._share)
 
         self.assertEqual(self.columns, columns)
         self.assertCountEqual(self.values, data)
 
 
 class TestExportLocationSet(TestShare):
-
     def setUp(self):
-        super(TestExportLocationSet, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
             methods={"set_metadata": None}
@@ -2017,11 +1935,11 @@ class TestExportLocationSet(TestShare):
 
         self._export_location = (
             manila_fakes.FakeShareExportLocation.create_one_export_location(
-                {'fake_share_instance_id': self._share.id}))
-
-        self.export_locations_mock.get.return_value = (
-            self._export_location
+                {'fake_share_instance_id': self._share.id}
+            )
         )
+
+        self.export_locations_mock.get.return_value = self._export_location
 
         self.cmd = osc_shares.ShareExportLocationSet(self.app, None)
 
@@ -2032,8 +1950,8 @@ class TestExportLocationSet(TestShare):
         arglist = [
             self._share.id,
             self._export_location.id,
-            '--property', 'Bobcat=manila',
-
+            '--property',
+            'Bobcat=manila',
         ]
         verifylist = [
             ('share', self._share.id),
@@ -2044,8 +1962,10 @@ class TestExportLocationSet(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         self.export_locations_mock.set_metadata.assert_called_once_with(
-            self._share.id, {'Bobcat': 'manila'},
-            subresource=self._export_location.id)
+            self._share.id,
+            {'Bobcat': 'manila'},
+            subresource=self._export_location.id,
+        )
 
     def test_share_set_export_location_property_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -2054,7 +1974,8 @@ class TestExportLocationSet(TestShare):
         arglist = [
             self._share.id,
             self._export_location.id,
-            '--property', 'key=',
+            '--property',
+            'key=',
         ]
         verifylist = [
             ('share', self._share.id),
@@ -2066,20 +1987,20 @@ class TestExportLocationSet(TestShare):
         self.cmd.take_action(parsed_args)
 
         self.export_locations_mock.set_metadata.assert_called_once_with(
-            self._share.id, {'key': ''},
-            subresource=self._export_location.id)
+            self._share.id, {'key': ''}, subresource=self._export_location.id
+        )
 
         self.export_locations_mock.set_metadata.side_effect = (
-            exceptions.BadRequest)
+            exceptions.BadRequest
+        )
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestExportLocationUnset(TestShare):
-
     def setUp(self):
-        super(TestExportLocationUnset, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
             methods={"set_metadata": None}
@@ -2088,11 +2009,11 @@ class TestExportLocationUnset(TestShare):
 
         self._export_location = (
             manila_fakes.FakeShareExportLocation.create_one_export_location(
-                {'fake_share_instance_id': self._share.id}))
-
-        self.export_locations_mock.get.return_value = (
-            self._export_location
+                {'fake_share_instance_id': self._share.id}
+            )
         )
+
+        self.export_locations_mock.get.return_value = self._export_location
 
         self.cmd = osc_shares.ShareExportLocationUnset(self.app, None)
 
@@ -2103,8 +2024,8 @@ class TestExportLocationUnset(TestShare):
         arglist = [
             self._share.id,
             self._export_location.id,
-            '--property', 'Bobcat',
-
+            '--property',
+            'Bobcat',
         ]
         verifylist = [
             ('share', self._share.id),
@@ -2115,8 +2036,8 @@ class TestExportLocationUnset(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         self.export_locations_mock.delete_metadata.assert_called_once_with(
-            self._share.id, ['Bobcat'],
-            subresource=self._export_location.id)
+            self._share.id, ['Bobcat'], subresource=self._export_location.id
+        )
 
     def test_share_unset_export_location_property_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -2125,7 +2046,8 @@ class TestExportLocationUnset(TestShare):
         arglist = [
             self._share.id,
             self._export_location.id,
-            '--property', 'key',
+            '--property',
+            'key',
         ]
         verifylist = [
             ('share', self._share.id),
@@ -2136,33 +2058,33 @@ class TestExportLocationUnset(TestShare):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
 
-        self.export_locations_mock.delete_metadata.assert_has_calls([
-            mock.call(self._share.id, ['key'],
-                      subresource=self._export_location.id)])
+        self.export_locations_mock.delete_metadata.assert_has_calls(
+            [
+                mock.call(
+                    self._share.id,
+                    ['key'],
+                    subresource=self._export_location.id,
+                )
+            ]
+        )
 
         self.export_locations_mock.delete_metadata.side_effect = (
-            exceptions.NotFound)
+            exceptions.NotFound
+        )
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action,
-            parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShowShareProperties(TestShare):
-
-    properties = {
-        'key1': 'value1',
-        'key2': 'value2'
-    }
+    properties = {'key1': 'value1', 'key2': 'value2'}
 
     def setUp(self):
-        super(TestShowShareProperties, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={
-                'metadata': osc_fakes.FakeResource(
-                    info=self.properties)
-            },
-            methods={'get_metadata': None}
+            attrs={'metadata': osc_fakes.FakeResource(info=self.properties)},
+            methods={'get_metadata': None},
         )
         self.shares_mock.get.return_value = self._share
         self.shares_mock.get_metadata.return_value = self._share.metadata
@@ -2174,12 +2096,8 @@ class TestShowShareProperties(TestShare):
         self.columns = tuple(self._share.metadata._info.keys())
 
     def test_share_show_properties(self):
-        arglist = [
-            self._share.id
-        ]
-        verifylist = [
-            ("share", self._share.id)
-        ]
+        arglist = [self._share.id]
+        verifylist = [("share", self._share.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         self.shares_mock.get.assert_called_with(self._share.id)
@@ -2190,29 +2108,26 @@ class TestShowShareProperties(TestShare):
 
 
 class TestShareRevert(TestShare):
-
     def setUp(self):
-        super(TestShareRevert, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share(
             attrs={'revert_to_snapshot_support': True},
-            methods={'revert_to_snapshot': None}
+            methods={'revert_to_snapshot': None},
         )
         self.share_snapshot = (
             manila_fakes.FakeShareSnapshot.create_one_snapshot(
-                attrs={'share_id': self.share.id}))
+                attrs={'share_id': self.share.id}
+            )
+        )
         self.shares_mock.get.return_value = self.share
         self.snapshots_mock.get.return_value = self.share_snapshot
 
         self.cmd = osc_shares.RevertShare(self.app, None)
 
     def test_share_revert(self):
-        arglist = [
-            self.share_snapshot.id
-        ]
-        verifylist = [
-            ('snapshot', self.share_snapshot.id)
-        ]
+        arglist = [self.share_snapshot.id]
+        verifylist = [('snapshot', self.share_snapshot.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
         self.shares_mock.get.assert_called_with(self.share_snapshot.share_id)
@@ -2220,35 +2135,31 @@ class TestShareRevert(TestShare):
         self.assertIsNone(result)
 
     def test_share_revert_exception(self):
-        arglist = [
-            self.share_snapshot.id
-        ]
-        verifylist = [
-            ('snapshot', self.share_snapshot.id)
-        ]
+        arglist = [self.share_snapshot.id]
+        verifylist = [('snapshot', self.share_snapshot.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.share.revert_to_snapshot.side_effect = Exception()
         self.assertRaises(
-            osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareMigrationStart(TestShare):
-
     def setUp(self):
-        super(TestShareMigrationStart, self).setUp()
+        super().setUp()
 
         self.new_share_type = manila_fakes.FakeShareType.create_one_sharetype()
         self.share_types_mock.get.return_value = self.new_share_type
 
-        self.new_share_network = manila_fakes.FakeShareNetwork \
-            .create_one_share_network()
+        self.new_share_network = (
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.new_share_network
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={
-                'status': 'available'},
-            methods={'migration_start': None})
+            attrs={'status': 'available'}, methods={'migration_start': None}
+        )
         self.shares_mock.get.return_value = self._share
 
         self.shares_mock.manage.return_value = self._share
@@ -2261,13 +2172,18 @@ class TestShareMigrationStart(TestShare):
         arglist = [
             self._share.id,
             'host@driver#pool',
-            '--preserve-metadata', 'False',
-            '--preserve-snapshots', 'False',
-            '--writable', 'False',
-            '--nondisruptive', 'False',
-            '--new-share-type', self.new_share_type.id,
-            '--force-host-assisted-migration', 'False'
-
+            '--preserve-metadata',
+            'False',
+            '--preserve-snapshots',
+            'False',
+            '--writable',
+            'False',
+            '--nondisruptive',
+            'False',
+            '--new-share-type',
+            self.new_share_type.id,
+            '--force-host-assisted-migration',
+            'False',
         ]
         verifylist = [
             ('share', self._share.id),
@@ -2277,8 +2193,7 @@ class TestShareMigrationStart(TestShare):
             ('writable', 'False'),
             ('nondisruptive', 'False'),
             ('new_share_type', self.new_share_type.id),
-            ('force_host_assisted_migration', 'False')
-
+            ('force_host_assisted_migration', 'False'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
@@ -2290,7 +2205,7 @@ class TestShareMigrationStart(TestShare):
             'False',
             'False',
             None,
-            self.new_share_type.id
+            self.new_share_type.id,
         )
         self.assertIsNone(result)
 
@@ -2300,13 +2215,18 @@ class TestShareMigrationStart(TestShare):
         arglist = [
             self._share.id,
             'host@driver#pool',
-            '--preserve-metadata', 'False',
-            '--preserve-snapshots', 'False',
-            '--writable', 'False',
-            '--nondisruptive', 'False',
-            '--new-share-network', self.new_share_network.id,
-            '--force-host-assisted-migration', 'False'
-
+            '--preserve-metadata',
+            'False',
+            '--preserve-snapshots',
+            'False',
+            '--writable',
+            'False',
+            '--nondisruptive',
+            'False',
+            '--new-share-network',
+            self.new_share_network.id,
+            '--force-host-assisted-migration',
+            'False',
         ]
         verifylist = [
             ('share', self._share.id),
@@ -2316,8 +2236,7 @@ class TestShareMigrationStart(TestShare):
             ('writable', 'False'),
             ('nondisruptive', 'False'),
             ('new_share_network', self.new_share_network.id),
-            ('force_host_assisted_migration', 'False')
-
+            ('force_host_assisted_migration', 'False'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
@@ -2329,20 +2248,18 @@ class TestShareMigrationStart(TestShare):
             'False',
             'False',
             self.new_share_network.id,
-            None
+            None,
         )
         self.assertIsNone(result)
 
 
 class TestShareMigrationCancel(TestShare):
-
     def setUp(self):
-        super(TestShareMigrationCancel, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={
-                'status': 'migrating'},
-            methods={'migration_cancel': None})
+            attrs={'status': 'migrating'}, methods={'migration_cancel': None}
+        )
         self.shares_mock.get.return_value = self._share
 
         self.shares_mock.manage.return_value = self._share
@@ -2351,9 +2268,7 @@ class TestShareMigrationCancel(TestShare):
         self.cmd = osc_shares.ShareMigrationCancel(self.app, None)
 
     def test_migration_cancel(self):
-        arglist = [
-            self._share.id
-        ]
+        arglist = [self._share.id]
         verifylist = [
             ('share', self._share.id),
         ]
@@ -2364,14 +2279,12 @@ class TestShareMigrationCancel(TestShare):
 
 
 class TestShareMigrationComplete(TestShare):
-
     def setUp(self):
-        super(TestShareMigrationComplete, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
-            attrs={
-                'status': 'migrating'},
-            methods={'migration_complete': None})
+            attrs={'status': 'migrating'}, methods={'migration_complete': None}
+        )
         self.shares_mock.get.return_value = self._share
 
         self.shares_mock.manage.return_value = self._share
@@ -2380,9 +2293,7 @@ class TestShareMigrationComplete(TestShare):
         self.cmd = osc_shares.ShareMigrationComplete(self.app, None)
 
     def test_migration_complete(self):
-        arglist = [
-            self._share.id
-        ]
+        arglist = [self._share.id]
         verifylist = [
             ('share', self._share.id),
         ]
@@ -2393,19 +2304,25 @@ class TestShareMigrationComplete(TestShare):
 
 
 class TestShareMigrationShow(TestShare):
-
     def setUp(self):
-        super(TestShareMigrationShow, self).setUp()
+        super().setUp()
 
         self._share = manila_fakes.FakeShare.create_one_share(
             attrs={
                 'status': 'available',
-                'task_state': 'migration_in_progress'},
-            methods={'migration_get_progress': ("<Response [200]>",
-                     {'total_progress': 0, 'task_state':
-                      'migration_in_progress',
-                      'details': {}})
-                     })
+                'task_state': 'migration_in_progress',
+            },
+            methods={
+                'migration_get_progress': (
+                    "<Response [200]>",
+                    {
+                        'total_progress': 0,
+                        'task_state': 'migration_in_progress',
+                        'details': {},
+                    },
+                )
+            },
+        )
         self.shares_mock.get.return_value = self._share
 
         self.shares_mock.manage.return_value = self._share
@@ -2414,9 +2331,7 @@ class TestShareMigrationShow(TestShare):
         self.cmd = osc_shares.ShareMigrationShow(self.app, None)
 
     def test_migration_show(self):
-        arglist = [
-            self._share.id
-        ]
+        arglist = [self._share.id]
         verifylist = [
             ('share', self._share.id),
         ]
@@ -2426,9 +2341,8 @@ class TestShareMigrationShow(TestShare):
 
 
 class TestShareRestore(TestShare):
-
     def setUp(self):
-        super(TestShareRestore, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share(
             methods={'restore': None}
@@ -2437,12 +2351,8 @@ class TestShareRestore(TestShare):
         self.cmd = osc_shares.RestoreShare(self.app, None)
 
         def test_share_restore(self):
-            arglist = [
-                self.share.name
-            ]
-            verifylist = [
-                ('share', [self.share.name])
-            ]
+            arglist = [self.share.name]
+            verifylist = [('share', [self.share.name])]
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
             result = self.cmd.take_action(parsed_args)
 
@@ -2451,13 +2361,10 @@ class TestShareRestore(TestShare):
             self.assertIsNone(result)
 
         def test_share_restore_exception(self):
-            arglist = [
-                self.share.name
-            ]
-            verifylist = [
-                ('share', [self.share.name])
-            ]
+            arglist = [self.share.name]
+            verifylist = [('share', [self.share.name])]
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
             self.share.restore.side_effect = Exception()
             self.assertRaises(
-                osc_exceptions.CommandError, self.cmd.take_action, parsed_args)
+                osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+            )

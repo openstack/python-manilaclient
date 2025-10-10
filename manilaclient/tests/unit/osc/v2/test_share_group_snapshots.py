@@ -21,7 +21,8 @@ from unittest import mock
 
 from manilaclient import api_versions
 from manilaclient.osc.v2 import (
-    share_group_snapshots as osc_share_group_snapshots)
+    share_group_snapshots as osc_share_group_snapshots,
+)
 from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
@@ -29,42 +30,38 @@ LOG = logging.getLogger(__name__)
 
 
 class TestShareGroupSnapshot(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareGroupSnapshot, self).setUp()
+        super().setUp()
 
         self.groups_mock = self.app.client_manager.share.share_groups
         self.groups_mock.reset_mock()
 
         self.group_snapshot_mocks = (
-            self.app.client_manager.share.share_group_snapshots)
+            self.app.client_manager.share.share_group_snapshots
+        )
         self.group_snapshot_mocks.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
 
 class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
-
     def setUp(self):
-        super(TestCreateShareGroupSnapshot, self).setUp()
+        super().setUp()
 
-        self.share_group = (
-            manila_fakes.FakeShareGroup.create_one_share_group()
-        )
+        self.share_group = manila_fakes.FakeShareGroup.create_one_share_group()
         self.groups_mock.get.return_value = self.share_group
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot()
-        )
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
         self.group_snapshot_mocks.create.return_value = (
-            self.share_group_snapshot)
-        self.group_snapshot_mocks.get.return_value = (
-            self.share_group_snapshot)
+            self.share_group_snapshot
+        )
+        self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.CreateShareGroupSnapshot(
-            self.app, None)
+            self.app, None
+        )
 
         self.data = tuple(self.share_group_snapshot._info.values())
         self.columns = tuple(self.share_group_snapshot._info.keys())
@@ -75,24 +72,22 @@ class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
 
         self.assertRaises(
             osc_utils.ParserException,
-            self.check_parser, self.cmd, arglist, verifylist)
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_group_snapshot_create(self):
-        arglist = [
-            self.share_group.id
-        ]
-        verifylist = [
-            ('share_group', self.share_group.id)
-        ]
+        arglist = [self.share_group.id]
+        verifylist = [('share_group', self.share_group.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
 
         self.group_snapshot_mocks.create.assert_called_with(
-            self.share_group,
-            name=None,
-            description=None
+            self.share_group, name=None, description=None
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -101,13 +96,15 @@ class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
     def test_share_group_snapshot_create_options(self):
         arglist = [
             self.share_group.id,
-            '--name', self.share_group_snapshot.name,
-            '--description', self.share_group_snapshot.description
+            '--name',
+            self.share_group_snapshot.name,
+            '--description',
+            self.share_group_snapshot.description,
         ]
         verifylist = [
             ('share_group', self.share_group.id),
             ('name', self.share_group_snapshot.name),
-            ('description', self.share_group_snapshot.description)
+            ('description', self.share_group_snapshot.description),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -124,14 +121,8 @@ class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
         self.assertCountEqual(self.data, data)
 
     def test_share_group_snapshot_create_wait(self):
-        arglist = [
-            self.share_group.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('share_group', self.share_group.id),
-            ('wait', True)
-        ]
+        arglist = [self.share_group.id, '--wait']
+        verifylist = [('share_group', self.share_group.id), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -144,20 +135,15 @@ class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
                 description=None,
             )
             self.group_snapshot_mocks.get.assert_called_with(
-                self.share_group_snapshot.id)
+                self.share_group_snapshot.id
+            )
             self.assertCountEqual(self.columns, columns)
             self.assertCountEqual(self.data, data)
 
     @mock.patch('manilaclient.osc.v2.share_group_snapshots.LOG')
     def test_share_group_snapshot_create_wait_exception(self, mock_logger):
-        arglist = [
-            self.share_group.id,
-            '--wait'
-        ]
-        verifylist = [
-            ('share_group', self.share_group.id),
-            ('wait', True)
-        ]
+        arglist = [self.share_group.id, '--wait']
+        verifylist = [('share_group', self.share_group.id), ('wait', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -171,60 +157,57 @@ class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
             )
 
             mock_logger.error.assert_called_with(
-                "ERROR: Share group snapshot is in error state.")
+                "ERROR: Share group snapshot is in error state."
+            )
 
             self.group_snapshot_mocks.get.assert_called_with(
-                self.share_group_snapshot.id)
+                self.share_group_snapshot.id
+            )
             self.assertCountEqual(self.columns, columns)
             self.assertCountEqual(self.data, data)
 
 
 class TestDeleteShareGroupSnapshot(TestShareGroupSnapshot):
-
     def setUp(self):
-        super(TestDeleteShareGroupSnapshot, self).setUp()
+        super().setUp()
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot())
-        self.group_snapshot_mocks.get.return_value = (
-            self.share_group_snapshot)
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.DeleteShareGroupSnapshot(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_group_snapshot_delete_missing_args(self):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_group_snapshot_delete(self):
-        arglist = [
-            self.share_group_snapshot.id
-        ]
-        verifylist = [
-            ('share_group_snapshot', [self.share_group_snapshot.id])
-        ]
+        arglist = [self.share_group_snapshot.id]
+        verifylist = [('share_group_snapshot', [self.share_group_snapshot.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.group_snapshot_mocks.delete.assert_called_with(
-            self.share_group_snapshot,
-            force=False)
+            self.share_group_snapshot, force=False
+        )
         self.assertIsNone(result)
 
     def test_share_group_snapshot_delete_force(self):
-        arglist = [
-            self.share_group_snapshot.id,
-            '--force'
-        ]
+        arglist = [self.share_group_snapshot.id, '--force']
         verifylist = [
             ('share_group_snapshot', [self.share_group_snapshot.id]),
-            ('force', True)
+            ('force', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -232,54 +215,51 @@ class TestDeleteShareGroupSnapshot(TestShareGroupSnapshot):
         result = self.cmd.take_action(parsed_args)
 
         self.group_snapshot_mocks.delete.assert_called_with(
-            self.share_group_snapshot,
-            force=True)
+            self.share_group_snapshot, force=True
+        )
         self.assertIsNone(result)
 
     def test_share_group_snapshot_delete_multiple(self):
         share_group_snapshots = (
-            manila_fakes.FakeShareGroupSnapshot.
-            create_share_group_snapshots(count=2))
-        arglist = [
-            share_group_snapshots[0].id,
-            share_group_snapshots[1].id
-        ]
+            manila_fakes.FakeShareGroupSnapshot.create_share_group_snapshots(
+                count=2
+            )
+        )
+        arglist = [share_group_snapshots[0].id, share_group_snapshots[1].id]
         verifylist = [
-            ('share_group_snapshot', [share_group_snapshots[0].id, (
-                share_group_snapshots[1].id)])
+            (
+                'share_group_snapshot',
+                [share_group_snapshots[0].id, (share_group_snapshots[1].id)],
+            )
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.group_snapshot_mocks.delete.call_count,
-                         len(share_group_snapshots))
+        self.assertEqual(
+            self.group_snapshot_mocks.delete.call_count,
+            len(share_group_snapshots),
+        )
         self.assertIsNone(result)
 
     def test_share_group_snapshot_delete_exception(self):
-        arglist = [
-            self.share_group_snapshot.id
-        ]
-        verifylist = [
-            ('share_group_snapshot', [self.share_group_snapshot.id])
-        ]
+        arglist = [self.share_group_snapshot.id]
+        verifylist = [('share_group_snapshot', [self.share_group_snapshot.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.group_snapshot_mocks.delete.side_effect = (
-            exceptions.CommandError())
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+            exceptions.CommandError()
+        )
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_group_snapshot_delete_wait(self):
-        arglist = [
-            self.share_group_snapshot.id,
-            '--wait'
-        ]
+        arglist = [self.share_group_snapshot.id, '--wait']
         verifylist = [
             ('share_group_snapshot', [self.share_group_snapshot.id]),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -288,45 +268,38 @@ class TestDeleteShareGroupSnapshot(TestShareGroupSnapshot):
             result = self.cmd.take_action(parsed_args)
 
             self.group_snapshot_mocks.delete.assert_called_with(
-                self.share_group_snapshot,
-                force=False)
+                self.share_group_snapshot, force=False
+            )
             self.group_snapshot_mocks.get.assert_called_with(
-                self.share_group_snapshot.id)
+                self.share_group_snapshot.id
+            )
             self.assertIsNone(result)
 
     def test_share_group_snapshot_delete_wait_exception(self):
-        arglist = [
-            self.share_group_snapshot.id,
-            '--wait'
-        ]
+        arglist = [self.share_group_snapshot.id, '--wait']
         verifylist = [
             ('share_group_snapshot', [self.share_group_snapshot.id]),
-            ('wait', True)
+            ('wait', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         with mock.patch('osc_lib.utils.wait_for_delete', return_value=False):
             self.assertRaises(
-                exceptions.CommandError,
-                self.cmd.take_action,
-                parsed_args
+                exceptions.CommandError, self.cmd.take_action, parsed_args
             )
 
 
 class TestShowShareGroupSnapshot(TestShareGroupSnapshot):
-
     def setUp(self):
-        super(TestShowShareGroupSnapshot, self).setUp()
+        super().setUp()
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot())
-        self.group_snapshot_mocks.get.return_value = (
-            self.share_group_snapshot)
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.ShowShareGroupSnapshot(
-            self.app, None)
+            self.app, None
+        )
 
         self.data = tuple(self.share_group_snapshot._info.values())
         self.columns = tuple(self.share_group_snapshot._info.keys())
@@ -337,15 +310,15 @@ class TestShowShareGroupSnapshot(TestShareGroupSnapshot):
 
         self.assertRaises(
             osc_utils.ParserException,
-            self.check_parser, self.cmd, arglist, verifylist)
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_group_show(self):
-        arglist = [
-            self.share_group_snapshot.id
-        ]
-        verifylist = [
-            ('share_group_snapshot', self.share_group_snapshot.id)
-        ]
+        arglist = [self.share_group_snapshot.id]
+        verifylist = [('share_group_snapshot', self.share_group_snapshot.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -360,18 +333,15 @@ class TestShowShareGroupSnapshot(TestShareGroupSnapshot):
 
 
 class TestSetShareGroupSnapshot(TestShareGroupSnapshot):
-
     def setUp(self):
-        super(TestSetShareGroupSnapshot, self).setUp()
+        super().setUp()
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot())
-        self.group_snapshot_mocks.get.return_value = (
-            self.share_group_snapshot)
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.SetShareGroupSnapshot(
-            self.app, None)
+            self.app, None
+        )
 
         self.data = tuple(self.share_group_snapshot._info.values())
         self.columns = tuple(self.share_group_snapshot._info.keys())
@@ -379,16 +349,19 @@ class TestSetShareGroupSnapshot(TestShareGroupSnapshot):
     def test_set_share_group_snapshot_name_description(self):
         group_snapshot_name = 'group-snapshot-name-' + uuid.uuid4().hex
         group_snapshot_description = (
-            'group-snapshot-description-' + uuid.uuid4().hex)
+            'group-snapshot-description-' + uuid.uuid4().hex
+        )
         arglist = [
             self.share_group_snapshot.id,
-            '--name', group_snapshot_name,
-            '--description', group_snapshot_description
+            '--name',
+            group_snapshot_name,
+            '--description',
+            group_snapshot_description,
         ]
         verifylist = [
             ('share_group_snapshot', self.share_group_snapshot.id),
             ('name', group_snapshot_name),
-            ('description', group_snapshot_description)
+            ('description', group_snapshot_description),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -397,79 +370,65 @@ class TestSetShareGroupSnapshot(TestShareGroupSnapshot):
         self.group_snapshot_mocks.update.assert_called_with(
             self.share_group_snapshot,
             name=parsed_args.name,
-            description=parsed_args.description)
+            description=parsed_args.description,
+        )
         self.assertIsNone(result)
 
     def test_set_share_group_snapshot_status(self):
-        arglist = [
-            self.share_group_snapshot.id,
-            '--status', 'available'
-        ]
+        arglist = [self.share_group_snapshot.id, '--status', 'available']
         verifylist = [
             ('share_group_snapshot', self.share_group_snapshot.id),
-            ('status', 'available')
+            ('status', 'available'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.group_snapshot_mocks.reset_state.assert_called_with(
-            self.share_group_snapshot,
-            'available')
+            self.share_group_snapshot, 'available'
+        )
         self.assertIsNone(result)
 
     def test_set_share_group_snapshot_exception(self):
-        arglist = [
-            self.share_group_snapshot.id,
-            '--status', 'available'
-        ]
+        arglist = [self.share_group_snapshot.id, '--status', 'available']
         verifylist = [
             ('share_group_snapshot', self.share_group_snapshot.id),
-            ('status', 'available')
+            ('status', 'available'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.group_snapshot_mocks.reset_state.side_effect = Exception()
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestUnsetShareGroupSnapshot(TestShareGroupSnapshot):
-
     def setUp(self):
-        super(TestUnsetShareGroupSnapshot, self).setUp()
+        super().setUp()
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot())
-        self.group_snapshot_mocks.get.return_value = (
-            self.share_group_snapshot)
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.UnsetShareGroupSnapshot(
-            self.app, None)
+            self.app, None
+        )
 
     def test_unset_share_group_snapshot_name_description(self):
-        arglist = [
-            self.share_group_snapshot.id,
-            '--name',
-            '--description'
-        ]
+        arglist = [self.share_group_snapshot.id, '--name', '--description']
         verifylist = [
             ('share_group_snapshot', self.share_group_snapshot.id),
             ('name', True),
-            ('description', True)
+            ('description', True),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.group_snapshot_mocks.update.assert_called_with(
-            self.share_group_snapshot,
-            name='',
-            description='')
+            self.share_group_snapshot, name='', description=''
+        )
         self.assertIsNone(result)
 
     def test_unset_share_group_snapshot_name_exception(self):
@@ -486,13 +445,11 @@ class TestUnsetShareGroupSnapshot(TestShareGroupSnapshot):
         self.group_snapshot_mocks.update.side_effect = Exception()
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestListShareGroupSnapshot(TestShareGroupSnapshot):
-
     columns = [
         'ID',
         'Name',
@@ -501,22 +458,19 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
     ]
 
     def setUp(self):
-        super(TestListShareGroupSnapshot, self).setUp()
+        super().setUp()
 
-        self.share_group = (
-            manila_fakes.FakeShareGroup.create_one_share_group()
-        )
+        self.share_group = manila_fakes.FakeShareGroup.create_one_share_group()
         self.groups_mock.get.return_value = self.share_group
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot({
-                'share_group_id': self.share_group.id
-            }))
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot(
+            {'share_group_id': self.share_group.id}
+        )
 
         self.share_group_snapshots_list = [self.share_group_snapshot]
         self.group_snapshot_mocks.list.return_value = (
-            self.share_group_snapshots_list)
+            self.share_group_snapshots_list
+        )
 
         self.values = (
             oscutils.get_dict_properties(s._info, self.columns)
@@ -524,7 +478,8 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
         )
 
         self.cmd = osc_share_group_snapshots.ListShareGroupSnapshot(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_group_snapshot_list_no_options(self):
         arglist = []
@@ -542,7 +497,8 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
                 'share_group_id': None,
                 'limit': None,
                 'offset': None,
-            })
+            }
+        )
 
         self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
@@ -555,12 +511,13 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
             'Description',
             'Created At',
             'Share Group ID',
-            'Project ID'
+            'Project ID',
         ]
 
         values = (
             oscutils.get_dict_properties(s._info, columns_detail)
-            for s in self.share_group_snapshots_list)
+            for s in self.share_group_snapshots_list
+        )
 
         arglist = [
             '--detailed',
@@ -584,16 +541,20 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
                 'share_group_id': None,
                 'limit': None,
                 'offset': None,
-            })
+            }
+        )
 
         self.assertEqual(columns_detail, columns)
         self.assertEqual(list(values), list(data))
 
     def test_share_group_snapshot_list_search_options(self):
         arglist = [
-            '--name', self.share_group_snapshot.name,
-            '--status', self.share_group_snapshot.status,
-            '--share-group', self.share_group.id,
+            '--name',
+            self.share_group_snapshot.name,
+            '--status',
+            self.share_group_snapshot.status,
+            '--share-group',
+            self.share_group.id,
         ]
         verifylist = [
             ('name', self.share_group_snapshot.name),
@@ -614,35 +575,29 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
                 'share_group_id': self.share_group.id,
                 'limit': None,
                 'offset': None,
-            })
+            }
+        )
 
         self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
 
 
 class TestListShareGroupSnapshotMembers(TestShareGroupSnapshot):
-
     columns = [
         'Share ID',
         'Size',
     ]
 
     def setUp(self):
-        super(TestListShareGroupSnapshotMembers, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share()
 
-        self.share_group_snapshot = (
-            manila_fakes.FakeShareGroupSnapshot
-            .create_one_share_group_snapshot({
-                'members': [{
-                    'share_id': self.share.id,
-                    'size': self.share.size
-                }]
-            }))
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot(
+            {'members': [{'share_id': self.share.id, 'size': self.share.size}]}
+        )
 
-        self.group_snapshot_mocks.get.return_value = (
-            self.share_group_snapshot)
+        self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.values = (
             oscutils.get_dict_properties(s, self.columns)
@@ -650,22 +605,20 @@ class TestListShareGroupSnapshotMembers(TestShareGroupSnapshot):
         )
 
         self.cmd = osc_share_group_snapshots.ListShareGroupSnapshotMembers(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_group_snapshot_list_members(self):
-        arglist = [
-            self.share_group_snapshot.id
-        ]
-        verifylist = [
-            ('share_group_snapshot', self.share_group_snapshot.id)
-        ]
+        arglist = [self.share_group_snapshot.id]
+        verifylist = [('share_group_snapshot', self.share_group_snapshot.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
 
         self.group_snapshot_mocks.get.assert_called_with(
-            self.share_group_snapshot.id)
+            self.share_group_snapshot.id
+        )
 
         self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))

@@ -24,14 +24,16 @@ import manilaclient.v2.client
 
 @ddt.ddt
 class ClientTest(utils.TestCase):
-
     def test_get_client_class_v2(self):
         output = manilaclient.client.get_client_class('2')
         self.assertEqual(output, manilaclient.v2.client.Client)
 
     def test_get_client_class_unknown(self):
-        self.assertRaises(manilaclient.exceptions.UnsupportedVersion,
-                          manilaclient.client.get_client_class, '0')
+        self.assertRaises(
+            manilaclient.exceptions.UnsupportedVersion,
+            manilaclient.client.get_client_class,
+            '0',
+        )
 
     @ddt.data('1', '1.0')
     def test_init_client_with_string_v1_version(self, version):
@@ -43,7 +45,8 @@ class ClientTest(utils.TestCase):
                 manilaclient.client.Client(version, 'foo', bar='quuz')
 
                 manilaclient.v1.client.Client.assert_called_once_with(
-                    'foo', api_version=api_instance, bar='quuz')
+                    'foo', api_version=api_instance, bar='quuz'
+                )
                 api_versions.APIVersion.assert_called_once_with('1.0')
 
     @ddt.data(
@@ -61,17 +64,18 @@ class ClientTest(utils.TestCase):
                 manilaclient.client.Client(provided, 'foo', bar='quuz')
 
                 manilaclient.v2.client.Client.assert_called_once_with(
-                    'foo', api_version=api_instance, bar='quuz')
+                    'foo', api_version=api_instance, bar='quuz'
+                )
                 api_versions.APIVersion.assert_called_once_with(expected)
 
     def test_init_client_with_api_version_instance(self):
         version = manilaclient.API_MAX_VERSION
         with mock.patch.object(manilaclient.v2.client, 'Client'):
-
             manilaclient.client.Client(version, 'foo', bar='quuz')
 
             manilaclient.v2.client.Client.assert_called_once_with(
-                'foo', api_version=version, bar='quuz')
+                'foo', api_version=version, bar='quuz'
+            )
 
     @ddt.data(None, '', '3', 'v1', 'v2', 'v1.0', 'v2.0')
     def test_init_client_with_unsupported_version(self, v):
@@ -93,7 +97,6 @@ class ClientTest(utils.TestCase):
     )
     @ddt.unpack
     def test_init_client_with_version_parms(self, pos, kw):
-
         major = int(float(pos))
         pos_av = mock.Mock()
         kw_av = mock.Mock()
@@ -114,21 +117,24 @@ class ClientTest(utils.TestCase):
                     if int(float(pos)) == 1:
                         expected_client_ver = api_versions.DEPRECATED_VERSION
                         self.assertFalse(manilaclient.v2.client.Client.called)
-                        manilaclient.v1.client.Client.assert_has_calls([
-                            mock.call('foo', api_version=expected_av)
-                        ])
+                        manilaclient.v1.client.Client.assert_has_calls(
+                            [mock.call('foo', api_version=expected_av)]
+                        )
                     else:
                         expected_client_ver = api_versions.MIN_VERSION
                         self.assertFalse(manilaclient.v1.client.Client.called)
-                        manilaclient.v2.client.Client.assert_has_calls([
-                            mock.call('foo', api_version=expected_av)
-                        ])
+                        manilaclient.v2.client.Client.assert_has_calls(
+                            [mock.call('foo', api_version=expected_av)]
+                        )
 
                     if kw is None:
                         api_versions.APIVersion.assert_called_once_with(
-                            expected_client_ver)
+                            expected_client_ver
+                        )
                     else:
-                        api_versions.APIVersion.assert_has_calls([
-                            mock.call(expected_client_ver),
-                            mock.call(kw),
-                        ])
+                        api_versions.APIVersion.assert_has_calls(
+                            [
+                                mock.call(expected_client_ver),
+                                mock.call(kw),
+                            ]
+                        )

@@ -11,6 +11,7 @@
 #    under the License.
 
 """Asynchronous User Message interface."""
+
 from manilaclient import api_versions
 from manilaclient import base
 from manilaclient.common import constants
@@ -25,7 +26,7 @@ class Message(base.Resource):
     NAME_ATTR = 'id'
 
     def __repr__(self):
-        return "<Message: %s>" % self.id
+        return f"<Message: {self.id}>"
 
     def delete(self):
         """Delete this message."""
@@ -34,6 +35,7 @@ class Message(base.Resource):
 
 class MessageManager(base.ManagerWithFind):
     """Manage :class:`Message` resources."""
+
     resource_class = Message
 
     @api_versions.wraps('2.37')
@@ -59,15 +61,20 @@ class MessageManager(base.ManagerWithFind):
                 search_opts['sort_key'] = sort_key
             else:
                 raise ValueError(
-                    'sort_key must be one of the following: %s.'
-                    % ', '.join(constants.MESSAGE_SORT_KEY_VALUES))
+                    'sort_key must be one of the following: {}.'.format(
+                        ', '.join(constants.MESSAGE_SORT_KEY_VALUES)
+                    )
+                )
 
         if sort_dir is not None:
             if sort_dir in constants.SORT_DIR_VALUES:
                 search_opts['sort_dir'] = sort_dir
             else:
-                raise ValueError('sort_dir must be one of the following: %s.'
-                                 % ', '.join(constants.SORT_DIR_VALUES))
+                raise ValueError(
+                    'sort_dir must be one of the following: {}.'.format(
+                        ', '.join(constants.SORT_DIR_VALUES)
+                    )
+                )
 
         query_string = self._build_query_string(search_opts)
 

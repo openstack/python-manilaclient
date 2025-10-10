@@ -17,7 +17,6 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class MessagesReadOnlyTest(base.BaseTestCase):
-
     @ddt.data(
         ("admin", "2.37"),
         ("user", "2.37"),
@@ -30,9 +29,8 @@ class MessagesReadOnlyTest(base.BaseTestCase):
 
 @ddt.ddt
 class MessagesReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(MessagesReadWriteTest, self).setUp()
+        super().setUp()
         self.message = self.create_message()
 
     def test_list_messages(self):
@@ -46,8 +44,14 @@ class MessagesReadWriteTest(base.BaseTestCase):
         self.assertTrue(any(m['Resource Type'] is not None for m in messages))
 
     @ddt.data(
-        'id', 'action_id', 'resource_id', 'action_id', 'detail_id',
-        'resource_type', 'created_at', 'action_id,detail_id,resource_id',
+        'id',
+        'action_id',
+        'resource_id',
+        'action_id',
+        'detail_id',
+        'resource_type',
+        'created_at',
+        'action_id,detail_id,resource_id',
     )
     def test_list_share_type_select_column(self, columns):
         self.skip_if_microversion_not_supported('2.37')
@@ -57,8 +61,14 @@ class MessagesReadWriteTest(base.BaseTestCase):
         self.skip_if_microversion_not_supported('2.37')
         message = self.admin_client.get_message(self.message['ID'])
         expected_keys = (
-            'id', 'action_id', 'resource_id', 'action_id', 'detail_id',
-            'resource_type', 'created_at', 'created_at',
+            'id',
+            'action_id',
+            'resource_id',
+            'action_id',
+            'detail_id',
+            'resource_type',
+            'created_at',
+            'created_at',
         )
         for key in expected_keys:
             self.assertIn(key, message)

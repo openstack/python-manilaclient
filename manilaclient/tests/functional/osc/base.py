@@ -36,7 +36,7 @@ class OSCClientTestBase(base.ClientTestBase):
             project_domain_name=CONF.admin_project_domain_name or None,
             project_domain_id=CONF.admin_project_domain_id or None,
             user_domain_name=CONF.admin_user_domain_name or None,
-            user_domain_id=CONF.admin_user_domain_id or None
+            user_domain_id=CONF.admin_user_domain_id or None,
         )
         return admin_client
 
@@ -52,7 +52,7 @@ class OSCClientTestBase(base.ClientTestBase):
             project_domain_name=CONF.project_domain_name or None,
             project_domain_id=CONF.project_domain_id or None,
             user_domain_name=CONF.user_domain_name or None,
-            user_domain_id=CONF.user_domain_id or None
+            user_domain_id=CONF.user_domain_id or None,
         )
         return user_client
 
@@ -79,53 +79,79 @@ class OSCClientTestBase(base.ClientTestBase):
             obj[item['Field']] = str(item['Value'])
         return obj
 
-    def _wait_for_object_status(self, object_name, object_id, status,
-                                timeout=CONF.build_timeout,
-                                interval=CONF.build_interval):
+    def _wait_for_object_status(
+        self,
+        object_name,
+        object_id,
+        status,
+        timeout=CONF.build_timeout,
+        interval=CONF.build_interval,
+    ):
         """Waits for a object to reach a given status."""
 
         start_time = time.time()
         while time.time() - start_time < timeout:
-            if status == self.openstack(
-                    '%(obj)s show -c status -f value %(id)s'
-                    % {'obj': object_name,
-                       'id': object_id}).rstrip():
+            if (
+                status
+                == self.openstack(
+                    f'{object_name} show -c status -f value {object_id}'
+                ).rstrip()
+            ):
                 break
             time.sleep(interval)
         else:
-            self.fail("%s %s did not reach status %s after %d seconds."
-                      % (object_name, object_id, status, timeout))
+            self.fail(
+                "%s %s did not reach status %s after %d seconds."
+                % (object_name, object_id, status, timeout)
+            )
 
-    def check_object_deleted(self, object_name, object_id,
-                             timeout=CONF.build_timeout,
-                             interval=CONF.build_interval):
+    def check_object_deleted(
+        self,
+        object_name,
+        object_id,
+        timeout=CONF.build_timeout,
+        interval=CONF.build_interval,
+    ):
         """Check that object deleted successfully"""
 
-        cmd = '%s list -c ID -f value' % object_name
+        cmd = f'{object_name} list -c ID -f value'
         start_time = time.time()
         while time.time() - start_time < timeout:
             if object_id not in self.openstack(cmd):
                 break
             time.sleep(interval)
         else:
-            self.fail("%s %s not deleted after %d seconds."
-                      % (object_name, object_id, timeout))
+            self.fail(
+                "%s %s not deleted after %d seconds."
+                % (object_name, object_id, timeout)
+            )
 
-    def openstack(self, action, flags='', params='', fail_ok=False,
-                  merge_stderr=False, client=None):
+    def openstack(
+        self,
+        action,
+        flags='',
+        params='',
+        fail_ok=False,
+        merge_stderr=False,
+        client=None,
+    ):
         """Executes openstack command for given action"""
 
         if '--os-share-api-version' not in flags:
             flags = (
-                flags + '--os-share-api-version %s'
-                % CONF.max_api_microversion)
+                flags + f'--os-share-api-version {CONF.max_api_microversion}'
+            )
 
         if client is None:
             client = self.admin_client
 
-        return client.openstack(action, flags=flags, params=params,
-                                fail_ok=fail_ok,
-                                merge_stderr=merge_stderr)
+        return client.openstack(
+            action,
+            flags=flags,
+            params=params,
+            fail_ok=fail_ok,
+            merge_stderr=merge_stderr,
+        )
 
     def listing_result(self, object_name, command, client=None):
         """Returns output for the given command as list of dictionaries"""
@@ -141,49 +167,61 @@ class OSCClientTestBase(base.ClientTestBase):
         result_dict = self._get_property_from_output(output)
         return result_dict
 
-    def create_share(self, share_protocol=None, size=None, name=None,
-                     snapshot_id=None, properties=None, share_network=None,
-                     description=None, public=False, share_type=None,
-                     availability_zone=None, share_group=None,
-                     add_cleanup=True, client=None, wait=None,
-                     wait_for_status='available'):
-
+    def create_share(
+        self,
+        share_protocol=None,
+        size=None,
+        name=None,
+        snapshot_id=None,
+        properties=None,
+        share_network=None,
+        description=None,
+        public=False,
+        share_type=None,
+        availability_zone=None,
+        share_group=None,
+        add_cleanup=True,
+        client=None,
+        wait=None,
+        wait_for_status='available',
+    ):
         name = name or data_utils.rand_name('autotest_share_name')
         # share_type = dhss_false until we have implemented
         # share network commands for osc
         share_type = share_type or 'dhss_false'
 
-        cmd = ('create '
-               '%(protocol)s %(size)s %(name)s %(desc)s %(public)s %(stype)s'
-               % {'protocol': share_protocol or 'NFS',
-                  'size': size or '1',
-                  'name': '--name %s' % name,
-                  'desc': '--description %s' % description,
-                  'public': '--public %s' % public,
-                  'stype': '--share-type %s' % share_type})
+        cmd = 'create {protocol} {size} {name} {desc} {public} {stype}'.format(
+            protocol=share_protocol or 'NFS',
+            size=size or '1',
+            name=f'--name {name}',
+            desc=f'--description {description}',
+            public=f'--public {public}',
+            stype=f'--share-type {share_type}',
+        )
 
         if snapshot_id:
-            cmd = cmd + ' --snapshot-id %s' % snapshot_id
+            cmd = cmd + f' --snapshot-id {snapshot_id}'
         if properties:
             for key, value in properties.items():
-                cmd = (cmd + ' --property %(key)s=%(value)s'
-                       % {'key': key, 'value': value})
+                cmd = cmd + f' --property {key}={value}'
         if share_network:
-            cmd = cmd + ' --share-network %s' % share_network
+            cmd = cmd + f' --share-network {share_network}'
         if availability_zone:
-            cmd = cmd + ' --availability-zone %s' % availability_zone
+            cmd = cmd + f' --availability-zone {availability_zone}'
         if share_group:
-            cmd = cmd + ' --share-group %s' % share_group
+            cmd = cmd + f' --share-group {share_group}'
         if wait:
             cmd = cmd + ' --wait'
 
         share_object = self.dict_result('share', cmd, client=client)
         self._wait_for_object_status(
-            'share', share_object['id'], wait_for_status)
+            'share', share_object['id'], wait_for_status
+        )
 
         if add_cleanup:
             self.addCleanup(
-                self.openstack, 'share delete %s --wait' % share_object['id']
+                self.openstack,
+                'share delete {} --wait'.format(share_object['id']),
             )
         return share_object
 
@@ -203,27 +241,37 @@ class OSCClientTestBase(base.ClientTestBase):
 
         return pools
 
-    def create_share_type(self, name=None, dhss=False, description=None,
-                          snapshot_support=None,
-                          create_share_from_snapshot_support=None,
-                          revert_to_snapshot_support=False,
-                          mount_snapshot_support=False, extra_specs={},
-                          public=True, add_cleanup=True, client=None,
-                          formatter=None):
-
+    def create_share_type(
+        self,
+        name=None,
+        dhss=False,
+        description=None,
+        snapshot_support=None,
+        create_share_from_snapshot_support=None,
+        revert_to_snapshot_support=False,
+        mount_snapshot_support=False,
+        extra_specs={},
+        public=True,
+        add_cleanup=True,
+        client=None,
+        formatter=None,
+    ):
         name = name or data_utils.rand_name('autotest_share_type_name')
 
-        cmd = (f'create {name} {dhss} --public {public}')
+        cmd = f'create {name} {dhss} --public {public}'
         if description:
             cmd += f' --description {description}'
         if snapshot_support:
             cmd += f' --snapshot-support {snapshot_support}'
         if create_share_from_snapshot_support:
-            cmd += (' --create-share-from-snapshot-support '
-                    f'{create_share_from_snapshot_support}')
+            cmd += (
+                ' --create-share-from-snapshot-support '
+                f'{create_share_from_snapshot_support}'
+            )
         if revert_to_snapshot_support:
-            cmd += (' --revert-to-snapshot-support '
-                    f' {revert_to_snapshot_support}')
+            cmd += (
+                f' --revert-to-snapshot-support  {revert_to_snapshot_support}'
+            )
         if mount_snapshot_support:
             cmd += f' --mount-snapshot-support {mount_snapshot_support}'
         if extra_specs:
@@ -259,13 +307,19 @@ class OSCClientTestBase(base.ClientTestBase):
         services = self.listing_result('share', cmd)
         return services
 
-    def create_share_access_rule(self, share, access_type,
-                                 access_to, properties=None,
-                                 access_level=None, wait=False,
-                                 lock_visibility=False,
-                                 lock_deletion=False,
-                                 lock_reason=None,
-                                 add_cleanup=False):
+    def create_share_access_rule(
+        self,
+        share,
+        access_type,
+        access_to,
+        properties=None,
+        access_level=None,
+        wait=False,
+        lock_visibility=False,
+        lock_deletion=False,
+        lock_reason=None,
+        add_cleanup=False,
+    ):
         cmd = f'access create {share} {access_type} {access_to} '
 
         if access_level:
@@ -286,17 +340,23 @@ class OSCClientTestBase(base.ClientTestBase):
         return access_rule
 
     def get_share_export_locations(self, share):
-        cmd = (f'export location list {share}')
+        cmd = f'export location list {share}'
         export_locations = json.loads(self.openstack(f'share {cmd} -f json'))
         return export_locations
 
-    def create_snapshot(self, share, name=None,
-                        description=None, wait=True, force=None,
-                        add_cleanup=True, client=None):
-
+    def create_snapshot(
+        self,
+        share,
+        name=None,
+        description=None,
+        wait=True,
+        force=None,
+        add_cleanup=True,
+        client=None,
+    ):
         name = name or data_utils.rand_name('autotest_snapshot_name')
 
-        cmd = (f'snapshot create {share} --name {name} ')
+        cmd = f'snapshot create {share} --name {name} '
 
         if description:
             cmd += f' --description {description}'
@@ -310,24 +370,29 @@ class OSCClientTestBase(base.ClientTestBase):
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
-                f'share snapshot delete {snapshot_object["id"]} --wait')
+                f'share snapshot delete {snapshot_object["id"]} --wait',
+            )
 
         return snapshot_object
 
     def create_share_transfer(self, share, name=None, client=None):
-
         name = name or data_utils.rand_name('autotest_share_transfer_name')
-        cmd = (f'transfer create {share} --name {name} ')
+        cmd = f'transfer create {share} --name {name} '
         transfer_object = self.dict_result('share', cmd, client=client)
 
         return transfer_object
 
-    def create_share_network(self, neutron_net_id=None,
-                             neutron_subnet_id=None, name=None,
-                             description=None, availability_zone=None,
-                             add_cleanup=True):
+    def create_share_network(
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        name=None,
+        description=None,
+        availability_zone=None,
+        add_cleanup=True,
+    ):
         name = name or data_utils.rand_name('autotest_share_network_name')
-        cmd = (f'network create --name {name} --description {description}')
+        cmd = f'network create --name {name} --description {description}'
         if neutron_net_id:
             cmd = cmd + f' --neutron-net-id {neutron_net_id}'
         if neutron_subnet_id:
@@ -337,52 +402,61 @@ class OSCClientTestBase(base.ClientTestBase):
 
         share_network_obj = self.dict_result('share', cmd)
         self._wait_for_object_status(
-            'share network', share_network_obj['id'], 'active')
+            'share network', share_network_obj['id'], 'active'
+        )
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
-                f'share network delete {share_network_obj["id"]}'
+                f'share network delete {share_network_obj["id"]}',
             )
         return share_network_obj
 
-    def create_share_replica(self, share, availability_zone=None,
-                             share_network=None, wait=None,
-                             add_cleanup=True):
-        cmd = (f'replica create {share}')
+    def create_share_replica(
+        self,
+        share,
+        availability_zone=None,
+        share_network=None,
+        wait=None,
+        add_cleanup=True,
+    ):
+        cmd = f'replica create {share}'
 
         if availability_zone:
             cmd = cmd + f' --availability-zone {availability_zone}'
         if wait:
             cmd = cmd + ' --wait'
         if share_network:
-            cmd = cmd + ' --share-network %s' % share_network
+            cmd = cmd + f' --share-network {share_network}'
 
         replica_object = self.dict_result('share', cmd)
         self._wait_for_object_status(
-            'share replica', replica_object['id'], 'available')
+            'share replica', replica_object['id'], 'available'
+        )
 
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
-                f'share replica delete {replica_object["id"]} --wait'
+                f'share replica delete {replica_object["id"]} --wait',
             )
         return replica_object
 
     def get_share_replica_export_locations(self, replica):
-        cmd = (f'replica export location list {replica}')
+        cmd = f'replica export location list {replica}'
         export_locations = self.listing_result('share', cmd)
         return export_locations
 
-    def create_share_group_type(self, name=None, share_types=None,
-                                group_specs=None, public=True,
-                                add_cleanup=True):
-
+    def create_share_group_type(
+        self,
+        name=None,
+        share_types=None,
+        group_specs=None,
+        public=True,
+        add_cleanup=True,
+    ):
         name = name or data_utils.rand_name('autotest_share_group_types_name')
         share_types = share_types or 'None'
 
-        cmd = (f'group type create '
-               f'{name} '
-               f'{share_types} ')
+        cmd = f'group type create {name} {share_types} '
 
         if group_specs:
             cmd = cmd + f' --group-specs {group_specs} '
@@ -394,27 +468,28 @@ class OSCClientTestBase(base.ClientTestBase):
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
-                'share group type delete %s' % share_object['id'])
+                'share group type delete {}'.format(share_object['id']),
+            )
         return share_object
 
     def share_group_type_access_create(self, group_type, project):
-        cmd = (f'group type access create '
-               f'{group_type} '
-               f'{project} ')
+        cmd = f'group type access create {group_type} {project} '
 
         self.dict_result('share', cmd)
 
     def share_group_type_access_delete(self, group_type, access_id):
-        cmd = (f'group type access delete '
-               f'{group_type} '
-               f'{access_id} ')
+        cmd = f'group type access delete {group_type} {access_id} '
 
         self.dict_result('share', cmd)
 
-    def check_create_network_subnet(self, share_network, neutron_net_id=None,
-                                    neutron_subnet_id=None,
-                                    availability_zone=None,
-                                    restart_check=None):
+    def check_create_network_subnet(
+        self,
+        share_network,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        availability_zone=None,
+        restart_check=None,
+    ):
         cmd = f'network subnet create {share_network} --check-only'
 
         if neutron_net_id:
@@ -429,10 +504,15 @@ class OSCClientTestBase(base.ClientTestBase):
         check_result = self.dict_result('share', cmd)
         return check_result
 
-    def create_resource_lock(self, resource_id, resource_type='share',
-                             resource_action='delete', lock_reason=None,
-                             add_cleanup=True, client=None):
-
+    def create_resource_lock(
+        self,
+        resource_id,
+        resource_type='share',
+        resource_action='delete',
+        lock_reason=None,
+        add_cleanup=True,
+        client=None,
+    ):
         cmd = f'lock create {resource_id} {resource_type}'
         cmd += f' --resource-action {resource_action}'
 
@@ -442,17 +522,24 @@ class OSCClientTestBase(base.ClientTestBase):
         lock = self.dict_result('share', cmd, client=client)
 
         if add_cleanup:
-            self.addCleanup(self.openstack,
-                            'share lock delete %s' % lock['id'],
-                            client=client)
+            self.addCleanup(
+                self.openstack,
+                'share lock delete {}'.format(lock['id']),
+                client=client,
+            )
         return lock
 
-    def create_backup(self, share_id, name=None, description=None,
-                      backup_options=None, add_cleanup=True):
-
+    def create_backup(
+        self,
+        share_id,
+        name=None,
+        description=None,
+        backup_options=None,
+        add_cleanup=True,
+    ):
         name = name or data_utils.rand_name('autotest_backup_name')
 
-        cmd = (f'backup create {share_id} ')
+        cmd = f'backup create {share_id} '
 
         if name:
             cmd += f' --name {name}'
@@ -466,11 +553,13 @@ class OSCClientTestBase(base.ClientTestBase):
 
         backup_object = self.dict_result('share', cmd)
         self._wait_for_object_status(
-            'share backup', backup_object['id'], 'available')
+            'share backup', backup_object['id'], 'available'
+        )
 
         if add_cleanup:
             self.addCleanup(
                 self.openstack,
-                f'share backup delete {backup_object["id"]} --wait')
+                f'share backup delete {backup_object["id"]} --wait',
+            )
 
         return backup_object

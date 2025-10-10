@@ -30,9 +30,8 @@ CONF = config.CONF
 
 @ddt.ddt
 class ShareServersReadOnlyTest(base.BaseTestCase):
-
     def setUp(self):
-        super(ShareServersReadOnlyTest, self).setUp()
+        super().setUp()
         self.client = self.get_admin_client()
 
     def test_share_server_list(self):
@@ -49,10 +48,14 @@ class ShareServersReadOnlyTest(base.BaseTestCase):
 
     def test_share_server_list_with_project_id_param(self):
         self.client.list_share_servers(
-            filters={'project_id': 'fake_project_id'})
+            filters={'project_id': 'fake_project_id'}
+        )
 
     @ddt.data(
-        'host', 'status', 'project_id', 'share_network',
+        'host',
+        'status',
+        'project_id',
+        'share_network',
         'host,status,project_id,share_network',
     )
     def test_share_server_list_with_specified_columns(self, columns):
@@ -60,21 +63,21 @@ class ShareServersReadOnlyTest(base.BaseTestCase):
 
     def test_share_server_list_by_user(self):
         self.assertRaises(
-            exceptions.CommandFailed, self.user_client.list_share_servers)
+            exceptions.CommandFailed, self.user_client.list_share_servers
+        )
 
 
 @ddt.ddt
 class ShareServersReadWriteBase(base.BaseTestCase):
-
     protocol = None
 
     def setUp(self):
-        super(ShareServersReadWriteBase, self).setUp()
+        super().setUp()
         if not CONF.run_share_servers_tests:
             message = "share-server tests are disabled."
             raise self.skipException(message)
         if self.protocol not in CONF.enable_protocols:
-            message = "%s tests are disabled." % self.protocol
+            message = f"{self.protocol} tests are disabled."
             raise self.skipException(message)
         self.client = self.get_admin_client()
         if not self.client.share_network:
@@ -86,20 +89,25 @@ class ShareServersReadWriteBase(base.BaseTestCase):
         description = data_utils.rand_name('autotest_share_description')
 
         common_share_network = self.client.get_share_network(
-            self.client.share_network)
+            self.client.share_network
+        )
         share_net_info = (
-            utils.get_default_subnet(self.user_client,
-                                     common_share_network['id'])
+            utils.get_default_subnet(
+                self.user_client, common_share_network['id']
+            )
             if utils.share_network_subnets_are_supported()
-            else common_share_network)
+            else common_share_network
+        )
         neutron_net_id = (
             share_net_info['neutron_net_id']
             if 'none' not in share_net_info['neutron_net_id'].lower()
-            else None)
+            else None
+        )
         neutron_subnet_id = (
             share_net_info['neutron_subnet_id']
             if 'none' not in share_net_info['neutron_subnet_id'].lower()
-            else None)
+            else None
+        )
         share_network = self.client.create_share_network(
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id,
@@ -112,7 +120,7 @@ class ShareServersReadWriteBase(base.BaseTestCase):
             description=description,
             share_network=share_network['id'],
             client=self.client,
-            wait_for_creation=True
+            wait_for_creation=True,
         )
         self.share = self.client.get_share(self.share['id'])
         return self.share, share_network
@@ -128,14 +136,21 @@ class ShareServersReadWriteBase(base.BaseTestCase):
 
     def test_get_and_delete_share_server(self):
         self.share, share_network = self._create_share_and_share_network()
-        share_server_id = self.client.get_share(
-            self.share['id'])['share_server_id']
+        share_server_id = self.client.get_share(self.share['id'])[
+            'share_server_id'
+        ]
 
         # Get share server
         server = self.client.get_share_server(share_server_id)
         expected_keys = (
-            'id', 'host', 'status', 'created_at', 'updated_at',
-            'share_network_id', 'share_network_name', 'project_id',
+            'id',
+            'host',
+            'status',
+            'created_at',
+            'updated_at',
+            'share_network_id',
+            'share_network_name',
+            'project_id',
         )
 
         if utils.is_microversion_supported('2.49'):
@@ -148,16 +163,19 @@ class ShareServersReadWriteBase(base.BaseTestCase):
         self.client.delete_share_network(share_network['id'])
 
     @testtools.skipUnless(
-        CONF.run_manage_tests, 'Share Manage/Unmanage tests are disabled.')
+        CONF.run_manage_tests, 'Share Manage/Unmanage tests are disabled.'
+    )
     @utils.skip_if_microversion_not_supported('2.49')
     def test_manage_and_unmanage_share_server(self):
         share, share_network = self._create_share_and_share_network()
-        share_server_id = self.client.get_share(
-            self.share['id'])['share_server_id']
+        share_server_id = self.client.get_share(self.share['id'])[
+            'share_server_id'
+        ]
         server = self.client.get_share_server(share_server_id)
         server_host = server['host']
         export_location = self.client.list_share_export_locations(
-            self.share['id'])[0]['Path']
+            self.share['id']
+        )[0]['Path']
         share_host = share['host']
         identifier = server['identifier']
 
@@ -176,23 +194,28 @@ class ShareServersReadWriteBase(base.BaseTestCase):
 
         # Manage share server
         managed_share_server_id = self.client.share_server_manage(
-            server_host, share_network['id'], identifier)
+            server_host, share_network['id'], identifier
+        )
         self.client.wait_for_resource_status(
-            managed_share_server_id, constants.STATUS_ACTIVE,
-            resource_type='share_server')
+            managed_share_server_id,
+            constants.STATUS_ACTIVE,
+            resource_type='share_server',
+        )
 
         managed_server = self.client.get_share_server(managed_share_server_id)
         self.assertEqual('False', managed_server['is_auto_deletable'])
 
         # Manage share
         managed_share_id = self.client.manage_share(
-            share_host, self.protocol, export_location,
-            managed_share_server_id)
-        self.client.wait_for_resource_status(managed_share_id,
-                                             constants.STATUS_AVAILABLE)
+            share_host, self.protocol, export_location, managed_share_server_id
+        )
+        self.client.wait_for_resource_status(
+            managed_share_id, constants.STATUS_AVAILABLE
+        )
 
-        self._delete_share_and_share_server(managed_share_id,
-                                            managed_share_server_id)
+        self._delete_share_and_share_server(
+            managed_share_id, managed_share_server_id
+        )
         self.client.delete_share_network(share_network['id'])
 
 
@@ -207,16 +230,15 @@ class ShareServersReadWriteCIFSTest(ShareServersReadWriteBase):
 @ddt.ddt
 @utils.skip_if_microversion_not_supported('2.57')
 class ShareServersMigrationBase(base.BaseTestCase):
-
     protocol = None
 
     def setUp(self):
-        super(ShareServersMigrationBase, self).setUp()
+        super().setUp()
         if not CONF.run_share_servers_tests:
             message = "Share-server tests are disabled."
             raise self.skipException(message)
         if self.protocol not in CONF.enable_protocols:
-            message = "%s tests are disabled." % self.protocol
+            message = f"{self.protocol} tests are disabled."
             raise self.skipException(message)
         self.client = self.get_admin_client()
         if not self.client.share_network:
@@ -231,25 +253,30 @@ class ShareServersMigrationBase(base.BaseTestCase):
         description = data_utils.rand_name('autotest_share_description')
 
         common_share_network = self.client.get_share_network(
-            self.client.share_network)
-        share_net_info = utils.get_default_subnet(self.client,
-                                                  common_share_network['id'])
+            self.client.share_network
+        )
+        share_net_info = utils.get_default_subnet(
+            self.client, common_share_network['id']
+        )
 
         neutron_net_id = (
             share_net_info['neutron_net_id']
             if 'none' not in share_net_info['neutron_net_id'].lower()
-            else None)
+            else None
+        )
         neutron_subnet_id = (
             share_net_info['neutron_subnet_id']
             if 'none' not in share_net_info['neutron_subnet_id'].lower()
-            else None)
+            else None
+        )
         share_network = self.client.create_share_network(
             neutron_net_id=neutron_net_id,
             neutron_subnet_id=neutron_subnet_id,
         )
         share_type = self.create_share_type(
             data_utils.rand_name('test_share_type'),
-            driver_handles_share_servers=True)
+            driver_handles_share_servers=True,
+        )
 
         share = self.create_share(
             share_protocol=self.protocol,
@@ -259,14 +286,13 @@ class ShareServersMigrationBase(base.BaseTestCase):
             share_type=share_type['ID'],
             share_network=share_network['id'],
             client=self.client,
-            wait_for_creation=True
+            wait_for_creation=True,
         )
         share = self.client.get_share(share['id'])
         return share, share_network
 
     @ddt.data('cancel', 'complete')
     def test_share_server_migration(self, operation):
-
         # Create a share and share network to be used in the tests.
         share, share_network = self._create_share_and_share_network()
         share_server_id = share['share_server_id']
@@ -278,36 +304,46 @@ class ShareServersMigrationBase(base.BaseTestCase):
         # than the source host.
         for hosts in pools:
             host_name = hosts['Name'].split('#')[0]
-            if (ast.literal_eval(hosts['Capabilities']).get(
-                'driver_handles_share_servers') and
-                    host_name != src_host):
+            if (
+                ast.literal_eval(hosts['Capabilities']).get(
+                    'driver_handles_share_servers'
+                )
+                and host_name != src_host
+            ):
                 host_list.append(host_name)
 
         host_list = list(set(host_list))
         # If not found any host we need skip the test.
         if len(host_list) == 0:
-            raise self.skipException("No hosts available for "
-                                     "share server migration.")
+            raise self.skipException(
+                "No hosts available for share server migration."
+            )
 
         dest_backend = None
         # If found at least one host, we still need to verify the
         # share server migration compatibility with the destination host.
         for host in host_list:
             compatibility = self.admin_client.share_server_migration_check(
-                server_id=share_server_id, dest_host=host,
-                writable=False, nondisruptive=False, preserve_snapshots=False,
-                new_share_network=None)
+                server_id=share_server_id,
+                dest_host=host,
+                writable=False,
+                nondisruptive=False,
+                preserve_snapshots=False,
+                new_share_network=None,
+            )
             # If found at least one compatible host, we will use it.
             if compatibility['compatible']:
                 dest_host = host
         # If not found, we need skip the test.
         if dest_backend is not None:
-            raise self.skipException("No hosts compatible to perform a "
-                                     "share server migration.")
+            raise self.skipException(
+                "No hosts compatible to perform a share server migration."
+            )
 
         # Start the share server migration
         self.admin_client.share_server_migration_start(
-            share_server_id, dest_host)
+            share_server_id, dest_host
+        )
 
         server = self.admin_client.get_share_server(share_server_id)
         share = self.admin_client.get_share(share['id'])
@@ -316,21 +352,25 @@ class ShareServersMigrationBase(base.BaseTestCase):
         # Wait for the share server migration driver phase 1 done.
         task_state = constants.TASK_STATE_MIGRATION_DRIVER_PHASE1_DONE
         server = self.admin_client.wait_for_server_migration_task_state(
-            share_server_id, dest_host, task_state)
+            share_server_id, dest_host, task_state
+        )
         migration_progress = (
             self.admin_client.share_server_migration_get_progress(
-                share_server_id))
+                share_server_id
+            )
+        )
         dest_share_server_id = migration_progress.get(
-            'destination_share_server_id')
+            'destination_share_server_id'
+        )
 
         # Call share server migration complete or cancel operations
         # according the ddt.
         if operation == 'complete':
             task_state = constants.TASK_STATE_MIGRATION_SUCCESS
-            self.admin_client.share_server_migration_complete(
-                share_server_id)
+            self.admin_client.share_server_migration_complete(share_server_id)
             server = self.admin_client.wait_for_server_migration_task_state(
-                dest_share_server_id, dest_host, task_state)
+                dest_share_server_id, dest_host, task_state
+            )
 
             self.admin_client.wait_for_share_server_deletion(share_server_id)
         else:
@@ -338,7 +378,8 @@ class ShareServersMigrationBase(base.BaseTestCase):
             task_state = constants.TASK_STATE_MIGRATION_CANCELLED
             # Wait for the respectives task state for each operation above.
             server = self.admin_client.wait_for_server_migration_task_state(
-                server['id'], dest_host, task_state)
+                server['id'], dest_host, task_state
+            )
 
         # Check if the share is available again.
         share = self.admin_client.get_share(share['id'])

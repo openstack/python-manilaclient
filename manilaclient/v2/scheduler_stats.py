@@ -19,13 +19,13 @@ RESOURCES_NAME = 'pools'
 
 
 class Pool(base.Resource):
-
     def __repr__(self):
-        return "<Pool: %s>" % self.name
+        return f"<Pool: {self.name}>"
 
 
 class PoolManager(base.Manager):
     """Manage :class:`Pool` resources."""
+
     resource_class = Pool
 
     def list(self, detailed=True, search_opts=None):
@@ -35,14 +35,8 @@ class PoolManager(base.Manager):
         """
         query_string = self._build_query_string(search_opts)
         if detailed:
-            path = '%(resources_path)s/detail%(query)s' % {
-                'resources_path': RESOURCES_PATH,
-                'query': query_string
-            }
+            path = f'{RESOURCES_PATH}/detail{query_string}'
         else:
-            path = '%(resources_path)s%(query)s' % {
-                'resources_path': RESOURCES_PATH,
-                'query': query_string
-            }
+            path = f'{RESOURCES_PATH}{query_string}'
 
         return self._list(path, RESOURCES_NAME)

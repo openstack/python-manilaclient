@@ -21,13 +21,13 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class ManilaClientTestAvailabilityZonesReadOnly(base.BaseTestCase):
-
     @ddt.data("2.6", "2.7", "2.22")
     def test_availability_zone_list(self, microversion):
         self.skip_if_microversion_not_supported(microversion)
 
         azs = self.user_client.list_availability_zones(
-            microversion=microversion)
+            microversion=microversion
+        )
 
         for az in azs:
             self.assertEqual(4, len(az))

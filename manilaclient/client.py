@@ -34,15 +34,15 @@ def get_client_class(version):
     try:
         client_path = version_map[str(version)]
     except (KeyError, ValueError):
-        msg = "Invalid client version '%s'. must be one of: %s" % (
-            (version, ', '.join(version_map)))
+        msg = "Invalid client version '{}'. must be one of: {}".format(
+            version, ', '.join(version_map)
+        )
         raise exceptions.UnsupportedVersion(msg)
 
     return importutils.import_class(client_path)
 
 
 def Client(client_version, *args, **kwargs):
-
     def _convert_to_api_version(version):
         """Convert version to an APIVersion object unless it already is one."""
 
@@ -51,7 +51,8 @@ def Client(client_version, *args, **kwargs):
         else:
             if version in ('1', '1.0'):
                 api_version = api_versions.APIVersion(
-                    api_versions.DEPRECATED_VERSION)
+                    api_versions.DEPRECATED_VERSION
+                )
             elif version == '2':
                 api_version = api_versions.APIVersion(api_versions.MIN_VERSION)
             else:
@@ -64,6 +65,7 @@ def Client(client_version, *args, **kwargs):
     # Make sure the kwarg api_version is set with an APIVersion object.
     # 1st choice is to use the incoming kwarg. 2nd choice is the positional.
     kwargs['api_version'] = _convert_to_api_version(
-        kwargs.get('api_version', api_version))
+        kwargs.get('api_version', api_version)
+    )
 
     return client_class(*args, **kwargs)

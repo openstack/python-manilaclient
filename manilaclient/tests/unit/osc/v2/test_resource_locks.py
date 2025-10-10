@@ -42,9 +42,8 @@ SUMMARY_COLUMNS = [
 
 
 class TestResourceLock(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestResourceLock, self).setUp()
+        super().setUp()
 
         self.shares_mock = self.app.client_manager.share.shares
         self.shares_mock.reset_mock()
@@ -53,13 +52,13 @@ class TestResourceLock(manila_fakes.TestShare):
         self.locks_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
 
 class TestResourceLockCreate(TestResourceLock):
-
     def setUp(self):
-        super(TestResourceLockCreate, self).setUp()
+        super().setUp()
 
         self.share = manila_fakes.FakeShare.create_one_share()
         self.shares_mock.create.return_value = self.share
@@ -67,7 +66,8 @@ class TestResourceLockCreate(TestResourceLock):
         self.shares_mock.get.return_value = self.share
 
         self.lock = manila_fakes.FakeResourceLock.create_one_lock(
-            attrs={'resource_id': self.share.id})
+            attrs={'resource_id': self.share.id}
+        )
         self.locks_mock.get.return_value = self.lock
         self.locks_mock.create.return_value = self.lock
 
@@ -80,13 +80,20 @@ class TestResourceLockCreate(TestResourceLock):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_lock_create(self):
         arglist = [
-            '--resource-action', 'revert_to_snapshot',
-            '--lock-reason', "you cannot go back in time",
+            '--resource-action',
+            'revert_to_snapshot',
+            '--lock-reason',
+            "you cannot go back in time",
             self.share.id,
             'share',
         ]
@@ -94,7 +101,7 @@ class TestResourceLockCreate(TestResourceLock):
             ('resource', self.share.id),
             ('resource_type', 'share'),
             ('resource_action', 'revert_to_snapshot'),
-            ('lock_reason', 'you cannot go back in time')
+            ('lock_reason', 'you cannot go back in time'),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -113,9 +120,8 @@ class TestResourceLockCreate(TestResourceLock):
 
 
 class TestResourceLockDelete(TestResourceLock):
-
     def setUp(self):
-        super(TestResourceLockDelete, self).setUp()
+        super().setUp()
 
         self.lock = manila_fakes.FakeResourceLock.create_one_lock()
 
@@ -128,16 +134,17 @@ class TestResourceLockDelete(TestResourceLock):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_lock_delete(self):
-        arglist = [
-            self.lock.id
-        ]
-        verifylist = [
-            ('lock', [self.lock.id])
-        ]
+        arglist = [self.lock.id]
+        verifylist = [('lock', [self.lock.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -148,41 +155,30 @@ class TestResourceLockDelete(TestResourceLock):
 
     def test_share_lock_delete_multiple(self):
         locks = manila_fakes.FakeResourceLock.create_locks(count=2)
-        arglist = [
-            locks[0].id,
-            locks[1].id
-        ]
-        verifylist = [
-            ('lock', [locks[0].id, locks[1].id])
-        ]
+        arglist = [locks[0].id, locks[1].id]
+        verifylist = [('lock', [locks[0].id, locks[1].id])]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.lock.delete.call_count,
-                         len(locks))
+        self.assertEqual(self.lock.delete.call_count, len(locks))
         self.assertIsNone(result)
 
     def test_share_lock_delete_exception(self):
-        arglist = [
-            self.lock.id
-        ]
-        verifylist = [
-            ('lock', [self.lock.id])
-        ]
+        arglist = [self.lock.id]
+        verifylist = [('lock', [self.lock.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.lock.delete.side_effect = exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestResourceLockShow(TestResourceLock):
-
     def setUp(self):
-        super(TestResourceLockShow, self).setUp()
+        super().setUp()
 
         self.lock = manila_fakes.FakeResourceLock.create_one_lock()
         self.locks_mock.get.return_value = self.lock
@@ -196,16 +192,19 @@ class TestResourceLockShow(TestResourceLock):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_lock_show(self):
         arglist = [
             self.lock.id,
         ]
-        verifylist = [
-            ('lock', self.lock.id)
-        ]
+        verifylist = [('lock', self.lock.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
@@ -216,26 +215,23 @@ class TestResourceLockShow(TestResourceLock):
 
 
 class TestResourceLockList(TestResourceLock):
-
     def setUp(self):
-        super(TestResourceLockList, self).setUp()
+        super().setUp()
 
         self.locks = manila_fakes.FakeResourceLock.create_locks(count=2)
 
         self.locks_mock.list.return_value = self.locks
 
-        self.values = (oscutils.get_dict_properties(
-            m._info, DETAIL_COLUMNS) for m in self.locks)
+        self.values = (
+            oscutils.get_dict_properties(m._info, DETAIL_COLUMNS)
+            for m in self.locks
+        )
 
         self.cmd = osc_resource_locks.ListResourceLock(self.app, None)
 
     def test_share_lock_list(self):
-        arglist = [
-            '--detailed'
-        ]
-        verifylist = [
-            ('detailed', True)
-        ]
+        arglist = ['--detailed']
+        verifylist = [('detailed', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -257,7 +253,7 @@ class TestResourceLockList(TestResourceLock):
                 'offset': None,
             },
             sort_key=None,
-            sort_dir=None
+            sort_dir=None,
         )
 
         self.assertEqual(sorted(DETAIL_COLUMNS), sorted(columns))
@@ -267,9 +263,8 @@ class TestResourceLockList(TestResourceLock):
 
 
 class TestResourceLockSet(TestResourceLock):
-
     def setUp(self):
-        super(TestResourceLockSet, self).setUp()
+        super().setUp()
 
         self.lock = manila_fakes.FakeResourceLock.create_one_lock()
         self.lock.update = mock.Mock()
@@ -282,32 +277,35 @@ class TestResourceLockSet(TestResourceLock):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_lock_set(self):
         arglist = [
             self.lock.id,
-            '--resource-action', 'unmanage',
+            '--resource-action',
+            'unmanage',
         ]
-        verifylist = [
-            ('lock', self.lock.id),
-            ('resource_action', 'unmanage')
-        ]
+        verifylist = [('lock', self.lock.id), ('resource_action', 'unmanage')]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.assertIsNone(result)
-        self.locks_mock.update.assert_called_with(self.lock.id,
-                                                  resource_action='unmanage')
+        self.locks_mock.update.assert_called_with(
+            self.lock.id, resource_action='unmanage'
+        )
 
 
 class TestResourceLockUnSet(TestResourceLock):
-
     def setUp(self):
-        super(TestResourceLockUnSet, self).setUp()
+        super().setUp()
 
         self.lock = manila_fakes.FakeResourceLock.create_one_lock()
         self.lock.update = mock.Mock()
@@ -320,23 +318,23 @@ class TestResourceLockUnSet(TestResourceLock):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_lock_unset(self):
-        arglist = [
-            self.lock.id,
-            '--lock-reason'
-        ]
-        verifylist = [
-            ('lock', self.lock.id),
-            ('lock_reason', True)
-        ]
+        arglist = [self.lock.id, '--lock-reason']
+        verifylist = [('lock', self.lock.id), ('lock_reason', True)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
         self.assertIsNone(result)
-        self.locks_mock.update.assert_called_with(self.lock.id,
-                                                  lock_reason=None)
+        self.locks_mock.update.assert_called_with(
+            self.lock.id, lock_reason=None
+        )

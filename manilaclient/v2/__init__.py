@@ -14,4 +14,4 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from manilaclient.v2.client import Client    # noqa
+from manilaclient.v2.client import Client  # noqa

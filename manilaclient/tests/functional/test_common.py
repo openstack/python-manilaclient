@@ -22,7 +22,6 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class ManilaClientTestCommonReadOnly(base.BaseTestCase):
-
     @ddt.data('admin', 'user')
     def test_manila_version(self, role):
         self.clients[role].manila('', flags='--version')
@@ -46,10 +45,20 @@ class ManilaClientTestCommonReadOnly(base.BaseTestCase):
             if match:
                 commands.append(match.group(1))
         commands = set(commands)
-        wanted_commands = set((
-            'absolute-limits', 'list', 'help', 'quota-show', 'access-list',
-            'snapshot-list', 'access-allow', 'access-deny',
-            'share-network-list', 'security-service-list'))
+        wanted_commands = set(
+            (
+                'absolute-limits',
+                'list',
+                'help',
+                'quota-show',
+                'access-list',
+                'snapshot-list',
+                'access-allow',
+                'access-deny',
+                'share-network-list',
+                'security-service-list',
+            )
+        )
         self.assertFalse(wanted_commands - commands)
 
     @ddt.data('admin', 'user')
@@ -59,7 +68,8 @@ class ManilaClientTestCommonReadOnly(base.BaseTestCase):
     @ddt.data('admin', 'user')
     def test_list_extensions(self, role):
         roles = self.parser.listing(
-            self.clients[role].manila('list-extensions'))
+            self.clients[role].manila('list-extensions')
+        )
         self.assertTableStruct(roles, ['Name', 'Summary', 'Alias', 'Updated'])
 
     @ddt.data('admin', 'user')

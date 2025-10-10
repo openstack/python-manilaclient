@@ -21,59 +21,72 @@ from manilaclient.tests.unit import utils
 from manilaclient.v2 import limits
 
 
-def _get_default_RateLimit(verb="verb1", uri="uri1", regex="regex1",
-                           value="value1",
-                           remain="remain1", unit="unit1",
-                           next_available="next1"):
-    return limits.RateLimit(verb, uri, regex, value, remain, unit,
-                            next_available)
+def _get_default_RateLimit(
+    verb="verb1",
+    uri="uri1",
+    regex="regex1",
+    value="value1",
+    remain="remain1",
+    unit="unit1",
+    next_available="next1",
+):
+    return limits.RateLimit(
+        verb, uri, regex, value, remain, unit, next_available
+    )
 
 
 class TestLimits(utils.TestCase):
-
     def test_repr(self):
         li = limits.Limits(None, {"foo": "bar"})
         self.assertEqual("<Limits>", repr(li))
 
     def test_absolute(self):
-        li = limits.Limits(None,
-                           {"absolute": {"name1": "value1",
-                                         "name2": "value2"}})
+        li = limits.Limits(
+            None, {"absolute": {"name1": "value1", "name2": "value2"}}
+        )
         l1 = limits.AbsoluteLimit("name1", "value1")
         l2 = limits.AbsoluteLimit("name2", "value2")
         for item in li.absolute:
             self.assertIn(item, [l1, l2])
 
     def test_rate(self):
-
         limit_param = {
-            "rate": [{
-                "uri": "uri1",
-                "regex": "regex1",
-                "limit": [{
-                    "verb": "verb1",
-                    "value": "value1",
-                    "remaining": "remain1",
-                    "unit": "unit1",
-                    "next-available": "next1"
-                }]
-            }, {
-                "uri": "uri2",
-                "regex": "regex2",
-                "limit": [{
-                    "verb": "verb2",
-                    "value": "value2",
-                    "remaining": "remain2",
-                    "unit": "unit2",
-                    "next-available": "next2"
-                }]
-            }]
+            "rate": [
+                {
+                    "uri": "uri1",
+                    "regex": "regex1",
+                    "limit": [
+                        {
+                            "verb": "verb1",
+                            "value": "value1",
+                            "remaining": "remain1",
+                            "unit": "unit1",
+                            "next-available": "next1",
+                        }
+                    ],
+                },
+                {
+                    "uri": "uri2",
+                    "regex": "regex2",
+                    "limit": [
+                        {
+                            "verb": "verb2",
+                            "value": "value2",
+                            "remaining": "remain2",
+                            "unit": "unit2",
+                            "next-available": "next2",
+                        }
+                    ],
+                },
+            ]
         }
         li = limits.Limits(None, limit_param)
-        l1 = limits.RateLimit("verb1", "uri1", "regex1", "value1", "remain1",
-                              "unit1", "next1")
-        l2 = limits.RateLimit("verb2", "uri2", "regex2", "value2", "remain2",
-                              "unit2", "next2")
+        l1 = limits.RateLimit(
+            "verb1", "uri1", "regex1", "value1", "remain1", "unit1", "next1"
+        )
+        l2 = limits.RateLimit(
+            "verb2", "uri2", "regex2", "value2", "remain2", "unit2", "next2"
+        )
         for item in li.rate:
             self.assertIn(item, [l1, l2])
 
@@ -151,8 +164,19 @@ class TestLimitsManager(utils.TestCase):
         api = mock.Mock()
         api.client.get.return_value = (
             None,
-            {"limits": {"absolute": {"name1": "value1", }},
-             "no-limits": {"absolute": {"name2": "value2", }}})
+            {
+                "limits": {
+                    "absolute": {
+                        "name1": "value1",
+                    }
+                },
+                "no-limits": {
+                    "absolute": {
+                        "name2": "value2",
+                    }
+                },
+            },
+        )
         l1 = limits.AbsoluteLimit("name1", "value1")
         limitsManager = limits.LimitsManager(api)
 

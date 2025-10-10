@@ -20,7 +20,7 @@ import sys
 from manilaclient import v2
 
 
-class MovedModule(object):
+class MovedModule:
     def __init__(self, new_module):
         self.new_module = new_module
 

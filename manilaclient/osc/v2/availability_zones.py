@@ -23,8 +23,7 @@ class ShareAvailabilityZoneList(command.Lister):
     _description = _("List all availability zones")
 
     def get_parser(self, prog_name):
-        parser = super(ShareAvailabilityZoneList, self).get_parser(
-            prog_name)
+        parser = super().get_parser(prog_name)
         return parser
 
     def take_action(self, parsed_args):
@@ -33,5 +32,10 @@ class ShareAvailabilityZoneList(command.Lister):
 
         fields = ("Id", "Name", "Created At", "Updated At")
 
-        return (fields, (oscutils.get_item_properties
-                (s, fields) for s in availability_zones))
+        return (
+            fields,
+            (
+                oscutils.get_item_properties(s, fields)
+                for s in availability_zones
+            ),
+        )

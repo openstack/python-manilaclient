@@ -22,9 +22,8 @@ RESOURCE_NAME = 'services'
 
 
 class Service(base.Resource):
-
     def __repr__(self):
-        return "<Service: %s>" % self.id
+        return f"<Service: {self.id}>"
 
     def server_api_version(self, **kwargs):
         """Get api version."""
@@ -33,6 +32,7 @@ class Service(base.Resource):
 
 class ServiceManager(base.Manager):
     """Manage :class:`Service` resources."""
+
     resource_class = Service
 
     def _do_list(self, search_opts=None, resource_path=RESOURCE_PATH):
@@ -46,17 +46,19 @@ class ServiceManager(base.Manager):
     @api_versions.wraps("1.0", "2.6")
     def list(self, search_opts=None):
         return self._do_list(
-            search_opts=search_opts, resource_path=RESOURCE_PATH_LEGACY)
+            search_opts=search_opts, resource_path=RESOURCE_PATH_LEGACY
+        )
 
     @api_versions.wraps("2.7")  # noqa
     def list(self, search_opts=None):  # noqa
         return self._do_list(
-            search_opts=search_opts, resource_path=RESOURCE_PATH)
+            search_opts=search_opts, resource_path=RESOURCE_PATH
+        )
 
     def _do_enable(self, host, binary, resource_path=RESOURCE_PATH):
         """Enable the service specified by hostname and binary."""
         body = {"host": host, "binary": binary}
-        return self._update("%s/enable" % resource_path, body)
+        return self._update(f"{resource_path}/enable", body)
 
     @api_versions.wraps("1.0", "2.6")
     def enable(self, host, binary):
@@ -66,13 +68,14 @@ class ServiceManager(base.Manager):
     def enable(self, host, binary):  # noqa
         return self._do_enable(host, binary, RESOURCE_PATH)
 
-    def _do_disable(self, host, binary, resource_path=RESOURCE_PATH,
-                    disable_reason=None):
+    def _do_disable(
+        self, host, binary, resource_path=RESOURCE_PATH, disable_reason=None
+    ):
         """Disable the service specified by hostname and binary."""
         body = {"host": host, "binary": binary}
         if disable_reason:
             body["disabled_reason"] = disable_reason
-        return self._update("%s/disable" % resource_path, body)
+        return self._update(f"{resource_path}/disable", body)
 
     @api_versions.wraps("1.0", "2.6")
     def disable(self, host, binary):
@@ -84,8 +87,9 @@ class ServiceManager(base.Manager):
 
     @api_versions.wraps("2.83")  # noqa
     def disable(self, host, binary, disable_reason=None):  # noqa
-        return self._do_disable(host, binary, RESOURCE_PATH,
-                                disable_reason=disable_reason)
+        return self._do_disable(
+            host, binary, RESOURCE_PATH, disable_reason=disable_reason
+        )
 
     @api_versions.wraps("2.86")
     def ensure_shares(self, host):  # noqa

@@ -20,44 +20,54 @@ from manilaclient.osc import utils
 
 class ListSharePools(command.Lister):
     """List all backend storage pools known to the scheduler (Admin only)."""
+
     _description = _(
-        "List all backend storage pools known to the scheduler (Admin only).")
+        "List all backend storage pools known to the scheduler (Admin only)."
+    )
 
     def get_parser(self, prog_name):
-        parser = super(ListSharePools, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "--host",
             metavar="<host>",
             default=None,
-            help=_("Filter results by host name. "
-                   "Regular expressions are supported.")
+            help=_(
+                "Filter results by host name. "
+                "Regular expressions are supported."
+            ),
         )
         parser.add_argument(
             "--backend",
             metavar="<backend>",
             default=None,
-            help=_("Filter results by backend name. "
-                   "Regular expressions are supported.")
+            help=_(
+                "Filter results by backend name. "
+                "Regular expressions are supported."
+            ),
         )
         parser.add_argument(
             "--pool",
             metavar="<pool>",
             default=None,
-            help=_("Filter results by pool name. "
-                   "Regular expressions are supported.")
+            help=_(
+                "Filter results by pool name. "
+                "Regular expressions are supported."
+            ),
         )
         parser.add_argument(
             "--detail",
             action='store_true',
             default=False,
-            help=_("Show detailed information about pools.")
+            help=_("Show detailed information about pools."),
         )
         parser.add_argument(
             "--share-type",
             metavar="<share-type>",
             default=None,
-            help=_("Filter results by share type name or ID. "
-                   "Available only for microversion >= 2.23")
+            help=_(
+                "Filter results by share type name or ID. "
+                "Available only for microversion >= 2.23"
+            ),
         )
         return parser
 
@@ -68,12 +78,15 @@ class ListSharePools(command.Lister):
         if parsed_args.share_type:
             if share_client.api_version >= api_versions.APIVersion("2.23"):
                 share_type = osc_utils.find_resource(
-                    share_client.share_types,
-                    parsed_args.share_type).id
+                    share_client.share_types, parsed_args.share_type
+                ).id
             else:
-                raise exceptions.CommandError(_(
-                    "Filtering results by share type is only available with "
-                    "manila API version >= 2.23"))
+                raise exceptions.CommandError(
+                    _(
+                        "Filtering results by share type is only available with "
+                        "manila API version >= 2.23"
+                    )
+                )
 
         search_opts = {
             'host': parsed_args.host,
@@ -83,7 +96,8 @@ class ListSharePools(command.Lister):
         }
 
         pools = share_client.pools.list(
-            detailed=parsed_args.detail, search_opts=search_opts)
+            detailed=parsed_args.detail, search_opts=search_opts
+        )
 
         columns = ["Name", "Host", "Backend", "Pool"]
 
@@ -91,11 +105,17 @@ class ListSharePools(command.Lister):
             columns.append("Capabilities")
             if parsed_args.formatter == 'table':
                 for pool in pools:
-                    pool._info.update({
-                        'capabilities': utils.format_properties(
-                            pool.capabilities)})
+                    pool._info.update(
+                        {
+                            'capabilities': utils.format_properties(
+                                pool.capabilities
+                            )
+                        }
+                    )
 
-        data = (osc_utils.get_dict_properties(
-            pool._info, columns) for pool in pools)
+        data = (
+            osc_utils.get_dict_properties(pool._info, columns)
+            for pool in pools
+        )
 
         return (columns, data)

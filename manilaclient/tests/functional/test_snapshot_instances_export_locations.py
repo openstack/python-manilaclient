@@ -25,55 +25,24 @@ CONF = config.CONF
 
 
 @ddt.ddt
-@testtools.skipUnless(CONF.run_snapshot_tests and
-                      CONF.run_mount_snapshot_tests,
-                      "Snapshots or mountable snapshots tests are disabled.")
+@testtools.skipUnless(
+    CONF.run_snapshot_tests and CONF.run_mount_snapshot_tests,
+    "Snapshots or mountable snapshots tests are disabled.",
+)
 @utils.skip_if_microversion_not_supported('2.32')
 class SnapshotInstanceExportLocationReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(SnapshotInstanceExportLocationReadWriteTest, self).setUp()
-        self.share = self.create_share(
-            client=self.get_user_client())
-        self.snapshot = self.create_snapshot(share=self.share['id'],
-                                             client=self.get_user_client())
+        super().setUp()
+        self.share = self.create_share(client=self.get_user_client())
+        self.snapshot = self.create_snapshot(
+            share=self.share['id'], client=self.get_user_client()
+        )
 
     def test_get_snapshot_instance_export_location(self):
         client = self.admin_client
         snapshot_instances = client.list_snapshot_instances(
-            self.snapshot['id'])
-
-        self.assertGreater(len(snapshot_instances), 0)
-        self.assertIn('ID', snapshot_instances[0])
-        self.assertTrue(uuidutils.is_uuid_like(
-            snapshot_instances[0]['ID']))
-
-        snapshot_instance_id = snapshot_instances[0]['ID']
-
-        export_locations = client.list_snapshot_instance_export_locations(
-            snapshot_instance_id)
-
-        el = client.get_snapshot_instance_export_location(
-            snapshot_instance_id, export_locations[0]['ID'])
-        expected_keys = ['path', 'id', 'is_admin_only',
-                         'share_snapshot_instance_id', 'updated_at',
-                         'created_at']
-
-        for key in expected_keys:
-            self.assertIn(key, el)
-        for key, key_el in (
-                ('ID', 'id'), ('Path', 'path'),
-                ('Is Admin only', 'is_admin_only')):
-            self.assertEqual(export_locations[0][key], el[key_el])
-        self.assertTrue(uuidutils.is_uuid_like(
-            el['share_snapshot_instance_id']))
-        self.assertTrue(uuidutils.is_uuid_like(el['id']))
-        self.assertIn(el['is_admin_only'], ('True', 'False'))
-
-    def test_list_snapshot_instance_export_locations(self):
-        client = self.admin_client
-        snapshot_instances = client.list_snapshot_instances(
-            self.snapshot['id'])
+            self.snapshot['id']
+        )
 
         self.assertGreater(len(snapshot_instances), 0)
         self.assertIn('ID', snapshot_instances[0])
@@ -82,7 +51,50 @@ class SnapshotInstanceExportLocationReadWriteTest(base.BaseTestCase):
         snapshot_instance_id = snapshot_instances[0]['ID']
 
         export_locations = client.list_snapshot_instance_export_locations(
-            snapshot_instance_id)
+            snapshot_instance_id
+        )
+
+        el = client.get_snapshot_instance_export_location(
+            snapshot_instance_id, export_locations[0]['ID']
+        )
+        expected_keys = [
+            'path',
+            'id',
+            'is_admin_only',
+            'share_snapshot_instance_id',
+            'updated_at',
+            'created_at',
+        ]
+
+        for key in expected_keys:
+            self.assertIn(key, el)
+        for key, key_el in (
+            ('ID', 'id'),
+            ('Path', 'path'),
+            ('Is Admin only', 'is_admin_only'),
+        ):
+            self.assertEqual(export_locations[0][key], el[key_el])
+        self.assertTrue(
+            uuidutils.is_uuid_like(el['share_snapshot_instance_id'])
+        )
+        self.assertTrue(uuidutils.is_uuid_like(el['id']))
+        self.assertIn(el['is_admin_only'], ('True', 'False'))
+
+    def test_list_snapshot_instance_export_locations(self):
+        client = self.admin_client
+        snapshot_instances = client.list_snapshot_instances(
+            self.snapshot['id']
+        )
+
+        self.assertGreater(len(snapshot_instances), 0)
+        self.assertIn('ID', snapshot_instances[0])
+        self.assertTrue(uuidutils.is_uuid_like(snapshot_instances[0]['ID']))
+
+        snapshot_instance_id = snapshot_instances[0]['ID']
+
+        export_locations = client.list_snapshot_instance_export_locations(
+            snapshot_instance_id
+        )
 
         self.assertGreater(len(export_locations), 0)
 
@@ -95,7 +107,8 @@ class SnapshotInstanceExportLocationReadWriteTest(base.BaseTestCase):
     def test_list_snapshot_instance_export_locations_with_columns(self):
         client = self.admin_client
         snapshot_instances = client.list_snapshot_instances(
-            self.snapshot['id'])
+            self.snapshot['id']
+        )
 
         self.assertGreater(len(snapshot_instances), 0)
         self.assertIn('ID', snapshot_instances[0])
@@ -103,7 +116,8 @@ class SnapshotInstanceExportLocationReadWriteTest(base.BaseTestCase):
         snapshot_instance_id = snapshot_instances[0]['ID']
 
         export_locations = client.list_snapshot_instance_export_locations(
-            snapshot_instance_id, columns='id,path')
+            snapshot_instance_id, columns='id,path'
+        )
 
         self.assertGreater(len(export_locations), 0)
         expected_keys = ('Id', 'Path')

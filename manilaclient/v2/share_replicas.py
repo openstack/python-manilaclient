@@ -26,8 +26,9 @@ RESOURCE_NAME = 'share_replica'
 
 class ShareReplica(base.Resource):
     """A replica is 'mirror' instance of a share at some point in time."""
+
     def __repr__(self):
-        return "<Share Replica: %s>" % self.id
+        return f"<Share Replica: {self.id}>"
 
     def resync(self):
         """Re-sync this replica."""
@@ -48,6 +49,7 @@ class ShareReplica(base.Resource):
 
 class ShareReplicaManager(base.ManagerWithFind):
     """Manage :class:`ShareReplica` resources."""
+
     resource_class = ShareReplica
 
     @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
@@ -125,30 +127,45 @@ class ShareReplicaManager(base.ManagerWithFind):
     @api_versions.experimental_api
     def create(self, share, availability_zone=None):
         return self._create_share_replica(
-            share, availability_zone=availability_zone)
+            share, availability_zone=availability_zone
+        )
 
     @api_versions.wraps(constants.REPLICA_GRADUATION_VERSION, '2.66')  # noqa
     def create(self, share, availability_zone=None):  # noqa F811
         return self._create_share_replica(
-            share, availability_zone=availability_zone)
+            share, availability_zone=availability_zone
+        )
 
     @api_versions.wraps("2.67", "2.71")  # noqa
-    def create(self, share, availability_zone=None, scheduler_hints=None): # noqa F811
+    def create(self, share, availability_zone=None, scheduler_hints=None):  # noqa F811
         return self._create_share_replica(
-            share, availability_zone=availability_zone,
-            scheduler_hints=scheduler_hints)
+            share,
+            availability_zone=availability_zone,
+            scheduler_hints=scheduler_hints,
+        )
 
     @api_versions.wraps("2.72")  # noqa
-    def create(self, share, # pylint: disable=function-redefined  # noqa F811
-               availability_zone=None, scheduler_hints=None,
-               share_network=None):
+    def create(  # noqa
+        self,
+        share,  # pylint: disable=function-redefined  # noqa F811
+        availability_zone=None,
+        scheduler_hints=None,
+        share_network=None,
+    ):
         return self._create_share_replica(
-            share, availability_zone=availability_zone,
+            share,
+            availability_zone=availability_zone,
             scheduler_hints=scheduler_hints,
-            share_network=share_network)
+            share_network=share_network,
+        )
 
-    def _create_share_replica(self, share, availability_zone=None,
-                              scheduler_hints=None, share_network=None):
+    def _create_share_replica(
+        self,
+        share,
+        availability_zone=None,
+        scheduler_hints=None,
+        share_network=None,
+    ):
         """Create a replica for a share.
 
         :param share: The share to create the replica of. Can be the share
@@ -171,9 +188,9 @@ class ShareReplicaManager(base.ManagerWithFind):
         if share_network:
             body['share_network_id'] = base.getid(share_network)
 
-        return self._create(RESOURCES_PATH,
-                            {RESOURCE_NAME: body},
-                            RESOURCE_NAME)
+        return self._create(
+            RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME
+        )
 
     @api_versions.wraps("2.11", constants.REPLICA_PRE_GRADUATION_VERSION)
     @api_versions.experimental_api

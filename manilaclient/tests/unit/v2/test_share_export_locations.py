@@ -32,27 +32,22 @@ cs = fakes.FakeClient(extensions=extensions)
 
 @ddt.ddt
 class ShareExportLocationsTest(utils.TestCase):
-
     def _get_manager(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
-        return (
-            share_export_locations.ShareExportLocationManager(
-                api=mock_microversion)
+        return share_export_locations.ShareExportLocationManager(
+            api=mock_microversion
         )
 
     def test_list_of_export_locations(self):
         share_id = '1234'
         cs.share_export_locations.list(share_id, search_opts=None)
-        cs.assert_called(
-            'GET', '/shares/%s/export_locations' % share_id)
+        cs.assert_called('GET', f'/shares/{share_id}/export_locations')
 
     def test_get_single_export_location(self):
         share_id = '1234'
         el_uuid = 'fake_el_uuid'
         cs.share_export_locations.get(share_id, el_uuid)
         cs.assert_called(
-            'GET',
-            ('/shares/%(share_id)s/export_locations/'
-             '%(el_uuid)s') % {
-                 'share_id': share_id, 'el_uuid': el_uuid})
+            'GET', (f'/shares/{share_id}/export_locations/{el_uuid}')
+        )

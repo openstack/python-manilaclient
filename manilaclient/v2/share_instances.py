@@ -21,8 +21,9 @@ from manilaclient import base
 
 class ShareInstance(base.Resource):
     """A share is an extra block level storage to the OpenStack instances."""
+
     def __repr__(self):
-        return "<Share: %s>" % self.id
+        return f"<Share: {self.id}>"
 
     def force_delete(self):
         """Delete the specified share ignoring its current state."""
@@ -35,6 +36,7 @@ class ShareInstance(base.Resource):
 
 class ShareInstanceManager(base.ManagerWithFind):
     """Manage :class:`ShareInstances` resources."""
+
     resource_class = ShareInstance
 
     @api_versions.wraps("2.3")
@@ -45,14 +47,14 @@ class ShareInstanceManager(base.ManagerWithFind):
         :rtype: :class:`ShareInstance`
         """
         share_id = base.getid(instance)
-        return self._get("/share_instances/%s" % share_id, "share_instance")
+        return self._get(f"/share_instances/{share_id}", "share_instance")
 
     @api_versions.wraps("2.3", "2.34")
     def list(self, search_opts=None):
         """List all share instances."""
         return self.do_list()
 
-    @api_versions.wraps("2.35")   # noqa
+    @api_versions.wraps("2.35")  # noqa
     def list(self, export_location=None, search_opts=None):  # noqa
         """List all share instances."""
         return self.do_list(export_location)
@@ -78,7 +80,7 @@ class ShareInstanceManager(base.ManagerWithFind):
         """
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/share_instances/%s/action' % base.getid(instance)
+        url = f'/share_instances/{base.getid(instance)}/action'
         return self.api.client.post(url, body=body)
 
     def _do_force_delete(self, instance, action_name="force_delete"):

@@ -25,29 +25,32 @@ from manilaclient.v2 import share_instance_export_locations
 
 
 extensions = [
-    extension.Extension('share_instance_export_locations',
-                        share_instance_export_locations),
+    extension.Extension(
+        'share_instance_export_locations', share_instance_export_locations
+    ),
 ]
 cs = fakes.FakeClient(extensions=extensions)
 
 
 @ddt.ddt
 class ShareInstanceExportLocationsTest(utils.TestCase):
-
     def _get_manager(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
         return (
             share_instance_export_locations.ShareInstanceExportLocationManager(
-                api=mock_microversion)
+                api=mock_microversion
+            )
         )
 
     def test_list_of_export_locations(self):
         share_instance_id = '1234'
         cs.share_instance_export_locations.list(
-            share_instance_id, search_opts=None)
+            share_instance_id, search_opts=None
+        )
         cs.assert_called(
-            'GET', '/share_instances/%s/export_locations' % share_instance_id)
+            'GET', f'/share_instances/{share_instance_id}/export_locations'
+        )
 
     def test_get_single_export_location(self):
         share_instance_id = '1234'
@@ -55,6 +58,8 @@ class ShareInstanceExportLocationsTest(utils.TestCase):
         cs.share_instance_export_locations.get(share_instance_id, el_uuid)
         cs.assert_called(
             'GET',
-            ('/share_instances/%(share_instance_id)s/export_locations/'
-             '%(el_uuid)s') % {
-                 'share_instance_id': share_instance_id, 'el_uuid': el_uuid})
+            (
+                f'/share_instances/{share_instance_id}/export_locations/'
+                f'{el_uuid}'
+            ),
+        )

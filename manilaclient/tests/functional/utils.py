@@ -32,21 +32,24 @@ def multi_line_row_table(output_lines, group_by_column_index=0):
     def get_column_index(column_name, headers, default):
         return next(
             (i for i, h in enumerate(headers) if h.lower() == column_name),
-            default
+            default,
         )
 
     if group_by_column_index is None:
         group_by_column_index = get_column_index(
-            'id', parsed_table['headers'], 0)
+            'id', parsed_table['headers'], 0
+        )
 
     def is_embedded_table(parsed_rows):
         def is_table_border(t):
             return str(t).startswith('+')
 
-        return (isinstance(parsed_rows, list)
-                and len(parsed_rows) > 3
-                and is_table_border(parsed_rows[0])
-                and is_table_border(parsed_rows[-1]))
+        return (
+            isinstance(parsed_rows, list)
+            and len(parsed_rows) > 3
+            and is_table_border(parsed_rows[0])
+            and is_table_border(parsed_rows[-1])
+        )
 
     def merge_cells(master_cell, value_cell):
         if value_cell:
@@ -71,9 +74,9 @@ def multi_line_row_table(output_lines, group_by_column_index=0):
         line_with_value = row_index > 0 and row[group_by_column_index] == ''
 
         if line_with_value and not is_empty_row(row):
-            rows[row_index - 1] = list(map(merge_cells,
-                                           rows[row_index - 1],
-                                           rows.pop(row_index)))
+            rows[row_index - 1] = list(
+                map(merge_cells, rows[row_index - 1], rows.pop(row_index))
+            )
         else:
             row_index += 1
 
@@ -104,17 +107,19 @@ def details(output_lines):
 
 def is_microversion_supported(microversion):
     return (
-        api_versions.APIVersion(CONF.min_api_microversion) <=
-        api_versions.APIVersion(microversion) <=
-        api_versions.APIVersion(CONF.max_api_microversion)
+        api_versions.APIVersion(CONF.min_api_microversion)
+        <= api_versions.APIVersion(microversion)
+        <= api_versions.APIVersion(CONF.max_api_microversion)
     )
 
 
 def skip_if_microversion_not_supported(microversion):
     """Decorator for tests that are microversion-specific."""
     if not is_microversion_supported(microversion):
-        reason = ("Skipped. Test requires microversion %s that is not "
-                  "allowed to be used by configuration." % microversion)
+        reason = (
+            f"Skipped. Test requires microversion {microversion} that is not "
+            "allowed to be used by configuration."
+        )
         return testtools.skip(reason)
     return lambda f: f
 
@@ -125,16 +130,29 @@ def choose_matching_backend(share, pools, share_type):
     # convert extra-specs in provided type to dict format
     pair = [x.strip() for x in share_type['required_extra_specs'].split(':')]
     if len(pair) == 2:
-        value = (True if str(pair[1]).lower() == 'true'
-                 else False if str(pair[1]).lower() == 'false'
-                 else pair[1])
+        value = (
+            True
+            if str(pair[1]).lower() == 'true'
+            else False
+            if str(pair[1]).lower() == 'false'
+            else pair[1]
+        )
         extra_specs[pair[0]] = value
 
     selected_pool = next(
-        (x for x in pools if (x['Name'] != share['host'] and all(
-            y in ast.literal_eval(x['Capabilities']).items() for y in
-            extra_specs.items()))),
-        None)
+        (
+            x
+            for x in pools
+            if (
+                x['Name'] != share['host']
+                and all(
+                    y in ast.literal_eval(x['Capabilities']).items()
+                    for y in extra_specs.items()
+                )
+            )
+        ),
+        None,
+    )
 
     return selected_pool['Name']
 
@@ -145,10 +163,17 @@ def share_network_subnets_are_supported():
 
 def get_subnet_by_availability_zone_name(client, share_network_id, az_name):
     subnets = client.get_share_network_subnets(share_network_id)
-    return next((subnet for subnet in subnets
-                 if subnet['availability_zone'] == az_name), None)
+    return next(
+        (
+            subnet
+            for subnet in subnets
+            if subnet['availability_zone'] == az_name
+        ),
+        None,
+    )
 
 
 def get_default_subnet(client, share_network_id):
-    return get_subnet_by_availability_zone_name(client, share_network_id,
-                                                'None')
+    return get_subnet_by_availability_zone_name(
+        client, share_network_id, 'None'
+    )

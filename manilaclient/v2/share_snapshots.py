@@ -20,11 +20,10 @@ from manilaclient.common import constants
 
 
 class ShareSnapshot(base.MetadataCapableResource):
-
     """Represent a snapshot of a share."""
 
     def __repr__(self):
-        return "<ShareSnapshot: %s>" % self.id
+        return f"<ShareSnapshot: {self.id}>"
 
     def update(self, **kwargs):
         """Update this snapshot."""
@@ -60,11 +59,13 @@ class ShareSnapshot(base.MetadataCapableResource):
 
 class ShareSnapshotManager(base.MetadataCapableManager):
     """Manage :class:`ShareSnapshot` resources."""
+
     resource_class = ShareSnapshot
     resource_path = '/snapshots'
 
-    def _do_create(self, share, force=False, name=None, description=None,
-                   metadata=None):
+    def _do_create(
+        self, share, force=False, name=None, description=None, metadata=None
+    ):
         """Create a snapshot of the given share.
 
         :param share_id: The ID of the share to snapshot.
@@ -77,11 +78,15 @@ class ShareSnapshotManager(base.MetadataCapableManager):
         """
 
         metadata = metadata if metadata is not None else dict()
-        body = {'snapshot': {'share_id': base.getid(share),
-                             'force': force,
-                             'name': name,
-                             'description': description,
-                             'metadata': metadata}}
+        body = {
+            'snapshot': {
+                'share_id': base.getid(share),
+                'force': force,
+                'name': name,
+                'description': description,
+                'metadata': metadata,
+            }
+        }
         return self._create('/snapshots', body, 'snapshot')
 
     @api_versions.wraps("2.0", "2.72")
@@ -89,14 +94,25 @@ class ShareSnapshotManager(base.MetadataCapableManager):
         return self._do_create(share, force, name, description)
 
     @api_versions.wraps("2.73")
-    def create(self, share, force=False, name=None, description=None,# noqa F811
-               metadata=None):
+    def create(  # noqa
+        self,
+        share,
+        force=False,
+        name=None,
+        description=None,
+        metadata=None,
+    ):
         return self._do_create(share, force, name, description, metadata)
 
     @api_versions.wraps("2.12")
-    def manage(self, share, provider_location,
-               driver_options=None,
-               name=None, description=None):
+    def manage(
+        self,
+        share,
+        provider_location,
+        driver_options=None,
+        name=None,
+        description=None,
+    ):
         """Manage an existing share snapshot.
 
         :param share: The share object.
@@ -114,8 +130,9 @@ class ShareSnapshotManager(base.MetadataCapableManager):
             'name': name,
             'description': description,
         }
-        return self._create('/snapshots/manage', {'snapshot': body},
-                            'snapshot')
+        return self._create(
+            '/snapshots/manage', {'snapshot': body}, 'snapshot'
+        )
 
     @api_versions.wraps("2.12")
     def unmanage(self, snapshot):
@@ -133,10 +150,11 @@ class ShareSnapshotManager(base.MetadataCapableManager):
         :rtype: :class:`ShareSnapshot`
         """
         snapshot_id = base.getid(snapshot)
-        return self._get('/snapshots/%s' % snapshot_id, 'snapshot')
+        return self._get(f'/snapshots/{snapshot_id}', 'snapshot')
 
-    def list(self, detailed=True, search_opts=None, sort_key=None,
-             sort_dir=None):
+    def list(
+        self, detailed=True, search_opts=None, sort_key=None, sort_dir=None
+    ):
         """Get a list of snapshots of shares.
 
         :param search_opts: Search options to filter out shares.
@@ -151,23 +169,27 @@ class ShareSnapshotManager(base.MetadataCapableManager):
                 search_opts['sort_key'] = sort_key
             else:
                 raise ValueError(
-                    'sort_key must be one of the following: %s.'
-                    % ', '.join(constants.SNAPSHOT_SORT_KEY_VALUES))
+                    'sort_key must be one of the following: {}.'.format(
+                        ', '.join(constants.SNAPSHOT_SORT_KEY_VALUES)
+                    )
+                )
 
         if sort_dir is not None:
             if sort_dir in constants.SORT_DIR_VALUES:
                 search_opts['sort_dir'] = sort_dir
             else:
                 raise ValueError(
-                    'sort_dir must be one of the following: %s.'
-                    % ', '.join(constants.SORT_DIR_VALUES))
+                    'sort_dir must be one of the following: {}.'.format(
+                        ', '.join(constants.SORT_DIR_VALUES)
+                    )
+                )
 
         query_string = self._build_query_string(search_opts)
 
         if detailed:
-            path = "/snapshots/detail%s" % (query_string,)
+            path = f"/snapshots/detail{query_string}"
         else:
-            path = "/snapshots%s" % (query_string,)
+            path = f"/snapshots{query_string}"
 
         return self._list(path, 'snapshots')
 
@@ -176,7 +198,7 @@ class ShareSnapshotManager(base.MetadataCapableManager):
 
         :param snapshot: The :class:`ShareSnapshot` to delete.
         """
-        self._delete("/snapshots/%s" % base.getid(snapshot))
+        self._delete(f"/snapshots/{base.getid(snapshot)}")
 
     def _do_force_delete(self, snapshot, action_name="force_delete"):
         """Delete the specified snapshot ignoring its current state."""
@@ -200,9 +222,11 @@ class ShareSnapshotManager(base.MetadataCapableManager):
         if not kwargs:
             return
 
-        body = {'snapshot': kwargs, }
+        body = {
+            'snapshot': kwargs,
+        }
         snapshot_id = base.getid(snapshot)
-        return self._update("/snapshots/%s" % snapshot_id, body)
+        return self._update(f"/snapshots/{snapshot_id}", body)
 
     def _do_reset_state(self, snapshot, state, action_name="reset_status"):
         """Update the specified share snapshot with the provided state."""
@@ -222,8 +246,9 @@ class ShareSnapshotManager(base.MetadataCapableManager):
             'access_to': access_to,
         }
 
-        return self._action('allow_access', snapshot,
-                            access_params)[1]['snapshot_access']
+        return self._action('allow_access', snapshot, access_params)[1][
+            'snapshot_access'
+        ]
 
     @api_versions.wraps("2.32")
     def allow(self, snapshot, access_type, access_to):
@@ -238,8 +263,9 @@ class ShareSnapshotManager(base.MetadataCapableManager):
 
     def _do_access_list(self, snapshot):
         snapshot_id = base.getid(snapshot)
-        access_list = self._list("/snapshots/%s/access-list" % snapshot_id,
-                                 'snapshot_access_list')
+        access_list = self._list(
+            f"/snapshots/{snapshot_id}/access-list", 'snapshot_access_list'
+        )
         return access_list
 
     @api_versions.wraps("2.32")
@@ -250,5 +276,5 @@ class ShareSnapshotManager(base.MetadataCapableManager):
         """Perform a snapshot 'action'."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/snapshots/%s/action' % base.getid(snapshot)
+        url = f'/snapshots/{base.getid(snapshot)}/action'
         return self.api.client.post(url, body=body)

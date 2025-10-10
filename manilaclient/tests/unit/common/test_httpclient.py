@@ -23,69 +23,85 @@ from manilaclient.tests.unit import utils
 
 fake_user_agent = "fake"
 
-fake_response = utils.TestResponse({
-    "status_code": 200,
-    "text": '{"hi": "there"}',
-})
+fake_response = utils.TestResponse(
+    {
+        "status_code": 200,
+        "text": '{"hi": "there"}',
+    }
+)
 mock_request = mock.Mock(return_value=(fake_response))
 
-bad_400_response = utils.TestResponse({
-    "status_code": 400,
-    "text": '{"error": {"message": "n/a", "details": "Terrible!"}}',
-})
+bad_400_response = utils.TestResponse(
+    {
+        "status_code": 400,
+        "text": '{"error": {"message": "n/a", "details": "Terrible!"}}',
+    }
+)
 bad_400_request = mock.Mock(return_value=(bad_400_response))
 
-bad_401_response = utils.TestResponse({
-    "status_code": 401,
-    "text": '{"error": {"message": "FAILED!", "details": "DETAILS!"}}',
-})
+bad_401_response = utils.TestResponse(
+    {
+        "status_code": 401,
+        "text": '{"error": {"message": "FAILED!", "details": "DETAILS!"}}',
+    }
+)
 bad_401_request = mock.Mock(return_value=(bad_401_response))
 
-bad_500_response = utils.TestResponse({
-    "status_code": 500,
-    "text": '{"error": {"message": "FAILED!", "details": "DETAILS!"}}',
-})
+bad_500_response = utils.TestResponse(
+    {
+        "status_code": 500,
+        "text": '{"error": {"message": "FAILED!", "details": "DETAILS!"}}',
+    }
+)
 bad_500_request = mock.Mock(return_value=(bad_500_response))
 
-retry_after_response = utils.TestResponse({
-    "status_code": 413,
-    "text": '',
-    "headers": {
-        "retry-after": "5"
-    },
-})
+retry_after_response = utils.TestResponse(
+    {
+        "status_code": 413,
+        "text": '',
+        "headers": {"retry-after": "5"},
+    }
+)
 retry_after_mock_request = mock.Mock(return_value=retry_after_response)
 
-retry_after_no_headers_response = utils.TestResponse({
-    "status_code": 413,
-    "text": '',
-})
+retry_after_no_headers_response = utils.TestResponse(
+    {
+        "status_code": 413,
+        "text": '',
+    }
+)
 retry_after_no_headers_mock_request = mock.Mock(
-    return_value=retry_after_no_headers_response)
+    return_value=retry_after_no_headers_response
+)
 
-retry_after_non_supporting_response = utils.TestResponse({
-    "status_code": 403,
-    "text": '',
-    "headers": {
-        "retry-after": "5"
-    },
-})
+retry_after_non_supporting_response = utils.TestResponse(
+    {
+        "status_code": 403,
+        "text": '',
+        "headers": {"retry-after": "5"},
+    }
+)
 retry_after_non_supporting_mock_request = mock.Mock(
-    return_value=retry_after_non_supporting_response)
+    return_value=retry_after_non_supporting_response
+)
 
 
 def get_authed_client(endpoint_url="http://example.com", retries=0):
-    cl = httpclient.HTTPClient(endpoint_url, "token", fake_user_agent,
-                               retries=retries, http_log_debug=True,
-                               api_version=manilaclient.API_MAX_VERSION)
+    cl = httpclient.HTTPClient(
+        endpoint_url,
+        "token",
+        fake_user_agent,
+        retries=retries,
+        http_log_debug=True,
+        api_version=manilaclient.API_MAX_VERSION,
+    )
     return cl
 
 
 @ddt.ddt
 class ClientTest(utils.TestCase):
-
     def setUp(self):
-        super(ClientTest, self).setUp()
+        super().setUp()
         self.max_version = manilaclient.API_MAX_VERSION
         self.max_version_str = self.max_version.get_string()
 
@@ -99,7 +115,8 @@ class ClientTest(utils.TestCase):
         "http://10.10.10.10:3366/v2/b2d18606-2673-4965-885a-4f5a8b955b9b",
         "http://manila.example.com:3366/v1.1/",
         "http://manila.example.com:3366/v2/"
-        "b2d18606-2673-4965-885a-4f5a8b955b9b")
+        "b2d18606-2673-4965-885a-4f5a8b955b9b",
+    )
     def test_get(self, endpoint_url):
         cl = get_authed_client(endpoint_url)
 
@@ -117,11 +134,14 @@ class ClientTest(utils.TestCase):
                 "GET",
                 endpoint_url + "/hi",
                 headers=headers,
-                **self.TEST_REQUEST_BASE)
+                **self.TEST_REQUEST_BASE,
+            )
             # Automatic JSON parsing
             self.assertEqual(body, {"hi": "there"})
-            self.assertEqual(re.split(r'/v[0-9]+[\.0-9]*',
-                                      endpoint_url)[0] + "/", cl.base_url)
+            self.assertEqual(
+                re.split(r'/v[0-9]+[\.0-9]*', endpoint_url)[0] + "/",
+                cl.base_url,
+            )
 
         test_get_call()
 
@@ -212,7 +232,8 @@ class ClientTest(utils.TestCase):
         "http://10.10.10.10:3366/v2/b2d18606-2673-4965-885a-4f5a8b955b9b",
         "http://manila.example.com:3366/v2.22/",
         "http://manila.example.com:3366/v1/"
-        "b2d18606-2673-4965-885a-4f5a8b955b9b")
+        "b2d18606-2673-4965-885a-4f5a8b955b9b",
+    )
     def test_post(self, endpoint_url):
         cl = get_authed_client(endpoint_url)
 
@@ -224,15 +245,18 @@ class ClientTest(utils.TestCase):
                 "Content-Type": "application/json",
                 'Accept': 'application/json',
                 "X-Openstack-Manila-Api-Version": self.max_version_str,
-                "User-Agent": fake_user_agent
+                "User-Agent": fake_user_agent,
             }
             mock_request.assert_called_with(
                 "POST",
                 endpoint_url + "/hi",
                 headers=headers,
                 data='[1, 2, 3]',
-                **self.TEST_REQUEST_BASE)
-            self.assertEqual(re.split(r'/v[0-9]+[\.0-9]*',
-                                      endpoint_url)[0] + "/", cl.base_url)
+                **self.TEST_REQUEST_BASE,
+            )
+            self.assertEqual(
+                re.split(r'/v[0-9]+[\.0-9]*', endpoint_url)[0] + "/",
+                cl.base_url,
+            )
 
         test_post_call()

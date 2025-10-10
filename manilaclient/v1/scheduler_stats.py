@@ -19,13 +19,15 @@ import warnings
 
 from manilaclient.v2 import scheduler_stats
 
-warnings.warn("Module manilaclient.v1.scheduler_stats is deprecated (taken as "
-              "a basis for manilaclient.v2.scheduler_stats). "
-              "The preferable way to get a client class or object is to use "
-              "the manilaclient.client module.")
+warnings.warn(
+    "Module manilaclient.v1.scheduler_stats is deprecated (taken as "
+    "a basis for manilaclient.v2.scheduler_stats). "
+    "The preferable way to get a client class or object is to use "
+    "the manilaclient.client module."
+)
 
 
-class MovedModule(object):
+class MovedModule:
     def __init__(self, new_module):
         self.new_module = new_module
 

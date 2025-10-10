@@ -24,14 +24,13 @@ ACTION_PATH = RESOURCE_PATH + '/action'
 
 
 class ShareServer(base.Resource):
-
     def __repr__(self):
-        return "<ShareServer: %s>" % self.id
+        return f"<ShareServer: {self.id}>"
 
     def __getattr__(self, attr):
         if attr == 'share_network':
             attr = 'share_network_name'
-        return super(ShareServer, self).__getattr__(attr)
+        return super().__getattr__(attr)
 
     def delete(self):
         """Delete this share server."""
@@ -45,19 +44,41 @@ class ShareServer(base.Resource):
         """Update the share server with the provided state."""
         self.manager.reset_state(self, state)
 
-    def migration_check(self, host, writable, nondisruptive,
-                        preserve_snapshots, new_share_network_id=None):
+    def migration_check(
+        self,
+        host,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+    ):
         """Check if the new host is suitable for migration."""
         return self.manager.migration_check(
-            self, host, writable, nondisruptive,
-            preserve_snapshots, new_share_network_id=new_share_network_id)
+            self,
+            host,
+            writable,
+            nondisruptive,
+            preserve_snapshots,
+            new_share_network_id=new_share_network_id,
+        )
 
-    def migration_start(self, host, writable, nondisruptive,
-                        preserve_snapshots, new_share_network_id=None):
+    def migration_start(
+        self,
+        host,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+    ):
         """Migrate the share server to a new host."""
         self.manager.migration_start(
-            self, host, writable, nondisruptive,
-            preserve_snapshots, new_share_network_id=new_share_network_id)
+            self,
+            host,
+            writable,
+            nondisruptive,
+            preserve_snapshots,
+            new_share_network_id=new_share_network_id,
+        )
 
     def migration_complete(self):
         """Complete migration of a share server."""
@@ -78,6 +99,7 @@ class ShareServer(base.Resource):
 
 class ShareServerManager(base.ManagerWithFind):
     """Manage :class:`ShareServer` resources."""
+
     resource_class = ShareServer
 
     def get(self, server):
@@ -87,8 +109,7 @@ class ShareServerManager(base.ManagerWithFind):
         :rtype: :class:`ShareServer`
         """
         server_id = base.getid(server)
-        server = self._get("%s/%s" % (RESOURCES_PATH, server_id),
-                           RESOURCE_NAME)
+        server = self._get(f"{RESOURCES_PATH}/{server_id}", RESOURCE_NAME)
         # Split big dict 'backend_details' to separated strings
         # as next:
         # +---------------------+------------------------------------+
@@ -97,7 +118,7 @@ class ShareServerManager(base.ManagerWithFind):
         # | details:instance_id |35203a78-c733-4b1f-b82c-faded312e537|
         # +---------------------+------------------------------------+
         for k, v in server._info["backend_details"].items():
-            server._info["details:%s" % k] = v
+            server._info[f"details:{k}"] = v
         return server
 
     def details(self, server):
@@ -107,8 +128,7 @@ class ShareServerManager(base.ManagerWithFind):
         :rtype: list of :class:`ShareServerBackendDetails
         """
         server_id = base.getid(server)
-        return self._get("%s/%s/details" % (RESOURCES_PATH, server_id),
-                         "details")
+        return self._get(f"{RESOURCES_PATH}/{server_id}/details", "details")
 
     def delete(self, server):
         """Delete share server.
@@ -128,7 +148,6 @@ class ShareServerManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.49", "2.50")
     def manage(self, host, share_network_id, identifier, driver_options=None):
-
         driver_options = driver_options or {}
         body = {
             'host': host,
@@ -138,13 +157,19 @@ class ShareServerManager(base.ManagerWithFind):
         }
 
         resource_path = RESOURCE_PATH % 'manage'
-        return self._create(resource_path, {'share_server': body},
-                            'share_server')
+        return self._create(
+            resource_path, {'share_server': body}, 'share_server'
+        )
 
     @api_versions.wraps("2.51")  # noqa
-    def manage(self, host, share_network_id, identifier,  # noqa
-               share_network_subnet_id=None, driver_options=None):
-
+    def manage(  # noqa
+        self,
+        host,
+        share_network_id,
+        identifier,
+        share_network_subnet_id=None,
+        driver_options=None,
+    ):
         driver_options = driver_options or {}
         body = {
             'host': host,
@@ -155,8 +180,9 @@ class ShareServerManager(base.ManagerWithFind):
         }
 
         resource_path = RESOURCE_PATH % 'manage'
-        return self._create(resource_path, {'share_server': body},
-                            'share_server')
+        return self._create(
+            resource_path, {'share_server': body}, 'share_server'
+        )
 
     @api_versions.wraps("2.49")
     def unmanage(self, share_server, force=False):
@@ -185,8 +211,15 @@ class ShareServerManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.57")
     @api_versions.experimental_api
-    def migration_check(self, share_server, host, writable, nondisruptive,
-                        preserve_snapshots, new_share_network_id=None):
+    def migration_check(
+        self,
+        share_server,
+        host,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+    ):
         """Check the share server migration to a new host
 
         :param share_server: either share_server object or text with its ID.
@@ -197,20 +230,29 @@ class ShareServerManager(base.ManagerWithFind):
         :param new_share_network_id: Specify the new share network id.
         """
         result = self._action(
-            "migration_check", share_server, {
+            "migration_check",
+            share_server,
+            {
                 "host": host,
                 "preserve_snapshots": preserve_snapshots,
                 "writable": writable,
                 "nondisruptive": nondisruptive,
                 "new_share_network_id": new_share_network_id,
-            })
+            },
+        )
         return result[1]
 
     @api_versions.wraps("2.57")
     @api_versions.experimental_api
-    def migration_start(self, share_server, host, writable,
-                        nondisruptive, preserve_snapshots,
-                        new_share_network_id=None):
+    def migration_start(
+        self,
+        share_server,
+        host,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+    ):
         """Migrates share server to a new host
 
         :param share_server: either share_server object or text with its ID.
@@ -221,13 +263,16 @@ class ShareServerManager(base.ManagerWithFind):
         :param new_share_network_id: Specify the new share network id.
         """
         return self._action(
-            "migration_start", share_server, {
+            "migration_start",
+            share_server,
+            {
                 "host": host,
                 "writable": writable,
                 "nondisruptive": nondisruptive,
                 "preserve_snapshots": preserve_snapshots,
                 "new_share_network_id": new_share_network_id,
-            })
+            },
+        )
 
     @api_versions.wraps("2.57")
     @api_versions.experimental_api
@@ -237,8 +282,9 @@ class ShareServerManager(base.ManagerWithFind):
         :param share_server: either share_server object or text with its ID.
         :param task_state: text with new task state to set for share.
         """
-        return self._action('reset_task_state', share_server,
-                            {"task_state": task_state})
+        return self._action(
+            'reset_task_state', share_server, {"task_state": task_state}
+        )
 
     @api_versions.wraps("2.57")
     @api_versions.experimental_api
@@ -258,8 +304,7 @@ class ShareServerManager(base.ManagerWithFind):
 
         :param share_server: either share_server object or text with its ID.
         """
-        return self._action('migration_cancel',
-                            share_server)
+        return self._action('migration_cancel', share_server)
 
     @api_versions.wraps("2.57")
     @api_versions.experimental_api

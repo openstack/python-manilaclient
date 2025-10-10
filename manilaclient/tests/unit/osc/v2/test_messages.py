@@ -31,24 +31,22 @@ COLUMNS = [
 
 
 class TestMessage(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestMessage, self).setUp()
+        super().setUp()
 
         self.messages_mock = self.app.client_manager.share.messages
         self.messages_mock.reset_mock()
 
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
 
 class TestMessageDelete(TestMessage):
-
     def setUp(self):
-        super(TestMessageDelete, self).setUp()
+        super().setUp()
 
-        self.message = (
-            manila_fakes.FakeMessage.create_one_message())
+        self.message = manila_fakes.FakeMessage.create_one_message()
 
         self.messages_mock.get.return_value = self.message
 
@@ -58,16 +56,17 @@ class TestMessageDelete(TestMessage):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_message_delete(self):
-        arglist = [
-            self.message.id
-        ]
-        verifylist = [
-            ('message', [self.message.id])
-        ]
+        arglist = [self.message.id]
+        verifylist = [('message', [self.message.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -77,47 +76,33 @@ class TestMessageDelete(TestMessage):
         self.assertIsNone(result)
 
     def test_message_delete_multiple(self):
-        messages = (
-            manila_fakes.FakeMessage.create_messages(
-                count=2))
-        arglist = [
-            messages[0].id,
-            messages[1].id
-        ]
-        verifylist = [
-            ('message', [messages[0].id, messages[1].id])
-        ]
+        messages = manila_fakes.FakeMessage.create_messages(count=2)
+        arglist = [messages[0].id, messages[1].id]
+        verifylist = [('message', [messages[0].id, messages[1].id])]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.messages_mock.delete.call_count,
-                         len(messages))
+        self.assertEqual(self.messages_mock.delete.call_count, len(messages))
         self.assertIsNone(result)
 
     def test_message_delete_exception(self):
-        arglist = [
-            self.message.id
-        ]
-        verifylist = [
-            ('message', [self.message.id])
-        ]
+        arglist = [self.message.id]
+        verifylist = [('message', [self.message.id])]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.messages_mock.delete.side_effect = exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestMessageShow(TestMessage):
-
     def setUp(self):
-        super(TestMessageShow, self).setUp()
+        super().setUp()
 
-        self.message = (
-            manila_fakes.FakeMessage.create_one_message())
+        self.message = manila_fakes.FakeMessage.create_one_message()
         self.messages_mock.get.return_value = self.message
 
         self.cmd = osc_messages.ShowMessage(self.app, None)
@@ -129,16 +114,17 @@ class TestMessageShow(TestMessage):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_message_show(self):
-        arglist = [
-            self.message.id
-        ]
-        verifylist = [
-            ('message', self.message.id)
-        ]
+        arglist = [self.message.id]
+        verifylist = [('message', self.message.id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         columns, data = self.cmd.take_action(parsed_args)
@@ -148,18 +134,17 @@ class TestMessageShow(TestMessage):
 
 
 class TestMessageList(TestMessage):
-
     def setUp(self):
-        super(TestMessageList, self).setUp()
+        super().setUp()
 
-        self.messages = (
-            manila_fakes.FakeMessage.create_messages(
-                count=2))
+        self.messages = manila_fakes.FakeMessage.create_messages(count=2)
 
         self.messages_mock.list.return_value = self.messages
 
-        self.values = (oscutils.get_dict_properties(
-            m._info, COLUMNS) for m in self.messages)
+        self.values = (
+            oscutils.get_dict_properties(m._info, COLUMNS)
+            for m in self.messages
+        )
 
         self.cmd = osc_messages.ListMessage(self.app, None)
 
@@ -181,28 +166,31 @@ class TestMessageList(TestMessage):
                 'detail_id': None,
                 'message_level': None,
                 'created_since': None,
-                'created_before': None
-            })
+                'created_before': None,
+            }
+        )
 
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(self.values), list(data))
 
     def test_list_messages_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.50")
+            "2.50"
+        )
 
         arglist = [
-            '--before', '2021-02-06T09:49:58-05:00',
-            '--since', '2021-02-05T09:49:58-05:00'
+            '--before',
+            '2021-02-06T09:49:58-05:00',
+            '--since',
+            '2021-02-05T09:49:58-05:00',
         ]
         verifylist = [
             ('before', '2021-02-06T09:49:58-05:00'),
-            ('since', '2021-02-05T09:49:58-05:00')
+            ('since', '2021-02-05T09:49:58-05:00'),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )

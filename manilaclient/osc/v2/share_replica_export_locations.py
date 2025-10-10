@@ -21,12 +21,9 @@ class ShareReplicaListExportLocation(command.Lister):
     _description = _("List export locations of a share replica.")
 
     def get_parser(self, prog_name):
-        parser = super(
-            ShareReplicaListExportLocation, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
-            "replica",
-            metavar="<replica>",
-            help=_("ID of the share replica.")
+            "replica", metavar="<replica>", help=_("ID of the share replica.")
         )
         return parser
 
@@ -42,14 +39,17 @@ class ShareReplicaListExportLocation(command.Lister):
         ]
 
         replica = osc_utils.find_resource(
-            share_client.share_replicas,
-            parsed_args.replica)
+            share_client.share_replicas, parsed_args.replica
+        )
 
         export_locations = share_client.share_replica_export_locations.list(
-            replica)
+            replica
+        )
 
-        data = (osc_utils.get_dict_properties(
-            location._info, columns) for location in export_locations)
+        data = (
+            osc_utils.get_dict_properties(location._info, columns)
+            for location in export_locations
+        )
 
         return (columns, data)
 
@@ -60,17 +60,14 @@ class ShareReplicaShowExportLocation(command.ShowOne):
     _description = _("Show details of a share replica's export location.")
 
     def get_parser(self, prog_name):
-        parser = super(
-            ShareReplicaShowExportLocation, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
-            "replica",
-            metavar="<replica>",
-            help=_("ID of the share replica.")
+            "replica", metavar="<replica>", help=_("ID of the share replica.")
         )
         parser.add_argument(
             "export_location",
             metavar="<export-location>",
-            help=_("ID of the share replica export location.")
+            help=_("ID of the share replica export location."),
         )
         return parser
 
@@ -78,10 +75,11 @@ class ShareReplicaShowExportLocation(command.ShowOne):
         share_client = self.app.client_manager.share
 
         replica = osc_utils.find_resource(
-            share_client.share_replicas,
-            parsed_args.replica)
+            share_client.share_replicas, parsed_args.replica
+        )
 
         export_location = share_client.share_replica_export_locations.get(
-            replica, parsed_args.export_location)
+            replica, parsed_args.export_location
+        )
 
         return self.dict2columns(export_location._info)

@@ -34,9 +34,10 @@ from manilaclient.v2 import share_types
 from manilaclient.v2 import shares
 
 
-@removals.removed_class("Client", message="Please use 'v2.Client' instead",
-                        removal_version='2.0.0')
-class Client(object):
+@removals.removed_class(
+    "Client", message="Please use 'v2.Client' instead", removal_version='2.0.0'
+)
+class Client:
     """Top-level object to access the OpenStack Manila API.
 
     Create an instance with your creds::
@@ -66,26 +67,42 @@ class Client(object):
         >>> client.shares.list()
         ...
     """
-    def __init__(self, username=None, project_id=None, auth_url=None,
-                 insecure=False, timeout=None, tenant_id=None,
-                 project_name=None, region_name=None,
-                 endpoint_type='publicURL', extensions=None,
-                 service_type=constants.V1_SERVICE_TYPE, service_name=None,
-                 retries=None, http_log_debug=False, input_auth_token=None,
-                 session=None, auth=None, cacert=None,
-                 service_catalog_url=None, user_agent='python-manilaclient',
-                 use_keyring=False, force_new_token=False,
-                 cached_token_lifetime=300,
-                 api_version=manilaclient.API_DEPRECATED_VERSION,
-                 user_id=None,
-                 user_domain_id=None,
-                 user_domain_name=None,
-                 project_domain_id=None,
-                 project_domain_name=None,
-                 cert=None,
-                 password=None,
-                 **kwargs):
 
+    def __init__(
+        self,
+        username=None,
+        project_id=None,
+        auth_url=None,
+        insecure=False,
+        timeout=None,
+        tenant_id=None,
+        project_name=None,
+        region_name=None,
+        endpoint_type='publicURL',
+        extensions=None,
+        service_type=constants.V1_SERVICE_TYPE,
+        service_name=None,
+        retries=None,
+        http_log_debug=False,
+        input_auth_token=None,
+        session=None,
+        auth=None,
+        cacert=None,
+        service_catalog_url=None,
+        user_agent='python-manilaclient',
+        use_keyring=False,
+        force_new_token=False,
+        cached_token_lifetime=300,
+        api_version=manilaclient.API_DEPRECATED_VERSION,
+        user_id=None,
+        user_domain_id=None,
+        user_domain_name=None,
+        project_domain_id=None,
+        project_domain_name=None,
+        cert=None,
+        password=None,
+        **kwargs,
+    ):
         self.username = username
         self.password = password
         self.tenant_id = tenant_id or project_id
@@ -112,8 +129,10 @@ class Client(object):
         self.cached_token_lifetime = cached_token_lifetime
 
         if input_auth_token and not service_catalog_url:
-            msg = ("For token-based authentication you should "
-                   "provide 'input_auth_token' and 'service_catalog_url'.")
+            msg = (
+                "For token-based authentication you should "
+                "provide 'input_auth_token' and 'service_catalog_url'."
+            )
             raise exceptions.ClientException(msg)
 
         self.project_id = tenant_id if tenant_id is not None else project_id
@@ -131,7 +150,8 @@ class Client(object):
                     interface=endpoint_type,
                     service_type=service_type,
                     service_name=service_name,
-                    region_name=region_name)
+                    region_name=region_name,
+                )
                 input_auth_token = self.keystone_client.session.get_token(auth)
 
             else:
@@ -143,38 +163,43 @@ class Client(object):
 
         if session and not service_catalog_url:
             service_catalog_url = self.keystone_client.session.get_endpoint(
-                auth, interface=endpoint_type,
-                service_type=service_type)
+                auth, interface=endpoint_type, service_type=service_type
+            )
         elif not service_catalog_url:
             catalog = self.keystone_client.service_catalog.get_endpoints(
-                service_type)
+                service_type
+            )
             for catalog_entry in catalog.get(service_type, []):
-                if (catalog_entry.get("interface") == (
-                        endpoint_type.lower().split("url")[0]) or
-                        catalog_entry.get(endpoint_type)):
-                    if (region_name and not region_name == (
-                            catalog_entry.get(
-                                "region",
-                                catalog_entry.get("region_id")))):
+                if catalog_entry.get("interface") == (
+                    endpoint_type.lower().split("url")[0]
+                ) or catalog_entry.get(endpoint_type):
+                    if region_name and not region_name == (
+                        catalog_entry.get(
+                            "region", catalog_entry.get("region_id")
+                        )
+                    ):
                         continue
                     service_catalog_url = catalog_entry.get(
-                        "url", catalog_entry.get(endpoint_type))
+                        "url", catalog_entry.get(endpoint_type)
+                    )
                     break
 
         if not service_catalog_url:
             raise RuntimeError("Could not find Manila endpoint in catalog")
 
         self.api_version = api_version
-        self.client = httpclient.HTTPClient(service_catalog_url,
-                                            input_auth_token,
-                                            user_agent,
-                                            insecure=insecure,
-                                            cacert=cacert,
-                                            cert=cert,
-                                            timeout=timeout,
-                                            retries=retries,
-                                            http_log_debug=http_log_debug,
-                                            api_version=self.api_version)
+        self.client = httpclient.HTTPClient(
+            service_catalog_url,
+            input_auth_token,
+            user_agent,
+            insecure=insecure,
+            cacert=cacert,
+            cert=cert,
+            timeout=timeout,
+            retries=retries,
+            http_log_debug=http_log_debug,
+            api_version=self.api_version,
+        )
 
         self.limits = limits.LimitsManager(self)
         self.services = services.ServiceManager(self)
@@ -217,7 +242,8 @@ class Client(object):
         if not auth_url:
             raise exceptions.CommandError(
                 'Unable to determine the Keystone version to authenticate '
-                'with using the given auth_url.')
+                'with using the given auth_url.'
+            )
 
         keystone_client = ks_client.Client(
             session=ks_session,
@@ -232,7 +258,8 @@ class Client(object):
             project_name=self.project_name,
             project_domain_name=self.project_domain_name,
             project_domain_id=self.project_domain_id,
-            region_name=self.region_name)
+            region_name=self.region_name,
+        )
 
         keystone_client.authenticate()
         return keystone_client

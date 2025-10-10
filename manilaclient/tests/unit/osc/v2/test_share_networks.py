@@ -37,23 +37,23 @@ COLUMNS_DETAIL = [
 
 
 class TestShareNetwork(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareNetwork, self).setUp()
+        super().setUp()
         self.share_networks_mock = self.app.client_manager.share.share_networks
         self.share_networks_mock.reset_mock()
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            api_versions.MAX_VERSION)
+            api_versions.MAX_VERSION
+        )
 
 
 @ddt.ddt
 class TestShareNetworkCreate(TestShareNetwork):
-
     def setUp(self):
-        super(TestShareNetworkCreate, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.create.return_value = self.share_network
 
         self.cmd = osc_share_networks.CreateShareNetwork(self.app, None)
@@ -64,7 +64,8 @@ class TestShareNetworkCreate(TestShareNetwork):
     @ddt.data('table', 'yaml')
     def test_share_network_create_formatter(self, formatter):
         arglist = [
-            '-f', formatter,
+            '-f',
+            formatter,
         ]
         verifylist = [
             ('formatter', formatter),
@@ -79,7 +80,8 @@ class TestShareNetworkCreate(TestShareNetwork):
             name=None,
             description=None,
             neutron_net_id=None,
-            neutron_subnet_id=None)
+            neutron_subnet_id=None,
+        )
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(expected_data.values(), data)
@@ -92,11 +94,16 @@ class TestShareNetworkCreate(TestShareNetwork):
         fake_az.id = str(uuid.uuid4())
 
         arglist = [
-            '--name', 'zorilla-net',
-            '--description', 'fastest-backdoor-network-ever',
-            '--neutron-net-id', fake_neutron_net_id,
-            '--neutron-subnet-id', fake_neutron_subnet_id,
-            '--availability-zone', 'nova',
+            '--name',
+            'zorilla-net',
+            '--description',
+            'fastest-backdoor-network-ever',
+            '--neutron-net-id',
+            fake_neutron_net_id,
+            '--neutron-subnet-id',
+            fake_neutron_subnet_id,
+            '--availability-zone',
+            'nova',
         ]
         verifylist = [
             ('name', 'zorilla-net'),
@@ -107,8 +114,7 @@ class TestShareNetworkCreate(TestShareNetwork):
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=fake_az):
+        with mock.patch('osc_lib.utils.find_resource', return_value=fake_az):
             columns, data = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.create.assert_called_once_with(
@@ -130,13 +136,17 @@ class TestShareNetworkCreate(TestShareNetwork):
         self.app.client_manager.network = neutron_client
 
         neutron_client.find_network.return_value = mock.Mock(
-            id=fake_neutron_net_id)
+            id=fake_neutron_net_id
+        )
         neutron_client.find_subnet.return_value = mock.Mock(
-            id=fake_neutron_subnet_id)
+            id=fake_neutron_subnet_id
+        )
 
         arglist = [
-            '--neutron-net-id', fake_neutron_net_id,
-            '--neutron-subnet-id', fake_neutron_subnet_id,
+            '--neutron-net-id',
+            fake_neutron_net_id,
+            '--neutron-subnet-id',
+            fake_neutron_subnet_id,
         ]
         verifylist = [
             ('neutron_net_id', fake_neutron_net_id),
@@ -146,14 +156,16 @@ class TestShareNetworkCreate(TestShareNetwork):
         columns, data = self.cmd.take_action(parsed_args)
 
         neutron_client.find_network.assert_called_once_with(
-            fake_neutron_net_id, ignore_missing=False)
+            fake_neutron_net_id, ignore_missing=False
+        )
         neutron_client.find_subnet.assert_called_once_with(
-            fake_neutron_subnet_id, ignore_missing=False)
+            fake_neutron_subnet_id, ignore_missing=False
+        )
         self.share_networks_mock.create.assert_called_once_with(
             name=None,
             description=None,
             neutron_net_id=fake_neutron_net_id,
-            neutron_subnet_id=fake_neutron_subnet_id
+            neutron_subnet_id=fake_neutron_subnet_id,
         )
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
@@ -165,24 +177,20 @@ class TestShareNetworkCreate(TestShareNetwork):
         self.app.client_manager.network = neutron_client
 
         neutron_client.find_network.side_effect = Exception(
-            "Network not found")
+            "Network not found"
+        )
 
-        arglist = [
-            '--neutron-net-id', fake_neutron_net_id
-        ]
-        verifylist = [
-            ('neutron_net_id', fake_neutron_net_id)
-        ]
+        arglist = ['--neutron-net-id', fake_neutron_net_id]
+        verifylist = [('neutron_net_id', fake_neutron_net_id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args
+            exceptions.CommandError, self.cmd.take_action, parsed_args
         )
 
         neutron_client.find_network.assert_called_once_with(
-            fake_neutron_net_id, ignore_missing=False)
+            fake_neutron_net_id, ignore_missing=False
+        )
         self.share_networks_mock.create.assert_not_called()
 
     def test_share_network_create_with_invalid_neutron_subnet(self):
@@ -191,36 +199,30 @@ class TestShareNetworkCreate(TestShareNetwork):
         neutron_client = mock.Mock()
         self.app.client_manager.network = neutron_client
 
-        neutron_client.find_subnet.side_effect = Exception(
-            "Subnet not found")
+        neutron_client.find_subnet.side_effect = Exception("Subnet not found")
 
-        arglist = [
-            '--neutron-subnet-id', fake_neutron_subnet_id
-        ]
-        verifylist = [
-            ('neutron_subnet_id', fake_neutron_subnet_id)
-        ]
+        arglist = ['--neutron-subnet-id', fake_neutron_subnet_id]
+        verifylist = [('neutron_subnet_id', fake_neutron_subnet_id)]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args
+            exceptions.CommandError, self.cmd.take_action, parsed_args
         )
 
         neutron_client.find_subnet.assert_called_once_with(
-            fake_neutron_subnet_id, ignore_missing=False)
+            fake_neutron_subnet_id, ignore_missing=False
+        )
         self.share_networks_mock.create.assert_not_called()
 
 
 @ddt.ddt
 class TestShareNetworkDelete(TestShareNetwork):
-
     def setUp(self):
-        super(TestShareNetworkDelete, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
 
         self.share_networks_mock.get.return_value = self.share_network
 
@@ -230,15 +232,20 @@ class TestShareNetworkDelete(TestShareNetwork):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     @ddt.data(True, False)
     def test_share_network_delete_with_wait(self, wait):
         oscutils.wait_for_delete = mock.Mock(return_value=True)
-        share_networks = (
-            manila_fakes.FakeShareNetwork.create_share_networks(
-                count=2))
+        share_networks = manila_fakes.FakeShareNetwork.create_share_networks(
+            count=2
+        )
         arglist = [
             share_networks[0].id,
             share_networks[1].name,
@@ -253,19 +260,27 @@ class TestShareNetworkDelete(TestShareNetwork):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        side_effect=share_networks):
+        with mock.patch(
+            'osc_lib.utils.find_resource', side_effect=share_networks
+        ):
             result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.share_networks_mock.delete.call_count,
-                         len(share_networks))
+        self.assertEqual(
+            self.share_networks_mock.delete.call_count, len(share_networks)
+        )
         if wait:
-            oscutils.wait_for_delete.assert_has_calls([
-                mock.call(manager=self.share_networks_mock,
-                          res_id=share_networks[0].id),
-                mock.call(manager=self.share_networks_mock,
-                          res_id=share_networks[1].id)
-            ])
+            oscutils.wait_for_delete.assert_has_calls(
+                [
+                    mock.call(
+                        manager=self.share_networks_mock,
+                        res_id=share_networks[0].id,
+                    ),
+                    mock.call(
+                        manager=self.share_networks_mock,
+                        res_id=share_networks[1].id,
+                    ),
+                ]
+            )
         self.assertIsNone(result)
 
     def test_share_network_delete_exception(self):
@@ -279,9 +294,9 @@ class TestShareNetworkDelete(TestShareNetwork):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.share_networks_mock.delete.side_effect = exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_network_delete_wait_fails(self):
         oscutils.wait_for_delete = mock.Mock(return_value=False)
@@ -294,28 +309,31 @@ class TestShareNetworkDelete(TestShareNetwork):
             ('wait', True),
         ]
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network):
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ):
             parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
         self.share_networks_mock.delete.assert_called_once_with(
-            self.share_network)
+            self.share_network
+        )
 
 
 @ddt.ddt
 class TestShareNetworkShow(TestShareNetwork):
-
     def setUp(self):
-        super(TestShareNetworkShow, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
         self.security_services_mock = (
-            self.app.client_manager.share.security_services)
+            self.app.client_manager.share.security_services
+        )
 
         self.cmd = osc_share_networks.ShowShareNetwork(self.app, None)
 
@@ -326,17 +344,23 @@ class TestShareNetworkShow(TestShareNetwork):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     @ddt.data('name', 'id')
     def test_share_network_show_by(self, attr):
         network_to_show = getattr(self.share_network, attr)
         fake_security_service = mock.Mock()
         fake_security_service.id = str(uuid.uuid4())
-        fake_security_service.name = 'security-service-%s' % uuid.uuid4().hex
+        fake_security_service.name = f'security-service-{uuid.uuid4().hex}'
         self.security_services_mock.list = mock.Mock(
-            return_value=[fake_security_service])
+            return_value=[fake_security_service]
+        )
 
         arglist = [
             network_to_show,
@@ -347,34 +371,36 @@ class TestShareNetworkShow(TestShareNetwork):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network) as find_resource:
-
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ) as find_resource:
             columns, data = self.cmd.take_action(parsed_args)
 
             find_resource.assert_called_once_with(
-                self.share_networks_mock, network_to_show)
+                self.share_networks_mock, network_to_show
+            )
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
 
 @ddt.ddt
 class TestShareNetworkList(TestShareNetwork):
-
     def setUp(self):
-        super(TestShareNetworkList, self).setUp()
+        super().setUp()
 
         self.share_networks = (
-            manila_fakes.FakeShareNetwork.create_share_networks(
-                count=2))
-        self.share_networks_list = oscutils.sort_items(self.share_networks,
-                                                       'name:asc',
-                                                       str)
+            manila_fakes.FakeShareNetwork.create_share_networks(count=2)
+        )
+        self.share_networks_list = oscutils.sort_items(
+            self.share_networks, 'name:asc', str
+        )
 
         self.share_networks_mock.list.return_value = self.share_networks_list
 
-        self.values = (oscutils.get_dict_properties(
-            s._info, COLUMNS) for s in self.share_networks_list)
+        self.values = (
+            oscutils.get_dict_properties(s._info, COLUMNS)
+            for s in self.share_networks_list
+        )
         self.expected_search_opts = {
             'all_tenants': False,
             'project_id': None,
@@ -399,20 +425,25 @@ class TestShareNetworkList(TestShareNetwork):
     def test_list_share_networks_with_search_opts(self, with_search_opts):
         if with_search_opts:
             arglist = [
-                '--name', 'foo',
-                '--ip-version', '4',
-                '--description~', 'foo-share-network',
+                '--name',
+                'foo',
+                '--ip-version',
+                '4',
+                '--description~',
+                'foo-share-network',
             ]
             verifylist = [
                 ('name', 'foo'),
                 ('ip_version', '4'),
                 ('description~', 'foo-share-network'),
             ]
-            self.expected_search_opts.update({
-                'name': 'foo',
-                'ip_version': '4',
-                'description~': 'foo-share-network',
-            })
+            self.expected_search_opts.update(
+                {
+                    'name': 'foo',
+                    'ip_version': '4',
+                    'description~': 'foo-share-network',
+                }
+            )
         else:
             arglist = []
             verifylist = []
@@ -422,7 +453,8 @@ class TestShareNetworkList(TestShareNetwork):
         columns, data = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.list.assert_called_once_with(
-            search_opts=self.expected_search_opts)
+            search_opts=self.expected_search_opts
+        )
         self.assertEqual(COLUMNS, columns)
         self.assertEqual(list(self.values), list(data))
 
@@ -430,8 +462,10 @@ class TestShareNetworkList(TestShareNetwork):
         all_tenants_list = COLUMNS.copy()
         all_tenants_list.append('Project ID')
         self.expected_search_opts.update({'all_tenants': True})
-        list_values = (oscutils.get_dict_properties(
-            s._info, all_tenants_list) for s in self.share_networks_list)
+        list_values = (
+            oscutils.get_dict_properties(s._info, all_tenants_list)
+            for s in self.share_networks_list
+        )
 
         arglist = [
             '--all-projects',
@@ -446,14 +480,17 @@ class TestShareNetworkList(TestShareNetwork):
         columns, data = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.list.assert_called_once_with(
-            search_opts=self.expected_search_opts)
+            search_opts=self.expected_search_opts
+        )
 
         self.assertEqual(all_tenants_list, columns)
         self.assertEqual(list(list_values), list(data))
 
     def test_list_share_networks_detail(self):
-        values = (oscutils.get_dict_properties(
-            s._info, COLUMNS_DETAIL) for s in self.share_networks_list)
+        values = (
+            oscutils.get_dict_properties(s._info, COLUMNS_DETAIL)
+            for s in self.share_networks_list
+        )
 
         arglist = [
             '--detail',
@@ -468,13 +505,15 @@ class TestShareNetworkList(TestShareNetwork):
         columns, data = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.list.assert_called_once_with(
-            search_opts=self.expected_search_opts)
+            search_opts=self.expected_search_opts
+        )
         self.assertEqual(COLUMNS_DETAIL, columns)
         self.assertEqual(list(values), list(data))
 
     def test_list_share_networks_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.35")
+            "2.35"
+        )
 
         arglist = [
             '--description',
@@ -487,19 +526,18 @@ class TestShareNetworkList(TestShareNetwork):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 @ddt.ddt
 class TestShareNetworkUnset(TestShareNetwork):
-
     def setUp(self):
-        super(TestShareNetworkUnset, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
 
         self.share_networks_mock.get.return_value = self.share_network
         self.cmd = osc_share_networks.UnsetShareNetwork(self.app, None)
@@ -515,12 +553,14 @@ class TestShareNetworkUnset(TestShareNetwork):
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network):
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ):
             result = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.update.assert_called_once_with(
-            self.share_network, name='')
+            self.share_network, name=''
+        )
         self.assertIsNone(result)
 
     def test_unset_share_network_description(self):
@@ -537,7 +577,8 @@ class TestShareNetworkUnset(TestShareNetwork):
         result = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.update.assert_called_once_with(
-            self.share_network, description='')
+            self.share_network, description=''
+        )
         self.assertIsNone(result)
 
     @ddt.data('name', 'security_service')
@@ -559,20 +600,23 @@ class TestShareNetworkUnset(TestShareNetwork):
             self.share_networks_mock.update.side_effect = Exception()
         else:
             self.share_networks_mock.remove_security_service.side_effect = (
-                Exception())
+                Exception()
+            )
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        side_effect=[self.share_network,
-                                     'fake-security-service']):
-            self.assertRaises(exceptions.CommandError,
-                              self.cmd.take_action,
-                              parsed_args)
+        with mock.patch(
+            'osc_lib.utils.find_resource',
+            side_effect=[self.share_network, 'fake-security-service'],
+        ):
+            self.assertRaises(
+                exceptions.CommandError, self.cmd.take_action, parsed_args
+            )
         self.share_networks_mock.update.assert_called_once_with(
-            self.share_network, name='')
+            self.share_network, name=''
+        )
         if attr == 'security_service':
-            self.share_networks_mock.remove_security_service\
-                .assert_called_once_with(self.share_network,
-                                         'fake-security-service')
+            self.share_networks_mock.remove_security_service.assert_called_once_with(
+                self.share_network, 'fake-security-service'
+            )
 
     def test_unset_share_network_security_service(self):
         arglist = [
@@ -586,51 +630,58 @@ class TestShareNetworkUnset(TestShareNetwork):
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        side_effect=[self.share_network,
-                                     'fake-security-service']):
+        with mock.patch(
+            'osc_lib.utils.find_resource',
+            side_effect=[self.share_network, 'fake-security-service'],
+        ):
             result = self.cmd.take_action(parsed_args)
 
         self.assertIsNone(result)
-        self.share_networks_mock.remove_security_service\
-            .assert_called_once_with(self.share_network,
-                                     'fake-security-service')
+        self.share_networks_mock.remove_security_service.assert_called_once_with(
+            self.share_network, 'fake-security-service'
+        )
 
 
 @ddt.ddt
 class TestShareNetworkSet(TestShareNetwork):
-
     def setUp(self):
-        super(TestShareNetworkSet, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
 
         self.share_networks_mock.get.return_value = self.share_network
 
         self.cmd = osc_share_networks.SetShareNetwork(self.app, None)
 
-    @ddt.data({'status': 'error',
-               'current_security_service': str(uuid.uuid4()),
-               'check_only': True,
-               'restart_check': True},
-              {'status': None,
-               'current_security_service': str(uuid.uuid4()),
-               'check_only': True,
-               'restart_check': None},
-              {'status': None,
-               'current_security_service': str(uuid.uuid4()),
-               'check_only': True,
-               'restart_check': True},
-              )
+    @ddt.data(
+        {
+            'status': 'error',
+            'current_security_service': str(uuid.uuid4()),
+            'check_only': True,
+            'restart_check': True,
+        },
+        {
+            'status': None,
+            'current_security_service': str(uuid.uuid4()),
+            'check_only': True,
+            'restart_check': None,
+        },
+        {
+            'status': None,
+            'current_security_service': str(uuid.uuid4()),
+            'check_only': True,
+            'restart_check': True,
+        },
+    )
     @ddt.unpack
-    def test_set_share_network_api_version_exception(self,
-                                                     status,
-                                                     current_security_service,
-                                                     check_only,
-                                                     restart_check):
+    def test_set_share_network_api_version_exception(
+        self, status, current_security_service, check_only, restart_check
+    ):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
-            "2.62")
+            "2.62"
+        )
 
         arglist = [self.share_network.id]
         verifylist = [('share_network', self.share_network.id)]
@@ -638,10 +689,12 @@ class TestShareNetworkSet(TestShareNetwork):
             arglist.extend(['--status', status])
             verifylist.append(('status', status))
         if current_security_service:
-            arglist.extend(['--current-security-service',
-                            current_security_service])
-            verifylist.append(('current_security_service',
-                               current_security_service))
+            arglist.extend(
+                ['--current-security-service', current_security_service]
+            )
+            verifylist.append(
+                ('current_security_service', current_security_service)
+            )
         if check_only and restart_check:
             arglist.extend(['--check-only', '--restart-check'])
             verifylist.extend([('check_only', True), ('restart_check', True)])
@@ -649,9 +702,8 @@ class TestShareNetworkSet(TestShareNetwork):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError,
-            self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_set_network_properties(self):
         new_name = 'share-network-name-' + uuid.uuid4().hex
@@ -660,9 +712,12 @@ class TestShareNetworkSet(TestShareNetwork):
 
         arglist = [
             self.share_network.id,
-            '--name', new_name,
-            '--description', new_description,
-            '--neutron-subnet-id', new_neutron_subnet_id,
+            '--name',
+            new_name,
+            '--description',
+            new_description,
+            '--neutron-subnet-id',
+            new_neutron_subnet_id,
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -672,8 +727,9 @@ class TestShareNetworkSet(TestShareNetwork):
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network):
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ):
             result = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.update.assert_called_once_with(
@@ -685,79 +741,81 @@ class TestShareNetworkSet(TestShareNetwork):
         self.assertIsNone(result)
 
     def test_set_share_network_status(self):
-        arglist = [
-            self.share_network.id,
-            '--status', 'error'
-        ]
+        arglist = [self.share_network.id, '--status', 'error']
         verifylist = [
             ('share_network', self.share_network.id),
-            ('status', 'error')
+            ('status', 'error'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network):
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ):
             result = self.cmd.take_action(parsed_args)
 
         self.share_networks_mock.reset_state.assert_called_once_with(
-            self.share_network, parsed_args.status)
+            self.share_network, parsed_args.status
+        )
         self.assertIsNone(result)
 
     def test_set_network_update_exception(self):
         share_network_name = 'share-network-name-' + uuid.uuid4().hex
-        arglist = [
-            self.share_network.id,
-            '--name', share_network_name
-        ]
+        arglist = [self.share_network.id, '--name', share_network_name]
         verifylist = [
             ('share_network', self.share_network.id),
-            ('name', share_network_name)
+            ('name', share_network_name),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.share_networks_mock.update.side_effect = Exception()
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network):
-            self.assertRaises(exceptions.CommandError,
-                              self.cmd.take_action,
-                              parsed_args)
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ):
+            self.assertRaises(
+                exceptions.CommandError, self.cmd.take_action, parsed_args
+            )
         self.share_networks_mock.update.assert_called_once_with(
-            self.share_network, name=parsed_args.name)
+            self.share_network, name=parsed_args.name
+        )
 
     def test_set_share_network_status_exception(self):
-        arglist = [
-            self.share_network.id,
-            '--status', 'error'
-        ]
+        arglist = [self.share_network.id, '--status', 'error']
         verifylist = [
             ('share_network', self.share_network.id),
-            ('status', 'error')
+            ('status', 'error'),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.share_networks_mock.reset_state.side_effect = Exception()
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        return_value=self.share_network):
-            self.assertRaises(exceptions.CommandError,
-                              self.cmd.take_action,
-                              parsed_args)
+        with mock.patch(
+            'osc_lib.utils.find_resource', return_value=self.share_network
+        ):
+            self.assertRaises(
+                exceptions.CommandError, self.cmd.take_action, parsed_args
+            )
         self.share_networks_mock.reset_state.assert_called_once_with(
-            self.share_network, parsed_args.status)
+            self.share_network, parsed_args.status
+        )
 
-    @ddt.data({'check_only': False, 'restart_check': False},
-              {'check_only': True, 'restart_check': True},
-              {'check_only': True, 'restart_check': False})
+    @ddt.data(
+        {'check_only': False, 'restart_check': False},
+        {'check_only': True, 'restart_check': True},
+        {'check_only': True, 'restart_check': False},
+    )
     @ddt.unpack
     def test_set_share_network_add_new_security_service_check_reset(
-            self, check_only, restart_check):
-        self.share_networks_mock .add_security_service_check = mock.Mock(
-            return_value=(200, {'compatible': True}))
+        self, check_only, restart_check
+    ):
+        self.share_networks_mock.add_security_service_check = mock.Mock(
+            return_value=(200, {'compatible': True})
+        )
 
         arglist = [
             self.share_network.id,
-            '--new-security-service', 'new-security-service-name',
+            '--new-security-service',
+            'new-security-service-name',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -773,39 +831,45 @@ class TestShareNetworkSet(TestShareNetwork):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        side_effect=[self.share_network,
-                                     'new-security-service']):
+        with mock.patch(
+            'osc_lib.utils.find_resource',
+            side_effect=[self.share_network, 'new-security-service'],
+        ):
             result = self.cmd.take_action(parsed_args)
 
         if check_only:
-            self.share_networks_mock.add_security_service_check\
-                .assert_called_once_with(self.share_network,
-                                         'new-security-service',
-                                         reset_operation=restart_check)
+            self.share_networks_mock.add_security_service_check.assert_called_once_with(
+                self.share_network,
+                'new-security-service',
+                reset_operation=restart_check,
+            )
             self.share_networks_mock.add_security_service.assert_not_called()
         else:
-            self.share_networks_mock.add_security_service_check\
-                .assert_not_called()
-            self.share_networks_mock.add_security_service\
-                .assert_called_once_with(self.share_network,
-                                         'new-security-service')
+            self.share_networks_mock.add_security_service_check.assert_not_called()
+            self.share_networks_mock.add_security_service.assert_called_once_with(
+                self.share_network, 'new-security-service'
+            )
         self.assertIsNone(result)
 
-    @ddt.data({'check_only': False, 'restart_check': False},
-              {'check_only': True, 'restart_check': True},
-              {'check_only': True, 'restart_check': False})
+    @ddt.data(
+        {'check_only': False, 'restart_check': False},
+        {'check_only': True, 'restart_check': True},
+        {'check_only': True, 'restart_check': False},
+    )
     @ddt.unpack
     def test_set_share_network_update_security_service_check_reset(
-            self, check_only, restart_check):
-        self.share_networks_mock\
-            .update_share_network_security_service_check = mock.Mock(
-                return_value=(200, {'compatible': True}))
+        self, check_only, restart_check
+    ):
+        self.share_networks_mock.update_share_network_security_service_check = mock.Mock(
+            return_value=(200, {'compatible': True})
+        )
 
         arglist = [
             self.share_network.id,
-            '--new-security-service', 'new-security-service-name',
-            '--current-security-service', 'current-security-service-name'
+            '--new-security-service',
+            'new-security-service-name',
+            '--current-security-service',
+            'current-security-service-name',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -820,27 +884,29 @@ class TestShareNetworkSet(TestShareNetwork):
             verifylist.append(('restart_check', True))
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        with mock.patch('osc_lib.utils.find_resource',
-                        side_effect=[self.share_network,
-                                     'new-security-service',
-                                     'current-security-service']):
+        with mock.patch(
+            'osc_lib.utils.find_resource',
+            side_effect=[
+                self.share_network,
+                'new-security-service',
+                'current-security-service',
+            ],
+        ):
             result = self.cmd.take_action(parsed_args)
 
         if check_only:
-            self.share_networks_mock\
-                .update_share_network_security_service_check\
-                .assert_called_once_with(self.share_network,
-                                         'current-security-service',
-                                         'new-security-service',
-                                         reset_operation=restart_check)
-            self.share_networks_mock.update_share_network_security_service\
-                .assert_not_called()
+            self.share_networks_mock.update_share_network_security_service_check.assert_called_once_with(
+                self.share_network,
+                'current-security-service',
+                'new-security-service',
+                reset_operation=restart_check,
+            )
+            self.share_networks_mock.update_share_network_security_service.assert_not_called()
         else:
-            self.share_networks_mock\
-                .update_share_network_security_service_check\
-                .assert_not_called()
-            self.share_networks_mock.update_share_network_security_service\
-                .assert_called_once_with(self.share_network,
-                                         'current-security-service',
-                                         'new-security-service')
+            self.share_networks_mock.update_share_network_security_service_check.assert_not_called()
+            self.share_networks_mock.update_share_network_security_service.assert_called_once_with(
+                self.share_network,
+                'current-security-service',
+                'new-security-service',
+            )
         self.assertIsNone(result)

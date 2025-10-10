@@ -21,9 +21,8 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class SecurityServiceReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(SecurityServiceReadWriteTest, self).setUp()
+        super().setUp()
         self.name = data_utils.rand_name('autotest')
         self.description = 'fake_description'
         self.user = 'fake_user'

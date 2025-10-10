@@ -24,15 +24,15 @@ from manilaclient.v2 import services
 
 @ddt.ddt
 class ServicesTest(utils.TestCase):
-
     def _get_manager(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
         return services.ServiceManager(api=mock_microversion)
 
     def _get_resource_path(self, microversion):
-        if (api_versions.APIVersion(microversion) >
-                api_versions.APIVersion("2.6")):
+        if api_versions.APIVersion(microversion) > api_versions.APIVersion(
+            "2.6"
+        ):
             return services.RESOURCE_PATH
         return services.RESOURCE_PATH_LEGACY
 
@@ -40,20 +40,21 @@ class ServicesTest(utils.TestCase):
     def test_list(self, microversion):
         manager = self._get_manager(microversion)
         resource_path = self._get_resource_path(microversion)
-        with mock.patch.object(manager, '_list',
-                               mock.Mock(return_value='fake')):
+        with mock.patch.object(
+            manager, '_list', mock.Mock(return_value='fake')
+        ):
             result = manager.list()
 
             manager._list.assert_called_once_with(
-                resource_path, services.RESOURCE_NAME)
+                resource_path, services.RESOURCE_NAME
+            )
             self.assertEqual("fake", result)
 
     def test_list_services_with_one_search_opt(self):
         manager = self._get_manager("2.7")
         host = 'fake_host'
-        query_string = "?host=%s" % host
-        with mock.patch.object(manager, '_list',
-                               mock.Mock(return_value=None)):
+        query_string = f"?host={host}"
+        with mock.patch.object(manager, '_list', mock.Mock(return_value=None)):
             manager.list({'host': host})
             manager._list.assert_called_once_with(
                 services.RESOURCE_PATH + query_string,
@@ -64,9 +65,8 @@ class ServicesTest(utils.TestCase):
         manager = self._get_manager("2.7")
         host = 'fake_host'
         binary = 'fake_binary'
-        query_string = "?binary=%s&host=%s" % (binary, host)
-        with mock.patch.object(manager, '_list',
-                               mock.Mock(return_value=None)):
+        query_string = f"?binary={binary}&host={host}"
+        with mock.patch.object(manager, '_list', mock.Mock(return_value=None)):
             manager.list({'binary': binary, 'host': host})
             manager._list.assert_called_once_with(
                 services.RESOURCE_PATH + query_string,

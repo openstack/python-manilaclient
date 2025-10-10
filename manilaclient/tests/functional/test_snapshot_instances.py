@@ -25,17 +25,15 @@ CONF = config.CONF
 
 
 @ddt.ddt
-@testtools.skipUnless(CONF.run_snapshot_tests,
-                      'Snapshot tests disabled.')
+@testtools.skipUnless(CONF.run_snapshot_tests, 'Snapshot tests disabled.')
 @utils.skip_if_microversion_not_supported('2.19')
 class SnapshotInstancesTest(base.BaseTestCase):
-
     def setUp(self):
-        super(SnapshotInstancesTest, self).setUp()
-        self.share = self.create_share(
-            client=self.get_user_client())
-        self.snapshot = self.create_snapshot(share=self.share['id'],
-                                             client=self.get_user_client())
+        super().setUp()
+        self.share = self.create_share(client=self.get_user_client())
+        self.snapshot = self.create_snapshot(
+            share=self.share['id'], client=self.get_user_client()
+        )
 
     def test_list_all_snapshot_instances(self):
         snapshot_instances = self.admin_client.list_snapshot_instances()
@@ -50,22 +48,31 @@ class SnapshotInstancesTest(base.BaseTestCase):
 
     def test_list_all_snapshot_instances_details(self):
         snapshot_instances = self.admin_client.list_snapshot_instances(
-            detailed=True)
+            detailed=True
+        )
 
         self.assertGreater(len(snapshot_instances), 0)
-        expected_keys = ('ID', 'Snapshot ID', 'Status', 'Created_at',
-                         'Updated_at', 'Share_id', 'Share_instance_id',
-                         'Progress', 'Provider_location')
+        expected_keys = (
+            'ID',
+            'Snapshot ID',
+            'Status',
+            'Created_at',
+            'Updated_at',
+            'Share_id',
+            'Share_instance_id',
+            'Progress',
+            'Provider_location',
+        )
         for si in snapshot_instances:
             for key in expected_keys:
                 self.assertIn(key, si)
             for key in ('ID', 'Snapshot ID', 'Share_id', 'Share_instance_id'):
-                self.assertTrue(
-                    uuidutils.is_uuid_like(si[key]))
+                self.assertTrue(uuidutils.is_uuid_like(si[key]))
 
     def test_list_snapshot_instance_with_snapshot(self):
         snapshot_instances = self.admin_client.list_snapshot_instances(
-            snapshot_id=self.snapshot['id'])
+            snapshot_id=self.snapshot['id']
+        )
 
         self.assertEqual(1, len(snapshot_instances))
         expected_keys = ('ID', 'Snapshot ID', 'Status')
@@ -77,11 +84,12 @@ class SnapshotInstancesTest(base.BaseTestCase):
 
     def test_list_snapshot_instance_with_columns(self):
         snapshot_instances = self.admin_client.list_snapshot_instances(
-            self.snapshot['id'], columns='id,status')
+            self.snapshot['id'], columns='id,status'
+        )
 
         self.assertGreater(len(snapshot_instances), 0)
         expected_keys = ('Id', 'Status')
-        unexpected_keys = ('Snapshot ID', )
+        unexpected_keys = ('Snapshot ID',)
         for si in snapshot_instances:
             for key in expected_keys:
                 self.assertIn(key, si)
@@ -91,29 +99,42 @@ class SnapshotInstancesTest(base.BaseTestCase):
 
     def test_get_snapshot_instance(self):
         snapshot_instances = self.admin_client.list_snapshot_instances(
-            self.snapshot['id'])
+            self.snapshot['id']
+        )
 
         snapshot_instance = self.admin_client.get_snapshot_instance(
-            snapshot_instances[0]['ID'])
+            snapshot_instances[0]['ID']
+        )
         self.assertGreater(len(snapshot_instance), 0)
-        expected_keys = ('id', 'snapshot_id', 'status', 'created_at',
-                         'updated_at', 'share_id', 'share_instance_id',
-                         'progress', 'provider_location')
+        expected_keys = (
+            'id',
+            'snapshot_id',
+            'status',
+            'created_at',
+            'updated_at',
+            'share_id',
+            'share_instance_id',
+            'progress',
+            'provider_location',
+        )
 
         for key in expected_keys:
             self.assertIn(key, snapshot_instance)
         for key in ('id', 'snapshot_id', 'share_id', 'share_instance_id'):
-            self.assertTrue(
-                uuidutils.is_uuid_like(snapshot_instance[key]))
+            self.assertTrue(uuidutils.is_uuid_like(snapshot_instance[key]))
 
     def test_snapshot_instance_reset_state(self):
         snapshot_instances = self.admin_client.list_snapshot_instances(
-            self.snapshot['id'])
+            self.snapshot['id']
+        )
         self.admin_client.reset_snapshot_instance(
-            snapshot_instances[0]['ID'], 'error')
+            snapshot_instances[0]['ID'], 'error'
+        )
         snapshot_instance = self.admin_client.get_snapshot_instance(
-            snapshot_instances[0]['ID'])
+            snapshot_instances[0]['ID']
+        )
 
         self.assertEqual('error', snapshot_instance['status'])
-        self.admin_client.reset_snapshot_instance(snapshot_instance['id'],
-                                                  'available')
+        self.admin_client.reset_snapshot_instance(
+            snapshot_instance['id'], 'available'
+        )

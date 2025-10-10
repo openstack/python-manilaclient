@@ -25,14 +25,14 @@ from manilaclient.v2 import security_services
 
 @ddt.ddt
 class SecurityServiceTest(utils.TestCase):
-
-    class _FakeSecurityService(object):
+    class _FakeSecurityService:
         id = 'fake_security_service_id'
 
     def setUp(self):
-        super(SecurityServiceTest, self).setUp()
+        super().setUp()
         self.manager = security_services.SecurityServiceManager(
-            fakes.FakeClient())
+            fakes.FakeClient()
+        )
 
     def test_create_all_fields(self):
         values = {
@@ -51,14 +51,18 @@ class SecurityServiceTest(utils.TestCase):
             result = self.manager.create(**values)
 
             self.assertEqual(result['url'], security_services.RESOURCES_PATH)
-            self.assertEqual(result['resp_key'],
-                             security_services.RESOURCE_NAME)
+            self.assertEqual(
+                result['resp_key'], security_services.RESOURCE_NAME
+            )
             self.assertIn(security_services.RESOURCE_NAME, result['body'])
-            self.assertEqual(result['body'][security_services.RESOURCE_NAME],
-                             values)
+            self.assertEqual(
+                result['body'][security_services.RESOURCE_NAME], values
+            )
 
-    @ddt.data({'server': 'fake.ad.server'},
-              {'default_ad_site': 'fake.ad.default_ad_site'})
+    @ddt.data(
+        {'server': 'fake.ad.server'},
+        {'default_ad_site': 'fake.ad.default_ad_site'},
+    )
     def test_create_all_fields_active_directory(self, option):
         values = {
             'type': 'active_directory',
@@ -76,11 +80,13 @@ class SecurityServiceTest(utils.TestCase):
             result = self.manager.create(**values)
 
             self.assertEqual(result['url'], security_services.RESOURCES_PATH)
-            self.assertEqual(result['resp_key'],
-                             security_services.RESOURCE_NAME)
+            self.assertEqual(
+                result['resp_key'], security_services.RESOURCE_NAME
+            )
             self.assertIn(security_services.RESOURCE_NAME, result['body'])
-            self.assertEqual(result['body'][security_services.RESOURCE_NAME],
-                             values)
+            self.assertEqual(
+                result['body'][security_services.RESOURCE_NAME], values
+            )
 
     def test_create_some_fields(self):
         values = {
@@ -95,25 +101,29 @@ class SecurityServiceTest(utils.TestCase):
             result = self.manager.create(**values)
 
             self.assertEqual(result['url'], security_services.RESOURCES_PATH)
-            self.assertEqual(result['resp_key'],
-                             security_services.RESOURCE_NAME)
+            self.assertEqual(
+                result['resp_key'], security_services.RESOURCE_NAME
+            )
             self.assertIn(security_services.RESOURCE_NAME, result['body'])
-            self.assertEqual(result['body'][security_services.RESOURCE_NAME],
-                             values)
+            self.assertEqual(
+                result['body'][security_services.RESOURCE_NAME], values
+            )
 
     def test_delete(self):
         security_service = 'fake service'
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(security_service)
             self.manager._delete.assert_called_once_with(
-                security_services.RESOURCE_PATH % security_service)
+                security_services.RESOURCE_PATH % security_service
+            )
 
     def test_delete_by_object(self):
         security_service = self._FakeSecurityService()
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(security_service)
             self.manager._delete.assert_called_once_with(
-                security_services.RESOURCE_PATH % security_service.id)
+                security_services.RESOURCE_PATH % security_service.id
+            )
 
     def test_get(self):
         security_service = 'fake service'
@@ -121,7 +131,8 @@ class SecurityServiceTest(utils.TestCase):
             self.manager.get(security_service)
             self.manager._get.assert_called_once_with(
                 security_services.RESOURCE_PATH % security_service,
-                security_services.RESOURCE_NAME)
+                security_services.RESOURCE_NAME,
+            )
 
     def test_get_by_object(self):
         security_service = self._FakeSecurityService()
@@ -129,41 +140,50 @@ class SecurityServiceTest(utils.TestCase):
             self.manager.get(security_service)
             self.manager._get.assert_called_once_with(
                 security_services.RESOURCE_PATH % security_service.id,
-                security_services.RESOURCE_NAME)
+                security_services.RESOURCE_NAME,
+            )
 
     def test_list_summary(self):
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list(detailed=False)
             self.manager._list.assert_called_once_with(
                 security_services.RESOURCES_PATH,
-                security_services.RESOURCES_NAME)
+                security_services.RESOURCES_NAME,
+            )
 
     def test_list_detail(self):
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list(detailed=True)
             self.manager._list.assert_called_once_with(
                 security_services.RESOURCES_PATH + '/detail',
-                security_services.RESOURCES_NAME)
+                security_services.RESOURCES_NAME,
+            )
 
     def test_list_no_filters(self):
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list()
             self.manager._list.assert_called_once_with(
                 security_services.RESOURCES_PATH + '/detail',
-                security_services.RESOURCES_NAME)
+                security_services.RESOURCES_NAME,
+            )
 
     def test_list_with_filters(self):
         filters = {'all_tenants': 1, 'network': 'fake', 'status': 'ERROR'}
-        expected_postfix = ('/detail?all_tenants=1&network=fake&status=ERROR')
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        expected_postfix = '/detail?all_tenants=1&network=fake&status=ERROR'
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list(search_opts=filters)
             self.manager._list.assert_called_once_with(
                 security_services.RESOURCES_PATH + expected_postfix,
-                security_services.RESOURCES_NAME)
+                security_services.RESOURCES_NAME,
+            )
 
     def test_update(self):
         security_service = 'fake service'
@@ -179,13 +199,14 @@ class SecurityServiceTest(utils.TestCase):
             result = self.manager.update(security_service, **values)
             self.assertEqual(
                 result['url'],
-                security_services.RESOURCE_PATH % security_service)
+                security_services.RESOURCE_PATH % security_service,
+            )
             self.assertEqual(
-                result['resp_key'],
-                security_services.RESOURCE_NAME)
+                result['resp_key'], security_services.RESOURCE_NAME
+            )
             self.assertEqual(
-                result['body'][security_services.RESOURCE_NAME],
-                values)
+                result['body'][security_services.RESOURCE_NAME], values
+            )
 
     def test_update_by_object(self):
         security_service = self._FakeSecurityService()
@@ -194,16 +215,17 @@ class SecurityServiceTest(utils.TestCase):
             result = self.manager.update(security_service, **values)
             self.assertEqual(
                 result['url'],
-                security_services.RESOURCE_PATH % security_service.id)
+                security_services.RESOURCE_PATH % security_service.id,
+            )
             self.assertEqual(
-                result['resp_key'],
-                security_services.RESOURCE_NAME)
+                result['resp_key'], security_services.RESOURCE_NAME
+            )
             self.assertEqual(
-                result['body'][security_services.RESOURCE_NAME],
-                values)
+                result['body'][security_services.RESOURCE_NAME], values
+            )
 
     def test_update_no_fields_specified(self):
         security_service = 'fake service'
-        self.assertRaises(exceptions.CommandError,
-                          self.manager.update,
-                          security_service)
+        self.assertRaises(
+            exceptions.CommandError, self.manager.update, security_service
+        )

@@ -32,10 +32,10 @@ class ShareAccessRule(base.Resource):
     """A Share Access Rule."""
 
     def __repr__(self):
-        return "<Share Access Rule: %s>" % self.id
+        return f"<Share Access Rule: {self.id}>"
 
     def delete(self):
-        """"Delete this share access rule."""
+        """Delete this share access rule."""
         self.manager.delete(self)
 
 
@@ -87,11 +87,7 @@ class ShareAccessRuleManager(base.ManagerWithFind):
         :param access: either share access rule object or text with its ID.
         :param access_level: value of access_level (e.g. ro/rw)
         """
-        body = {
-            'update_access': {
-                'access_level': access_level
-            }
-        }
+        body = {'update_access': {'access_level': access_level}}
         access_id = base.getid(access)
         url = RESOURCE_PATH % access_id
         return self._update(url, body)

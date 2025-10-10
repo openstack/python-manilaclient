@@ -24,18 +24,20 @@ CONF = config.CONF
 
 
 @ddt.ddt
-@testtools.skipUnless(CONF.run_replication_tests,
-                      "Replication tests are disabled.")
+@testtools.skipUnless(
+    CONF.run_replication_tests, "Replication tests are disabled."
+)
 @utils.skip_if_microversion_not_supported('2.47')
 class ShareReplicaExportLocationsTest(base.BaseTestCase):
-
     def _create_share_and_replica(self):
         replication_type = CONF.replication_type
         share_type = self.create_share_type(
             driver_handles_share_servers=False,
-            extra_specs={'replication_type': replication_type})
-        share = self.create_share(share_type=share_type['ID'],
-                                  client=self.get_user_client())
+            extra_specs={'replication_type': replication_type},
+        )
+        share = self.create_share(
+            share_type=share_type['ID'], client=self.get_user_client()
+        )
         share_replica = self.create_share_replica(share['id'])
         return share, share_replica
 
@@ -44,11 +46,17 @@ class ShareReplicaExportLocationsTest(base.BaseTestCase):
         share, share_replica = self._create_share_and_replica()
         client = self.admin_client if role == 'admin' else self.user_client
         export_locations = client.list_share_replica_export_locations(
-            share_replica['id'])
+            share_replica['id']
+        )
 
         self.assertGreater(len(export_locations), 0)
-        expected_keys = ['ID', 'Path', 'Preferred', 'Replica State',
-                         'Availability Zone']
+        expected_keys = [
+            'ID',
+            'Path',
+            'Preferred',
+            'Replica State',
+            'Availability Zone',
+        ]
 
         for el in export_locations:
             for key in expected_keys:
@@ -61,7 +69,8 @@ class ShareReplicaExportLocationsTest(base.BaseTestCase):
         share, share_replica = self._create_share_and_replica()
         client = self.admin_client if role == 'admin' else self.user_client
         export_locations = client.list_share_replica_export_locations(
-            share_replica['id'], columns='id,path')
+            share_replica['id'], columns='id,path'
+        )
 
         self.assertGreater(len(export_locations), 0)
         expected_keys = ('Id', 'Path')
@@ -78,13 +87,22 @@ class ShareReplicaExportLocationsTest(base.BaseTestCase):
         share, share_replica = self._create_share_and_replica()
         client = self.admin_client if role == 'admin' else self.user_client
         export_locations = client.list_share_replica_export_locations(
-            share_replica['id'])
+            share_replica['id']
+        )
 
         el = client.get_share_replica_export_location(
-            share_replica['id'], export_locations[0]['ID'])
+            share_replica['id'], export_locations[0]['ID']
+        )
 
-        expected_keys = ['path', 'updated_at', 'created_at', 'id',
-                         'preferred', 'replica_state', 'availability_zone']
+        expected_keys = [
+            'path',
+            'updated_at',
+            'created_at',
+            'id',
+            'preferred',
+            'replica_state',
+            'availability_zone',
+        ]
         if role == 'admin':
             expected_keys.extend(['is_admin_only', 'share_instance_id'])
         for key in expected_keys:
@@ -95,8 +113,10 @@ class ShareReplicaExportLocationsTest(base.BaseTestCase):
         self.assertTrue(uuidutils.is_uuid_like(el['id']))
         self.assertIn(el['preferred'], ('True', 'False'))
         for list_k, get_k in (
-                ('ID', 'id'), ('Path', 'path'), ('Preferred', 'preferred'),
-                ('Replica State', 'replica_state'),
-                ('Availability Zone', 'availability_zone')):
-            self.assertEqual(
-                export_locations[0][list_k], el[get_k])
+            ('ID', 'id'),
+            ('Path', 'path'),
+            ('Preferred', 'preferred'),
+            ('Replica State', 'replica_state'),
+            ('Availability Zone', 'availability_zone'),
+        ):
+            self.assertEqual(export_locations[0][list_k], el[get_k])

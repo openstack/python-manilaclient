@@ -20,7 +20,6 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class ManilaClientTestServicesReadOnly(base.BaseTestCase):
-
     @ddt.data("1.0", "2.0", "2.6", "2.7")
     def test_services_list(self, microversion):
         self.skip_if_microversion_not_supported(microversion)

@@ -77,9 +77,8 @@ class AllowOnlyOneAliasAtATimeAction(argparse.Action):
 
 
 class ManilaClientArgumentParser(argparse.ArgumentParser):
-
     def __init__(self, *args, **kwargs):
-        super(ManilaClientArgumentParser, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # NOTE(vponomaryov): Register additional action to be used by arguments
         # with multiple aliases.
         self.register('action', 'single_alias', AllowOnlyOneAliasAtATimeAction)
@@ -94,11 +93,11 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
         # FIXME(lzyeval): if changes occur in argparse.ArgParser._check_value
         choose_from = ' (choose from'
         progparts = self.prog.partition(' ')
-        self.exit(2, "error: %(errmsg)s\nTry '%(mainp)s help %(subp)s'"
-                     " for more information.\n" %
-                     {'errmsg': message.split(choose_from)[0],
-                      'mainp': progparts[0],
-                      'subp': progparts[2]})
+        self.exit(
+            2,
+            f"error: {message.split(choose_from)[0]}\nTry '{progparts[0]} help {progparts[2]}'"
+            " for more information.\n",
+        )
 
     def _get_option_tuples(self, option_string):
         """Avoid ambiguity in argument abbreviation.
@@ -106,8 +105,7 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
         Manilaclient uses aliases for command parameters and this method
         is used for avoiding parameter ambiguity alert.
         """
-        option_tuples = super(
-            ManilaClientArgumentParser, self)._get_option_tuples(option_string)
+        option_tuples = super()._get_option_tuples(option_string)
         if len(option_tuples) > 1:
             opt_strings_list = []
             opts = []
@@ -119,258 +117,298 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
         return option_tuples
 
 
-class OpenStackManilaShell(object):
-
+class OpenStackManilaShell:
     def get_base_parser(self):
         parser = ManilaClientArgumentParser(
             prog='manila',
             description=__doc__.strip(),
-            epilog='See "manila help COMMAND" '
-                   'for help on a specific command.',
+            epilog='See "manila help COMMAND" for help on a specific command.',
             add_help=False,
             formatter_class=OpenStackHelpFormatter,
         )
 
         # Global arguments
-        parser.add_argument('-h', '--help',
-                            action='store_true',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '-h', '--help', action='store_true', help=argparse.SUPPRESS
+        )
 
-        parser.add_argument('--version',
-                            action='version',
-                            version=manilaclient.__version__)
+        parser.add_argument(
+            '--version', action='version', version=manilaclient.__version__
+        )
 
-        parser.add_argument('-d', '--debug',
-                            action='store_true',
-                            default=cliutils.env('manilaclient_DEBUG',
-                                                 'MANILACLIENT_DEBUG',
-                                                 default=False),
-                            help="Print debugging output.")
+        parser.add_argument(
+            '-d',
+            '--debug',
+            action='store_true',
+            default=cliutils.env(
+                'manilaclient_DEBUG', 'MANILACLIENT_DEBUG', default=False
+            ),
+            help="Print debugging output.",
+        )
 
-        parser.add_argument('--os-cache',
-                            default=cliutils.env('OS_CACHE', default=False),
-                            action='store_true',
-                            help='Use the auth token cache. '
-                                 'Defaults to env[OS_CACHE].')
+        parser.add_argument(
+            '--os-cache',
+            default=cliutils.env('OS_CACHE', default=False),
+            action='store_true',
+            help='Use the auth token cache. Defaults to env[OS_CACHE].',
+        )
 
-        parser.add_argument('--os-reset-cache',
-                            default=False,
-                            action='store_true',
-                            help='Delete cached password and auth token.')
+        parser.add_argument(
+            '--os-reset-cache',
+            default=False,
+            action='store_true',
+            help='Delete cached password and auth token.',
+        )
 
-        parser.add_argument('--os-user-id',
-                            metavar='<auth-user-id>',
-                            default=cliutils.env('OS_USER_ID'),
-                            help=('Defaults to env [OS_USER_ID].'))
-        parser.add_argument('--os_user_id',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-user-id',
+            metavar='<auth-user-id>',
+            default=cliutils.env('OS_USER_ID'),
+            help=('Defaults to env [OS_USER_ID].'),
+        )
+        parser.add_argument('--os_user_id', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-username',
-                            metavar='<auth-user-name>',
-                            default=cliutils.env('OS_USERNAME',
-                                                 'MANILA_USERNAME'),
-                            help='Defaults to env[OS_USERNAME].')
-        parser.add_argument('--os_username',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-username',
+            metavar='<auth-user-name>',
+            default=cliutils.env('OS_USERNAME', 'MANILA_USERNAME'),
+            help='Defaults to env[OS_USERNAME].',
+        )
+        parser.add_argument('--os_username', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-password',
-                            metavar='<auth-password>',
-                            default=cliutils.env('OS_PASSWORD',
-                                                 'MANILA_PASSWORD'),
-                            help='Defaults to env[OS_PASSWORD].')
-        parser.add_argument('--os_password',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-password',
+            metavar='<auth-password>',
+            default=cliutils.env('OS_PASSWORD', 'MANILA_PASSWORD'),
+            help='Defaults to env[OS_PASSWORD].',
+        )
+        parser.add_argument('--os_password', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-tenant-name',
-                            metavar='<auth-tenant-name>',
-                            default=cliutils.env('OS_TENANT_NAME',
-                                                 'MANILA_PROJECT_ID'),
-                            help='Defaults to env[OS_TENANT_NAME].')
-        parser.add_argument('--os_tenant_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-tenant-name',
+            metavar='<auth-tenant-name>',
+            default=cliutils.env('OS_TENANT_NAME', 'MANILA_PROJECT_ID'),
+            help='Defaults to env[OS_TENANT_NAME].',
+        )
+        parser.add_argument('--os_tenant_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-project-name',
-                            metavar='<auth-project-name>',
-                            default=cliutils.env('OS_PROJECT_NAME'),
-                            help=('Another way to specify tenant name. '
-                                  'This option is mutually exclusive with '
-                                  '--os-tenant-name. '
-                                  'Defaults to env[OS_PROJECT_NAME].'))
-        parser.add_argument('--os_project_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-project-name',
+            metavar='<auth-project-name>',
+            default=cliutils.env('OS_PROJECT_NAME'),
+            help=(
+                'Another way to specify tenant name. '
+                'This option is mutually exclusive with '
+                '--os-tenant-name. '
+                'Defaults to env[OS_PROJECT_NAME].'
+            ),
+        )
+        parser.add_argument('--os_project_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-tenant-id',
-                            metavar='<auth-tenant-id>',
-                            default=cliutils.env('OS_TENANT_ID',
-                                                 'MANILA_TENANT_ID'),
-                            help='Defaults to env[OS_TENANT_ID].')
-        parser.add_argument('--os_tenant_id',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-tenant-id',
+            metavar='<auth-tenant-id>',
+            default=cliutils.env('OS_TENANT_ID', 'MANILA_TENANT_ID'),
+            help='Defaults to env[OS_TENANT_ID].',
+        )
+        parser.add_argument('--os_tenant_id', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-project-id',
-                            metavar='<auth-project-id>',
-                            default=cliutils.env('OS_PROJECT_ID'),
-                            help=('Another way to specify tenant ID. '
-                                  'This option is mutually exclusive with '
-                                  '--os-tenant-id. '
-                                  'Defaults to env[OS_PROJECT_ID].'))
-        parser.add_argument('--os_project_id',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-project-id',
+            metavar='<auth-project-id>',
+            default=cliutils.env('OS_PROJECT_ID'),
+            help=(
+                'Another way to specify tenant ID. '
+                'This option is mutually exclusive with '
+                '--os-tenant-id. '
+                'Defaults to env[OS_PROJECT_ID].'
+            ),
+        )
+        parser.add_argument('--os_project_id', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-user-domain-id',
-                            metavar='<auth-user-domain-id>',
-                            default=cliutils.env('OS_USER_DOMAIN_ID'),
-                            help=('OpenStack user domain ID. '
-                                  'Defaults to env[OS_USER_DOMAIN_ID].'))
-        parser.add_argument('--os_user_domain_id',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-user-domain-id',
+            metavar='<auth-user-domain-id>',
+            default=cliutils.env('OS_USER_DOMAIN_ID'),
+            help=(
+                'OpenStack user domain ID. Defaults to env[OS_USER_DOMAIN_ID].'
+            ),
+        )
+        parser.add_argument('--os_user_domain_id', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-user-domain-name',
-                            metavar='<auth-user-domain-name>',
-                            default=cliutils.env('OS_USER_DOMAIN_NAME'),
-                            help=('OpenStack user domain name. '
-                                  'Defaults to env[OS_USER_DOMAIN_NAME].'))
-        parser.add_argument('--os_user_domain_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-user-domain-name',
+            metavar='<auth-user-domain-name>',
+            default=cliutils.env('OS_USER_DOMAIN_NAME'),
+            help=(
+                'OpenStack user domain name. '
+                'Defaults to env[OS_USER_DOMAIN_NAME].'
+            ),
+        )
+        parser.add_argument('--os_user_domain_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-project-domain-id',
-                            metavar='<auth-project-domain-id>',
-                            default=cliutils.env('OS_PROJECT_DOMAIN_ID'),
-                            help='Defaults to env[OS_PROJECT_DOMAIN_ID].')
-        parser.add_argument('--os_project_domain_id',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-project-domain-id',
+            metavar='<auth-project-domain-id>',
+            default=cliutils.env('OS_PROJECT_DOMAIN_ID'),
+            help='Defaults to env[OS_PROJECT_DOMAIN_ID].',
+        )
+        parser.add_argument('--os_project_domain_id', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-project-domain-name',
-                            metavar='<auth-project-domain-name>',
-                            default=cliutils.env('OS_PROJECT_DOMAIN_NAME'),
-                            help='Defaults to env[OS_PROJECT_DOMAIN_NAME].')
-        parser.add_argument('--os_project_domain_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-project-domain-name',
+            metavar='<auth-project-domain-name>',
+            default=cliutils.env('OS_PROJECT_DOMAIN_NAME'),
+            help='Defaults to env[OS_PROJECT_DOMAIN_NAME].',
+        )
+        parser.add_argument('--os_project_domain_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-auth-url',
-                            metavar='<auth-url>',
-                            default=cliutils.env('OS_AUTH_URL',
-                                                 'MANILA_URL'),
-                            help='Defaults to env[OS_AUTH_URL].')
-        parser.add_argument('--os_auth_url',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-auth-url',
+            metavar='<auth-url>',
+            default=cliutils.env('OS_AUTH_URL', 'MANILA_URL'),
+            help='Defaults to env[OS_AUTH_URL].',
+        )
+        parser.add_argument('--os_auth_url', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-region-name',
-                            metavar='<region-name>',
-                            default=cliutils.env('OS_REGION_NAME',
-                                                 'MANILA_REGION_NAME'),
-                            help='Defaults to env[OS_REGION_NAME].')
-        parser.add_argument('--os_region_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-region-name',
+            metavar='<region-name>',
+            default=cliutils.env('OS_REGION_NAME', 'MANILA_REGION_NAME'),
+            help='Defaults to env[OS_REGION_NAME].',
+        )
+        parser.add_argument('--os_region_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-token',
-                            metavar='<token>',
-                            default=cliutils.env('OS_TOKEN'),
-                            help='Defaults to env[OS_TOKEN].')
-        parser.add_argument('--os_token',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-token',
+            metavar='<token>',
+            default=cliutils.env('OS_TOKEN'),
+            help='Defaults to env[OS_TOKEN].',
+        )
+        parser.add_argument('--os_token', help=argparse.SUPPRESS)
 
-        parser.add_argument('--bypass-url',
-                            metavar='<bypass-url>',
-                            default=cliutils.env('OS_MANILA_BYPASS_URL',
-                                                 'MANILACLIENT_BYPASS_URL'),
-                            help=("Use this API endpoint instead of the "
-                                  "Service Catalog. Defaults to "
-                                  "env[OS_MANILA_BYPASS_URL]."))
-        parser.add_argument('--bypass_url',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--bypass-url',
+            metavar='<bypass-url>',
+            default=cliutils.env(
+                'OS_MANILA_BYPASS_URL', 'MANILACLIENT_BYPASS_URL'
+            ),
+            help=(
+                "Use this API endpoint instead of the "
+                "Service Catalog. Defaults to "
+                "env[OS_MANILA_BYPASS_URL]."
+            ),
+        )
+        parser.add_argument('--bypass_url', help=argparse.SUPPRESS)
 
-        parser.add_argument('--service-type',
-                            metavar='<service-type>',
-                            help='Defaults to compute for most actions.')
-        parser.add_argument('--service_type',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--service-type',
+            metavar='<service-type>',
+            help='Defaults to compute for most actions.',
+        )
+        parser.add_argument('--service_type', help=argparse.SUPPRESS)
 
-        parser.add_argument('--service-name',
-                            metavar='<service-name>',
-                            default=cliutils.env('OS_MANILA_SERVICE_NAME',
-                                                 'MANILA_SERVICE_NAME'),
-                            help='Defaults to env[OS_MANILA_SERVICE_NAME].')
-        parser.add_argument('--service_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--service-name',
+            metavar='<service-name>',
+            default=cliutils.env(
+                'OS_MANILA_SERVICE_NAME', 'MANILA_SERVICE_NAME'
+            ),
+            help='Defaults to env[OS_MANILA_SERVICE_NAME].',
+        )
+        parser.add_argument('--service_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--share-service-name',
-                            metavar='<share-service-name>',
-                            default=cliutils.env(
-                                    'OS_MANILA_SHARE_SERVICE_NAME',
-                                    'MANILA_share_service_name'),
-                            help='Defaults to env'
-                                 '[OS_MANILA_SHARE_SERVICE_NAME].')
-        parser.add_argument('--share_service_name',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--share-service-name',
+            metavar='<share-service-name>',
+            default=cliutils.env(
+                'OS_MANILA_SHARE_SERVICE_NAME', 'MANILA_share_service_name'
+            ),
+            help='Defaults to env[OS_MANILA_SHARE_SERVICE_NAME].',
+        )
+        parser.add_argument('--share_service_name', help=argparse.SUPPRESS)
 
-        parser.add_argument('--endpoint-type',
-                            metavar='<endpoint-type>',
-                            default=cliutils.env(
-                                'OS_MANILA_ENDPOINT_TYPE',
-                                'MANILA_ENDPOINT_TYPE',
-                                default=DEFAULT_MANILA_ENDPOINT_TYPE),
-                            help='Defaults to env[OS_MANILA_ENDPOINT_TYPE] or '
-                            + DEFAULT_MANILA_ENDPOINT_TYPE + '.')
-        parser.add_argument('--endpoint_type',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--endpoint-type',
+            metavar='<endpoint-type>',
+            default=cliutils.env(
+                'OS_MANILA_ENDPOINT_TYPE',
+                'MANILA_ENDPOINT_TYPE',
+                default=DEFAULT_MANILA_ENDPOINT_TYPE,
+            ),
+            help='Defaults to env[OS_MANILA_ENDPOINT_TYPE] or '
+            + DEFAULT_MANILA_ENDPOINT_TYPE
+            + '.',
+        )
+        parser.add_argument('--endpoint_type', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-share-api-version',
-                            metavar='<share-api-ver>',
-                            default=cliutils.env(
-                                'OS_SHARE_API_VERSION',
-                                default=DEFAULT_OS_SHARE_API_VERSION),
-                            help='Accepts 1.x to override default '
-                                 'to env[OS_SHARE_API_VERSION].')
-        parser.add_argument('--os_share_api_version',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-share-api-version',
+            metavar='<share-api-ver>',
+            default=cliutils.env(
+                'OS_SHARE_API_VERSION', default=DEFAULT_OS_SHARE_API_VERSION
+            ),
+            help='Accepts 1.x to override default '
+            'to env[OS_SHARE_API_VERSION].',
+        )
+        parser.add_argument('--os_share_api_version', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-cacert',
-                            metavar='<ca-certificate>',
-                            default=cliutils.env('OS_CACERT', default=None),
-                            help='Specify a CA bundle file to use in '
-                            'verifying a TLS (https) server certificate. '
-                            'Defaults to env[OS_CACERT].')
+        parser.add_argument(
+            '--os-cacert',
+            metavar='<ca-certificate>',
+            default=cliutils.env('OS_CACERT', default=None),
+            help='Specify a CA bundle file to use in '
+            'verifying a TLS (https) server certificate. '
+            'Defaults to env[OS_CACERT].',
+        )
 
-        parser.add_argument('--insecure',
-                            default=cliutils.env('manilaclient_INSECURE',
-                                                 'MANILACLIENT_INSECURE',
-                                                 default=False),
-                            action='store_true',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--insecure',
+            default=cliutils.env(
+                'manilaclient_INSECURE', 'MANILACLIENT_INSECURE', default=False
+            ),
+            action='store_true',
+            help=argparse.SUPPRESS,
+        )
 
-        parser.add_argument('--retries',
-                            metavar='<retries>',
-                            type=int,
-                            default=0,
-                            help='Number of retries.')
+        parser.add_argument(
+            '--retries',
+            metavar='<retries>',
+            type=int,
+            default=0,
+            help='Number of retries.',
+        )
 
-        parser.add_argument('--os-cert',
-                            metavar='<certificate>',
-                            default=cliutils.env('OS_CERT'),
-                            help='Defaults to env[OS_CERT].')
-        parser.add_argument('--os_cert',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-cert',
+            metavar='<certificate>',
+            default=cliutils.env('OS_CERT'),
+            help='Defaults to env[OS_CERT].',
+        )
+        parser.add_argument('--os_cert', help=argparse.SUPPRESS)
 
-        parser.add_argument('--os-key',
-                            metavar='<key>',
-                            default=cliutils.env('OS_KEY'),
-                            help='Defaults to env[OS_KEY].')
-        parser.add_argument('--os_key',
-                            help=argparse.SUPPRESS)
+        parser.add_argument(
+            '--os-key',
+            metavar='<key>',
+            default=cliutils.env('OS_KEY'),
+            help='Defaults to env[OS_KEY].',
+        )
+        parser.add_argument('--os_key', help=argparse.SUPPRESS)
 
         if osprofiler_profiler:
-            parser.add_argument('--profile',
-                                metavar='HMAC_KEY',
-                                default=cliutils.env('OS_PROFILE'),
-                                help='HMAC key to use for encrypting '
-                                'context data for performance profiling '
-                                'of operation. This key needs to match the '
-                                'one configured on the manila api server. '
-                                'Without key the profiling will not be '
-                                'triggered even if osprofiler is enabled '
-                                'on server side. Defaults to '
-                                'env[OS_PROFILE].')
+            parser.add_argument(
+                '--profile',
+                metavar='HMAC_KEY',
+                default=cliutils.env('OS_PROFILE'),
+                help='HMAC key to use for encrypting '
+                'context data for performance profiling '
+                'of operation. This key needs to match the '
+                'one configured on the manila api server. '
+                'Without key the profiling will not be '
+                'triggered even if osprofiler is enabled '
+                'on server side. Defaults to '
+                'env[OS_PROFILE].',
+            )
 
         parser.set_defaults(func=self.do_help)
         parser.set_defaults(command='')
@@ -403,16 +441,16 @@ class OpenStackManilaShell(object):
     def _discover_extensions(self, api_version):
         extensions = []
         for name, module in itertools.chain(
-                self._discover_via_python_path(),
-                self._discover_via_contrib_path(api_version)):
-
+            self._discover_via_python_path(),
+            self._discover_via_contrib_path(api_version),
+        ):
             extension = manilaclient.extension.Extension(name, module)
             extensions.append(extension)
 
         return extensions
 
     def _discover_via_python_path(self):
-        for (module_loader, name, ispkg) in pkgutil.iter_modules():
+        for module_loader, name, ispkg in pkgutil.iter_modules():
             if name.endswith('python_manilaclient_ext'):
                 if not hasattr(module_loader, 'load_module'):
                     # Python 2.6 compat: actually get an ImpImporter obj
@@ -422,9 +460,7 @@ class OpenStackManilaShell(object):
                 yield name, module
 
     def _load_module(self, name, path):
-        module_spec = importlib_util.spec_from_file_location(
-            name, path
-        )
+        module_spec = importlib_util.spec_from_file_location(name, path)
         module = importlib_util.module_from_spec(module_spec)
         module_spec.loader.exec_module(module)
         return module
@@ -448,7 +484,8 @@ class OpenStackManilaShell(object):
         subparser = subparsers.add_parser(
             'bash_completion',
             add_help=False,
-            formatter_class=OpenStackHelpFormatter)
+            formatter_class=OpenStackHelpFormatter,
+        )
 
         self.subcommands['bash_completion'] = subparser
         subparser.set_defaults(func=self.do_bash_completion)
@@ -467,14 +504,18 @@ class OpenStackManilaShell(object):
                 help=help,
                 description=desc,
                 add_help=False,
-                formatter_class=OpenStackHelpFormatter)
+                formatter_class=OpenStackHelpFormatter,
+            )
 
-            subparser.add_argument('-h', '--help',
-                                   action='help',
-                                   help=argparse.SUPPRESS,)
+            subparser.add_argument(
+                '-h',
+                '--help',
+                action='help',
+                help=argparse.SUPPRESS,
+            )
 
             self.subcommands[command] = subparser
-            for (args, kwargs) in arguments:
+            for args, kwargs in arguments:
                 subparser.add_argument(*args, **kwargs)
             subparser.set_defaults(func=callback)
 
@@ -484,20 +525,18 @@ class OpenStackManilaShell(object):
 
         streamformat = "%(levelname)s (%(module)s:%(lineno)d) %(message)s"
         logging.basicConfig(level=logging.DEBUG, format=streamformat)
-        logging.getLogger('requests.packages.urllib3.connectionpool'
-                          ).setLevel(logging.WARNING)
+        logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(
+            logging.WARNING
+        )
         logging.getLogger('keystoneauth1.session').setLevel(logging.WARNING)
 
-    def _build_subcommands_and_extensions(self,
-                                          os_api_version,
-                                          argv,
-                                          options):
-
+    def _build_subcommands_and_extensions(self, os_api_version, argv, options):
         self.extensions = self._discover_extensions(os_api_version)
         self._run_extension_hooks('__pre_parse_args__')
 
         self.parser = self.get_subcommand_parser(
-            os_api_version.get_major_version())
+            os_api_version.get_major_version()
+        )
 
         if argv and len(argv) > 1 and '--help' in argv:
             argv = [x for x in argv if x != '--help']
@@ -523,9 +562,9 @@ class OpenStackManilaShell(object):
         os_api_version = self._validate_input_api_version(options)
 
         # build available subcommands based on version
-        args = self._build_subcommands_and_extensions(os_api_version,
-                                                      argv,
-                                                      options)
+        args = self._build_subcommands_and_extensions(
+            os_api_version, argv, options
+        )
         if not args:
             return 0
 
@@ -539,10 +578,12 @@ class OpenStackManilaShell(object):
 
         if not options.os_share_api_version:
             api_version = api_versions.get_api_version(
-                DEFAULT_MAJOR_OS_SHARE_API_VERSION)
+                DEFAULT_MAJOR_OS_SHARE_API_VERSION
+            )
         else:
             api_version = api_versions.get_api_version(
-                options.os_share_api_version)
+                options.os_share_api_version
+            )
 
         major_version_string = str(api_version.ver_major)
         os_service_type = args.service_type
@@ -586,33 +627,40 @@ class OpenStackManilaShell(object):
             client_args['share_service_name'] = args.share_service_name
 
         self._validate_required_options(
-            args.os_tenant_name, args.os_tenant_id,
-            args.os_project_name, args.os_project_id,
-            args.os_token, args.bypass_url,
-            client_args['auth_url'])
+            args.os_tenant_name,
+            args.os_tenant_id,
+            args.os_project_name,
+            args.os_project_id,
+            args.os_token,
+            args.bypass_url,
+            client_args['auth_url'],
+        )
 
         # This client is needed to discover the server api version.
-        temp_client = client.Client(manilaclient.API_MAX_VERSION,
-                                    **client_args)
+        temp_client = client.Client(
+            manilaclient.API_MAX_VERSION, **client_args
+        )
 
-        self.cs, discovered_version = self._discover_client(temp_client,
-                                                            os_api_version,
-                                                            os_endpoint_type,
-                                                            os_service_type,
-                                                            client_args)
+        self.cs, discovered_version = self._discover_client(
+            temp_client,
+            os_api_version,
+            os_endpoint_type,
+            os_service_type,
+            client_args,
+        )
 
-        args = self._build_subcommands_and_extensions(discovered_version,
-                                                      argv,
-                                                      options)
+        args = self._build_subcommands_and_extensions(
+            discovered_version, argv, options
+        )
 
         profile = osprofiler_profiler and options.profile
         if profile:
             osprofiler_profiler.init(options.profile)
 
         try:
-            decoder_path = (
-                '%s/%s' % (os.path.dirname(os.path.abspath(__file__)),
-                           'osc/v2/data/manila.csv')
+            decoder_path = '{}/{}'.format(
+                os.path.dirname(os.path.abspath(__file__)),
+                'osc/v2/data/manila.csv',
             )
             with open(decoder_path) as f:
                 decoder_data = {
@@ -623,16 +671,20 @@ class OpenStackManilaShell(object):
             # this is fine
             decoder_data = {}
 
-        deprecation_message = ("manila CLI is deprecated and will be removed "
-                               "in the future. Use openstack CLI instead.")
+        deprecation_message = (
+            "manila CLI is deprecated and will be removed "
+            "in the future. Use openstack CLI instead."
+        )
         cmd = args.func.__name__.lstrip('do_').replace("_", "-")
         if decoder_data and cmd in decoder_data:
-            deprecation_message = " ".join([
-                deprecation_message,
-                "The equivalent command is \" openstack",
-                f"{decoder_data[cmd]}",
-                "\""
-            ])
+            deprecation_message = " ".join(
+                [
+                    deprecation_message,
+                    "The equivalent command is \" openstack",
+                    f"{decoder_data[cmd]}",
+                    "\"",
+                ]
+            )
 
         print(deprecation_message, file=sys.stderr)
 
@@ -640,24 +692,26 @@ class OpenStackManilaShell(object):
 
         if profile:
             trace_id = osprofiler_profiler.get().get_base_id()
-            print("Profiling trace ID: %s" % trace_id)
-            print("To display trace use next command:\n"
-                  "osprofiler trace show --html %s " % trace_id)
+            print(f"Profiling trace ID: {trace_id}")
+            print(
+                "To display trace use next command:\n"
+                f"osprofiler trace show --html {trace_id} "
+            )
 
-    def _discover_client(self,
-                         current_client,
-                         os_api_version,
-                         os_endpoint_type,
-                         os_service_type,
-                         client_args):
-
+    def _discover_client(
+        self,
+        current_client,
+        os_api_version,
+        os_endpoint_type,
+        os_service_type,
+        client_args,
+    ):
         if os_api_version == manilaclient.API_DEPRECATED_VERSION:
             discovered_version = manilaclient.API_DEPRECATED_VERSION
             os_service_type = constants.V1_SERVICE_TYPE
         else:
             discovered_version = api_versions.discover_version(
-                current_client,
-                os_api_version
+                current_client, os_api_version
             )
 
         if not os_endpoint_type:
@@ -666,15 +720,19 @@ class OpenStackManilaShell(object):
         if not os_service_type:
             os_service_type = self._discover_service_type(discovered_version)
 
-        if (discovered_version != manilaclient.API_MAX_VERSION or
-                os_service_type != constants.V1_SERVICE_TYPE or
-                os_endpoint_type != DEFAULT_MANILA_ENDPOINT_TYPE):
+        if (
+            discovered_version != manilaclient.API_MAX_VERSION
+            or os_service_type != constants.V1_SERVICE_TYPE
+            or os_endpoint_type != DEFAULT_MANILA_ENDPOINT_TYPE
+        ):
             client_args['version'] = discovered_version
             client_args['service_type'] = os_service_type
             client_args['endpoint_type'] = os_endpoint_type
 
-            return (client.Client(discovered_version, **client_args),
-                    discovered_version)
+            return (
+                client.Client(discovered_version, **client_args),
+                discovered_version,
+            )
         else:
             return current_client, discovered_version
 
@@ -688,20 +746,30 @@ class OpenStackManilaShell(object):
             api_version = manilaclient.API_MAX_VERSION
         else:
             api_version = api_versions.get_api_version(
-                options.os_share_api_version)
+                options.os_share_api_version
+            )
         return api_version
 
-    def _validate_required_options(self, tenant_name, tenant_id,
-                                   project_name, project_id,
-                                   token, service_catalog_url, auth_url):
+    def _validate_required_options(
+        self,
+        tenant_name,
+        tenant_id,
+        project_name,
+        project_id,
+        token,
+        service_catalog_url,
+        auth_url,
+    ):
         if token and not service_catalog_url:
             raise exc.CommandError(
                 "bypass_url missing: When specifying a token the bypass_url "
-                "must be set via --bypass-url or env[OS_MANILA_BYPASS_URL]")
+                "must be set via --bypass-url or env[OS_MANILA_BYPASS_URL]"
+            )
         if service_catalog_url and not token:
             raise exc.CommandError(
                 "Token missing: When specifying a bypass_url a token must be "
-                "set via --os-token or env[OS_TOKEN]")
+                "set via --os-token or env[OS_TOKEN]"
+            )
         if token and service_catalog_url:
             return
 
@@ -721,7 +789,8 @@ class OpenStackManilaShell(object):
         if not auth_url:
             raise exc.CommandError(
                 "You must provide an auth url "
-                "via either --os-auth-url or env[OS_AUTH_URL]")
+                "via either --os-auth-url or env[OS_AUTH_URL]"
+            )
 
     def _run_extension_hooks(self, hook_type, *args, **kwargs):
         """Run hooks for all registered extensions."""
@@ -745,16 +814,21 @@ class OpenStackManilaShell(object):
         commands.remove('bash_completion')
         print(' '.join(commands | options))
 
-    @cliutils.arg('command', metavar='<subcommand>', nargs='?',
-                  help='Display help for <subcommand>')
+    @cliutils.arg(
+        'command',
+        metavar='<subcommand>',
+        nargs='?',
+        help='Display help for <subcommand>',
+    )
     def do_help(self, args):
         """Display help about this program or one of its subcommands."""
         if args.command:
             if args.command in self.subcommands:
                 self.subcommands[args.command].print_help()
             else:
-                raise exc.CommandError("'%s' is not a valid subcommand" %
-                                       args.command)
+                raise exc.CommandError(
+                    f"'{args.command}' is not a valid subcommand"
+                )
         else:
             self.parser.print_help()
 
@@ -763,8 +837,8 @@ class OpenStackManilaShell(object):
 class OpenStackHelpFormatter(argparse.HelpFormatter):
     def start_section(self, heading):
         # Title-case the headings
-        heading = '%s%s' % (heading[0].upper(), heading[1:])
-        super(OpenStackHelpFormatter, self).start_section(heading)
+        heading = f'{heading[0].upper()}{heading[1:]}'
+        super().start_section(heading)
 
 
 def main():
@@ -775,7 +849,7 @@ def main():
         sys.exit(130)
     except Exception as e:
         logger.debug(e, exc_info=1)
-        print("ERROR: %s" % str(e), file=sys.stderr)
+        print(f"ERROR: {str(e)}", file=sys.stderr)
         sys.exit(1)
 
 

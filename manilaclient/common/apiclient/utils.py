@@ -27,7 +27,7 @@ def find_resource(manager, name_or_id, **find_args):
     .. code-block:: python
 
         def _find_hypervisor(cs, hypervisor):
-            #Get a hypervisor by name or ID.
+            # Get a hypervisor by name or ID.
             return cliutils.find_resource(cs.hypervisors, hypervisor)
     """
     # first try to get entity as integer id
@@ -66,14 +66,19 @@ def find_resource(manager, name_or_id, **find_args):
             kwargs.update(find_args)
             return manager.find(**kwargs)
         except exceptions.NotFound:
-            msg = _("No %(name)s with a name or "
-                    "ID of '%(name_or_id)s' exists.") % \
-                {"name": manager.resource_class.__name__.lower(),
-                 "name_or_id": name_or_id}
+            msg = _(
+                "No %(name)s with a name or ID of '%(name_or_id)s' exists."
+            ) % {
+                "name": manager.resource_class.__name__.lower(),
+                "name_or_id": name_or_id,
+            }
             raise exceptions.CommandError(msg)
     except exceptions.NoUniqueMatch:
-        msg = _("Multiple %(name)s matches found for "
-                "'%(name_or_id)s', use an ID to be more specific.") % \
-            {"name": manager.resource_class.__name__.lower(),
-             "name_or_id": name_or_id}
+        msg = _(
+            "Multiple %(name)s matches found for "
+            "'%(name_or_id)s', use an ID to be more specific."
+        ) % {
+            "name": manager.resource_class.__name__.lower(),
+            "name_or_id": name_or_id,
+        }
         raise exceptions.CommandError(msg)

@@ -23,10 +23,9 @@ from manilaclient.tests.unit.osc import osc_fakes
 from manilaclient.tests.unit.osc import osc_utils
 
 
-class FakeShareClient(object):
-
+class FakeShareClient:
     def __init__(self, **kwargs):
-        super(FakeShareClient, self).__init__()
+        super().__init__()
         self.auth_token = kwargs['token']
         self.management_url = kwargs['endpoint']
         self.shares = mock.Mock()
@@ -51,8 +50,9 @@ class FakeShareClient(object):
         self.share_instance_export_locations = mock.Mock()
         self.share_export_locations = mock.Mock()
         self.share_snapshot_instance_export_locations = mock.Mock()
-        self.share_export_locations.resource_class = (
-            osc_fakes.FakeResource(None, {}))
+        self.share_export_locations.resource_class = osc_fakes.FakeResource(
+            None, {}
+        )
         self.messages = mock.Mock()
         self.availability_zones = mock.Mock()
         self.services = mock.Mock()
@@ -77,22 +77,19 @@ class ManilaParseException(Exception):
 
 
 class TestShare(osc_utils.TestCommand):
-
     def setUp(self):
-        super(TestShare, self).setUp()
+        super().setUp()
 
         self.app.client_manager.share = FakeShareClient(
-            endpoint=osc_fakes.AUTH_URL,
-            token=osc_fakes.AUTH_TOKEN
+            endpoint=osc_fakes.AUTH_URL, token=osc_fakes.AUTH_TOKEN
         )
 
         self.app.client_manager.identity = identity_fakes.FakeIdentityv3Client(
-            endpoint=osc_fakes.AUTH_URL,
-            token=osc_fakes.AUTH_TOKEN
+            endpoint=osc_fakes.AUTH_URL, token=osc_fakes.AUTH_TOKEN
         )
 
 
-class FakeShare(object):
+class FakeShare:
     """Fake one or more shares."""
 
     @staticmethod
@@ -146,9 +143,9 @@ class FakeShare(object):
         # Overwrite default attributes.
         share_info.update(attrs)
 
-        share = osc_fakes.FakeResource(info=copy.deepcopy(share_info),
-                                       methods=methods,
-                                       loaded=True)
+        share = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_info), methods=methods, loaded=True
+        )
         return share
 
     @staticmethod
@@ -220,13 +217,14 @@ class FakeShare(object):
                 if x == 'tags':
                     # The 'tags' should be format_list
                     data_list.append(
-                        format_columns.ListColumn(share.info.get(x)))
+                        format_columns.ListColumn(share.info.get(x))
+                    )
                 else:
                     data_list.append(share.info.get(x))
         return tuple(data_list)
 
 
-class FakeShareType(object):
+class FakeShareType:
     """Fake one or more share types"""
 
     @staticmethod
@@ -243,9 +241,7 @@ class FakeShareType(object):
         methods = methods or {}
 
         share_type_info = {
-            "required_extra_specs": {
-                "driver_handles_share_servers": True
-            },
+            "required_extra_specs": {"driver_handles_share_servers": True},
             "share_type_access:is_public": True,
             "extra_specs": {
                 "replication_type": "readable",
@@ -253,19 +249,18 @@ class FakeShareType(object):
                 "mount_snapshot_support": False,
                 "revert_to_snapshot_support": False,
                 "create_share_from_snapshot_support": True,
-                "snapshot_support": True
+                "snapshot_support": True,
             },
             "id": 'share-type-id-' + uuid.uuid4().hex,
             "name": 'share-type-name-' + uuid.uuid4().hex,
             "is_default": False,
-            "description": 'share-type-description-' + uuid.uuid4().hex
+            "description": 'share-type-description-' + uuid.uuid4().hex,
         }
 
         share_type_info.update(attrs)
-        share_type = osc_fakes.FakeResource(info=copy.deepcopy(
-                                            share_type_info),
-                                            methods=methods,
-                                            loaded=True)
+        share_type = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_type_info), methods=methods, loaded=True
+        )
         return share_type
 
     @staticmethod
@@ -308,7 +303,7 @@ class FakeShareType(object):
         return mock.Mock(side_effect=share_types)
 
 
-class FakeShareExportLocation(object):
+class FakeShareExportLocation:
     """Fake one or more export locations"""
 
     @staticmethod
@@ -336,9 +331,9 @@ class FakeShareExportLocation(object):
         }
 
         share_export_location_info.update(attrs)
-        share_export_location = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_export_location_info),
-            loaded=True)
+        share_export_location = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_export_location_info), loaded=True
+        )
         return share_export_location
 
     @staticmethod
@@ -358,12 +353,12 @@ class FakeShareExportLocation(object):
         share_export_locations = []
         for n in range(0, count):
             share_export_locations.append(
-                FakeShareExportLocation.
-                create_one_export_location(attrs))
+                FakeShareExportLocation.create_one_export_location(attrs)
+            )
         return share_export_locations
 
 
-class FakeShareAccessRule(object):
+class FakeShareAccessRule:
     """Fake one or more share access rules"""
 
     @staticmethod
@@ -386,17 +381,17 @@ class FakeShareAccessRule(object):
             'access_key': None,
             'created_at': datetime.datetime.now().isoformat(),
             'updated_at': None,
-            'properties': {}
+            'properties': {},
         }
 
         share_access_rule.update(attrs)
-        share_access_rule = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_access_rule),
-            loaded=True)
+        share_access_rule = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_access_rule), loaded=True
+        )
         return share_access_rule
 
 
-class FakeQuotaSet(object):
+class FakeQuotaSet:
     """Fake quota set"""
 
     @staticmethod
@@ -425,13 +420,13 @@ class FakeQuotaSet(object):
         }
 
         quotas_info.update(attrs)
-        quotas = osc_fakes.FakeResource(info=copy.deepcopy(
-                                        quotas_info),
-                                        loaded=True)
+        quotas = osc_fakes.FakeResource(
+            info=copy.deepcopy(quotas_info), loaded=True
+        )
         return quotas
 
 
-class FakeShareSnapshotIntances(object):
+class FakeShareSnapshotIntances:
     """Fake a share snapshot instance"""
 
     @staticmethod
@@ -455,14 +450,15 @@ class FakeShareSnapshotIntances(object):
             'share_id': 'share-id-' + uuid.uuid4().hex,
             'share_instance_id': 'share-instance-id-' + uuid.uuid4().hex,
             'progress': None,
-            'provider_location': None
+            'provider_location': None,
         }
 
         share_snapshot_instance.update(attrs)
-        share_snapshot_instance = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_snapshot_instance),
+        share_snapshot_instance = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_snapshot_instance),
             methods=methods,
-            loaded=True)
+            loaded=True,
+        )
         return share_snapshot_instance
 
     @staticmethod
@@ -480,12 +476,13 @@ class FakeShareSnapshotIntances(object):
         share_snapshot_instances = []
         for n in range(0, count):
             share_snapshot_instances.append(
-                FakeShareSnapshot.create_one_snapshot(attrs))
+                FakeShareSnapshot.create_one_snapshot(attrs)
+            )
 
         return share_snapshot_instances
 
 
-class FakeShareSnapshotInstancesExportLocations(object):
+class FakeShareSnapshotInstancesExportLocations:
     """Fake a share snapshot instance Export Locations"""
 
     @staticmethod
@@ -508,10 +505,10 @@ class FakeShareSnapshotInstancesExportLocations(object):
 
         share_snapshot_instance_export_location.update(attrs)
         share_snapshot_instance_export_location = osc_fakes.FakeResource(
-            info=copy.deepcopy(
-                share_snapshot_instance_export_location),
+            info=copy.deepcopy(share_snapshot_instance_export_location),
             methods=methods,
-            loaded=True)
+            loaded=True,
+        )
         return share_snapshot_instance_export_location
 
     @staticmethod
@@ -529,12 +526,13 @@ class FakeShareSnapshotInstancesExportLocations(object):
         share_snapshot_instances = []
         for n in range(0, count):
             share_snapshot_instances.append(
-                FakeShareSnapshot.create_one_snapshot(attrs))
+                FakeShareSnapshot.create_one_snapshot(attrs)
+            )
 
         return share_snapshot_instances
 
 
-class FakeShareSnapshot(object):
+class FakeShareSnapshot:
     """Fake a share snapshot"""
 
     @staticmethod
@@ -562,14 +560,13 @@ class FakeShareSnapshot(object):
             'share_size': 1,
             'size': 1,
             'status': None,
-            'user_id': 'user-id-' + uuid.uuid4().hex
+            'user_id': 'user-id-' + uuid.uuid4().hex,
         }
 
         share_snapshot.update(attrs)
-        share_snapshot = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_snapshot),
-            methods=methods,
-            loaded=True)
+        share_snapshot = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_snapshot), methods=methods, loaded=True
+        )
         return share_snapshot
 
     @staticmethod
@@ -587,12 +584,13 @@ class FakeShareSnapshot(object):
         share_snapshots = []
         for n in range(0, count):
             share_snapshots.append(
-                FakeShareSnapshot.create_one_snapshot(attrs))
+                FakeShareSnapshot.create_one_snapshot(attrs)
+            )
 
         return share_snapshots
 
 
-class FakeShareTransfer(object):
+class FakeShareTransfer:
     """Fake a share transfer"""
 
     @staticmethod
@@ -620,14 +618,13 @@ class FakeShareTransfer(object):
             'name': 'name-' + uuid.uuid4().hex,
             'resource_id': 'resource-id-' + uuid.uuid4().hex,
             'resource_type': 'share',
-            'source_project_id': 'source-project-id-' + uuid.uuid4().hex
+            'source_project_id': 'source-project-id-' + uuid.uuid4().hex,
         }
 
         share_transfer.update(attrs)
-        share_transfer = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_transfer),
-            methods=methods,
-            loaded=True)
+        share_transfer = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_transfer), methods=methods, loaded=True
+        )
         return share_transfer
 
     @staticmethod
@@ -645,12 +642,13 @@ class FakeShareTransfer(object):
         share_transfers = []
         for n in range(0, count):
             share_transfers.append(
-                FakeShareSnapshot.create_one_snapshot(attrs))
+                FakeShareSnapshot.create_one_snapshot(attrs)
+            )
 
         return share_transfers
 
 
-class FakeSnapshotAccessRule(object):
+class FakeSnapshotAccessRule:
     """Fake one or more snapshot access rules"""
 
     @staticmethod
@@ -667,13 +665,13 @@ class FakeSnapshotAccessRule(object):
             'access_to': 'demo',
             'access_type': 'user',
             'id': 'access_rule-id-' + uuid.uuid4().hex,
-            'state': 'queued_to_apply'
+            'state': 'queued_to_apply',
         }
 
         snapshot_access_rule.update(attrs)
-        snapshot_access_rule = osc_fakes.FakeResource(info=copy.deepcopy(
-            snapshot_access_rule),
-            loaded=True)
+        snapshot_access_rule = osc_fakes.FakeResource(
+            info=copy.deepcopy(snapshot_access_rule), loaded=True
+        )
         return snapshot_access_rule
 
     @staticmethod
@@ -691,12 +689,13 @@ class FakeSnapshotAccessRule(object):
         access_rules = []
         for n in range(0, count):
             access_rules.append(
-                FakeSnapshotAccessRule.create_one_access_rule(attrs))
+                FakeSnapshotAccessRule.create_one_access_rule(attrs)
+            )
 
         return access_rules
 
 
-class FakeSnapshotExportLocation(object):
+class FakeSnapshotExportLocation:
     """Fake one or more export locations"""
 
     @staticmethod
@@ -722,9 +721,9 @@ class FakeSnapshotExportLocation(object):
         }
 
         snapshot_export_location_info.update(attrs)
-        snapshot_export_location = osc_fakes.FakeResource(info=copy.deepcopy(
-            snapshot_export_location_info),
-            loaded=True)
+        snapshot_export_location = osc_fakes.FakeResource(
+            info=copy.deepcopy(snapshot_export_location_info), loaded=True
+        )
         return snapshot_export_location
 
     @staticmethod
@@ -742,13 +741,13 @@ class FakeSnapshotExportLocation(object):
         export_locations = []
         for n in range(0, count):
             export_locations.append(
-                FakeSnapshotExportLocation.create_one_export_location(
-                    attrs))
+                FakeSnapshotExportLocation.create_one_export_location(attrs)
+            )
 
         return export_locations
 
 
-class FakeMessage(object):
+class FakeMessage:
     """Fake message"""
 
     @staticmethod
@@ -779,9 +778,9 @@ class FakeMessage(object):
         }
 
         message.update(attrs)
-        message = osc_fakes.FakeResource(info=copy.deepcopy(
-            message),
-            loaded=True)
+        message = osc_fakes.FakeResource(
+            info=copy.deepcopy(message), loaded=True
+        )
         return message
 
     @staticmethod
@@ -798,13 +797,12 @@ class FakeMessage(object):
 
         messages = []
         for n in range(0, count):
-            messages.append(
-                FakeMessage.create_one_message(attrs))
+            messages.append(FakeMessage.create_one_message(attrs))
 
         return messages
 
 
-class FakeShareReplica(object):
+class FakeShareReplica:
     """Fake a share replica"""
 
     @staticmethod
@@ -831,14 +829,13 @@ class FakeShareReplica(object):
             'share_network_id': None,
             'share_server_id': None,
             'status': None,
-            'updated_at': None
+            'updated_at': None,
         }
 
         share_replica.update(attrs)
-        share_replica = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_replica),
-            methods=methods,
-            loaded=True)
+        share_replica = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_replica), methods=methods, loaded=True
+        )
         return share_replica
 
     @staticmethod
@@ -855,12 +852,11 @@ class FakeShareReplica(object):
 
         share_replicas = []
         for n in range(0, count):
-            share_replicas.append(
-                FakeShareReplica.create_one_replica(attrs))
+            share_replicas.append(FakeShareReplica.create_one_replica(attrs))
         return share_replicas
 
 
-class FakeShareAvailabilityZones(object):
+class FakeShareAvailabilityZones:
     """Fake one or more availability zones"""
 
     @staticmethod
@@ -883,14 +879,13 @@ class FakeShareAvailabilityZones(object):
         }
 
         availability_zone.update(attrs)
-        availability_zone = osc_fakes.FakeResource(info=copy.deepcopy(
-            availability_zone),
-            loaded=True)
+        availability_zone = osc_fakes.FakeResource(
+            info=copy.deepcopy(availability_zone), loaded=True
+        )
         return availability_zone
 
     @staticmethod
     def create_share_availability_zones(attrs=None, count=2):
-
         """Create multiple availability zones.
 
         :param Dictionary attrs:
@@ -904,11 +899,12 @@ class FakeShareAvailabilityZones(object):
         availability_zones = []
         for n in range(0, count):
             availability_zones.append(
-                FakeShareAvailabilityZones.create_one_availability_zone(attrs))
+                FakeShareAvailabilityZones.create_one_availability_zone(attrs)
+            )
         return availability_zones
 
 
-class FakeShareService(object):
+class FakeShareService:
     """Fake one or more share service"""
 
     @staticmethod
@@ -930,13 +926,13 @@ class FakeShareService(object):
             "status": "enabled",
             "state": "up",
             "updated_at": 'time-' + uuid.uuid4().hex,
-            "zone": "fake_zone"
+            "zone": "fake_zone",
         }
 
         share_service_info.update(attrs)
-        share_service = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_service_info),
-            loaded=True)
+        share_service = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_service_info), loaded=True
+        )
         return share_service
 
     @staticmethod
@@ -953,12 +949,11 @@ class FakeShareService(object):
 
         services = []
         for n in range(count):
-            services.append(
-                FakeShareService.create_fake_service(attrs))
+            services.append(FakeShareService.create_fake_service(attrs))
         return services
 
 
-class FakeShareSecurityService(object):
+class FakeShareSecurityService:
     """Fake one or more share security service"""
 
     @staticmethod
@@ -993,10 +988,11 @@ class FakeShareSecurityService(object):
         }
 
         share_security_service_info.update(attrs)
-        share_security_service = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_security_service_info),
+        share_security_service = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_security_service_info),
             methods=methods,
-            loaded=True)
+            loaded=True,
+        )
         return share_security_service
 
     @staticmethod
@@ -1014,11 +1010,12 @@ class FakeShareSecurityService(object):
         security_services = []
         for n in range(count):
             security_services.append(
-                FakeShareSecurityService.create_fake_security_service(attrs))
+                FakeShareSecurityService.create_fake_security_service(attrs)
+            )
         return security_services
 
 
-class FakeSharePools(object):
+class FakeSharePools:
     """Fake one or more share pool"""
 
     @staticmethod
@@ -1038,13 +1035,13 @@ class FakeSharePools(object):
             "host": 'fake_host_' + uuid.uuid4().hex,
             "backend": 'fake_backend_' + uuid.uuid4().hex,
             "pool": 'fake_pool_' + uuid.uuid4().hex,
-            "capabilities": {'fake_capability': uuid.uuid4().hex}
+            "capabilities": {'fake_capability': uuid.uuid4().hex},
         }
 
         share_pool.update(attrs)
-        share_pool = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_pool),
-            loaded=True)
+        share_pool = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_pool), loaded=True
+        )
         return share_pool
 
     @staticmethod
@@ -1061,12 +1058,11 @@ class FakeSharePools(object):
 
         share_pools = []
         for n in range(count):
-            share_pools.append(
-                FakeSharePools.create_one_share_pool(attrs))
+            share_pools.append(FakeSharePools.create_one_share_pool(attrs))
         return share_pools
 
 
-class FakeShareInstance(object):
+class FakeShareInstance:
     """Fake a share instance"""
 
     @staticmethod
@@ -1093,14 +1089,13 @@ class FakeShareInstance(object):
             'share_server_id': 'ss-id-' + uuid.uuid4().hex,
             'host': None,
             'access_rules_status': None,
-            'id': 'instance-id-' + uuid.uuid4().hex
+            'id': 'instance-id-' + uuid.uuid4().hex,
         }
 
         share_instance.update(attrs)
-        share_instance = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_instance),
-            methods=methods,
-            loaded=True)
+        share_instance = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_instance), methods=methods, loaded=True
+        )
         return share_instance
 
     @staticmethod
@@ -1117,22 +1112,23 @@ class FakeShareInstance(object):
         share_instances = []
         for n in range(count):
             share_instances.append(
-                FakeShareInstance.create_one_share_instance(attrs))
+                FakeShareInstance.create_one_share_instance(attrs)
+            )
         return share_instances
 
 
-class FakeShareLimits(object):
+class FakeShareLimits:
     """Fake one or more share limits"""
 
     @staticmethod
     def create_one_share_limit(attrs=None):
         """Create a fake share limit dict
 
-         :param Dictionary attrs:
-             A dictionary with all attributes
-         :return:
-             A FakeLimitsResource object, with share limits.
-         """
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeLimitsResource object, with share limits.
+        """
 
         attrs = attrs or {}
 
@@ -1148,16 +1144,17 @@ class FakeShareLimits(object):
                 "unit": "MINUTE",
                 "value": "3",
                 "remaining": "1",
-            }
+            },
         }
 
         share_limits.update(attrs)
         share_limits = osc_fakes.FakeLimitsResource(
-            info=copy.deepcopy(share_limits), loaded=True)
+            info=copy.deepcopy(share_limits), loaded=True
+        )
         return share_limits
 
 
-class FakeShareNetwork(object):
+class FakeShareNetwork:
     """Fake a share network"""
 
     @staticmethod
@@ -1194,16 +1191,15 @@ class FakeShareNetwork(object):
                     "cidr": "10.0.0.0/24",
                     "network_type": "vlan",
                     "mtu": "1500",
-                    "gateway": "10.0.0.1"
+                    "gateway": "10.0.0.1",
                 },
             ],
         }
 
         share_network.update(attrs)
-        share_network = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_network),
-            methods=methods,
-            loaded=True)
+        share_network = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_network), methods=methods, loaded=True
+        )
         return share_network
 
     @staticmethod
@@ -1222,12 +1218,13 @@ class FakeShareNetwork(object):
         share_networks = []
         for n in range(count):
             share_networks.append(
-                FakeShareNetwork.create_one_share_network(attrs))
+                FakeShareNetwork.create_one_share_network(attrs)
+            )
 
         return share_networks
 
 
-class FakeShareNetworkSubnet(object):
+class FakeShareNetworkSubnet:
     """Fake a share network subnet"""
 
     @staticmethod
@@ -1261,9 +1258,9 @@ class FakeShareNetworkSubnet(object):
         }
 
         share_network_subnet.update(attrs)
-        share_network_subnet = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_network_subnet),
-            loaded=True)
+        share_network_subnet = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_network_subnet), loaded=True
+        )
         return share_network_subnet
 
     @staticmethod
@@ -1281,12 +1278,13 @@ class FakeShareNetworkSubnet(object):
         share_network_subnets = []
         for n in range(count):
             share_network_subnets.append(
-                FakeShareNetworkSubnet.create_one_share_subnet(attrs))
+                FakeShareNetworkSubnet.create_one_share_subnet(attrs)
+            )
 
         return share_network_subnets
 
 
-class FakeShareGroup(object):
+class FakeShareGroup:
     """Fake a share group"""
 
     @staticmethod
@@ -1316,14 +1314,13 @@ class FakeShareGroup(object):
             'share_network_id': None,
             'share_server_id': None,
             'share_types': ['share-types-id-' + uuid.uuid4().hex],
-            'consistent_snapshot_support': None
+            'consistent_snapshot_support': None,
         }
 
         share_group.update(attrs)
-        share_group = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_group),
-            methods=methods,
-            loaded=True)
+        share_group = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_group), methods=methods, loaded=True
+        )
         return share_group
 
     @staticmethod
@@ -1340,12 +1337,11 @@ class FakeShareGroup(object):
 
         share_groups = []
         for n in range(0, count):
-            share_groups.append(
-                FakeShareGroup.create_one_share_group(attrs))
+            share_groups.append(FakeShareGroup.create_one_share_group(attrs))
         return share_groups
 
 
-class FakeShareGroupType(object):
+class FakeShareGroupType:
     """Fake one or more share group types"""
 
     @staticmethod
@@ -1363,20 +1359,19 @@ class FakeShareGroupType(object):
 
         share_group_type_info = {
             "is_public": True,
-            "group_specs": {
-                "snapshot_support": True
-            },
+            "group_specs": {"snapshot_support": True},
             "share_types": ['share-types-id-' + uuid.uuid4().hex],
             "id": 'share-group-type-id-' + uuid.uuid4().hex,
             "name": 'share-group-type-name-' + uuid.uuid4().hex,
-            "is_default": False
+            "is_default": False,
         }
 
         share_group_type_info.update(attrs)
-        share_group_type = osc_fakes.FakeResource(info=copy.deepcopy(
-                                                  share_group_type_info),
-                                                  methods=methods,
-                                                  loaded=True)
+        share_group_type = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_group_type_info),
+            methods=methods,
+            loaded=True,
+        )
         return share_group_type
 
     @staticmethod
@@ -1394,7 +1389,8 @@ class FakeShareGroupType(object):
         share_group_types = []
         for n in range(0, count):
             share_group_types.append(
-                FakeShareGroupType.create_one_share_group_type(attrs))
+                FakeShareGroupType.create_one_share_group_type(attrs)
+            )
 
         return share_group_types
 
@@ -1420,7 +1416,7 @@ class FakeShareGroupType(object):
         return mock.Mock(side_effect=share_group_types)
 
 
-class FakeShareGroupSnapshot(object):
+class FakeShareGroupSnapshot:
     """Fake a share group snapshot"""
 
     @staticmethod
@@ -1443,14 +1439,15 @@ class FakeShareGroupSnapshot(object):
             'created_at': datetime.datetime.now().isoformat(),
             "project_id": 'project-id-' + uuid.uuid4().hex,
             'id': 'share-group-snapshot-id-' + uuid.uuid4().hex,
-            'description': None
+            'description': None,
         }
 
         share_group_snapshot.update(attrs)
-        share_group_snapshot = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_group_snapshot),
+        share_group_snapshot = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_group_snapshot),
             methods=methods,
-            loaded=True)
+            loaded=True,
+        )
         return share_group_snapshot
 
     @staticmethod
@@ -1468,11 +1465,12 @@ class FakeShareGroupSnapshot(object):
         share_group_snapshots = []
         for n in range(0, count):
             share_group_snapshots.append(
-                FakeShareGroupSnapshot.create_one_share_group_snapshot(attrs))
+                FakeShareGroupSnapshot.create_one_share_group_snapshot(attrs)
+            )
         return share_group_snapshots
 
 
-class FakeShareServer(object):
+class FakeShareServer:
     """Fake a share server"""
 
     @staticmethod
@@ -1501,14 +1499,13 @@ class FakeShareServer(object):
             'source_share_server_id': str(uuid.uuid4()),
             'created_at': datetime.datetime.now().isoformat(),
             'is_auto_deletable': False,
-            'identifier': str(uuid.uuid4())
+            'identifier': str(uuid.uuid4()),
         }
 
         share_server.update(attrs)
-        share_server = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_server),
-            methods=methods,
-            loaded=True)
+        share_server = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_server), methods=methods, loaded=True
+        )
         return share_server
 
     @staticmethod
@@ -1525,12 +1522,11 @@ class FakeShareServer(object):
         attrs = attrs or {}
         share_servers = []
         for n in range(count):
-            share_servers.append(
-                FakeShareServer.create_one_server(attrs))
+            share_servers.append(FakeShareServer.create_one_server(attrs))
         return share_servers
 
 
-class FakeResourceLock(object):
+class FakeResourceLock:
     """Fake a resource lock"""
 
     @staticmethod
@@ -1562,10 +1558,9 @@ class FakeResourceLock(object):
         }
 
         lock.update(attrs)
-        lock = osc_fakes.FakeResource(info=copy.deepcopy(
-            lock),
-            methods=methods,
-            loaded=True)
+        lock = osc_fakes.FakeResource(
+            info=copy.deepcopy(lock), methods=methods, loaded=True
+        )
         return lock
 
     @staticmethod
@@ -1582,13 +1577,12 @@ class FakeResourceLock(object):
 
         resource_locks = []
         for n in range(0, count):
-            resource_locks.append(
-                FakeResourceLock.create_one_lock(attrs))
+            resource_locks.append(FakeResourceLock.create_one_lock(attrs))
 
         return resource_locks
 
 
-class FakeShareBackup(object):
+class FakeShareBackup:
     """Fake a share Backup"""
 
     @staticmethod
@@ -1621,10 +1615,9 @@ class FakeShareBackup(object):
         }
 
         share_backup.update(attrs)
-        share_backup = osc_fakes.FakeResource(info=copy.deepcopy(
-            share_backup),
-            methods=methods,
-            loaded=True)
+        share_backup = osc_fakes.FakeResource(
+            info=copy.deepcopy(share_backup), methods=methods, loaded=True
+        )
         return share_backup
 
     @staticmethod
@@ -1641,6 +1634,5 @@ class FakeShareBackup(object):
 
         share_backups = []
         for n in range(0, count):
-            share_backups.append(
-                FakeShareBackup.create_one_backup(attrs))
+            share_backups.append(FakeShareBackup.create_one_backup(attrs))
         return share_backups

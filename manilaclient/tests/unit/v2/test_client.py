@@ -37,26 +37,35 @@ class ClientTest(utils.TestCase):
         base_url = uuidutils.generate_uuid(dashed=False)
 
         s = client.session.Session()
-        c = client.Client(session=s,
-                          api_version=manilaclient.API_MAX_VERSION,
-                          service_catalog_url=base_url, retries=retries,
-                          input_auth_token='token')
+        c = client.Client(
+            session=s,
+            api_version=manilaclient.API_MAX_VERSION,
+            service_catalog_url=base_url,
+            retries=retries,
+            input_auth_token='token',
+        )
 
         self.assertEqual(base_url, c.client.endpoint_url)
         self.assertEqual(retries, c.client.retries)
 
     def test_auth_via_token_invalid(self):
-        self.assertRaises(exceptions.ClientException, client.Client,
-                          api_version=manilaclient.API_MAX_VERSION,
-                          input_auth_token="token")
+        self.assertRaises(
+            exceptions.ClientException,
+            client.Client,
+            api_version=manilaclient.API_MAX_VERSION,
+            input_auth_token="token",
+        )
 
     def test_auth_via_token_and_session(self):
         s = client.session.Session()
         base_url = uuidutils.generate_uuid(dashed=False)
 
-        c = client.Client(input_auth_token='token',
-                          service_catalog_url=base_url, session=s,
-                          api_version=manilaclient.API_MAX_VERSION)
+        c = client.Client(
+            input_auth_token='token',
+            service_catalog_url=base_url,
+            session=s,
+            api_version=manilaclient.API_MAX_VERSION,
+        )
 
         self.assertIsNotNone(c.client)
         self.assertIsNone(c.keystone_client)
@@ -64,9 +73,11 @@ class ClientTest(utils.TestCase):
     def test_auth_via_token(self):
         base_url = uuidutils.generate_uuid(dashed=False)
 
-        c = client.Client(input_auth_token='token',
-                          service_catalog_url=base_url,
-                          api_version=manilaclient.API_MAX_VERSION)
+        c = client.Client(
+            input_auth_token='token',
+            service_catalog_url=base_url,
+            api_version=manilaclient.API_MAX_VERSION,
+        )
 
         self.assertIsNotNone(c.client)
         self.assertIsNone(c.keystone_client)
@@ -77,9 +88,11 @@ class ClientTest(utils.TestCase):
         kc = client.Client._get_keystone_client.return_value
         kc.service_catalog = mock.Mock()
         kc.service_catalog.get_endpoints = mock.Mock(return_value=self.catalog)
-        c = client.Client(api_version=manilaclient.API_DEPRECATED_VERSION,
-                          service_type="share",
-                          region_name='TestRegion')
+        c = client.Client(
+            api_version=manilaclient.API_DEPRECATED_VERSION,
+            service_type="share",
+            region_name='TestRegion',
+        )
         self.assertTrue(client.Client._get_keystone_client.called)
         kc.service_catalog.get_endpoints.assert_called_with('share')
         client.httpclient.HTTPClient.assert_called_with(
@@ -92,7 +105,8 @@ class ClientTest(utils.TestCase):
             timeout=None,
             retries=None,
             http_log_debug=False,
-            api_version=manilaclient.API_DEPRECATED_VERSION)
+            api_version=manilaclient.API_DEPRECATED_VERSION,
+        )
         self.assertIsNotNone(c.client)
 
     @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
@@ -100,9 +114,12 @@ class ClientTest(utils.TestCase):
         kc = client.Client._get_keystone_client.return_value
         kc.service_catalog = mock.Mock()
         kc.service_catalog.get_endpoints = mock.Mock(return_value=self.catalog)
-        self.assertRaises(RuntimeError, client.Client,
-                          api_version=manilaclient.API_MAX_VERSION,
-                          region_name='FakeRegion')
+        self.assertRaises(
+            RuntimeError,
+            client.Client,
+            api_version=manilaclient.API_MAX_VERSION,
+            region_name='FakeRegion',
+        )
         self.assertTrue(client.Client._get_keystone_client.called)
         kc.service_catalog.get_endpoints.assert_called_with('sharev2')
 
@@ -119,9 +136,11 @@ class ClientTest(utils.TestCase):
         kc = client.Client._get_keystone_client.return_value
         kc.service_catalog = mock.Mock()
         kc.service_catalog.get_endpoints = mock.Mock(return_value=catalog)
-        c = client.Client(api_version=manilaclient.API_MIN_VERSION,
-                          service_type='sharev2',
-                          region_name='SecondRegion')
+        c = client.Client(
+            api_version=manilaclient.API_MIN_VERSION,
+            service_type='sharev2',
+            region_name='SecondRegion',
+        )
         self.assertTrue(client.Client._get_keystone_client.called)
         kc.service_catalog.get_endpoints.assert_called_with('sharev2')
         client.httpclient.HTTPClient.assert_called_with(
@@ -134,7 +153,8 @@ class ClientTest(utils.TestCase):
             timeout=None,
             retries=None,
             http_log_debug=False,
-            api_version=manilaclient.API_MIN_VERSION)
+            api_version=manilaclient.API_MIN_VERSION,
+        )
         self.assertIsNotNone(c.client)
 
     def test_client_respects_region_name(self):
@@ -179,12 +199,17 @@ class ClientTest(utils.TestCase):
         return client_args
 
     @ddt.data(
-        {'auth_url': 'http://identity.example.com',
-         'password': 'password_backward_compat',
-         'endpoint_type': 'publicURL',
-         'project_id': 'foo_tenant_project_id'},
-        {'password': 'renamed_api_key', 'endpoint_type': 'public',
-         'tenant_id': 'foo_tenant_project_id'},
+        {
+            'auth_url': 'http://identity.example.com',
+            'password': 'password_backward_compat',
+            'endpoint_type': 'publicURL',
+            'project_id': 'foo_tenant_project_id',
+        },
+        {
+            'password': 'renamed_api_key',
+            'endpoint_type': 'public',
+            'tenant_id': 'foo_tenant_project_id',
+        },
     )
     def test_client_init_no_session_no_auth_token(self, kwargs):
         def fake_url_for(version):
@@ -202,53 +227,90 @@ class ClientTest(utils.TestCase):
         self.auth_url = client_args['auth_url']
         catalog = {
             'share': [
-                {'region': 'SecondRegion', 'region_id': 'SecondRegion',
-                 'url': 'http://4.4.4.4', 'interface': 'public',
-                 },
+                {
+                    'region': 'SecondRegion',
+                    'region_id': 'SecondRegion',
+                    'url': 'http://4.4.4.4',
+                    'interface': 'public',
+                },
             ],
             'sharev2': [
-                {'region': 'FirstRegion', 'interface': 'public',
-                 'region_id': 'SecondRegion', 'url': 'http://1.1.1.1'},
-                {'region': 'secondregion', 'interface': 'public',
-                 'region_id': 'SecondRegion', 'url': 'http://2.2.2.2'},
-                {'region': 'SecondRegion', 'interface': 'internal',
-                 'region_id': 'SecondRegion', 'url': 'http://3.3.3.1'},
-                {'region': 'SecondRegion', 'interface': 'public',
-                 'region_id': 'SecondRegion', 'url': 'http://3.3.3.3'},
-                {'region': 'SecondRegion', 'interface': 'admin',
-                 'region_id': 'SecondRegion', 'url': 'http://3.3.3.2'},
+                {
+                    'region': 'FirstRegion',
+                    'interface': 'public',
+                    'region_id': 'SecondRegion',
+                    'url': 'http://1.1.1.1',
+                },
+                {
+                    'region': 'secondregion',
+                    'interface': 'public',
+                    'region_id': 'SecondRegion',
+                    'url': 'http://2.2.2.2',
+                },
+                {
+                    'region': 'SecondRegion',
+                    'interface': 'internal',
+                    'region_id': 'SecondRegion',
+                    'url': 'http://3.3.3.1',
+                },
+                {
+                    'region': 'SecondRegion',
+                    'interface': 'public',
+                    'region_id': 'SecondRegion',
+                    'url': 'http://3.3.3.3',
+                },
+                {
+                    'region': 'SecondRegion',
+                    'interface': 'admin',
+                    'region_id': 'SecondRegion',
+                    'url': 'http://3.3.3.2',
+                },
             ],
         }
         client.session.discover.Discover.return_value.url_for.side_effect = (
-            fake_url_for)
+            fake_url_for
+        )
         client.ks_client.Client.return_value.auth_token.return_value = (
-            'fake_token')
+            'fake_token'
+        )
         mocked_ks_client = client.ks_client.Client.return_value
         mocked_ks_client.service_catalog.get_endpoints.return_value = catalog
 
         client.Client(**client_args)
 
         client.httpclient.HTTPClient.assert_called_with(
-            'http://3.3.3.3', mock.ANY, 'python-manilaclient', insecure=False,
-            cacert=None, cert=client_args['cert'], timeout=None, retries=None,
-            http_log_debug=False, api_version=manilaclient.API_MIN_VERSION)
+            'http://3.3.3.3',
+            mock.ANY,
+            'python-manilaclient',
+            insecure=False,
+            cacert=None,
+            cert=client_args['cert'],
+            timeout=None,
+            retries=None,
+            http_log_debug=False,
+            api_version=manilaclient.API_MIN_VERSION,
+        )
 
         client.ks_client.Client.assert_called_with(
-            session=mock.ANY, version=(3, 0), auth_url='url_v3.0',
+            session=mock.ANY,
+            version=(3, 0),
+            auth_url='url_v3.0',
             username=client_args['username'],
             password=client_args.get('password'),
             user_id=client_args['user_id'],
             user_domain_name=client_args['user_domain_name'],
             user_domain_id=client_args['user_domain_id'],
-            project_id=client_args.get('tenant_id',
-                                       client_args.get('project_id')),
+            project_id=client_args.get(
+                'tenant_id', client_args.get('project_id')
+            ),
             project_name=client_args['project_name'],
             project_domain_name=client_args['project_domain_name'],
             project_domain_id=client_args['project_domain_id'],
             region_name=client_args['region_name'],
         )
         mocked_ks_client.service_catalog.get_endpoints.assert_called_with(
-            client_args['service_type'])
+            client_args['service_type']
+        )
         mocked_ks_client.authenticate.assert_called_with()
 
     @mock.patch.object(client.ks_client, 'Client', mock.Mock())
@@ -259,13 +321,15 @@ class ClientTest(utils.TestCase):
         client_args = self._get_client_args(
             auth_urli='fake_url',
             password='foo_password',
-            tenant_id='foo_tenant_id')
+            tenant_id='foo_tenant_id',
+        )
         discover = client.session.discover.Discover
         discover.return_value.url_for.return_value = None
         mocked_ks_client = client.ks_client.Client.return_value
 
         self.assertRaises(
-            exceptions.CommandError, client.Client, **client_args)
+            exceptions.CommandError, client.Client, **client_args
+        )
 
         self.assertTrue(client.session.Session.called)
         self.assertTrue(client.session.discover.Discover.called)

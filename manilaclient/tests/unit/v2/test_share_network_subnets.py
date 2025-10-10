@@ -24,11 +24,11 @@ from manilaclient.v2 import share_network_subnets
 
 @ddt.ddt
 class ShareNetworkSubnetTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareNetworkSubnetTest, self).setUp()
+        super().setUp()
         self.manager = share_network_subnets.ShareNetworkSubnetManager(
-            fakes.FakeClient())
+            fakes.FakeClient()
+        )
 
     def test_create(self):
         share_network_id = 'fake_share_net_id'
@@ -39,7 +39,7 @@ class ShareNetworkSubnetTest(utils.TestCase):
             'neutron_net_id': 'fake_net_id',
             'neutron_subnet_id': 'fake_subnet_id',
             'availability_zone': 'fake_availability_zone',
-            'metadata': 'fake_metadata'
+            'metadata': 'fake_metadata',
         }
         expected_body = {'share-network-subnet': expected_values}
         payload = expected_values.copy()
@@ -50,11 +50,9 @@ class ShareNetworkSubnetTest(utils.TestCase):
 
             self.assertEqual(expected_url, result['url'])
             self.assertEqual(
-                share_network_subnets.RESOURCE_NAME,
-                result['resp_key'])
-            self.assertEqual(
-                expected_body,
-                result['body'])
+                share_network_subnets.RESOURCE_NAME, result['resp_key']
+            )
+            self.assertEqual(expected_body, result['body'])
 
     def test_get(self):
         share_network = 'fake_share_network'
@@ -64,11 +62,13 @@ class ShareNetworkSubnetTest(utils.TestCase):
             self.manager.get(share_network, share_subnet)
 
             self.manager._get.assert_called_once_with(
-                share_network_subnets.RESOURCE_PATH % {
+                share_network_subnets.RESOURCE_PATH
+                % {
                     'share_network_id': share_network,
-                    'share_network_subnet_id': share_subnet
+                    'share_network_subnet_id': share_subnet,
                 },
-                share_network_subnets.RESOURCE_NAME)
+                share_network_subnets.RESOURCE_NAME,
+            )
 
     def test_delete(self):
         share_network = 'fake_share_network'
@@ -78,7 +78,9 @@ class ShareNetworkSubnetTest(utils.TestCase):
             self.manager.delete(share_network, share_subnet)
 
             self.manager._delete.assert_called_once_with(
-                share_network_subnets.RESOURCE_PATH % {
+                share_network_subnets.RESOURCE_PATH
+                % {
                     'share_network_id': share_network,
-                    'share_network_subnet_id': share_subnet
-                })
+                    'share_network_subnet_id': share_subnet,
+                }
+            )

@@ -36,7 +36,7 @@ except Exception:
     pass
 
 
-class HTTPClient(object):
+class HTTPClient:
     """HTTP Client class used by multiple clients.
 
     The imported Requests module caches and reuses objects with the same
@@ -45,18 +45,30 @@ class HTTPClient(object):
     execution. This class is shared by multiple client versions so that the
     client can be changed to another version during execution.
     """
+
     API_VERSION_HEADER = "X-Openstack-Manila-Api-Version"
 
-    def __init__(self, endpoint_url, token, user_agent, api_version,
-                 insecure=False, cacert=None, timeout=None, retries=None,
-                 http_log_debug=False, cert=None):
+    def __init__(
+        self,
+        endpoint_url,
+        token,
+        user_agent,
+        api_version,
+        insecure=False,
+        cacert=None,
+        timeout=None,
+        retries=None,
+        http_log_debug=False,
+        cert=None,
+    ):
         self.endpoint_url = endpoint_url
         self.base_url = self._get_base_url(self.endpoint_url)
         self.retries = int(retries or 0)
         self.http_log_debug = http_log_debug
 
         self.request_options = self._set_request_options(
-            insecure, cacert, timeout, cert)
+            insecure, cacert, timeout, cert
+        )
 
         self.default_headers = {
             'X-Auth-Token': token,
@@ -85,9 +97,13 @@ class HTTPClient(object):
         """Truncates url and returns base endpoint"""
         service_endpoint = parse.urlparse(url)
         service_endpoint_base_path = re.search(
-            r'(.+?)/v([0-9]+|[0-9]+\.[0-9]+)(/.*|$)', service_endpoint.path)
-        base_path = (service_endpoint_base_path.group(1)
-                     if service_endpoint_base_path else '')
+            r'(.+?)/v([0-9]+|[0-9]+\.[0-9]+)(/.*|$)', service_endpoint.path
+        )
+        base_path = (
+            service_endpoint_base_path.group(1)
+            if service_endpoint_base_path
+            else ''
+        )
         base_url = service_endpoint._replace(path=base_path)
         return parse.urlunparse(base_url) + '/'
 
@@ -138,15 +154,13 @@ class HTTPClient(object):
 
     def _cs_request(self, url, method, **kwargs):
         return self._cs_request_with_retries(
-            self.endpoint_url + url,
-            method,
-            **kwargs)
+            self.endpoint_url + url, method, **kwargs
+        )
 
     def _cs_request_base_url(self, url, method, **kwargs):
         return self._cs_request_with_retries(
-            self.base_url + url,
-            method,
-            **kwargs)
+            self.base_url + url, method, **kwargs
+        )
 
     def _cs_request_with_retries(self, url, method, **kwargs):
         attempts = 0
@@ -156,9 +170,11 @@ class HTTPClient(object):
             try:
                 resp, body = self.request(url, method, **kwargs)
                 return resp, body
-            except (exceptions.BadRequest,
-                    requests.exceptions.RequestException,
-                    exceptions.ClientException) as e:
+            except (
+                exceptions.BadRequest,
+                requests.exceptions.RequestException,
+                exceptions.ClientException,
+            ) as e:
                 if attempts > self.retries:
                     raise
 
@@ -166,11 +182,9 @@ class HTTPClient(object):
 
             self._logger.debug(
                 "Failed attempt(%(current)s of %(total)s), "
-                " retrying in %(sec)s seconds", {
-                    'current': attempts,
-                    'total': self.retries,
-                    'sec': timeout
-                })
+                " retrying in %(sec)s seconds",
+                {'current': attempts, 'total': self.retries, 'sec': timeout},
+            )
             sleep(timeout)
             timeout *= 2
 
@@ -193,24 +207,26 @@ class HTTPClient(object):
         if not self.http_log_debug:
             return
 
-        string_parts = ['curl -i', ' -X %s' % method, ' %s' % url]
+        string_parts = ['curl -i', f' -X {method}', f' {url}']
 
         for element in headers:
-            header = ' -H "%s: %s"' % (element, headers[element])
+            header = f' -H "{element}: {headers[element]}"'
             string_parts.append(header)
 
         if data:
             if "password" in data:
                 data = strutils.mask_password(data)
-            string_parts.append(" -d '%s'" % data)
+            string_parts.append(f" -d '{data}'")
         self._logger.debug("\nREQ: %s\n", "".join(string_parts))
 
     def log_response(self, resp):
         if not self.http_log_debug:
             return
         self._logger.debug(
-            "RESP: [%(code)s] %(headers)s\nRESP BODY: %(body)s\n", {
+            "RESP: [%(code)s] %(headers)s\nRESP BODY: %(body)s\n",
+            {
                 'code': resp.status_code,
                 'headers': resp.headers,
-                'body': resp.text
-            })
+                'body': resp.text,
+            },
+        )

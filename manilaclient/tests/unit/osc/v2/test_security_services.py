@@ -21,12 +21,12 @@ from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestShareSecurityService(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareSecurityService, self).setUp()
+        super().setUp()
 
         self.security_services_mock = (
-            self.app.client_manager.share.security_services)
+            self.app.client_manager.share.security_services
+        )
         self.security_services_mock.reset_mock()
 
         self.share_networks_mock = self.app.client_manager.share.share_networks
@@ -39,15 +39,14 @@ class TestShareSecurityService(manila_fakes.TestShare):
 
 @ddt.ddt
 class TestShareSecurityServiceCreate(TestShareSecurityService):
-
     def setUp(self):
-        super(TestShareSecurityServiceCreate, self).setUp()
+        super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_service()
+        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()
         self.security_services_mock.create.return_value = self.security_service
         self.cmd = osc_security_services.CreateShareSecurityService(
-            self.app, None)
+            self.app, None
+        )
 
         self.data = self.security_service._info.values()
         self.columns = self.security_service._info.keys()
@@ -56,21 +55,35 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_security_service_create(self):
         arglist = [
             self.security_service.type,
-            '--dns-ip', self.security_service.dns_ip,
-            '--ou', self.security_service.ou,
-            '--server', self.security_service.server,
-            '--domain', self.security_service.domain,
-            '--user', self.security_service.user,
-            '--password', self.security_service.password,
-            '--name', self.security_service.name,
-            '--description', self.security_service.description,
-            '--default-ad-site', self.security_service.default_ad_site
+            '--dns-ip',
+            self.security_service.dns_ip,
+            '--ou',
+            self.security_service.ou,
+            '--server',
+            self.security_service.server,
+            '--domain',
+            self.security_service.domain,
+            '--user',
+            self.security_service.user,
+            '--password',
+            self.security_service.password,
+            '--name',
+            self.security_service.name,
+            '--description',
+            self.security_service.description,
+            '--default-ad-site',
+            self.security_service.default_ad_site,
         ]
         verifylist = [
             ('type', self.security_service.type),
@@ -82,7 +95,7 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
             ('password', self.security_service.password),
             ('name', self.security_service.name),
             ('description', self.security_service.description),
-            ('default_ad_site', self.security_service.default_ad_site)
+            ('default_ad_site', self.security_service.default_ad_site),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -98,15 +111,16 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
             name=self.security_service.name,
             description=self.security_service.description,
             ou=self.security_service.ou,
-            default_ad_site=self.security_service.default_ad_site
+            default_ad_site=self.security_service.default_ad_site,
         )
 
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
     @ddt.data('2.43', '2.75')
-    def test_share_security_service_create_api_version_exception(self,
-                                                                 version):
+    def test_share_security_service_create_api_version_exception(
+        self, version
+    ):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             version
         )
@@ -123,37 +137,43 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
             verifylist.append(('ou', self.security_service.ou))
 
         if api_versions.APIVersion(version) <= api_versions.APIVersion("2.75"):
-            arglist.extend(['--default-ad-site',
-                           self.security_service.default_ad_site])
-            verifylist.append(('default_ad_site',
-                               self.security_service.default_ad_site))
+            arglist.extend(
+                ['--default-ad-site', self.security_service.default_ad_site]
+            )
+            verifylist.append(
+                ('default_ad_site', self.security_service.default_ad_site)
+            )
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareSecurityServiceDelete(TestShareSecurityService):
-
     def setUp(self):
-        super(TestShareSecurityServiceDelete, self).setUp()
+        super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_service()
+        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()
         self.security_services_mock.get.return_value = self.security_service
 
-        self.security_services = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_services()
+        self.security_services = manila_fakes.FakeShareSecurityService.create_fake_security_services()
 
         self.cmd = osc_security_services.DeleteShareSecurityService(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_security_service_delete_missing_args(self):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_security_service_delete(self):
         arglist = [
@@ -161,15 +181,19 @@ class TestShareSecurityServiceDelete(TestShareSecurityService):
             self.security_services[1].id,
         ]
         verifylist = [
-            ('security_service', [self.security_services[0].id,
-                                  self.security_services[1].id]),
+            (
+                'security_service',
+                [self.security_services[0].id, self.security_services[1].id],
+            ),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.security_services_mock.delete.call_count,
-                         len(self.security_services))
+        self.assertEqual(
+            self.security_services_mock.delete.call_count,
+            len(self.security_services),
+        )
         self.assertIsNone(result)
 
     def test_share_security_service_delete_exception(self):
@@ -182,24 +206,24 @@ class TestShareSecurityServiceDelete(TestShareSecurityService):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        self.security_services_mock.delete.side_effect = \
+        self.security_services_mock.delete.side_effect = (
             exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        )
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareSecurityServiceShow(TestShareSecurityService):
-
     def setUp(self):
-        super(TestShareSecurityServiceShow, self).setUp()
+        super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_service()
+        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()
         self.security_services_mock.get.return_value = self.security_service
 
         self.cmd = osc_security_services.ShowShareSecurityService(
-            self.app, None)
+            self.app, None
+        )
 
         self.data = self.security_service._info.values()
         self.columns = self.security_service._info.keys()
@@ -208,16 +232,17 @@ class TestShareSecurityServiceShow(TestShareSecurityService):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_security_service_show(self):
-        arglist = [
-            self.security_service.id
-        ]
-        verifylist = [
-            ('security_service', self.security_service.id)
-        ]
+        arglist = [self.security_service.id]
+        verifylist = [('security_service', self.security_service.id)]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
@@ -232,35 +257,52 @@ class TestShareSecurityServiceShow(TestShareSecurityService):
 
 @ddt.ddt
 class TestShareSecurityServiceSet(TestShareSecurityService):
-
     def setUp(self):
-        super(TestShareSecurityServiceSet, self).setUp()
+        super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_service(methods={'update': None})
+        self.security_service = (
+            manila_fakes.FakeShareSecurityService.create_fake_security_service(
+                methods={'update': None}
+            )
+        )
         self.security_services_mock.get.return_value = self.security_service
         self.cmd = osc_security_services.SetShareSecurityService(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_security_service_set_missing_args(self):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_security_service_set(self):
         arglist = [
             self.security_service.id,
-            '--dns-ip', self.security_service.dns_ip,
-            '--ou', self.security_service.ou,
-            '--server', self.security_service.server,
-            '--domain', self.security_service.domain,
-            '--user', self.security_service.user,
-            '--password', self.security_service.password,
-            '--name', self.security_service.name,
-            '--description', self.security_service.description,
-            '--default-ad-site', self.security_service.default_ad_site
+            '--dns-ip',
+            self.security_service.dns_ip,
+            '--ou',
+            self.security_service.ou,
+            '--server',
+            self.security_service.server,
+            '--domain',
+            self.security_service.domain,
+            '--user',
+            self.security_service.user,
+            '--password',
+            self.security_service.password,
+            '--name',
+            self.security_service.name,
+            '--description',
+            self.security_service.description,
+            '--default-ad-site',
+            self.security_service.default_ad_site,
         ]
         verifylist = [
             ('security_service', self.security_service.id),
@@ -272,7 +314,7 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
             ('password', self.security_service.password),
             ('name', self.security_service.name),
             ('description', self.security_service.description),
-            ('default_ad_site', self.security_service.default_ad_site)
+            ('default_ad_site', self.security_service.default_ad_site),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -294,7 +336,8 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
     def test_share_security_service_set_exception(self):
         arglist = [
             self.security_service.id,
-            '--name', self.security_service.name,
+            '--name',
+            self.security_service.name,
         ]
         verifylist = [
             ('security_service', self.security_service.id),
@@ -303,10 +346,10 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        self.security_service.update.side_effect = \
-            exceptions.CommandError()
+        self.security_service.update.side_effect = exceptions.CommandError()
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     @ddt.data('2.43', '2.75')
     def test_share_security_service_set_api_version_exception(self, version):
@@ -326,34 +369,45 @@ class TestShareSecurityServiceSet(TestShareSecurityService):
             verifylist.append(('ou', self.security_service.ou))
 
         if api_versions.APIVersion(version) <= api_versions.APIVersion("2.75"):
-            arglist.extend(['--default-ad-site',
-                           self.security_service.default_ad_site])
-            verifylist.append(('default_ad_site',
-                               self.security_service.default_ad_site))
+            arglist.extend(
+                ['--default-ad-site', self.security_service.default_ad_site]
+            )
+            verifylist.append(
+                ('default_ad_site', self.security_service.default_ad_site)
+            )
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 @ddt.ddt
 class TestShareSecurityServiceUnset(TestShareSecurityService):
-
     def setUp(self):
-        super(TestShareSecurityServiceUnset, self).setUp()
+        super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_service(methods={'update': None})
+        self.security_service = (
+            manila_fakes.FakeShareSecurityService.create_fake_security_service(
+                methods={'update': None}
+            )
+        )
         self.security_services_mock.get.return_value = self.security_service
         self.cmd = osc_security_services.UnsetShareSecurityService(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_security_service_unset_missing_args(self):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_security_service_unset(self):
         arglist = [
@@ -378,7 +432,7 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
             ('password', True),
             ('name', True),
             ('description', True),
-            ('default_ad_site', True)
+            ('default_ad_site', True),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -393,7 +447,7 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
             name='',
             description='',
             ou='',
-            default_ad_site=''
+            default_ad_site='',
         )
         self.assertIsNone(result)
 
@@ -409,14 +463,13 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        self.security_service.update.side_effect = \
-            exceptions.CommandError()
+        self.security_service.update.side_effect = exceptions.CommandError()
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     @ddt.data('2.43', '2.75')
-    def test_share_security_service_unset_api_version_exception(self,
-                                                                version):
+    def test_share_security_service_unset_api_version_exception(self, version):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             version
         )
@@ -433,16 +486,16 @@ class TestShareSecurityServiceUnset(TestShareSecurityService):
             verifylist.append(('ou', True))
 
         if api_versions.APIVersion(version) <= api_versions.APIVersion("2.75"):
-            arglist.extend(['--default-ad-site']),
+            (arglist.extend(['--default-ad-site']),)
             verifylist.append(('default_ad_site', True))
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareSecurityServiceList(TestShareSecurityService):
-
     columns = [
         'ID',
         'Name',
@@ -451,19 +504,22 @@ class TestShareSecurityServiceList(TestShareSecurityService):
     ]
 
     def setUp(self):
-        super(TestShareSecurityServiceList, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
-        self.services_list = manila_fakes.FakeShareSecurityService \
-            .create_fake_security_services()
+        self.services_list = manila_fakes.FakeShareSecurityService.create_fake_security_services()
         self.security_services_mock.list.return_value = self.services_list
-        self.values = (oscutils.get_dict_properties(
-            i._info, self.columns) for i in self.services_list)
+        self.values = (
+            oscutils.get_dict_properties(i._info, self.columns)
+            for i in self.services_list
+        )
 
         self.cmd = osc_security_services.ListShareSecurityService(
-            self.app, None)
+            self.app, None
+        )
 
     def test_share_security_service_list_no_args(self):
         arglist = []
@@ -485,23 +541,35 @@ class TestShareSecurityServiceList(TestShareSecurityService):
                 'offset': None,
                 'limit': None,
             },
-            detailed=False)
+            detailed=False,
+        )
         self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
 
     def test_share_security_service_list(self):
         arglist = [
-            '--share-network', self.share_network.id,
-            '--status', self.services_list[0].status,
-            '--name', self.services_list[0].name,
-            '--type', self.services_list[0].type,
-            '--user', self.services_list[0].user,
-            '--dns-ip', self.services_list[0].dns_ip,
-            '--ou', self.services_list[0].ou,
-            '--server', self.services_list[0].server,
-            '--domain', self.services_list[0].domain,
-            '--default-ad-site', self.services_list[0].default_ad_site,
-            '--limit', '1',
+            '--share-network',
+            self.share_network.id,
+            '--status',
+            self.services_list[0].status,
+            '--name',
+            self.services_list[0].name,
+            '--type',
+            self.services_list[0].type,
+            '--user',
+            self.services_list[0].user,
+            '--dns-ip',
+            self.services_list[0].dns_ip,
+            '--ou',
+            self.services_list[0].ou,
+            '--server',
+            self.services_list[0].server,
+            '--domain',
+            self.services_list[0].domain,
+            '--default-ad-site',
+            self.services_list[0].default_ad_site,
+            '--limit',
+            '1',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -536,7 +604,8 @@ class TestShareSecurityServiceList(TestShareSecurityService):
                 'ou': self.services_list[0].ou,
                 'share_network_id': self.share_network.id,
             },
-            detailed=False)
+            detailed=False,
+        )
 
         self.assertEqual(self.columns, columns)
         self.assertEqual(list(self.values), list(data))
@@ -546,7 +615,8 @@ class TestShareSecurityServiceList(TestShareSecurityService):
             '2.43'
         )
         arglist = [
-            '--ou', self.services_list[0].ou,
+            '--ou',
+            self.services_list[0].ou,
         ]
         verifylist = [
             ('ou', self.services_list[0].ou),
@@ -554,14 +624,16 @@ class TestShareSecurityServiceList(TestShareSecurityService):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_security_service_list_ad_site_api_version_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             '2.75'
         )
         arglist = [
-            '--default-ad-site', self.services_list[0].default_ad_site,
+            '--default-ad-site',
+            self.services_list[0].default_ad_site,
         ]
         verifylist = [
             ('default_ad_site', self.services_list[0].default_ad_site),
@@ -569,13 +641,11 @@ class TestShareSecurityServiceList(TestShareSecurityService):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     def test_share_security_service_list_detail_all_projects(self):
-        arglist = [
-            '--all-projects',
-            '--detail'
-        ]
+        arglist = ['--all-projects', '--detail']
         verifylist = [
             ('all_projects', True),
             ('detail', True),
@@ -584,8 +654,10 @@ class TestShareSecurityServiceList(TestShareSecurityService):
         columns_detail.append('Project ID')
         columns_detail.append('Share Networks')
 
-        values_detail = (oscutils.get_dict_properties(
-            i._info, columns_detail) for i in self.services_list)
+        values_detail = (
+            oscutils.get_dict_properties(i._info, columns_detail)
+            for i in self.services_list
+        )
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
@@ -604,6 +676,7 @@ class TestShareSecurityServiceList(TestShareSecurityService):
                 'offset': None,
                 'limit': None,
             },
-            detailed=True)
+            detailed=True,
+        )
         self.assertEqual(columns_detail, columns)
         self.assertEqual(list(values_detail), list(data))

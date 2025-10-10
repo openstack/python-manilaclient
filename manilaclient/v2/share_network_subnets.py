@@ -23,8 +23,9 @@ RESOURCE_NAME = 'share_network_subnet'
 
 class ShareNetworkSubnet(base.MetadataCapableResource):
     """Network subnet info for Manila share networks."""
+
     def __repr__(self):
-        return "<ShareNetworkSubnet: %s>" % self.id
+        return f"<ShareNetworkSubnet: {self.id}>"
 
     def __getitem__(self, key):
         return self._info[key]
@@ -41,9 +42,14 @@ class ShareNetworkSubnetManager(base.MetadataCapableManager):
     resource_path = '/share-networks'
     subresource_path = '/subnets'
 
-    def _do_create(self, neutron_net_id=None, neutron_subnet_id=None,
-                   availability_zone=None, share_network_id=None,
-                   metadata=None):
+    def _do_create(
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        availability_zone=None,
+        share_network_id=None,
+        metadata=None,
+    ):
         """Create share network subnet.
 
         :param neutron_net_id: ID of Neutron network
@@ -63,23 +69,41 @@ class ShareNetworkSubnetManager(base.MetadataCapableManager):
             values['metadata'] = metadata
 
         body = {'share-network-subnet': values}
-        url = '/share-networks/%(share_network_id)s/subnets' % {
-            'share_network_id': share_network_id
-        }
+        url = f'/share-networks/{share_network_id}/subnets'
 
         return self._create(url, body, RESOURCE_NAME)
 
     @api_versions.wraps("2.0", "2.77")
-    def create(self, neutron_net_id=None, neutron_subnet_id=None,
-               availability_zone=None, share_network_id=None):
-        return self._do_create(neutron_net_id, neutron_subnet_id,
-                               availability_zone, share_network_id)
+    def create(
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        availability_zone=None,
+        share_network_id=None,
+    ):
+        return self._do_create(
+            neutron_net_id,
+            neutron_subnet_id,
+            availability_zone,
+            share_network_id,
+        )
 
     @api_versions.wraps("2.78")
-    def create(self, neutron_net_id=None, neutron_subnet_id=None, # noqa F811
-               availability_zone=None, share_network_id=None, metadata=None):
-        return self._do_create(neutron_net_id, neutron_subnet_id,
-                               availability_zone, share_network_id, metadata)
+    def create(  # noqa
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        availability_zone=None,
+        share_network_id=None,
+        metadata=None,
+    ):
+        return self._do_create(
+            neutron_net_id,
+            neutron_subnet_id,
+            availability_zone,
+            share_network_id,
+            metadata,
+        )
 
     def get(self, share_network, share_network_subnet):
         """Get a share network subnet.
@@ -89,11 +113,10 @@ class ShareNetworkSubnetManager(base.MetadataCapableManager):
         """
         share_network_id = base.getid(share_network)
         share_network_subnet_id = base.getid(share_network_subnet)
-        url = ('/share-networks/%(share_network_id)s/subnets'
-               '/%(share_network_subnet)s') % {
-            'share_network_id': share_network_id,
-            'share_network_subnet': share_network_subnet_id
-        }
+        url = (
+            f'/share-networks/{share_network_id}/subnets'
+            f'/{share_network_subnet_id}'
+        )
         return self._get(url, "share_network_subnet")
 
     def delete(self, share_network, share_network_subnet):
@@ -102,29 +125,30 @@ class ShareNetworkSubnetManager(base.MetadataCapableManager):
         :param share_network: share network that owns the subnet.
         :param share_network_subnet: share network subnet to be deleted.
         """
-        url = ('/share-networks/%(share_network_id)s/subnets'
-               '/%(share_network_subnet)s') % {
-            'share_network_id': base.getid(share_network),
-            'share_network_subnet': share_network_subnet
-        }
+        url = (
+            f'/share-networks/{base.getid(share_network)}/subnets'
+            f'/{share_network_subnet}'
+        )
         self._delete(url)
 
     @api_versions.wraps('2.78')
     def get_metadata(self, share_network, share_network_subnet):
-        return super(ShareNetworkSubnetManager, self).get_metadata(
-            share_network, subresource=share_network_subnet)
+        return super().get_metadata(
+            share_network, subresource=share_network_subnet
+        )
 
     @api_versions.wraps('2.78')
     def set_metadata(self, resource, metadata, subresource=None):
-        return super(ShareNetworkSubnetManager, self).set_metadata(
-            resource, metadata, subresource=subresource)
+        return super().set_metadata(
+            resource, metadata, subresource=subresource
+        )
 
     @api_versions.wraps('2.78')
     def delete_metadata(self, resource, keys, subresource=None):
-        return super(ShareNetworkSubnetManager, self).delete_metadata(
-            resource, keys, subresource=subresource)
+        return super().delete_metadata(resource, keys, subresource=subresource)
 
     @api_versions.wraps('2.78')
     def update_all_metadata(self, resource, metadata, subresource=None):
-        return super(ShareNetworkSubnetManager, self).update_all_metadata(
-            resource, metadata, subresource=subresource)
+        return super().update_all_metadata(
+            resource, metadata, subresource=subresource
+        )

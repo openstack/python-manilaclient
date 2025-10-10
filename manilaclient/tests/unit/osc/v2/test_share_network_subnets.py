@@ -23,34 +23,34 @@ from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestShareNetworkSubnet(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestShareNetworkSubnet, self).setUp()
+        super().setUp()
 
         self.share_networks_mock = self.app.client_manager.share.share_networks
         self.share_networks_mock.reset_mock()
 
         self.share_subnets_mock = (
-            self.app.client_manager.share.share_network_subnets)
+            self.app.client_manager.share.share_network_subnets
+        )
         self.share_subnets_mock.reset_mock()
 
 
 @ddt.ddt
 class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
-
     def setUp(self):
-        super(TestShareNetworkSubnetCreate, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
 
         self.share_network_subnet = (
-            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet())
+            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet()
+        )
         self.share_subnets_mock.create.return_value = self.share_network_subnet
 
-        self.cmd = osc_share_subnets.CreateShareNetworkSubnet(
-            self.app, None)
+        self.cmd = osc_share_subnets.CreateShareNetworkSubnet(self.app, None)
 
         self.data = self.share_network_subnet._info.values()
         self.columns = self.share_network_subnet._info.keys()
@@ -59,8 +59,13 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_network_subnet_create(self):
         fake_neutron_net_id = str(uuid.uuid4())
@@ -68,9 +73,12 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
 
         arglist = [
             self.share_network.id,
-            '--neutron-net-id', fake_neutron_net_id,
-            '--neutron-subnet-id', fake_neutron_subnet_id,
-            '--availability-zone', 'nova',
+            '--neutron-net-id',
+            fake_neutron_net_id,
+            '--neutron-subnet-id',
+            fake_neutron_subnet_id,
+            '--availability-zone',
+            'nova',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -87,7 +95,7 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
             neutron_subnet_id=fake_neutron_subnet_id,
             availability_zone='nova',
             share_network_id=self.share_network.id,
-            metadata={}
+            metadata={},
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -100,14 +108,18 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         neutron_client = mock.Mock()
         self.app.client_manager.network = neutron_client
         neutron_client.find_network.return_value = mock.Mock(
-            id=fake_neutron_net_id)
+            id=fake_neutron_net_id
+        )
         neutron_client.find_subnet.return_value = mock.Mock(
-            id=fake_neutron_subnet_id)
+            id=fake_neutron_subnet_id
+        )
 
         arglist = [
             self.share_network.id,
-            '--neutron-net-id', fake_neutron_net_id,
-            '--neutron-subnet-id', fake_neutron_subnet_id,
+            '--neutron-net-id',
+            fake_neutron_net_id,
+            '--neutron-subnet-id',
+            fake_neutron_subnet_id,
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -118,12 +130,10 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         columns, data = self.cmd.take_action(parsed_args)
 
         neutron_client.find_network.assert_called_once_with(
-            fake_neutron_net_id,
-            ignore_missing=False
+            fake_neutron_net_id, ignore_missing=False
         )
         neutron_client.find_subnet.assert_called_once_with(
-            fake_neutron_subnet_id,
-            ignore_missing=False
+            fake_neutron_subnet_id, ignore_missing=False
         )
         self.share_subnets_mock.create.assert_called_once_with(
             share_network_id=self.share_network.id,
@@ -142,12 +152,15 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         neutron_client = mock.Mock()
         self.app.client_manager.network = neutron_client
         neutron_client.find_network.side_effect = Exception(
-            "Network not found.")
+            "Network not found."
+        )
 
         arglist = [
             self.share_network.id,
-            '--neutron-net-id', fake_neutron_net_id,
-            '--neutron-subnet-id', fake_neutron_net_id,
+            '--neutron-net-id',
+            fake_neutron_net_id,
+            '--neutron-subnet-id',
+            fake_neutron_net_id,
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -155,12 +168,11 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
             ('neutron_subnet_id', fake_neutron_net_id),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
         neutron_client.find_network.assert_called_once_with(
-            fake_neutron_net_id,
-            ignore_missing=False
+            fake_neutron_net_id, ignore_missing=False
         )
         neutron_client.find_subnet.assert_not_called()
         self.share_subnets_mock.create.assert_not_called()
@@ -170,12 +182,13 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         fake_neutron_subnet_id = str(uuid.uuid4())
         neutron_client = mock.Mock()
         self.app.client_manager.network = neutron_client
-        neutron_client.find_subnet.side_effect = Exception(
-            "Subnet not found.")
+        neutron_client.find_subnet.side_effect = Exception("Subnet not found.")
         arglist = [
             self.share_network.id,
-            '--neutron-net-id', fake_neutron_net_id,
-            '--neutron-subnet-id', fake_neutron_subnet_id,
+            '--neutron-net-id',
+            fake_neutron_net_id,
+            '--neutron-subnet-id',
+            fake_neutron_subnet_id,
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -183,16 +196,14 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
             ('neutron_subnet_id', fake_neutron_subnet_id),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
         neutron_client.find_network.assert_called_once_with(
-            fake_neutron_net_id,
-            ignore_missing=False
+            fake_neutron_net_id, ignore_missing=False
         )
         neutron_client.find_subnet.assert_called_once_with(
-            fake_neutron_subnet_id,
-            ignore_missing=False
+            fake_neutron_subnet_id, ignore_missing=False
         )
         self.share_subnets_mock.create.assert_not_called()
 
@@ -201,24 +212,28 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
 
         arglist = [
             self.share_network.id,
-            '--neutron-net-id', fake_neutron_net_id
+            '--neutron-net-id',
+            fake_neutron_net_id,
         ]
         verifylist = [
             ('share_network', self.share_network.id),
-            ('neutron_net_id', fake_neutron_net_id)
+            ('neutron_net_id', fake_neutron_net_id),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
-    @ddt.data({'check_only': False, 'restart_check': True},
-              {'check_only': True, 'restart_check': True},
-              {'check_only': True, 'restart_check': False})
+    @ddt.data(
+        {'check_only': False, 'restart_check': True},
+        {'check_only': True, 'restart_check': True},
+        {'check_only': True, 'restart_check': False},
+    )
     @ddt.unpack
     def test_share_network_subnet_create_check_api_version_exception(
-            self, check_only, restart_check):
+        self, check_only, restart_check
+    ):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             '2.69'
         )
@@ -237,19 +252,18 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
     @ddt.data(True, False)
     def test_share_network_subnet_create_check(self, restart_check):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             '2.70'
         )
-        self.share_networks_mock.share_network_subnet_create_check = (
-            mock.Mock(return_value=(200, {'compatible': True})))
-        arglist = [
-            self.share_network.id,
-            '--check-only'
-        ]
+        self.share_networks_mock.share_network_subnet_create_check = mock.Mock(
+            return_value=(200, {'compatible': True})
+        )
+        arglist = [self.share_network.id, '--check-only']
         verifylist = [
             ('share_network', self.share_network.id),
             ('check_only', True),
@@ -261,11 +275,15 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
 
         self.cmd.take_action(parsed_args)
 
-        (self.share_networks_mock.share_network_subnet_create_check
-         .assert_called_once_with(
-             share_network_id=self.share_network.id, neutron_net_id=None,
-             neutron_subnet_id=None, availability_zone=None,
-             reset_operation=restart_check))
+        (
+            self.share_networks_mock.share_network_subnet_create_check.assert_called_once_with(
+                share_network_id=self.share_network.id,
+                neutron_net_id=None,
+                neutron_subnet_id=None,
+                availability_zone=None,
+                reset_operation=restart_check,
+            )
+        )
 
     def test_share_network_subnet_create_metadata(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -273,8 +291,10 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         )
         arglist = [
             self.share_network.id,
-            '--property', 'Manila=zorilla',
-            '--property', 'Zorilla=manila'
+            '--property',
+            'Manila=zorilla',
+            '--property',
+            'Zorilla=manila',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -301,39 +321,46 @@ class TestShareNetworkSubnetCreate(TestShareNetworkSubnet):
         )
         arglist = [
             self.share_network.id,
-            '--property', 'Manila=zorilla',
+            '--property',
+            'Manila=zorilla',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
-            ('property', {'Manila': 'zorilla'})
+            ('property', {'Manila': 'zorilla'}),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareNetworkSubnetDelete(TestShareNetworkSubnet):
-
     def setUp(self):
-        super(TestShareNetworkSubnetDelete, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
 
         self.share_network_subnets = (
-            manila_fakes.FakeShareNetworkSubnet.create_share_network_subnets())
+            manila_fakes.FakeShareNetworkSubnet.create_share_network_subnets()
+        )
 
-        self.cmd = osc_share_subnets.DeleteShareNetworkSubnet(
-            self.app, None)
+        self.cmd = osc_share_subnets.DeleteShareNetworkSubnet(self.app, None)
 
     def test_share_network_subnet_delete_missing_args(self):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_network_subnets_delete(self):
         arglist = [
@@ -343,15 +370,22 @@ class TestShareNetworkSubnetDelete(TestShareNetworkSubnet):
         ]
         verifylist = [
             ('share_network', self.share_network.id),
-            ('share_network_subnet', [self.share_network_subnets[0].id,
-                                      self.share_network_subnets[1].id]),
+            (
+                'share_network_subnet',
+                [
+                    self.share_network_subnets[0].id,
+                    self.share_network_subnets[1].id,
+                ],
+            ),
         ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         result = self.cmd.take_action(parsed_args)
 
-        self.assertEqual(self.share_subnets_mock.delete.call_count,
-                         len(self.share_network_subnets))
+        self.assertEqual(
+            self.share_subnets_mock.delete.call_count,
+            len(self.share_network_subnets),
+        )
         self.assertIsNone(result)
 
     def test_share_network_subnet_delete_exception(self):
@@ -367,26 +401,26 @@ class TestShareNetworkSubnetDelete(TestShareNetworkSubnet):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
         self.share_subnets_mock.delete.side_effect = exceptions.CommandError()
-        self.assertRaises(exceptions.CommandError,
-                          self.cmd.take_action,
-                          parsed_args)
+        self.assertRaises(
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareNetworkSubnetShow(TestShareNetworkSubnet):
-
     def setUp(self):
-        super(TestShareNetworkSubnetShow, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
 
         self.share_network_subnet = (
-            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet())
+            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet()
+        )
         self.share_subnets_mock.get.return_value = self.share_network_subnet
 
-        self.cmd = osc_share_subnets.ShowShareNetworkSubnet(
-            self.app, None)
+        self.cmd = osc_share_subnets.ShowShareNetworkSubnet(self.app, None)
 
         self.data = self.share_network_subnet._info.values()
         self.columns = self.share_network_subnet._info.keys()
@@ -395,8 +429,13 @@ class TestShareNetworkSubnetShow(TestShareNetworkSubnet):
         arglist = []
         verifylist = []
 
-        self.assertRaises(osc_utils.ParserException,
-                          self.check_parser, self.cmd, arglist, verifylist)
+        self.assertRaises(
+            osc_utils.ParserException,
+            self.check_parser,
+            self.cmd,
+            arglist,
+            verifylist,
+        )
 
     def test_share_network_subnet_show(self):
         arglist = [
@@ -412,8 +451,7 @@ class TestShareNetworkSubnetShow(TestShareNetworkSubnet):
         columns, data = self.cmd.take_action(parsed_args)
 
         self.share_subnets_mock.get.assert_called_once_with(
-            self.share_network.id,
-            self.share_network_subnet.id
+            self.share_network.id, self.share_network_subnet.id
         )
 
         self.assertCountEqual(self.columns, columns)
@@ -421,19 +459,19 @@ class TestShareNetworkSubnetShow(TestShareNetworkSubnet):
 
 
 class TestShareNetworkSubnetSet(TestShareNetworkSubnet):
-
     def setUp(self):
-        super(TestShareNetworkSubnetSet, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
 
         self.share_network_subnet = (
-            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet())
+            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet()
+        )
 
-        self.cmd = osc_share_subnets.SetShareNetworkSubnet(
-            self.app, None)
+        self.cmd = osc_share_subnets.SetShareNetworkSubnet(self.app, None)
 
     def test_set_share_network_subnet_property(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -442,8 +480,10 @@ class TestShareNetworkSubnetSet(TestShareNetworkSubnet):
         arglist = [
             self.share_network.id,
             self.share_network_subnet.id,
-            '--property', 'Zorilla=manila',
-            '--property', 'test=my_test',
+            '--property',
+            'Zorilla=manila',
+            '--property',
+            'test=my_test',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -455,8 +495,10 @@ class TestShareNetworkSubnetSet(TestShareNetworkSubnet):
         self.cmd.take_action(parsed_args)
 
         self.share_subnets_mock.set_metadata.assert_called_once_with(
-            self.share_network.id, {'Zorilla': 'manila', 'test': 'my_test'},
-            subresource=self.share_network_subnet.id)
+            self.share_network.id,
+            {'Zorilla': 'manila', 'test': 'my_test'},
+            subresource=self.share_network_subnet.id,
+        )
 
     def test_set_share_network_subnet_property_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -465,7 +507,8 @@ class TestShareNetworkSubnetSet(TestShareNetworkSubnet):
         arglist = [
             self.share_network.id,
             self.share_network_subnet.id,
-            '--property', 'key=1',
+            '--property',
+            'key=1',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -478,30 +521,33 @@ class TestShareNetworkSubnetSet(TestShareNetworkSubnet):
         self.cmd.take_action(parsed_args)
 
         self.share_subnets_mock.set_metadata.assert_called_once_with(
-            self.share_network.id, {'key': '1'},
-            subresource=self.share_network_subnet.id)
+            self.share_network.id,
+            {'key': '1'},
+            subresource=self.share_network_subnet.id,
+        )
 
         self.share_subnets_mock.set_metadata.side_effect = (
-            exceptions.BadRequest)
+            exceptions.BadRequest
+        )
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action,
-            parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
 
 
 class TestShareNetworkSubnetUnset(TestShareNetworkSubnet):
-
     def setUp(self):
-        super(TestShareNetworkSubnetUnset, self).setUp()
+        super().setUp()
 
         self.share_network = (
-            manila_fakes.FakeShareNetwork.create_one_share_network())
+            manila_fakes.FakeShareNetwork.create_one_share_network()
+        )
         self.share_networks_mock.get.return_value = self.share_network
 
         self.share_network_subnet = (
-            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet())
+            manila_fakes.FakeShareNetworkSubnet.create_one_share_subnet()
+        )
 
-        self.cmd = osc_share_subnets.UnsetShareNetworkSubnet(
-            self.app, None)
+        self.cmd = osc_share_subnets.UnsetShareNetworkSubnet(self.app, None)
 
     def test_unset_share_network_subnet_property(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -510,7 +556,8 @@ class TestShareNetworkSubnetUnset(TestShareNetworkSubnet):
         arglist = [
             self.share_network.id,
             self.share_network_subnet.id,
-            '--property', 'Manila',
+            '--property',
+            'Manila',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -523,8 +570,10 @@ class TestShareNetworkSubnetUnset(TestShareNetworkSubnet):
         self.cmd.take_action(parsed_args)
 
         self.share_subnets_mock.delete_metadata.assert_called_once_with(
-            self.share_network.id, ['Manila'],
-            subresource=self.share_network_subnet.id)
+            self.share_network.id,
+            ['Manila'],
+            subresource=self.share_network_subnet.id,
+        )
 
     def test_unset_share_network_subnet_property_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
@@ -533,8 +582,10 @@ class TestShareNetworkSubnetUnset(TestShareNetworkSubnet):
         arglist = [
             self.share_network.id,
             self.share_network_subnet.id,
-            '--property', 'Manila',
-            '--property', 'test',
+            '--property',
+            'Manila',
+            '--property',
+            'test',
         ]
         verifylist = [
             ('share_network', self.share_network.id),
@@ -546,14 +597,25 @@ class TestShareNetworkSubnetUnset(TestShareNetworkSubnet):
 
         self.cmd.take_action(parsed_args)
 
-        self.share_subnets_mock.delete_metadata.assert_has_calls([
-            mock.call(self.share_network.id, ['Manila'],
-                      subresource=self.share_network_subnet.id),
-            mock.call(self.share_network.id, ['test'],
-                      subresource=self.share_network_subnet.id)])
+        self.share_subnets_mock.delete_metadata.assert_has_calls(
+            [
+                mock.call(
+                    self.share_network.id,
+                    ['Manila'],
+                    subresource=self.share_network_subnet.id,
+                ),
+                mock.call(
+                    self.share_network.id,
+                    ['test'],
+                    subresource=self.share_network_subnet.id,
+                ),
+            ]
+        )
 
         # 404 Not Found would be raised, if property 'Manila' doesn't exist.
         self.share_subnets_mock.delete_metadata.side_effect = (
-            exceptions.NotFound)
+            exceptions.NotFound
+        )
         self.assertRaises(
-            exceptions.CommandError, self.cmd.take_action, parsed_args)
+            exceptions.CommandError, self.cmd.take_action, parsed_args
+        )

@@ -22,10 +22,11 @@ class ShareTransferTests(base.BaseTestCase):
     """Check of base share transfers command"""
 
     def setUp(self):
-        super(ShareTransferTests, self).setUp()
+        super().setUp()
         self.share_type = self.create_share_type(
             name=data_utils.rand_name('test_share_type'),
-            driver_handles_share_servers=False)
+            driver_handles_share_servers=False,
+        )
 
     def test_transfer_create_list_show_delete(self):
         """Create, list, show and delete a share transfer"""
@@ -36,11 +37,13 @@ class ShareTransferTests(base.BaseTestCase):
             name=data_utils.rand_name('autotest_share_name'),
             client=self.user_client,
             share_type=self.share_type['ID'],
-            use_wait_option=True)
+            use_wait_option=True,
+        )
         self.assertEqual("available", share['status'])
         # create share transfer
-        transfer = self.create_share_transfer(share['id'],
-                                              name='test_share_transfer')
+        transfer = self.create_share_transfer(
+            share['id'], name='test_share_transfer'
+        )
         self.assertIn('auth_key', transfer)
 
         # list share transfers
@@ -71,11 +74,13 @@ class ShareTransferTests(base.BaseTestCase):
             name=data_utils.rand_name('autotest_share_name'),
             client=self.user_client,
             share_type=self.share_type['ID'],
-            use_wait_option=True)
+            use_wait_option=True,
+        )
         self.assertEqual("available", share['status'])
         # create share transfer
-        transfer = self.create_share_transfer(share['id'],
-                                              name='test_share_transfer')
+        transfer = self.create_share_transfer(
+            share['id'], name='test_share_transfer'
+        )
         share = self.user_client.get_share(share['id'])
         transfer_id = transfer['id']
         auth_key = transfer['auth_key']

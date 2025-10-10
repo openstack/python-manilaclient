@@ -33,13 +33,13 @@ cs = fakes.FakeClient(extensions=extensions)
 
 @ddt.ddt
 class SnapshotInstancesTest(utils.TestCase):
-
     def setUp(self):
-        super(SnapshotInstancesTest, self).setUp()
+        super().setUp()
         microversion = api_versions.APIVersion("2.19")
         mock_microversion = mock.Mock(api_version=microversion)
         self.manager = share_snapshot_instances.ShareSnapshotInstanceManager(
-            api=mock_microversion)
+            api=mock_microversion
+        )
 
     @ddt.data(True, False)
     def test_list(self, detailed):
@@ -60,14 +60,17 @@ class SnapshotInstancesTest(utils.TestCase):
         self.mock_object(self.manager, '_list', mock.Mock())
         self.manager.list(detailed=detailed, snapshot='snapshot_id')
         self.manager._list.assert_called_once_with(
-            (url + '?snapshot_id=snapshot_id'), 'snapshot_instances',)
+            (url + '?snapshot_id=snapshot_id'),
+            'snapshot_instances',
+        )
 
     def test_get(self):
         self.mock_object(self.manager, '_get', mock.Mock())
         self.manager.get('fake_snapshot_instance')
         self.manager._get.assert_called_once_with(
             '/snapshot-instances/' + 'fake_snapshot_instance',
-            'snapshot_instance')
+            'snapshot_instance',
+        )
 
     def test_reset_instance_state(self):
         state = 'available'
@@ -75,7 +78,8 @@ class SnapshotInstancesTest(utils.TestCase):
         self.mock_object(self.manager, '_action', mock.Mock())
         self.manager.reset_state('fake_instance', state)
         self.manager._action.assert_called_once_with(
-            "reset_status", 'fake_instance', {"status": state})
+            "reset_status", 'fake_instance', {"status": state}
+        )
 
     @ddt.data('get', 'list', 'reset_state')
     def test_upsupported_microversion(self, method_name):
@@ -90,7 +94,9 @@ class SnapshotInstancesTest(utils.TestCase):
             microversion = api_versions.APIVersion(microversion)
             mock_microversion = mock.Mock(api_version=microversion)
             manager = share_snapshot_instances.ShareSnapshotInstanceManager(
-                api=mock_microversion)
+                api=mock_microversion
+            )
             method = getattr(manager, method_name)
-            self.assertRaises(exceptions.UnsupportedVersion,
-                              method, **arguments)
+            self.assertRaises(
+                exceptions.UnsupportedVersion, method, **arguments
+            )

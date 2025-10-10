@@ -23,9 +23,8 @@ from tempest.lib import exceptions
 @ddt.ddt
 @utils.skip_if_microversion_not_supported('2.51')
 class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(ShareNetworkSubnetsReadWriteTest, self).setUp()
+        super().setUp()
         self.name = data_utils.rand_name('autotest')
         self.description = 'fake_description'
         self.neutron_net_id = 'fake_neutron_net_id'
@@ -39,11 +38,13 @@ class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
         )
 
     def test_get_share_network_subnet(self):
-        default_subnet = utils.get_default_subnet(self.user_client,
-                                                  self.sn['id'])
+        default_subnet = utils.get_default_subnet(
+            self.user_client, self.sn['id']
+        )
 
         subnet = self.user_client.get_share_network_subnet(
-            self.sn['id'], default_subnet['id'])
+            self.sn['id'], default_subnet['id']
+        )
 
         self.assertEqual(self.neutron_net_id, subnet['neutron_net_id'])
         self.assertEqual(self.neutron_subnet_id, subnet['neutron_subnet_id'])
@@ -52,7 +53,9 @@ class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
         self.assertRaises(
             exceptions.CommandFailed,
             self.user_client.get_share_network_subnet,
-            self.sn['id'], 'invalid_subnet_id')
+            self.sn['id'],
+            'invalid_subnet_id',
+        )
 
     def _get_availability_zone(self):
         availability_zones = self.user_client.list_availability_zones()
@@ -65,9 +68,11 @@ class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
 
         subnet = self.add_share_network_subnet(
             self.sn['id'],
-            neutron_net_id, neutron_subnet_id,
+            neutron_net_id,
+            neutron_subnet_id,
             availability_zone,
-            cleanup_in_class=False)
+            cleanup_in_class=False,
+        )
 
         self.assertEqual(neutron_net_id, subnet['neutron_net_id'])
         self.assertEqual(neutron_subnet_id, subnet['neutron_subnet_id'])
@@ -83,7 +88,8 @@ class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
             exceptions.CommandFailed,
             self.add_share_network_subnet,
             self.sn['id'],
-            **params)
+            **params,
+        )
 
     def test_add_share_network_subnet_to_invalid_share_network(self):
         self.assertRaises(
@@ -91,7 +97,8 @@ class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
             self.add_share_network_subnet,
             'invalid_share_network',
             self.neutron_net_id,
-            self.neutron_subnet_id)
+            self.neutron_subnet_id,
+        )
 
     def test_add_delete_share_network_subnet_from_share_network(self):
         neutron_net_id = 'new_neutron_net_id'
@@ -100,20 +107,23 @@ class ShareNetworkSubnetsReadWriteTest(base.BaseTestCase):
 
         subnet = self.add_share_network_subnet(
             self.sn['id'],
-            neutron_net_id, neutron_subnet_id,
+            neutron_net_id,
+            neutron_subnet_id,
             availability_zone,
-            cleanup_in_class=False)
+            cleanup_in_class=False,
+        )
         self.user_client.delete_share_network_subnet(
-            share_network_subnet=subnet['id'],
-            share_network=self.sn['id'])
+            share_network_subnet=subnet['id'], share_network=self.sn['id']
+        )
 
         self.user_client.wait_for_share_network_subnet_deletion(
-            share_network_subnet=subnet['id'],
-            share_network=self.sn['id'])
+            share_network_subnet=subnet['id'], share_network=self.sn['id']
+        )
 
     def test_delete_invalid_share_network_subnet(self):
         self.assertRaises(
             exceptions.NotFound,
             self.user_client.delete_share_network_subnet,
             share_network_subnet='invalid_subnet_id',
-            share_network=self.sn['id'])
+            share_network=self.sn['id'],
+        )

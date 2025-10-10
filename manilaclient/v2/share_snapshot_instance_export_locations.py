@@ -21,7 +21,7 @@ class ShareSnapshotInstanceExportLocation(base.Resource):
     """Represent an export location from a snapshot instance."""
 
     def __repr__(self):
-        return "<ShareSnapshotInstanceExportLocation: %s>" % self.id
+        return f"<ShareSnapshotInstanceExportLocation: {self.id}>"
 
     def __getitem__(self, key):
         return self._info[key]
@@ -29,13 +29,15 @@ class ShareSnapshotInstanceExportLocation(base.Resource):
 
 class ShareSnapshotInstanceExportLocationManager(base.ManagerWithFind):
     """Manage :class:`ShareSnapshotInstanceExportLocation` resources."""
+
     resource_class = ShareSnapshotInstanceExportLocation
 
     @api_versions.wraps("2.32")
     def list(self, snapshot_instance=None, search_opts=None):
-        return self._list("/snapshot-instances/%s/export-locations" %
-                          base.getid(snapshot_instance),
-                          'share_snapshot_export_locations')
+        return self._list(
+            f"/snapshot-instances/{base.getid(snapshot_instance)}/export-locations",
+            'share_snapshot_export_locations',
+        )
 
     @api_versions.wraps("2.32")
     def get(self, export_location, snapshot_instance=None):
@@ -44,6 +46,8 @@ class ShareSnapshotInstanceExportLocationManager(base.ManagerWithFind):
             "export_location_id": base.getid(export_location),
         }
 
-        return self._get("/snapshot-instances/%(snapshot_instance_id)s/"
-                         "export-locations/%(export_location_id)s" % params,
-                         "share_snapshot_export_location")
+        return self._get(
+            "/snapshot-instances/{snapshot_instance_id}/"
+            "export-locations/{export_location_id}".format(**params),
+            "share_snapshot_export_location",
+        )

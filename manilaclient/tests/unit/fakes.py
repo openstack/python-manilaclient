@@ -29,34 +29,36 @@ def assert_has_keys(dictonary, required=None, optional=None):
             assert k in dictonary
         except AssertionError:
             extra_keys = set(dictonary).difference(set(required + optional))
-            raise AssertionError("found unexpected keys: %s" %
-                                 list(extra_keys))
+            raise AssertionError(f"found unexpected keys: {list(extra_keys)}")
 
 
-class FakeClient(object):
-
+class FakeClient:
     def assert_called(self, method, url, body=None, pos=-1, **kwargs):
         """Assert than an API method was just called."""
         expected = (method, url)
         called = self.client.callstack[pos][0:2]
 
-        assert self.client.callstack, ("Expected %s %s but no calls "
-                                       "were made." % expected)
+        assert self.client.callstack, (
+            "Expected {} {} but no calls were made.".format(*expected)
+        )
 
         assert expected == called, 'Expected %s %s; got %s %s' % (
-            expected + called)
+            expected + called
+        )
 
         if body is not None:
             actual = self.client.callstack[pos][2]
-            assert actual == body, "Expected %s; got %s" % (body, actual)
+            assert actual == body, f"Expected {body}; got {actual}"
 
-    def assert_called_anytime(self, method, url, body=None,
-                              clear_callstack=True):
+    def assert_called_anytime(
+        self, method, url, body=None, clear_callstack=True
+    ):
         """Assert than an API method was called anytime in the test."""
         expected = (method, url)
 
-        assert self.client.callstack, ("Expected %s %s but no calls "
-                                       "were made." % expected)
+        assert self.client.callstack, (
+            "Expected {} {} but no calls were made.".format(*expected)
+        )
 
         found = False
         for entry in self.client.callstack:
@@ -64,8 +66,9 @@ class FakeClient(object):
                 found = True
                 break
 
-        assert found, 'Expected %s %s; got %s' % (
-            expected[0], expected[1], self.client.callstack)
+        assert found, (
+            f'Expected {expected[0]} {expected[1]}; got {self.client.callstack}'
+        )
 
         if body is not None:
             try:

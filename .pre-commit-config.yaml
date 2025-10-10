@@ -14,6 +14,18 @@ repos:
       - id: check-yaml
         files: .*\.(yaml|yml)$
         exclude: '^(zuul.d|rally-jobs)/.*$'
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+      - id: ruff-check
+        args: ['--fix', '--unsafe-fixes']
+      - id: ruff-format
+  - repo: https://opendev.org/openstack/hacking
+    rev: 7.0.0
+    hooks:
+      - id: hacking
+        additional_dependencies: []
+        exclude: '^(doc|releasenotes|tools)/.*$'
   - repo: https://github.com/PyCQA/doc8
     rev: v2.0.0
     hooks:
@@ -24,9 +36,3 @@ repos:
     hooks:
       - id: bashate
         args: ['--ignore', 'E006,E042,E043']
-  - repo: https://opendev.org/openstack/hacking
-    rev: 7.0.0
-    hooks:
-      - id: hacking
-        additional_dependencies: []
-        exclude: '^(doc|releasenotes|tools)/.*$'

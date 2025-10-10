@@ -26,8 +26,9 @@ ACTION_PATH = RESOURCE_PATH + '/action'
 
 class ShareNetwork(base.Resource):
     """Network info for Manila shares."""
+
     def __repr__(self):
-        return "<ShareNetwork: %s>" % self.id
+        return f"<ShareNetwork: {self.id}>"
 
     def update(self, **kwargs):
         """Update this share network."""
@@ -40,11 +41,18 @@ class ShareNetwork(base.Resource):
 
 class ShareNetworkManager(base.ManagerWithFind):
     """Manage :class:`ShareNetwork` resources."""
+
     resource_class = ShareNetwork
 
     @api_versions.wraps("1.0", "2.25")
-    def create(self, neutron_net_id=None, neutron_subnet_id=None,
-               nova_net_id=None, name=None, description=None):
+    def create(
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        nova_net_id=None,
+        name=None,
+        description=None,
+    ):
         """Create share network.
 
         :param neutron_net_id: ID of Neutron network
@@ -71,8 +79,13 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
 
     @api_versions.wraps("2.26", "2.50")  # noqa
-    def create(self, neutron_net_id=None, neutron_subnet_id=None,   # noqa
-               name=None, description=None):
+    def create(  # noqa
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        name=None,
+        description=None,
+    ):
         """Create share network.
 
         :param neutron_net_id: ID of Neutron network
@@ -96,8 +109,14 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._create(RESOURCES_PATH, body, RESOURCE_NAME)
 
     @api_versions.wraps("2.51")  # noqa
-    def create(self, neutron_net_id=None, neutron_subnet_id=None,   # noqa
-               name=None, description=None, availability_zone=None):
+    def create(  # noqa
+        self,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        name=None,
+        description=None,
+        availability_zone=None,
+    ):
         values = {}
 
         if neutron_net_id:
@@ -139,13 +158,20 @@ class ShareNetworkManager(base.ManagerWithFind):
         :param policy: share network to get.
         :rtype: :class:`NetworkInfo`
         """
-        return self._get(RESOURCE_PATH % base.getid(share_network),
-                         RESOURCE_NAME)
+        return self._get(
+            RESOURCE_PATH % base.getid(share_network), RESOURCE_NAME
+        )
 
     @api_versions.wraps("1.0", "2.25")
-    def update(self, share_network, neutron_net_id=None,
-               neutron_subnet_id=None, nova_net_id=None,
-               name=None, description=None):
+    def update(
+        self,
+        share_network,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        nova_net_id=None,
+        name=None,
+        description=None,
+    ):
         """Updates a share network.
 
         :param share_network: share network to update.
@@ -172,14 +198,19 @@ class ShareNetworkManager(base.ManagerWithFind):
             raise exceptions.CommandError(msg)
 
         body = {RESOURCE_NAME: values}
-        return self._update(RESOURCE_PATH % base.getid(share_network),
-                            body,
-                            RESOURCE_NAME)
+        return self._update(
+            RESOURCE_PATH % base.getid(share_network), body, RESOURCE_NAME
+        )
 
     @api_versions.wraps("2.26")  # noqa
-    def update(self, share_network, neutron_net_id=None,   # noqa
-               neutron_subnet_id=None, name=None,
-               description=None):
+    def update(  # noqa
+        self,
+        share_network,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        name=None,
+        description=None,
+    ):
         """Updates a share network.
 
         :param share_network: share network to update.
@@ -204,9 +235,9 @@ class ShareNetworkManager(base.ManagerWithFind):
             raise exceptions.CommandError(msg)
 
         body = {RESOURCE_NAME: values}
-        return self._update(RESOURCE_PATH % base.getid(share_network),
-                            body,
-                            RESOURCE_NAME)
+        return self._update(
+            RESOURCE_PATH % base.getid(share_network), body, RESOURCE_NAME
+        )
 
     def delete(self, share_network):
         """Delete a share network.
@@ -254,8 +285,9 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._action('add_security_service', share_network, info)
 
     @api_versions.wraps("2.63")
-    def add_security_service_check(self, share_network, security_service,
-                                   reset_operation=False):
+    def add_security_service_check(
+        self, share_network, security_service, reset_operation=False
+    ):
         """Associate given security service with a share network.
 
         :param share_network: share network name, id or ShareNetwork instance
@@ -270,9 +302,9 @@ class ShareNetworkManager(base.ManagerWithFind):
         return self._action('add_security_service_check', share_network, info)
 
     @api_versions.wraps("2.63")
-    def update_share_network_security_service(self, share_network,
-                                              current_security_service,
-                                              new_security_service):
+    def update_share_network_security_service(
+        self, share_network, current_security_service, new_security_service
+    ):
         """Update current security service to new one of a given share network.
 
         :param share_network: share network name, id or ShareNetwork instance
@@ -284,14 +316,19 @@ class ShareNetworkManager(base.ManagerWithFind):
         """
         info = {
             'current_service_id': base.getid(current_security_service),
-            'new_service_id': base.getid(new_security_service)}
+            'new_service_id': base.getid(new_security_service),
+        }
 
         return self._action('update_security_service', share_network, info)
 
     @api_versions.wraps("2.63")
     def update_share_network_security_service_check(
-            self, share_network, current_security_service,
-            new_security_service, reset_operation=False):
+        self,
+        share_network,
+        current_security_service,
+        new_security_service,
+        reset_operation=False,
+    ):
         """Validates if the security service update is supported by all hosts.
 
         :param share_network: share network name, id or ShareNetwork instance
@@ -305,11 +342,12 @@ class ShareNetworkManager(base.ManagerWithFind):
         info = {
             'current_service_id': base.getid(current_security_service),
             'new_service_id': base.getid(new_security_service),
-            'reset_operation': reset_operation
+            'reset_operation': reset_operation,
         }
 
-        return self._action('update_security_service_check',
-                            share_network, info)
+        return self._action(
+            'update_security_service_check', share_network, info
+        )
 
     @api_versions.wraps("2.63")
     def reset_state(self, share_network, state):
@@ -319,15 +357,17 @@ class ShareNetworkManager(base.ManagerWithFind):
         or name.
         :param state: text with new state to set for share network.
         """
-        return self._action('reset_status', share_network,
-                            {"status": state})
+        return self._action('reset_status', share_network, {"status": state})
 
     @api_versions.wraps("2.70")
-    def share_network_subnet_create_check(self, share_network_id,
-                                          neutron_net_id=None,
-                                          neutron_subnet_id=None,
-                                          availability_zone=None,
-                                          reset_operation=False):
+    def share_network_subnet_create_check(
+        self,
+        share_network_id,
+        neutron_net_id=None,
+        neutron_subnet_id=None,
+        availability_zone=None,
+        reset_operation=False,
+    ):
         """Check if share network subnet can be created in given share network.
 
         :param share_network_id: ID of the Share network
@@ -346,5 +386,6 @@ class ShareNetworkManager(base.ManagerWithFind):
             values['availability_zone'] = availability_zone
         values['reset_operation'] = reset_operation
 
-        return self._action('share_network_subnet_create_check',
-                            share_network_id, values)
+        return self._action(
+            'share_network_subnet_create_check', share_network_id, values
+        )

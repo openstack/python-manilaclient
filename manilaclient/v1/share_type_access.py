@@ -19,13 +19,15 @@ import warnings
 
 from manilaclient.v2 import share_type_access
 
-warnings.warn("Module manilaclient.v1.share_type_access is deprecated (taken "
-              "as a basis for manilaclient.v2.share_type_access). "
-              "The preferable way to get a client class or object is to use "
-              "the manilaclient.client module.")
+warnings.warn(
+    "Module manilaclient.v1.share_type_access is deprecated (taken "
+    "as a basis for manilaclient.v2.share_type_access). "
+    "The preferable way to get a client class or object is to use "
+    "the manilaclient.client module."
+)
 
 
-class MovedModule(object):
+class MovedModule:
     def __init__(self, new_module):
         self.new_module = new_module
 
@@ -33,5 +35,6 @@ class MovedModule(object):
         return getattr(self.new_module, attr)
 
 
-sys.modules[
-    "manilaclient.v1.share_type_access"] = MovedModule(share_type_access)
+sys.modules["manilaclient.v1.share_type_access"] = MovedModule(
+    share_type_access
+)

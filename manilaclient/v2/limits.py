@@ -25,7 +25,7 @@ class Limits(base.Resource):
 
     @property
     def absolute(self):
-        for (name, value) in list(self._info['absolute'].items()):
+        for name, value in list(self._info['absolute'].items()):
             yield AbsoluteLimit(name, value)
 
     @property
@@ -34,16 +34,21 @@ class Limits(base.Resource):
             uri = group['uri']
             regex = group['regex']
             for rate in group['limit']:
-                yield RateLimit(rate['verb'], uri, regex, rate['value'],
-                                rate['remaining'], rate['unit'],
-                                rate['next-available'])
+                yield RateLimit(
+                    rate['verb'],
+                    uri,
+                    regex,
+                    rate['value'],
+                    rate['remaining'],
+                    rate['unit'],
+                    rate['next-available'],
+                )
 
 
-class RateLimit(object):
+class RateLimit:
     """Data model that represents a flattened view of a single rate limit."""
 
-    def __init__(self, verb, uri, regex, value, remain,
-                 unit, next_available):
+    def __init__(self, verb, uri, regex, value, remain, unit, next_available):
         self.verb = verb
         self.uri = uri
         self.regex = regex
@@ -54,19 +59,21 @@ class RateLimit(object):
         self.next_available = next_available
 
     def __eq__(self, other):
-        return (self.uri == other.uri and
-                self.regex == other.regex and
-                self.value == other.value and
-                self.verb == other.verb and
-                self.remain == other.remain and
-                self.unit == other.unit and
-                self.next_available == other.next_available)
+        return (
+            self.uri == other.uri
+            and self.regex == other.regex
+            and self.value == other.value
+            and self.verb == other.verb
+            and self.remain == other.remain
+            and self.unit == other.unit
+            and self.next_available == other.next_available
+        )
 
     def __repr__(self):
-        return "<RateLimit: method=%s uri=%s>" % (self.verb, self.uri)
+        return f"<RateLimit: method={self.verb} uri={self.uri}>"
 
 
-class AbsoluteLimit(object):
+class AbsoluteLimit:
     """Data model that represents a single absolute limit."""
 
     def __init__(self, name, value):
@@ -77,7 +84,7 @@ class AbsoluteLimit(object):
         return self.value == other.value and self.name == other.name
 
     def __repr__(self):
-        return "<AbsoluteLimit: name=%s>" % (self.name)
+        return f"<AbsoluteLimit: name={self.name}>"
 
 
 class LimitsManager(base.Manager):

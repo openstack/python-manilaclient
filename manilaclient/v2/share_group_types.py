@@ -33,11 +33,11 @@ class ShareGroupType(base.Resource):
     """A Share Group Type is the type of share group to be created."""
 
     def __init__(self, manager, info, loaded=False):
-        super(ShareGroupType, self).__init__(manager, info, loaded)
+        super().__init__(manager, info, loaded)
         self._group_specs = info.get(GROUP_SPECS_RESOURCES_NAME, {})
 
     def __repr__(self):
-        return "<Share Group Type: %s>" % self.name
+        return f"<Share Group Type: {self.name}>"
 
     @property
     def is_public(self):
@@ -71,7 +71,8 @@ class ShareGroupType(base.Resource):
         url = GROUP_SPECS_RESOURCES_PATH % share_group_type_id
         body = {GROUP_SPECS_RESOURCES_NAME: group_specs}
         return self.manager._create(
-            url, body, GROUP_SPECS_RESOURCES_NAME, return_raw=True)
+            url, body, GROUP_SPECS_RESOURCES_NAME, return_raw=True
+        )
 
     def unset_keys(self, keys):
         """Unset group specs on a share group type.
@@ -89,10 +90,12 @@ class ShareGroupType(base.Resource):
 
 class ShareGroupTypeManager(base.ManagerWithFind):
     """Manage :class:`ShareGroupType` resources."""
+
     resource_class = ShareGroupType
 
-    def _create_share_group_type(self, name, share_types, is_public=False,
-                                 group_specs=None):
+    def _create_share_group_type(
+        self, name, share_types, is_public=False, group_specs=None
+    ):
         """Create a share group type.
 
         :param name: Descriptive name of the share group type
@@ -103,28 +106,34 @@ class ShareGroupTypeManager(base.ManagerWithFind):
         :rtype: :class:`ShareGroupType`
         """
         if not share_types:
-            raise ValueError('At least one share type must be specified when '
-                             'creating a share group type.')
+            raise ValueError(
+                'At least one share type must be specified when '
+                'creating a share group type.'
+            )
         body = {
             'name': name,
             'is_public': is_public,
             'group_specs': group_specs or {},
-            'share_types': [base.getid(share_type)
-                            for share_type in share_types],
+            'share_types': [
+                base.getid(share_type) for share_type in share_types
+            ],
         }
         return self._create(
-            RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME)
+            RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME
+        )
 
     @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
     def create(self, name, share_types, is_public=False, group_specs=None):
-        return self._create_share_group_type(name, share_types, is_public,
-                                             group_specs)
+        return self._create_share_group_type(
+            name, share_types, is_public, group_specs
+        )
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
     def create(self, name, share_types, is_public=False, group_specs=None):  # noqa
-        return self._create_share_group_type(name, share_types, is_public,
-                                             group_specs)
+        return self._create_share_group_type(
+            name, share_types, is_public, group_specs
+        )
 
     def _get_share_group_type(self, share_group_type="default"):
         """Get a specific share group type.

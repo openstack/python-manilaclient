@@ -26,50 +26,58 @@ from manilaclient.v2 import share_group_type_access as type_access
 
 @ddt.ddt
 class ShareGroupTypeAccessTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareGroupTypeAccessTest, self).setUp()
+        super().setUp()
         self.manager = type_access.ShareGroupTypeAccessManager(
-            fake.FakeClient())
+            fake.FakeClient()
+        )
         fake_group_type_access_info = {
-            'share_group_type_id': fake.ShareGroupTypeAccess.id}
+            'share_group_type_id': fake.ShareGroupTypeAccess.id
+        }
         self.share_group_type_access = type_access.ShareGroupTypeAccess(
-            self.manager, fake_group_type_access_info, loaded=True)
+            self.manager, fake_group_type_access_info, loaded=True
+        )
 
     def test_repr(self):
         result = str(self.share_group_type_access)
 
         self.assertEqual(
-            '<Share Group Type Access: %s>' % fake.ShareGroupTypeAccess.id,
-            result)
+            f'<Share Group Type Access: {fake.ShareGroupTypeAccess.id}>',
+            result,
+        )
 
 
 @ddt.ddt
 class ShareGroupTypeAccessManagerTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareGroupTypeAccessManagerTest, self).setUp()
+        super().setUp()
         self.manager = type_access.ShareGroupTypeAccessManager(
-            fake.FakeClient())
+            fake.FakeClient()
+        )
 
     def test_list(self):
         fake_share_group_type_access = fake.ShareGroupTypeAccess()
         mock_list = self.mock_object(
-            self.manager, '_list',
-            mock.Mock(return_value=[fake_share_group_type_access]))
+            self.manager,
+            '_list',
+            mock.Mock(return_value=[fake_share_group_type_access]),
+        )
 
         result = self.manager.list(fake.ShareGroupType(), search_opts=None)
 
         self.assertEqual([fake_share_group_type_access], result)
         mock_list.assert_called_once_with(
             type_access.RESOURCE_PATH % fake.ShareGroupType.id,
-            type_access.RESOURCE_NAME)
+            type_access.RESOURCE_NAME,
+        )
 
     def test_list_public(self):
         fake_share_group_type_access = fake.ShareGroupTypeAccess()
         mock_list = self.mock_object(
-            self.manager, '_list',
-            mock.Mock(return_value=[fake_share_group_type_access]))
+            self.manager,
+            '_list',
+            mock.Mock(return_value=[fake_share_group_type_access]),
+        )
         fake_share_group_type = fake.ShareGroupType()
         fake_share_group_type.is_public = True
 
@@ -84,7 +92,9 @@ class ShareGroupTypeAccessManagerTest(utils.TestCase):
 
         self.assertRaises(
             exceptions.UnsupportedVersion,
-            self.manager.list, fake_share_group_type_access)
+            self.manager.list,
+            fake_share_group_type_access,
+        )
 
     def test_add_project_access(self):
         mock_post = self.mock_object(self.manager.api.client, 'post')
@@ -98,13 +108,15 @@ class ShareGroupTypeAccessManagerTest(utils.TestCase):
         }
         mock_post.assert_called_once_with(
             type_access.RESOURCE_PATH_ACTION % fake.ShareGroupType.id,
-            body=expected_body)
+            body=expected_body,
+        )
 
     def test_remove_project_access(self):
         mock_post = self.mock_object(self.manager.api.client, 'post')
 
         self.manager.remove_project_access(
-            fake.ShareGroupType(), 'fake_project')
+            fake.ShareGroupType(), 'fake_project'
+        )
 
         expected_body = {
             'removeProjectAccess': {
@@ -113,4 +125,5 @@ class ShareGroupTypeAccessManagerTest(utils.TestCase):
         }
         mock_post.assert_called_once_with(
             type_access.RESOURCE_PATH_ACTION % fake.ShareGroupType.id,
-            body=expected_body)
+            body=expected_body,
+        )

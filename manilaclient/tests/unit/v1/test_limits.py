@@ -17,14 +17,15 @@ from manilaclient.tests.unit import utils
 
 
 class LimitsV1Test(utils.TestCase):
-
     def test_import_v1_limits_module(self):
         try:
             from manilaclient.v1 import limits
         except Exception as e:
-            msg = ("module 'manilaclient.v1.limits' cannot be imported "
-                   "with error: %s") % str(e)
+            msg = (
+                "module 'manilaclient.v1.limits' cannot be imported "
+                f"with error: {str(e)}"
+            )
             assert False, msg
         for cls in ('Limits', 'RateLimit', 'AbsoluteLimit', 'LimitsManager'):
-            msg = "Module 'limits' has no '%s' attr." % cls
+            msg = f"Module 'limits' has no '{cls}' attr."
             self.assertTrue(hasattr(limits, cls), msg)

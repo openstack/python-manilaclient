@@ -20,9 +20,8 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class SharesMetadataReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(SharesMetadataReadWriteTest, self).setUp()
+        super().setUp()
         self.share = self.create_share(client=self.get_user_client())
 
     def test_set_metadata_in_share_creation(self):
@@ -44,7 +43,8 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
     def test_set_and_get_metadata(self):
         # Create share
         share = self.create_share(
-            cleanup_in_class=False, client=self.get_user_client())
+            cleanup_in_class=False, client=self.get_user_client()
+        )
 
         # Set share metadata
         md = {"key3": "value3", "key4": "value4"}
@@ -63,7 +63,8 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
     def test_set_and_delete_metadata(self):
         # Create share
         share = self.create_share(
-            cleanup_in_class=False, client=self.get_user_client())
+            cleanup_in_class=False, client=self.get_user_client()
+        )
 
         # Set share metadata
         md = {"key3": "value3", "key4": "value4"}
@@ -81,7 +82,8 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
 
         # Create share with metadata
         share = self.create_share(
-            metadata=md, cleanup_in_class=False, client=self.get_user_client())
+            metadata=md, cleanup_in_class=False, client=self.get_user_client()
+        )
 
         # Set share metadata
         self.user_client.set_share_metadata(share["id"], {'key6': 'value6'})
@@ -93,23 +95,25 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
         # Verify share metadata
         self.assertEqual(3, len(metadata))
         for i in (5, 6, 7):
-            key = 'key%s' % i
+            key = f'key{i}'
             self.assertIn(key, metadata)
-            self.assertEqual('value%s' % i, metadata[key])
+            self.assertEqual(f'value{i}', metadata[key])
 
     def test_set_and_replace_metadata(self):
         md = {'key8': 'value8'}
 
         # Create share with metadata
         share = self.create_share(
-            metadata=md, cleanup_in_class=False, client=self.get_user_client())
+            metadata=md, cleanup_in_class=False, client=self.get_user_client()
+        )
 
         # Set share metadata
         self.user_client.set_share_metadata(share["id"], {'key9': 'value9'})
 
         # Replace all existing share metadata
         self.user_client.update_all_share_metadata(
-            share["id"], {'key10': 'value10'})
+            share["id"], {'key10': 'value10'}
+        )
 
         # Read share metadata
         metadata = self.user_client.get_share_metadata(share["id"])
@@ -120,10 +124,8 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
         self.assertEqual('value10', metadata['key10'])
 
     @ddt.data(
-        {"k": "value"},
-        {"k" * 255: "value"},
-        {"key": "v"},
-        {"key": "v" * 1023})
+        {"k": "value"}, {"k" * 255: "value"}, {"key": "v"}, {"key": "v" * 1023}
+    )
     def test_set_metadata_min_max_sizes_of_keys_and_values(self, metadata):
         # Set share metadata
         self.user_client.set_share_metadata(self.share["id"], metadata)
@@ -137,10 +139,8 @@ class SharesMetadataReadWriteTest(base.BaseTestCase):
         self.assertEqual(metadata[key], get[key])
 
     @ddt.data(
-        {"k": "value"},
-        {"k" * 255: "value"},
-        {"key": "v"},
-        {"key": "v" * 1023})
+        {"k": "value"}, {"k" * 255: "value"}, {"key": "v"}, {"key": "v" * 1023}
+    )
     def test_update_metadata_min_max_sizes_of_keys_and_values(self, metadata):
         # Update share metadata
         self.user_client.update_all_share_metadata(self.share["id"], metadata)

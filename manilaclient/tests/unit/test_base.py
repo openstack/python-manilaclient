@@ -23,7 +23,6 @@ cs = fakes.FakeClient()
 
 
 class BaseTest(utils.TestCase):
-
     def test_resource_repr(self):
         r = base.Resource(None, dict(foo="bar", baz="spam"))
         self.assertEqual(repr(r), "<Resource baz=spam, foo=bar>")
@@ -59,12 +58,13 @@ class BaseTest(utils.TestCase):
         cs.shares.findall(vegetable='carrot')
 
         # However, find() should raise an error
-        self.assertRaises(exceptions.NotFound,
-                          cs.shares.find,
-                          vegetable='carrot')
+        self.assertRaises(
+            exceptions.NotFound, cs.shares.find, vegetable='carrot'
+        )
 
     def test_findall_with_all_tenants(self):
         cs.shares.list = mock.Mock(return_value=[])
         cs.shares.findall()
         cs.shares.list.assert_called_with(
-            search_opts={'all_tenants': 1, 'is_soft_deleted': True})
+            search_opts={'all_tenants': 1, 'is_soft_deleted': True}
+        )

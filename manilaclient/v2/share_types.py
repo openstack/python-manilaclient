@@ -27,21 +27,22 @@ class ShareType(base.Resource):
     """A Share Type is the type of share to be created."""
 
     def __init__(self, manager, info, loaded=False):
-        super(ShareType, self).__init__(manager, info, loaded)
+        super().__init__(manager, info, loaded)
         self._required_extra_specs = info.get('required_extra_specs', {})
         self._optional_extra_specs = info.get('extra_specs', {}).copy()
         for key in self._required_extra_specs.keys():
             self._optional_extra_specs.pop(key, None)
 
     def __repr__(self):
-        return "<ShareType: %s>" % self.name
+        return f"<ShareType: {self.name}>"
 
     @property
     def is_public(self):
         """Provide a user-friendly accessor to [os-]share-type-access."""
         return self._info.get(
             "share_type_access:is_public",
-            self._info.get("os-share-type-access:is_public", "N/A"))
+            self._info.get("os-share-type-access:is_public", "N/A"),
+        )
 
     def get_keys(self, prefer_resource_data=True):
         """Get extra specs from a share type.
@@ -56,7 +57,8 @@ class ShareType(base.Resource):
             return extra_specs
 
         _resp, body = self.manager.api.client.get(
-            "/types/%s/extra_specs" % base.getid(self))
+            f"/types/{base.getid(self)}/extra_specs"
+        )
 
         self.extra_specs = body["extra_specs"]
 
@@ -76,7 +78,7 @@ class ShareType(base.Resource):
         """
         body = {'extra_specs': metadata}
         return self.manager._create(
-            "/types/%s/extra_specs" % base.getid(self),
+            f"/types/{base.getid(self)}/extra_specs",
             body,
             "extra_specs",
             return_raw=True,
@@ -96,7 +98,8 @@ class ShareType(base.Resource):
         resp = None
         for k in keys:
             resp = self.manager._delete(
-                "/types/%s/extra_specs/%s" % (base.getid(self), k))
+                f"/types/{base.getid(self)}/extra_specs/{k}"
+            )
             if resp is not None:
                 return resp
 
@@ -119,7 +122,7 @@ class ShareTypeManager(base.ManagerWithFind):
         if show_all:
             search_opts['is_public'] = 'all'
         query_string = self._build_query_string(search_opts)
-        return self._list("/types%s" % query_string, "share_types")
+        return self._list(f"/types{query_string}", "share_types")
 
     def show(self, share_type):
         """Get a share type.
@@ -128,7 +131,7 @@ class ShareTypeManager(base.ManagerWithFind):
         :rtype: :class:`ShareType`
         """
         type_id = base.getid(share_type)
-        return self._get("/types/%s" % type_id, "share_type")
+        return self._get(f"/types/{type_id}", "share_type")
 
     def get(self, share_type="default"):
         """Get a specific share type.
@@ -136,19 +139,23 @@ class ShareTypeManager(base.ManagerWithFind):
         :param share_type: The ID of the :class:`ShareType` to get.
         :rtype: :class:`ShareType`
         """
-        return self._get("/types/%s" % base.getid(share_type),
-                         "share_type")
+        return self._get(f"/types/{base.getid(share_type)}", "share_type")
 
     def delete(self, share_type):
         """Delete a specific share_type.
 
         :param share_type: The name or ID of the :class:`ShareType` to get.
         """
-        self._delete("/types/%s" % base.getid(share_type))
+        self._delete(f"/types/{base.getid(share_type)}")
 
-    def _do_create(self, name, extra_specs, is_public,
-                   is_public_keyname="share_type_access:is_public",
-                   description=None):
+    def _do_create(
+        self,
+        name,
+        extra_specs,
+        is_public,
+        is_public_keyname="share_type_access:is_public",
+        description=None,
+    ):
         """Create a share type.
 
         :param name: Descriptive name of the share type
@@ -167,9 +174,14 @@ class ShareTypeManager(base.ManagerWithFind):
             body["share_type"]["description"] = description
         return self._create("/types", body, "share_type")
 
-    def _do_update(self, share_type, name=None, is_public=None,
-                   is_public_keyname="share_type_access:is_public",
-                   description=None):
+    def _do_update(
+        self,
+        share_type,
+        name=None,
+        is_public=None,
+        is_public_keyname="share_type_access:is_public",
+        description=None,
+    ):
         """Update the name and/or description for a share type.
 
         :param share_type: the ID of the :class: `ShareType` to update.
@@ -178,9 +190,7 @@ class ShareTypeManager(base.ManagerWithFind):
         :rtype: :class:`ShareType`
         """
 
-        body = {
-            "share_type": {}
-        }
+        body = {"share_type": {}}
 
         if name:
             body["share_type"]["name"] = name
@@ -188,90 +198,130 @@ class ShareTypeManager(base.ManagerWithFind):
             body["share_type"][is_public_keyname] = is_public
         if description or description == "":
             body["share_type"]["description"] = description
-        return self._update("/types/%s" % base.getid(share_type),
-                            body, "share_type")
+        return self._update(
+            f"/types/{base.getid(share_type)}", body, "share_type"
+        )
 
     @api_versions.wraps("1.0", "2.6")
-    def create(self, name, spec_driver_handles_share_servers,
-               spec_snapshot_support=None, is_public=True, extra_specs=None):
-
+    def create(
+        self,
+        name,
+        spec_driver_handles_share_servers,
+        spec_snapshot_support=None,
+        is_public=True,
+        extra_specs=None,
+    ):
         if extra_specs is None:
             extra_specs = {}
 
         self._handle_spec_driver_handles_share_servers(
-            extra_specs, spec_driver_handles_share_servers)
+            extra_specs, spec_driver_handles_share_servers
+        )
         self._handle_spec_snapshot_support(
-            extra_specs, spec_snapshot_support, set_default=True)
+            extra_specs, spec_snapshot_support, set_default=True
+        )
 
         return self._do_create(
-            name, extra_specs, is_public,
-            is_public_keyname="os-share-type-access:is_public")
+            name,
+            extra_specs,
+            is_public,
+            is_public_keyname="os-share-type-access:is_public",
+        )
 
     @api_versions.wraps("2.7", "2.23")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,  # noqa
-               spec_snapshot_support=None, is_public=True, extra_specs=None):
-
+    def create(  # noqa
+        self,
+        name,
+        spec_driver_handles_share_servers,
+        spec_snapshot_support=None,
+        is_public=True,
+        extra_specs=None,
+    ):
         if extra_specs is None:
             extra_specs = {}
 
         self._handle_spec_driver_handles_share_servers(
-            extra_specs, spec_driver_handles_share_servers)
+            extra_specs, spec_driver_handles_share_servers
+        )
         self._handle_spec_snapshot_support(
-            extra_specs, spec_snapshot_support, set_default=True)
+            extra_specs, spec_snapshot_support, set_default=True
+        )
 
         return self._do_create(name, extra_specs, is_public)
 
     @api_versions.wraps("2.24", "2.40")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,  # noqa
-               spec_snapshot_support=None, is_public=True, extra_specs=None):
-
+    def create(  # noqa
+        self,
+        name,
+        spec_driver_handles_share_servers,
+        spec_snapshot_support=None,
+        is_public=True,
+        extra_specs=None,
+    ):
         if extra_specs is None:
             extra_specs = {}
 
         self._handle_spec_driver_handles_share_servers(
-            extra_specs, spec_driver_handles_share_servers)
+            extra_specs, spec_driver_handles_share_servers
+        )
         self._handle_spec_snapshot_support(extra_specs, spec_snapshot_support)
 
         return self._do_create(name, extra_specs, is_public)
 
     @api_versions.wraps("2.41")  # noqa
-    def create(self, name, spec_driver_handles_share_servers,  # noqa
-               spec_snapshot_support=None, is_public=True, extra_specs=None,
-               description=None):
+    def create(  # noqa
+        self,
+        name,
+        spec_driver_handles_share_servers,
+        spec_snapshot_support=None,
+        is_public=True,
+        extra_specs=None,
+        description=None,
+    ):
         if extra_specs is None:
             extra_specs = {}
 
         self._handle_spec_driver_handles_share_servers(
-            extra_specs, spec_driver_handles_share_servers)
+            extra_specs, spec_driver_handles_share_servers
+        )
         self._handle_spec_snapshot_support(extra_specs, spec_snapshot_support)
 
-        return self._do_create(name, extra_specs, is_public,
-                               description=description)
+        return self._do_create(
+            name, extra_specs, is_public, description=description
+        )
 
     @api_versions.wraps("2.50")
     def update(self, share_type, name=None, is_public=None, description=None):
-        return self._do_update(share_type, name, is_public,
-                               description=description)
+        return self._do_update(
+            share_type, name, is_public, description=description
+        )
 
     def _handle_spec_driver_handles_share_servers(
-            self, extra_specs, spec_driver_handles_share_servers):
+        self, extra_specs, spec_driver_handles_share_servers
+    ):
         """Validation and default for DHSS extra spec."""
 
         if spec_driver_handles_share_servers is not None:
             if 'driver_handles_share_servers' in extra_specs:
-                msg = ("'driver_handles_share_servers' is already set via "
-                       "positional argument.")
+                msg = (
+                    "'driver_handles_share_servers' is already set via "
+                    "positional argument."
+                )
                 raise exceptions.CommandError(msg)
             else:
                 extra_specs['driver_handles_share_servers'] = (
-                    spec_driver_handles_share_servers)
+                    spec_driver_handles_share_servers
+                )
         else:
-            msg = ("'driver_handles_share_servers' is not set via "
-                   "positional argument.")
+            msg = (
+                "'driver_handles_share_servers' is not set via "
+                "positional argument."
+            )
             raise exceptions.CommandError(msg)
 
-    def _handle_spec_snapshot_support(self, extra_specs, spec_snapshot_support,
-                                      set_default=False):
+    def _handle_spec_snapshot_support(
+        self, extra_specs, spec_snapshot_support, set_default=False
+    ):
         """Validation and default for snapshot extra spec."""
 
         if spec_snapshot_support is not None:

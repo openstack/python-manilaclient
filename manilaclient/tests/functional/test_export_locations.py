@@ -21,19 +21,16 @@ from manilaclient.tests.functional import base
 
 @ddt.ddt
 class ExportLocationReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(ExportLocationReadWriteTest, self).setUp()
-        self.share = self.create_share(
-            client=self.get_user_client())
+        super().setUp()
+        self.share = self.create_share(client=self.get_user_client())
 
     @ddt.data('admin', 'user')
     def test_list_share_export_locations(self, role):
         self.skip_if_microversion_not_supported('2.14')
 
         client = self.admin_client if role == 'admin' else self.user_client
-        export_locations = client.list_share_export_locations(
-            self.share['id'])
+        export_locations = client.list_share_export_locations(self.share['id'])
 
         self.assertGreater(len(export_locations), 0)
         expected_keys = ('ID', 'Path', 'Preferred')
@@ -49,7 +46,8 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
 
         client = self.admin_client if role == 'admin' else self.user_client
         export_locations = client.list_share_export_locations(
-            self.share['id'], columns='id,path')
+            self.share['id'], columns='id,path'
+        )
 
         self.assertGreater(len(export_locations), 0)
         expected_keys = ('Id', 'Path')
@@ -66,11 +64,11 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         self.skip_if_microversion_not_supported('2.14')
 
         client = self.admin_client if role == 'admin' else self.user_client
-        export_locations = client.list_share_export_locations(
-            self.share['id'])
+        export_locations = client.list_share_export_locations(self.share['id'])
 
         el = client.get_share_export_location(
-            self.share['id'], export_locations[0]['ID'])
+            self.share['id'], export_locations[0]['ID']
+        )
 
         expected_keys = ['path', 'updated_at', 'created_at', 'id', 'preferred']
         if role == 'admin':
@@ -83,9 +81,11 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         self.assertTrue(uuidutils.is_uuid_like(el['id']))
         self.assertIn(el['preferred'], ('True', 'False'))
         for list_k, get_k in (
-                ('ID', 'id'), ('Path', 'path'), ('Preferred', 'preferred')):
-            self.assertEqual(
-                export_locations[0][list_k], el[get_k])
+            ('ID', 'id'),
+            ('Path', 'path'),
+            ('Preferred', 'preferred'),
+        ):
+            self.assertEqual(export_locations[0][list_k], el[get_k])
 
     def test_list_share_instance_export_locations(self):
         self.skip_if_microversion_not_supported('2.14')
@@ -98,7 +98,8 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         share_instance_id = share_instances[0]['ID']
 
         export_locations = client.list_share_instance_export_locations(
-            share_instance_id)
+            share_instance_id
+        )
 
         self.assertGreater(len(export_locations), 0)
         expected_keys = ('ID', 'Path', 'Is Admin only', 'Preferred')
@@ -118,7 +119,8 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         share_instance_id = share_instances[0]['ID']
 
         export_locations = client.list_share_instance_export_locations(
-            share_instance_id, columns='id,path')
+            share_instance_id, columns='id,path'
+        )
 
         self.assertGreater(len(export_locations), 0)
         expected_keys = ('Id', 'Path')
@@ -141,14 +143,21 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         share_instance_id = share_instances[0]['ID']
 
         export_locations = client.list_share_instance_export_locations(
-            share_instance_id)
+            share_instance_id
+        )
 
         el = client.get_share_instance_export_location(
-            share_instance_id, export_locations[0]['ID'])
+            share_instance_id, export_locations[0]['ID']
+        )
 
         expected_keys = (
-            'path', 'updated_at', 'created_at', 'id', 'preferred',
-            'is_admin_only', 'share_instance_id',
+            'path',
+            'updated_at',
+            'created_at',
+            'id',
+            'preferred',
+            'is_admin_only',
+            'share_instance_id',
         )
         for key in expected_keys:
             self.assertIn(key, el)
@@ -156,7 +165,9 @@ class ExportLocationReadWriteTest(base.BaseTestCase):
         self.assertIn(el['preferred'], ('True', 'False'))
         self.assertTrue(uuidutils.is_uuid_like(el['id']))
         for list_k, get_k in (
-                ('ID', 'id'), ('Path', 'path'), ('Preferred', 'preferred'),
-                ('Is Admin only', 'is_admin_only')):
-            self.assertEqual(
-                export_locations[0][list_k], el[get_k])
+            ('ID', 'id'),
+            ('Path', 'path'),
+            ('Preferred', 'preferred'),
+            ('Is Admin only', 'is_admin_only'),
+        ):
+            self.assertEqual(export_locations[0][list_k], el[get_k])

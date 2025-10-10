@@ -21,8 +21,9 @@ from manilaclient.v2 import share_snapshot_export_locations
 
 
 extensions = [
-    extension.Extension('share_snapshot_export_locations',
-                        share_snapshot_export_locations),
+    extension.Extension(
+        'share_snapshot_export_locations', share_snapshot_export_locations
+    ),
 ]
 cs = fakes.FakeClient(extensions=extensions)
 
@@ -31,15 +32,12 @@ class ShareSnapshotExportLocationsTest(utils.TestCase):
     def test_list_snapshot(self):
         snapshot_id = '1234'
         cs.share_snapshot_export_locations.list(snapshot_id, search_opts=None)
-        cs.assert_called(
-            'GET', '/snapshots/%s/export-locations' % snapshot_id)
+        cs.assert_called('GET', f'/snapshots/{snapshot_id}/export-locations')
 
     def test_get_snapshot(self):
         snapshot_id = '1234'
         el_id = 'fake_el_id'
         cs.share_snapshot_export_locations.get(el_id, snapshot_id)
         cs.assert_called(
-            'GET',
-            ('/snapshots/%(snapshot_id)s/export-locations/'
-             '%(el_id)s') % {
-                 'snapshot_id': snapshot_id, 'el_id': el_id})
+            'GET', (f'/snapshots/{snapshot_id}/export-locations/{el_id}')
+        )

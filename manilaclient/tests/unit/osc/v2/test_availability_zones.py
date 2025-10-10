@@ -18,31 +18,31 @@ from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
 
 class TestAvailabilityZones(manila_fakes.TestShare):
-
     def setUp(self):
-        super(TestAvailabilityZones, self).setUp()
+        super().setUp()
 
         self.zones_mock = self.app.client_manager.share.availability_zones
         self.zones_mock.reset_mock()
 
 
 class TestShareAvailabilityZoneList(TestAvailabilityZones):
-
-    availability_zones = manila_fakes.FakeShareAvailabilityZones.\
-        create_share_availability_zones()
+    availability_zones = manila_fakes.FakeShareAvailabilityZones.create_share_availability_zones()
     COLUMNS = ("Id", "Name", "Created At", "Updated At")
 
     def setUp(self):
-        super(TestShareAvailabilityZoneList, self).setUp()
+        super().setUp()
 
         self.zones_mock.list.return_value = self.availability_zones
 
         # Get the command object to test
         self.cmd = osc_availability_zones.ShareAvailabilityZoneList(
-            self.app, None)
+            self.app, None
+        )
 
-        self.values = (oscutils.get_dict_properties(
-            s._info, self.COLUMNS) for s in self.availability_zones)
+        self.values = (
+            oscutils.get_dict_properties(s._info, self.COLUMNS)
+            for s in self.availability_zones
+        )
 
     def test_share_list_availability_zone(self):
         arglist = []

@@ -19,7 +19,7 @@ class ResourceLock(base.Resource):
     """Lock a share resource action from being executed"""
 
     def __repr__(self):
-        return "<ResourceLock: %s>" % self.id
+        return f"<ResourceLock: {self.id}>"
 
     def delete(self):
         """Delete this lock."""
@@ -32,11 +32,17 @@ class ResourceLock(base.Resource):
 
 class ResourceLockManager(base.ManagerWithFind):
     """Manage :class:`ResourceLock` resources."""
+
     resource_class = ResourceLock
 
     @api_versions.wraps(constants.RESOURCE_LOCK_VERSION)
-    def create(self, resource_id, resource_type,
-               resource_action='delete', lock_reason=None):
+    def create(
+        self,
+        resource_id,
+        resource_type,
+        resource_action='delete',
+        lock_reason=None,
+    ):
         """Creates a resource lock.
 
         :param resource_id: The ID of the resource to lock
@@ -65,7 +71,7 @@ class ResourceLockManager(base.ManagerWithFind):
         :param lock_id: The ID of the resource lock to display.
         :rtype: :class:`ResourceLock`
         """
-        return self._get("/resource-locks/%s" % lock_id, "resource_lock")
+        return self._get(f"/resource-locks/{lock_id}", "resource_lock")
 
     @api_versions.wraps(constants.RESOURCE_LOCK_VERSION)
     def list(self, search_opts=None, sort_key=None, sort_dir=None):
@@ -83,18 +89,23 @@ class ResourceLockManager(base.ManagerWithFind):
             search_opts['sort_key'] = sort_key
         else:
             raise ValueError(
-                'sort_key must be one of the following: %s.'
-                % ', '.join(constants.RESOURCE_LOCK_SORT_KEY_VALUES))
+                'sort_key must be one of the following: {}.'.format(
+                    ', '.join(constants.RESOURCE_LOCK_SORT_KEY_VALUES)
+                )
+            )
         sort_dir = sort_dir or 'desc'
         if sort_dir in constants.SORT_DIR_VALUES:
             search_opts['sort_dir'] = sort_dir
         else:
-            raise ValueError('sort_dir must be one of the following: %s.'
-                             % ', '.join(constants.SORT_DIR_VALUES))
+            raise ValueError(
+                'sort_dir must be one of the following: {}.'.format(
+                    ', '.join(constants.SORT_DIR_VALUES)
+                )
+            )
 
         query_string = self._build_query_string(search_opts)
 
-        path = "/resource-locks%s" % (query_string,)
+        path = f"/resource-locks{query_string}"
 
         return self._list(path, 'resource_locks')
 
@@ -114,12 +125,12 @@ class ResourceLockManager(base.ManagerWithFind):
         if 'lock_reason' in kwargs:
             body['resource_lock']['lock_reason'] = kwargs['lock_reason']
         if 'resource_action' in kwargs:
-            body['resource_lock']['resource_action'] = (
-                kwargs['resource_action']
-            )
+            body['resource_lock']['resource_action'] = kwargs[
+                'resource_action'
+            ]
 
         lock_id = base.getid(lock)
-        return self._update("/resource-locks/%s" % lock_id, body)
+        return self._update(f"/resource-locks/{lock_id}", body)
 
     @api_versions.wraps(constants.RESOURCE_LOCK_VERSION)
     def delete(self, lock):
@@ -127,4 +138,4 @@ class ResourceLockManager(base.ManagerWithFind):
 
         :param lock: The :class:`ResourceLock` object, or a lock id to delete.
         """
-        return self._delete("/resource-locks/%s" % base.getid(lock))
+        return self._delete(f"/resource-locks/{base.getid(lock)}")

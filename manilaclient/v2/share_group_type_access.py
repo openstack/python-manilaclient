@@ -25,15 +25,17 @@ SG_GRADUATION_VERSION = "2.55"
 
 class ShareGroupTypeAccess(base.Resource):
     def __repr__(self):
-        return "<Share Group Type Access: %s>" % self.share_group_type_id
+        return f"<Share Group Type Access: {self.share_group_type_id}>"
 
 
 class ShareGroupTypeAccessManager(base.ManagerWithFind):
     """Manage :class:`ShareGroupTypeAccess` resources."""
+
     resource_class = ShareGroupTypeAccess
 
-    def _list_share_group_type_access(self, share_group_type,
-                                      search_opts=None):
+    def _list_share_group_type_access(
+        self, share_group_type, search_opts=None
+    ):
         if share_group_type.is_public:
             return None
         share_group_type_id = base.getid(share_group_type)
@@ -43,13 +45,15 @@ class ShareGroupTypeAccessManager(base.ManagerWithFind):
     @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
     def list(self, share_group_type, search_opts=None):
-        return self._list_share_group_type_access(share_group_type,
-                                                  search_opts)
+        return self._list_share_group_type_access(
+            share_group_type, search_opts
+        )
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
     def list(self, share_group_type, search_opts=None):  # noqa
-        return self._list_share_group_type_access(share_group_type,
-                                                  search_opts)
+        return self._list_share_group_type_access(
+            share_group_type, search_opts
+        )
 
     @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api

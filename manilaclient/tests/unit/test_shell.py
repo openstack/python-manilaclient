@@ -31,7 +31,6 @@ from manilaclient.tests.unit.v2 import fakes
 
 @ddt.ddt
 class OpenstackManilaShellTest(utils.TestCase):
-
     FAKE_ENV = {
         'OS_USERNAME': 'username',
         'OS_PASSWORD': 'password',
@@ -44,12 +43,14 @@ class OpenstackManilaShellTest(utils.TestCase):
         for k, v in env_vars.items():
             self.useFixture(fixtures.EnvironmentVariable(k, v))
 
-    def shell_discover_client(self,
-                              current_client,
-                              os_api_version,
-                              os_endpoint_type,
-                              os_service_type,
-                              client_args):
+    def shell_discover_client(
+        self,
+        current_client,
+        os_api_version,
+        os_endpoint_type,
+        os_service_type,
+        client_args,
+    ):
         return current_client, manilaclient.API_MAX_VERSION
 
     def shell(self, argstr):
@@ -73,10 +74,16 @@ class OpenstackManilaShellTest(utils.TestCase):
         {},
         {'OS_AUTH_URL': 'http://foo.bar'},
         {'OS_AUTH_URL': 'http://foo.bar', 'OS_USERNAME': 'foo'},
-        {'OS_AUTH_URL': 'http://foo.bar', 'OS_USERNAME': 'foo_user',
-         'OS_PASSWORD': 'foo_password'},
-        {'OS_TENANT_NAME': 'foo_tenant', 'OS_USERNAME': 'foo_user',
-         'OS_PASSWORD': 'foo_password'},
+        {
+            'OS_AUTH_URL': 'http://foo.bar',
+            'OS_USERNAME': 'foo_user',
+            'OS_PASSWORD': 'foo_password',
+        },
+        {
+            'OS_TENANT_NAME': 'foo_tenant',
+            'OS_USERNAME': 'foo_user',
+            'OS_PASSWORD': 'foo_password',
+        },
         {'OS_TOKEN': 'foo_token'},
         {'OS_MANILA_BYPASS_URL': 'http://foo.foo'},
     )
@@ -99,7 +106,6 @@ class OpenstackManilaShellTest(utils.TestCase):
             'OS_PROJECT_ID': 'foo_project_id',
             'OS_PROJECT_DOMAIN_ID': 'foo_project_domain_id',
             'OS_PROJECT_DOMAIN_NAME': 'foo_project_domain_name',
-            'OS_PROJECT_DOMAIN_ID': 'foo_project_domain_id',
             'OS_USER_DOMAIN_NAME': 'foo_user_domain_name',
             'OS_USER_DOMAIN_ID': 'foo_user_domain_id',
             'OS_CERT': 'foo_cert',
@@ -111,7 +117,6 @@ class OpenstackManilaShellTest(utils.TestCase):
             cert = (cert, env_vars['OS_KEY'])
 
         with mock.patch.object(shell, 'client') as mock_client:
-
             self.shell('list')
 
             mock_client.Client.assert_called_with(
@@ -143,37 +148,73 @@ class OpenstackManilaShellTest(utils.TestCase):
             )
 
     @ddt.data(
-        {"env_vars": {"OS_MANILA_BYPASS_URL": "http://foo.url",
-                      "OS_TOKEN": "foo_token"},
-         "kwargs": {"--os-token": "bar_token",
-                    "--bypass-url": "http://bar.url"},
-         "expected": {"input_auth_token": "bar_token",
-                      "service_catalog_url": "http://bar.url"}},
-        {"env_vars": {"OS_MANILA_BYPASS_URL": "http://foo.url",
-                      "OS_TOKEN": "foo_token"},
-         "kwargs": {},
-         "expected": {"input_auth_token": "foo_token",
-                      "service_catalog_url": "http://foo.url"}},
-        {"env_vars": {},
-         "kwargs": {"--os-token": "bar_token",
-                    "--bypass-url": "http://bar.url"},
-         "expected": {"input_auth_token": "bar_token",
-                      "service_catalog_url": "http://bar.url"}},
-        {"env_vars": {"MANILACLIENT_BYPASS_URL": "http://foo.url",
-                      "OS_TOKEN": "foo_token"},
-         "kwargs": {},
-         "expected": {"input_auth_token": "foo_token",
-                      "service_catalog_url": "http://foo.url"}},
-        {"env_vars": {"OS_TOKEN": "foo_token"},
-         "kwargs": {"--bypass-url": "http://bar.url"},
-         "expected": {"input_auth_token": "foo_token",
-                      "service_catalog_url": "http://bar.url"}},
-        {"env_vars": {"MANILACLIENT_BYPASS_URL": "http://foo.url",
-                      "OS_MANILA_BYPASS_URL": "http://bar.url",
-                      "OS_TOKEN": "foo_token"},
-         "kwargs": {"--os-token": "bar_token"},
-         "expected": {"input_auth_token": "bar_token",
-                      "service_catalog_url": "http://bar.url"}},
+        {
+            "env_vars": {
+                "OS_MANILA_BYPASS_URL": "http://foo.url",
+                "OS_TOKEN": "foo_token",
+            },
+            "kwargs": {
+                "--os-token": "bar_token",
+                "--bypass-url": "http://bar.url",
+            },
+            "expected": {
+                "input_auth_token": "bar_token",
+                "service_catalog_url": "http://bar.url",
+            },
+        },
+        {
+            "env_vars": {
+                "OS_MANILA_BYPASS_URL": "http://foo.url",
+                "OS_TOKEN": "foo_token",
+            },
+            "kwargs": {},
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://foo.url",
+            },
+        },
+        {
+            "env_vars": {},
+            "kwargs": {
+                "--os-token": "bar_token",
+                "--bypass-url": "http://bar.url",
+            },
+            "expected": {
+                "input_auth_token": "bar_token",
+                "service_catalog_url": "http://bar.url",
+            },
+        },
+        {
+            "env_vars": {
+                "MANILACLIENT_BYPASS_URL": "http://foo.url",
+                "OS_TOKEN": "foo_token",
+            },
+            "kwargs": {},
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://foo.url",
+            },
+        },
+        {
+            "env_vars": {"OS_TOKEN": "foo_token"},
+            "kwargs": {"--bypass-url": "http://bar.url"},
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://bar.url",
+            },
+        },
+        {
+            "env_vars": {
+                "MANILACLIENT_BYPASS_URL": "http://foo.url",
+                "OS_MANILA_BYPASS_URL": "http://bar.url",
+                "OS_TOKEN": "foo_token",
+            },
+            "kwargs": {"--os-token": "bar_token"},
+            "expected": {
+                "input_auth_token": "bar_token",
+                "service_catalog_url": "http://bar.url",
+            },
+        },
     )
     @ddt.unpack
     def test_main_success_with_token(self, env_vars, kwargs, expected):
@@ -181,7 +222,7 @@ class OpenstackManilaShellTest(utils.TestCase):
         with mock.patch.object(shell, "client") as mock_client:
             cmd = ""
             for k, v in kwargs.items():
-                cmd += "%s=%s " % (k, v)
+                cmd += f"{k}={v} "
             cmd += "list"
 
             self.shell(cmd)
@@ -217,42 +258,58 @@ class OpenstackManilaShellTest(utils.TestCase):
     @ddt.data(
         # default without any env var or kwargs
         {
-            "env_vars": {"OS_TOKEN": "foo_token",
-                         "OS_MANILA_BYPASS_URL": "http://bar.url"},
+            "env_vars": {
+                "OS_TOKEN": "foo_token",
+                "OS_MANILA_BYPASS_URL": "http://bar.url",
+            },
             "kwargs": {},
-            "expected": {"input_auth_token": "foo_token",
-                         "service_catalog_url": "http://bar.url",
-                         "os_endpoint_type": "publicURL"}
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://bar.url",
+                "os_endpoint_type": "publicURL",
+            },
         },
         # only env var
         {
-            "env_vars": {"OS_TOKEN": "foo_token",
-                         "OS_MANILA_BYPASS_URL": "http://bar.url",
-                         "OS_MANILA_ENDPOINT_TYPE": "custom-endpoint-type"},
+            "env_vars": {
+                "OS_TOKEN": "foo_token",
+                "OS_MANILA_BYPASS_URL": "http://bar.url",
+                "OS_MANILA_ENDPOINT_TYPE": "custom-endpoint-type",
+            },
             "kwargs": {},
-            "expected": {"input_auth_token": "foo_token",
-                         "service_catalog_url": "http://bar.url",
-                         "os_endpoint_type": "custom-endpoint-type"},
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://bar.url",
+                "os_endpoint_type": "custom-endpoint-type",
+            },
         },
         # only kwargs
         {
-            "env_vars": {"OS_TOKEN": "foo_token",
-                         "OS_MANILA_BYPASS_URL": "http://bar.url"},
+            "env_vars": {
+                "OS_TOKEN": "foo_token",
+                "OS_MANILA_BYPASS_URL": "http://bar.url",
+            },
             "kwargs": {"--endpoint-type": "custom-kwargs-endpoint-type"},
-            "expected": {"input_auth_token": "foo_token",
-                         "service_catalog_url": "http://bar.url",
-                         "os_endpoint_type": "custom-kwargs-endpoint-type"},
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://bar.url",
+                "os_endpoint_type": "custom-kwargs-endpoint-type",
+            },
         },
         # env var *and* kwargs (kwargs should win)
         {
-            "env_vars": {"OS_TOKEN": "foo_token",
-                         "OS_MANILA_BYPASS_URL": "http://bar.url",
-                         "os_endpoint_type": "custom-env-endpoint-type"},
+            "env_vars": {
+                "OS_TOKEN": "foo_token",
+                "OS_MANILA_BYPASS_URL": "http://bar.url",
+                "os_endpoint_type": "custom-env-endpoint-type",
+            },
             "kwargs": {"--endpoint-type": "custom-kwargs-endpoint-type"},
-            "expected": {"input_auth_token": "foo_token",
-                         "service_catalog_url": "http://bar.url",
-                         "os_endpoint_type": "custom-kwargs-endpoint-type"},
-        }
+            "expected": {
+                "input_auth_token": "foo_token",
+                "service_catalog_url": "http://bar.url",
+                "os_endpoint_type": "custom-kwargs-endpoint-type",
+            },
+        },
     )
     @ddt.unpack
     def test_main_success_with_os_endpoint(self, env_vars, kwargs, expected):
@@ -260,7 +317,7 @@ class OpenstackManilaShellTest(utils.TestCase):
         with mock.patch.object(shell, "client") as mock_client:
             cmd = ""
             for k, v in kwargs.items():
-                cmd += "%s=%s " % (k, v)
+                cmd += f"{k}={v} "
             cmd += "list"
 
             self.shell(cmd)
@@ -304,19 +361,38 @@ class OpenstackManilaShellTest(utils.TestCase):
         ]
         help_text = self.shell(cmd)
         for r in required:
-            self.assertThat(help_text,
-                            matchers.MatchesRegex(r, re.DOTALL | re.MULTILINE))
+            self.assertThat(
+                help_text, matchers.MatchesRegex(r, re.DOTALL | re.MULTILINE)
+            )
 
     def test_common_args_in_help_message(self):
         expected_args = (
-            '--version', '', '--debug', '--os-cache', '--os-reset-cache',
-            '--os-user-id', '--os-username', '--os-password',
-            '--os-tenant-name', '--os-project-name', '--os-tenant-id',
-            '--os-project-id', '--os-user-domain-id', '--os-user-domain-name',
-            '--os-project-domain-id', '--os-project-domain-name',
-            '--os-auth-url', '--os-region-name', '--service-type',
-            '--service-name', '--share-service-name', '--endpoint-type',
-            '--os-share-api-version', '--os-cacert', '--retries', '--os-cert',
+            '--version',
+            '',
+            '--debug',
+            '--os-cache',
+            '--os-reset-cache',
+            '--os-user-id',
+            '--os-username',
+            '--os-password',
+            '--os-tenant-name',
+            '--os-project-name',
+            '--os-tenant-id',
+            '--os-project-id',
+            '--os-user-domain-id',
+            '--os-user-domain-name',
+            '--os-project-domain-id',
+            '--os-project-domain-name',
+            '--os-auth-url',
+            '--os-region-name',
+            '--service-type',
+            '--service-name',
+            '--share-service-name',
+            '--endpoint-type',
+            '--os-share-api-version',
+            '--os-cacert',
+            '--retries',
+            '--os-cert',
             '--os-key',
         )
 
@@ -327,7 +403,6 @@ class OpenstackManilaShellTest(utils.TestCase):
 
 
 class CustomOpenStackManilaShell(shell.OpenStackManilaShell):
-
     @staticmethod
     @cliutils.arg(
         '--default-is-none',
@@ -336,7 +411,8 @@ class CustomOpenStackManilaShell(shell.OpenStackManilaShell):
         metavar='<redefined_metavar>',
         action='single_alias',
         help='Default value is None and metavar set.',
-        default=None)
+        default=None,
+    )
     def do_foo(cs, args):
         cliutils.print_dict({'key': args.default_is_none})
 
@@ -347,7 +423,8 @@ class CustomOpenStackManilaShell(shell.OpenStackManilaShell):
         type=str,
         action='single_alias',
         help='Default value is not None and metavar not set.',
-        default='bar')
+        default='bar',
+    )
     def do_bar(cs, args):
         cliutils.print_dict({'key': args.default_is_not_none})
 
@@ -358,7 +435,8 @@ class CustomOpenStackManilaShell(shell.OpenStackManilaShell):
         nargs='*',
         action='single_alias',
         help='Default value is None, metavar not set and result is list.',
-        default=None)
+        default=None,
+    )
     def do_quuz(cs, args):
         cliutils.print_dict({'key': args.list_like})
 
@@ -377,15 +455,19 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
         for k, v in self.FAKE_ENV.items():
             self.useFixture(fixtures.EnvironmentVariable(k, v))
         self.mock_object(
-            shell.client, 'get_client_class',
-            mock.Mock(return_value=fakes.FakeClient))
+            shell.client,
+            'get_client_class',
+            mock.Mock(return_value=fakes.FakeClient),
+        )
 
-    def shell_discover_client(self,
-                              current_client,
-                              os_api_version,
-                              os_endpoint_type,
-                              os_service_type,
-                              client_args):
+    def shell_discover_client(
+        self,
+        current_client,
+        os_api_version,
+        os_endpoint_type,
+        os_service_type,
+        client_args,
+    ):
         return current_client, manilaclient.API_MAX_VERSION
 
     def shell(self, argstr):
@@ -413,7 +495,7 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
     )
     @ddt.unpack
     def test_foo_success(self, options_str, expected_result):
-        output = self.shell('foo %s' % options_str)
+        output = self.shell(f'foo {options_str}')
         parsed_output = output_parser.details(output)
         self.assertEqual({'key': expected_result}, parsed_output)
 
@@ -424,7 +506,8 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
     )
     def test_foo_error(self, options_str):
         self.assertRaises(
-            matchers.MismatchError, self.shell, 'foo %s' % options_str)
+            matchers.MismatchError, self.shell, f'foo {options_str}'
+        )
 
     @ddt.data(
         ('--default-is-not-none bar', 'bar'),
@@ -435,7 +518,7 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
     )
     @ddt.unpack
     def test_bar_success(self, options_str, expected_result):
-        output = self.shell('bar %s' % options_str)
+        output = self.shell(f'bar {options_str}')
         parsed_output = output_parser.details(output)
         self.assertEqual({'key': expected_result}, parsed_output)
 
@@ -446,18 +529,21 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
     )
     def test_bar_error(self, options_str):
         self.assertRaises(
-            matchers.MismatchError, self.shell, 'bar %s' % options_str)
+            matchers.MismatchError, self.shell, f'bar {options_str}'
+        )
 
     @ddt.data(
         ('--list-like q=w', "['q=w']"),
         ('--list-like q=w --list_like q=w', "['q=w']"),
-        ('--list-like q=w e=r t=y --list_like e=r t=y q=w',
-         "['e=r', 'q=w', 't=y']"),
+        (
+            '--list-like q=w e=r t=y --list_like e=r t=y q=w',
+            "['e=r', 'q=w', 't=y']",
+        ),
         ('--list_like q=w e=r t=y', "['e=r', 'q=w', 't=y']"),
     )
     @ddt.unpack
     def test_quuz_success(self, options_str, expected_result):
-        output = self.shell('quuz %s' % options_str)
+        output = self.shell(f'quuz {options_str}')
         parsed_output = output_parser.details(output)
         self.assertEqual({'key': expected_result}, parsed_output)
 
@@ -466,4 +552,5 @@ class AllowOnlyOneAliasAtATimeActionTest(utils.TestCase):
     )
     def test_quuz_error(self, options_str):
         self.assertRaises(
-            matchers.MismatchError, self.shell, 'quuz %s' % options_str)
+            matchers.MismatchError, self.shell, f'quuz {options_str}'
+        )

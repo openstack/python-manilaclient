@@ -20,7 +20,6 @@ from manilaclient.v2 import client
 
 
 class FakeClient(fakes.FakeClient):
-
     def __init__(self, *args, **kwargs):
         client.Client.__init__(
             self,
@@ -32,7 +31,9 @@ class FakeClient(fakes.FakeClient):
             input_auth_token='token',
             extensions=kwargs.get('extensions'),
             service_catalog_url='http://localhost:8786',
-            api_version=kwargs.get("api_version", manilaclient.API_MAX_VERSION)
+            api_version=kwargs.get(
+                "api_version", manilaclient.API_MAX_VERSION
+            ),
         )
         self.client = FakeHTTPClient(**kwargs)
 
@@ -70,7 +71,6 @@ def get_fake_snapshot_export_location():
 
 
 class FakeHTTPClient(fakes.FakeHTTPClient):
-
     def get_(self, **kw):
         body = {
             "versions": [
@@ -86,11 +86,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                         {
                             "href": "http://localhost:8786/v2/",
                             "rel": "self",
-                        }
+                        },
                     ],
                     "min_version": "2.0",
                     "version": self.default_headers[
-                        "X-Openstack-Manila-Api-Version"],
+                        "X-Openstack-Manila-Api-Version"
+                    ],
                     "id": "v2.0",
                 }
             ]
@@ -100,14 +101,18 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_availability_zones(self):
         availability_zones = {
             "availability_zones": [
-                {"id": "368c5780-ad72-4bcf-a8b6-19e45f4fafoo",
-                 "name": "foo",
-                 "created_at": "2016-07-08T14:13:12.000000",
-                 "updated_at": "2016-07-08T15:14:13.000000"},
-                {"id": "368c5780-ad72-4bcf-a8b6-19e45f4fabar",
-                 "name": "bar",
-                 "created_at": "2016-07-08T14:13:12.000000",
-                 "updated_at": "2016-07-08T15:14:13.000000"},
+                {
+                    "id": "368c5780-ad72-4bcf-a8b6-19e45f4fafoo",
+                    "name": "foo",
+                    "created_at": "2016-07-08T14:13:12.000000",
+                    "updated_at": "2016-07-08T15:14:13.000000",
+                },
+                {
+                    "id": "368c5780-ad72-4bcf-a8b6-19e45f4fabar",
+                    "name": "bar",
+                    "created_at": "2016-07-08T14:13:12.000000",
+                    "updated_at": "2016-07-08T15:14:13.000000",
+                },
             ]
         }
         return (200, {}, availability_zones)
@@ -115,20 +120,24 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_os_services(self, **kw):
         services = {
             "services": [
-                {"status": "enabled",
-                 "binary": "manila-scheduler",
-                 "zone": "foozone",
-                 "state": "up",
-                 "updated_at": "2015-10-09T13:54:09.000000",
-                 "host": "lucky-star",
-                 "id": 1},
-                {"status": "enabled",
-                 "binary": "manila-share",
-                 "zone": "foozone",
-                 "state": "up",
-                 "updated_at": "2015-10-09T13:54:05.000000",
-                 "host": "lucky-star",
-                 "id": 2},
+                {
+                    "status": "enabled",
+                    "binary": "manila-scheduler",
+                    "zone": "foozone",
+                    "state": "up",
+                    "updated_at": "2015-10-09T13:54:09.000000",
+                    "host": "lucky-star",
+                    "id": 1,
+                },
+                {
+                    "status": "enabled",
+                    "binary": "manila-share",
+                    "zone": "foozone",
+                    "state": "up",
+                    "updated_at": "2015-10-09T13:54:05.000000",
+                    "host": "lucky-star",
+                    "id": 2,
+                },
             ]
         }
         return (200, {}, services)
@@ -136,14 +145,20 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     get_services = get_os_services
 
     def put_os_services_enable(self, **kw):
-        return (200, {}, {'host': 'foo', 'binary': 'manila-share',
-                          'disabled': False})
+        return (
+            200,
+            {},
+            {'host': 'foo', 'binary': 'manila-share', 'disabled': False},
+        )
 
     put_services_enable = put_os_services_enable
 
     def put_os_services_disable(self, **kw):
-        return (200, {}, {'host': 'foo', 'binary': 'manila-share',
-                          'disabled': True})
+        return (
+            200,
+            {},
+            {'host': 'foo', 'binary': 'manila-share', 'disabled': True},
+        )
 
     put_services_disable = put_os_services_disable
 
@@ -162,7 +177,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                         {
                             "href": "http://localhost:8786/v2/",
                             "rel": "self",
-                        }
+                        },
                     ],
                     "min_version": "2.0",
                     "version": "2.5",
@@ -214,8 +229,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'id': share_id,
                     'name': 'sharename',
                     'links': [
-                        {"href": endpoint + "/fake_project/shares/" + share_id,
-                         "rel": "self"},
+                        {
+                            "href": endpoint
+                            + "/fake_project/shares/"
+                            + share_id,
+                            "rel": "self",
+                        },
                     ],
                 },
             ]
@@ -240,10 +259,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'export_location': 'fake_export_location',
                     'snapshot_id': 'fake_snapshot_id',
                     'links': [
-                        {"href": endpoint + "/fake_project/shares/"
-                         + share_id1234, "rel": "self"},
+                        {
+                            "href": endpoint
+                            + "/fake_project/shares/"
+                            + share_id1234,
+                            "rel": "self",
+                        },
                     ],
-                    'metadata': {}
+                    'metadata': {},
                 },
                 {
                     'id': share_id1111,
@@ -254,10 +277,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'export_location': 'fake_export_location',
                     'snapshot_id': 'fake_snapshot_id',
                     'links': [
-                        {"href": endpoint + "/fake_project/shares/"
-                         + share_id1111, "rel": "self"},
+                        {
+                            "href": endpoint
+                            + "/fake_project/shares/"
+                            + share_id1111,
+                            "rel": "self",
+                        },
                     ],
-                    'metadata': {}
+                    'metadata': {},
                 },
                 {
                     'id': share_id2222,
@@ -268,10 +295,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'export_location': 'fake_export_location',
                     'snapshot_id': 'fake_snapshot_id',
                     'links': [
-                        {"href": endpoint + "/fake_project/shares/"
-                         + share_id2222, "rel": "self"},
+                        {
+                            "href": endpoint
+                            + "/fake_project/shares/"
+                            + share_id2222,
+                            "rel": "self",
+                        },
                     ],
-                    'metadata': {'key1': 'value1'}
+                    'metadata': {'key1': 'value1'},
                 },
                 {
                     'id': share_id3333,
@@ -282,10 +313,14 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'export_location': 'fake_export_location',
                     'snapshot_id': 'fake_snapshot_id',
                     'links': [
-                        {"href": endpoint + "/fake_project/shares/"
-                         + share_id3333, "rel": "self"},
+                        {
+                            "href": endpoint
+                            + "/fake_project/shares/"
+                            + share_id3333,
+                            "rel": "self",
+                        },
                     ],
-                    'metadata': {'key1': 'value1', 'key2': 'value2'}
+                    'metadata': {'key1': 'value1', 'key2': 'value2'},
                 },
             ],
         }
@@ -296,8 +331,13 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, shares)
 
     def get_snapshots_1234(self, **kw):
-        snapshot = {'snapshot': {'id': 1234, 'name': 'sharename',
-                                 'status': 'available'}}
+        snapshot = {
+            'snapshot': {
+                'id': 1234,
+                'name': 'sharename',
+                'status': 'available',
+            }
+        }
         return (200, {}, snapshot)
 
     def get_share_servers(self, **kw):
@@ -324,10 +364,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         action = list(body)[0]
         if action in ('reset_status', 'os-reset_status'):
             assert 'status' in body.get(
-                'reset_status', body.get('os-reset_status'))
+                'reset_status', body.get('os-reset_status')
+            )
         elif action in ('force_delete', 'os-force_delete'):
             assert body[action] is None
-        elif action in ('unmanage', ):
+        elif action in ('unmanage',):
             assert body[action] is None
         elif action in 'allow_access':
             assert 'access_type' in body['allow_access']
@@ -336,7 +377,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         elif action in 'deny_access':
             assert 'access_id' in body['deny_access']
         else:
-            raise AssertionError("Unexpected action: %s" % action)
+            raise AssertionError(f"Unexpected action: {action}")
         return (resp, {}, _body)
 
     post_snapshots_5678_action = post_snapshots_1234_action
@@ -345,20 +386,18 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         _body = {'snapshot': {'id': 'fake'}}
         resp = 202
 
-        if not ('share_id' in body['snapshot']
-                and 'provider_location' in body['snapshot']
-                and 'driver_options' in body['snapshot']):
+        if not (
+            'share_id' in body['snapshot']
+            and 'provider_location' in body['snapshot']
+            and 'driver_options' in body['snapshot']
+        ):
             resp = 422
 
         result = (resp, {}, _body)
         return result
 
     def _share_instances(self):
-        instances = {
-            'share_instances': [
-                fake_share_instance
-            ]
-        }
+        instances = {'share_instances': [fake_share_instance]}
         return (200, {}, instances)
 
     def put_quota_sets_1234(self, *args, **kwargs):
@@ -381,21 +420,15 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         quota_set = {
             'quota_set': {
                 'id': '1234',
-                'shares': {'in_use': 0,
-                           'limit': 50,
-                           'reserved': 0},
-                'gigabytes': {'in_use': 0,
-                              'limit': 10000,
-                              'reserved': 0},
-                'snapshots': {'in_use': 0,
-                              'limit': 50,
-                              'reserved': 0},
-                'snapshot_gigabytes': {'in_use': 0,
-                                       'limit': 1000,
-                                       'reserved': 0},
-                'share_networks': {'in_use': 0,
-                                   'limit': 10,
-                                   'reserved': 0},
+                'shares': {'in_use': 0, 'limit': 50, 'reserved': 0},
+                'gigabytes': {'in_use': 0, 'limit': 10000, 'reserved': 0},
+                'snapshots': {'in_use': 0, 'limit': 50, 'reserved': 0},
+                'snapshot_gigabytes': {
+                    'in_use': 0,
+                    'limit': 1000,
+                    'reserved': 0,
+                },
+                'share_networks': {'in_use': 0, 'limit': 10, 'reserved': 0},
             }
         }
         return (200, {}, quota_set)
@@ -412,14 +445,16 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, export_locations)
 
     get_shares_1234_export_locations = (
-        get_share_instances_1234_export_locations)
+        get_share_instances_1234_export_locations
+    )
 
     def get_share_instances_1234_export_locations_fake_el_uuid(self, **kw):
         export_location = {'export_location': get_fake_export_location()}
         return (200, {}, export_location)
 
     get_shares_1234_export_locations_fake_el_uuid = (
-        get_share_instances_1234_export_locations_fake_el_uuid)
+        get_share_instances_1234_export_locations_fake_el_uuid
+    )
 
     def get_shares_fake_instances(self, **kw):
         return self._share_instances()
@@ -437,11 +472,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         action = list(body)[0]
         if action in ('reset_status', 'os-reset_status'):
             assert 'status' in body.get(
-                'reset_status', body.get('os-reset_status'))
+                'reset_status', body.get('os-reset_status')
+            )
         elif action == 'os-force_delete':
             assert body[action] is None
         else:
-            raise AssertionError("Unexpected share action: %s" % action)
+            raise AssertionError(f"Unexpected share action: {action}")
         return (resp, {}, _body)
 
     def get_snapshots(self, **kw):
@@ -457,17 +493,21 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, snapshots)
 
     def get_snapshots_detail(self, **kw):
-        snapshots = {'snapshots': [{
-            'id': 1234,
-            'created_at': '2012-08-27T00:00:00.000000',
-            'share_size': 1,
-            'share_id': 4321,
-            'status': 'available',
-            'name': 'sharename',
-            'display_description': 'description',
-            'share_proto': 'type',
-            'export_location': 'location',
-        }]}
+        snapshots = {
+            'snapshots': [
+                {
+                    'id': 1234,
+                    'created_at': '2012-08-27T00:00:00.000000',
+                    'share_size': 1,
+                    'share_id': 4321,
+                    'status': 'available',
+                    'name': 'sharename',
+                    'display_description': 'description',
+                    'share_proto': 'type',
+                    'export_location': 'location',
+                }
+            ]
+        }
         if kw.get('with_count'):
             snapshots.update({'count': 2})
 
@@ -477,11 +517,13 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         _body = {'share': {'id': 'fake'}}
         resp = 202
 
-        if not ('service_host' in body['share']
-                and 'share_type' in body['share']
-                and 'export_path' in body['share']
-                and 'protocol' in body['share']
-                and 'driver_options' in body['share']):
+        if not (
+            'service_host' in body['share']
+            and 'share_type' in body['share']
+            and 'export_path' in body['share']
+            and 'protocol' in body['share']
+            and 'driver_options' in body['share']
+        ):
             resp = 422
 
         result = (resp, {}, _body)
@@ -493,9 +535,11 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         _body = {'share_server': {'id': 'fake'}}
         resp = 202
 
-        if not ('host' in body['share_server']
-                and 'share_network' in body['share_server']
-                and 'identifier' in body['share_server']):
+        if not (
+            'host' in body['share_server']
+            and 'share_network' in body['share_server']
+            and 'identifier' in body['share_server']
+        ):
             resp = 422
 
         result = (resp, {}, _body)
@@ -506,28 +550,32 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         assert len(list(body)) == 1
         action = list(body)[0]
 
-        if action in ('reset_status', ):
+        if action in ('reset_status',):
             assert 'status' in body.get(
-                'reset_status', body.get('os-reset_status'))
+                'reset_status', body.get('os-reset_status')
+            )
             _body = {
                 'reset_status': {'status': body['reset_status']['status']}
             }
-        elif action in ('unmanage', ):
+        elif action in ('unmanage',):
             assert 'force' in body[action]
         elif action in (
-                'migration_cancel', 'migration_complete',
-                'migration_get_progress'):
+            'migration_cancel',
+            'migration_complete',
+            'migration_get_progress',
+        ):
             assert body[action] is None
             if 'migration_get_progress' == action:
-                _body = {'total_progress': 50,
-                         'task_state': 'fake_task_state',
-                         'destination_share_server_id': 'fake_dest_id'}
+                _body = {
+                    'total_progress': 50,
+                    'task_state': 'fake_task_state',
+                    'destination_share_server_id': 'fake_dest_id',
+                }
                 return 200, {}, _body
             elif 'migration_complete' == action:
                 _body = {'destination_share_server_id': 'fake_dest_id'}
                 return 200, {}, _body
-        elif action in (
-                'migration_start', 'migration_check'):
+        elif action in ('migration_start', 'migration_check'):
             assert 'host' in body[action]
             if 'migration-check':
                 _body = {
@@ -560,7 +608,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         if action in ('os-allow_access', 'allow_access'):
             expected = ['access_to', 'access_type']
             actual = sorted(list(body[action]))
-            err_msg = "expected '%s', actual is '%s'" % (expected, actual)
+            err_msg = f"expected '{expected}', actual is '{actual}'"
             assert expected == actual, err_msg
             _body = {'access': {}}
         elif action in ('os-deny_access', 'deny_access'):
@@ -569,34 +617,39 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action] is None
         elif action in ('os-reset_status', 'reset_status'):
             assert 'status' in body.get(
-                'reset_status', body.get('os-reset_status'))
+                'reset_status', body.get('os-reset_status')
+            )
         elif action in ('os-force_delete', 'force_delete'):
             assert body[action] is None
         elif action in ('os-extend', 'os-shrink', 'extend', 'shrink'):
             assert body[action] is not None
             assert body[action]['new_size'] is not None
-        elif action in ('unmanage', ):
+        elif action in ('unmanage',):
             assert body[action] is None
-        elif action in ('revert', ):
+        elif action in ('revert',):
             assert body[action] is not None
             assert body[action]['snapshot_id'] is not None
         elif action in (
-                'migration_cancel', 'migration_complete',
-                'migration_get_progress'):
+            'migration_cancel',
+            'migration_complete',
+            'migration_get_progress',
+        ):
             assert body[action] is None
             if 'migration_get_progress' == action:
                 _body = {'total_progress': 50}
                 return 200, {}, _body
         elif action in (
-                'os-migrate_share', 'migrate_share',
-                'migration_start'):
+            'os-migrate_share',
+            'migrate_share',
+            'migration_start',
+        ):
             assert 'host' in body[action]
         elif action == 'reset_task_state':
             assert 'task_state' in body[action]
         elif action in ('soft_delete', 'restore'):
             assert body[action] is None
         else:
-            raise AssertionError("Unexpected share action: %s" % action)
+            raise AssertionError(f"Unexpected share action: {action}")
         return (resp, {}, _body)
 
     def post_shares_1111_action(self, body, **kw):
@@ -607,34 +660,38 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         if action in ('allow_access', 'os-allow_access'):
             expected = ['access_level', 'access_to', 'access_type']
             actual = sorted(list(body[action]))
-            err_msg = "expected '%s', actual is '%s'" % (expected, actual)
+            err_msg = f"expected '{expected}', actual is '{actual}'"
             assert expected == actual, err_msg
             _body = {'access': {}}
         elif action in ('access_list', 'os-access_list'):
             assert body[action] is None
             _body = {
-                'access_list': [{
-                    'access_level': 'rw',
-                    'state': 'active',
-                    'id': '1122',
-                    'access_type': 'ip',
-                    'access_to': '10.0.0.7'
-                }]
+                'access_list': [
+                    {
+                        'access_level': 'rw',
+                        'state': 'active',
+                        'id': '1122',
+                        'access_type': 'ip',
+                        'access_to': '10.0.0.7',
+                    }
+                ]
             }
         else:
-            raise AssertionError("Unexpected share action: %s" % action)
+            raise AssertionError(f"Unexpected share action: {action}")
         return (resp, {}, _body)
 
     def get_share_access_rules(self, **kw):
         access = {
-            'access_list': [{
-                'access_level': 'rw',
-                'state': 'active',
-                'id': '1122',
-                'access_type': 'ip',
-                'access_to': '10.0.0.7',
-                'metadata': {'key1': 'v1'}
-            }]
+            'access_list': [
+                {
+                    'access_level': 'rw',
+                    'state': 'active',
+                    'id': '1122',
+                    'access_type': 'ip',
+                    'access_to': '10.0.0.7',
+                    'metadata': {'key1': 'v1'},
+                }
+            ]
         }
         return (200, {}, access)
 
@@ -646,7 +703,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                 'id': '9999',
                 'access_type': 'ip',
                 'access_to': '10.0.0.7',
-                'metadata': {'key1': 'v1'}
+                'metadata': {'key1': 'v1'},
             }
         }
         return (200, {}, access)
@@ -832,7 +889,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'host': 'host1',
                     'backend': 'backend1',
                     'pool': 'pool2',
-                }
+                },
             ]
         }
         return (200, {}, pools)
@@ -853,7 +910,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                     'backend': 'backend1',
                     'pool': 'pool2',
                     'capabilities': {'qos': False},
-                }
+                },
             ]
         }
         return (200, {}, pools)
@@ -1008,7 +1065,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             assert body[action] is None
         else:
             if action not in ('promote'):
-                raise AssertionError("Unexpected share action: %s" % action)
+                raise AssertionError(f"Unexpected share action: {action}")
         return (resp, {}, _body)
 
     #
@@ -1036,27 +1093,40 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return self.get_types_1(**kw)
 
     def get_types_1234(self, **kw):
-        return (200, {}, {
-            'share_type': {'id': 1234,
-                           'name': 'test-type-1234',
-                           'share_type_access:is_public': True,
-                           'description': "test share type desc",
-                           'extra_specs': {'test': 'test'},
-                           'required_extra_specs': {'test': 'test'}}})
+        return (
+            200,
+            {},
+            {
+                'share_type': {
+                    'id': 1234,
+                    'name': 'test-type-1234',
+                    'share_type_access:is_public': True,
+                    'description': "test share type desc",
+                    'extra_specs': {'test': 'test'},
+                    'required_extra_specs': {'test': 'test'},
+                }
+            },
+        )
 
     def get_types(self, **kw):
         req_version = self.default_headers['X-Openstack-Manila-Api-Version']
         if not isinstance(req_version, api_versions.APIVersion):
             req_version = api_versions.APIVersion(req_version)
         response_body = {
-            'share_types': [{'id': 1,
-                             'name': 'test-type-1',
-                             'extra_specs': {'test1': 'test1'},
-                             'required_extra_specs': {'test': 'test'}},
-                            {'id': 2,
-                             'name': 'test-type-2',
-                             'extra_specs': {'test1': 'test1'},
-                             'required_extra_specs': {'test': 'test'}}]
+            'share_types': [
+                {
+                    'id': 1,
+                    'name': 'test-type-1',
+                    'extra_specs': {'test1': 'test1'},
+                    'required_extra_specs': {'test': 'test'},
+                },
+                {
+                    'id': 2,
+                    'name': 'test-type-2',
+                    'extra_specs': {'test1': 'test1'},
+                    'required_extra_specs': {'test': 'test'},
+                },
+            ]
         }
 
         if req_version >= api_versions.APIVersion('2.46'):
@@ -1066,55 +1136,82 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return 200, {}, response_body
 
     def get_types_1(self, **kw):
-        return (200, {}, {'share_type': {
-            'id': 1,
-            'name': 'test-type-1',
-            'extra_specs': {'test': 'test'},
-            'required_extra_specs': {'test': 'test'}}})
+        return (
+            200,
+            {},
+            {
+                'share_type': {
+                    'id': 1,
+                    'name': 'test-type-1',
+                    'extra_specs': {'test': 'test'},
+                    'required_extra_specs': {'test': 'test'},
+                }
+            },
+        )
 
     def get_types_2(self, **kw):
-        return (200, {}, {'share_type': {
-            'id': 2,
-            'name': 'test-type-2',
-            'extra_specs': {'test': 'test'},
-            'required_extra_specs': {'test': 'test'}}})
+        return (
+            200,
+            {},
+            {
+                'share_type': {
+                    'id': 2,
+                    'name': 'test-type-2',
+                    'extra_specs': {'test': 'test'},
+                    'required_extra_specs': {'test': 'test'},
+                }
+            },
+        )
 
     def get_types_3(self, **kw):
-        return (200, {}, {
-            'share_type': {
-                'id': 3,
-                'name': 'test-type-3',
-                'extra_specs': {},
-                'os-share-type-access:is_public': False
-            }
-        })
+        return (
+            200,
+            {},
+            {
+                'share_type': {
+                    'id': 3,
+                    'name': 'test-type-3',
+                    'extra_specs': {},
+                    'os-share-type-access:is_public': False,
+                }
+            },
+        )
 
     def get_types_4(self, **kw):
-        return (200, {}, {
-            'share_type': {
-                'id': 4,
-                'name': 'test-type-3',
-                'extra_specs': {},
-                'os-share-type-access:is_public': True
-            }
-        })
+        return (
+            200,
+            {},
+            {
+                'share_type': {
+                    'id': 4,
+                    'name': 'test-type-3',
+                    'extra_specs': {},
+                    'os-share-type-access:is_public': True,
+                }
+            },
+        )
 
     def post_types(self, body, **kw):
         share_type = body['share_type']
         required_extra_specs = {
-            "driver_handles_share_servers": share_type[
-                'extra_specs']['driver_handles_share_servers'],
+            "driver_handles_share_servers": share_type['extra_specs'][
+                'driver_handles_share_servers'
+            ],
         }
-        return (202, {}, {
-            'share_type': {
-                'id': 3,
-                'name': 'test-type-3',
-                'is_default': False,
-                'description': 'test description',
-                'extra_specs': share_type['extra_specs'],
-                'required_extra_specs': required_extra_specs,
-            }
-        })
+        return (
+            202,
+            {},
+            {
+                'share_type': {
+                    'id': 3,
+                    'name': 'test-type-3',
+                    'is_default': False,
+                    'description': 'test description',
+                    'extra_specs': share_type['extra_specs'],
+                    'required_extra_specs': required_extra_specs,
+                }
+            },
+        )
 
     def post_types_3_action(self, body, **kw):
         _body = None
@@ -1126,7 +1223,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         elif action == 'removeProjectAccess':
             assert 'project' in body['removeProjectAccess']
         else:
-            raise AssertionError('Unexpected action: %s' % action)
+            raise AssertionError(f'Unexpected action: {action}')
         return (resp, {}, _body)
 
     def post_types_1_extra_specs(self, body, **kw):
@@ -1140,10 +1237,18 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (202, {}, None)
 
     def get_types_3_os_share_type_access(self, **kw):
-        return (200, {}, {'share_type_access': [
-            {'share_type_id': '11111111-1111-1111-1111-111111111111',
-             'project_id': '00000000-0000-0000-0000-000000000000'}
-        ]})
+        return (
+            200,
+            {},
+            {
+                'share_type_access': [
+                    {
+                        'share_type_id': '11111111-1111-1111-1111-111111111111',
+                        'project_id': '00000000-0000-0000-0000-000000000000',
+                    }
+                ]
+            },
+        )
 
     get_types_3_share_type_access = get_types_3_os_share_type_access
 
@@ -1184,31 +1289,52 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         return (200, {}, instances)
 
     def get_snapshot_instances_1234_export_locations_fake_el_id(self, **kw):
-        return (200, {}, {'share_snapshot_export_location': {
-            'id': 'fake_id', 'path': '/fake_path'}})
+        return (
+            200,
+            {},
+            {
+                'share_snapshot_export_location': {
+                    'id': 'fake_id',
+                    'path': '/fake_path',
+                }
+            },
+        )
 
     def get_snapshots_1234_export_locations_fake_el_id(self, **kw):
-        return (200, {}, {'share_snapshot_export_location': {
-            'id': 'fake_id', 'path': '/fake_path'}})
+        return (
+            200,
+            {},
+            {
+                'share_snapshot_export_location': {
+                    'id': 'fake_id',
+                    'path': '/fake_path',
+                }
+            },
+        )
 
-    def get_snapshot_instances_1234_export_locations(
-            self, **kw):
-        snapshot_export_location = {'share_snapshot_export_locations':
-                                    [get_fake_export_location()]}
+    def get_snapshot_instances_1234_export_locations(self, **kw):
+        snapshot_export_location = {
+            'share_snapshot_export_locations': [get_fake_export_location()]
+        }
         return (200, {}, snapshot_export_location)
 
     def get_snapshots_1234_export_locations(self):
-        snapshot_export_location = {'share_snapshot_export_locations':
-                                    [get_fake_export_location()]}
+        snapshot_export_location = {
+            'share_snapshot_export_locations': [get_fake_export_location()]
+        }
         return (200, {}, snapshot_export_location)
 
     def get_snapshots_1234_access_list(self, **kw):
-        access_list = {'snapshot_access_list': [{
-            'state': 'active',
-            'id': '1234',
-            'access_type': 'ip',
-            'access_to': '6.6.6.6'
-        }]}
+        access_list = {
+            'snapshot_access_list': [
+                {
+                    'state': 'active',
+                    'id': '1234',
+                    'access_type': 'ip',
+                    'access_to': '6.6.6.6',
+                }
+            ]
+        }
         return (200, {}, access_list)
 
     def delete_snapshots_1234_metadata_test_key(self, **kw):
@@ -1237,7 +1363,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         if action == 'reset_status':
             assert 'status' in body.get(action)
         else:
-            raise AssertionError("Unexpected share action: %s" % action)
+            raise AssertionError(f"Unexpected share action: {action}")
         return (resp, {}, _body)
 
     def get_share_group_types_default(self, **kw):
@@ -1257,7 +1383,8 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
                         'type2',
                     ],
                     'is_public': True,
-                }, {
+                },
+                {
                     'id': 2,
                     'name': 'test-type-2',
                     'group_specs': {
@@ -1332,7 +1459,7 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
         elif action == 'removeProjectAccess':
             assert 'project' in body['removeProjectAccess']
         else:
-            raise AssertionError('Unexpected action: %s' % action)
+            raise AssertionError(f'Unexpected action: {action}')
         return 202, {}, None
 
     def post_share_group_types_1_specs(self, body, **kw):
@@ -1347,10 +1474,12 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
 
     def get_share_group_types_1234_access(self, **kw):
         sg_type_access = {
-            'share_group_type_access': [{
-                'group_type_id': '11111111-1111-1111-1111-111111111111',
-                'project_id': '00000000-0000-0000-0000-000000000000',
-            }],
+            'share_group_type_access': [
+                {
+                    'group_type_id': '11111111-1111-1111-1111-111111111111',
+                    'project_id': '00000000-0000-0000-0000-000000000000',
+                }
+            ],
         }
         return 200, {}, sg_type_access
 
@@ -1424,8 +1553,7 @@ def fake_update(url, body, response_key):
     return {'url': url, 'body': body, 'resp_key': response_key}
 
 
-class FakeQuotaSet(object):
-
+class FakeQuotaSet:
     def __init__(self, dictionary):
         self.dictionary = dictionary
 
@@ -1433,29 +1561,29 @@ class FakeQuotaSet(object):
         return self.dictionary
 
 
-class ShareNetwork(object):
+class ShareNetwork:
     id = 'fake share network id'
     name = 'fake share network name'
 
 
-class ShareType(object):
+class ShareType:
     id = 'fake share type id'
     name = 'fake share type name'
 
 
-class ShareGroupType(object):
+class ShareGroupType:
     id = 'fake group type id'
     name = 'fake group type name'
     share_types = [ShareType().id]
     is_public = False
 
 
-class ShareGroupTypeAccess(object):
+class ShareGroupTypeAccess:
     id = 'fake group type access id'
     name = 'fake group type access name'
 
 
-class ShareGroup(object):
+class ShareGroup:
     id = 'fake group id'
     share_types = [ShareType().id]
     group_type_id = ShareGroupType().id
@@ -1465,15 +1593,15 @@ class ShareGroup(object):
     availability_zone = 'fake az'
 
 
-class ShareGroupSnapshot(object):
+class ShareGroupSnapshot:
     id = 'fake group snapshot id'
-    share_group_id = ShareGroup().id,
+    share_group_id = (ShareGroup().id,)
     share_network_id = ShareNetwork().id
     name = 'fake name'
     description = 'fake description'
 
 
-class Message(object):
+class Message:
     id = 'fake message id'
     action_id = '001'
     detail_id = '002'

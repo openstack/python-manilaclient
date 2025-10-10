@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015 Mirantis Inc.
 # All Rights Reserved.
 #
@@ -28,7 +27,6 @@ CONF = config.CONF
 
 @ddt.ddt
 class SharesListReadOnlyTest(base.BaseTestCase):
-
     @ddt.data('admin', 'user')
     def test_shares_list(self, role):
         self.clients[role].manila('list')
@@ -69,7 +67,8 @@ class SharesListReadOnlyTest(base.BaseTestCase):
             exceptions.CommandFailed,
             self.clients['user'].manila,
             'list',
-            params='--share-server fake')
+            params='--share-server fake',
+        )
 
     @ddt.data('admin', 'user')
     def test_shares_list_filter_by_project_id(self, role):
@@ -86,11 +85,13 @@ class SharesListReadOnlyTest(base.BaseTestCase):
         {'role': 'admin', 'direction': 'asc'},
         {'role': 'admin', 'direction': 'desc'},
         {'role': 'user', 'direction': 'asc'},
-        {'role': 'user', 'direction': 'desc'})
+        {'role': 'user', 'direction': 'desc'},
+    )
     @ddt.unpack
     def test_shares_list_with_sorting(self, role, direction):
         self.clients[role].manila(
-            'list', params='--sort-key host --sort-dir ' + direction)
+            'list', params='--sort-key host --sort-dir ' + direction
+        )
 
     @ddt.data('admin', 'user')
     def test_snapshot_list(self, role):
@@ -111,20 +112,23 @@ class SharesListReadOnlyTest(base.BaseTestCase):
 
 @ddt.ddt
 class SharesListReadWriteTest(base.BaseTestCase):
-
     def setUp(self):
-        super(SharesListReadWriteTest, self).setUp()
+        super().setUp()
         self.private_name = data_utils.rand_name('autotest_share_name')
         self.private_description = data_utils.rand_name(
-            'autotest_share_description')
+            'autotest_share_description'
+        )
         self.public_name = data_utils.rand_name('autotest_public_share_name')
         self.public_description = data_utils.rand_name(
-            'autotest_public_share_description')
+            'autotest_public_share_description'
+        )
 
         self.admin_private_name = data_utils.rand_name(
-            'autotest_admin_private_share_name')
+            'autotest_admin_private_share_name'
+        )
         self.admin_private_description = data_utils.rand_name(
-            'autotest_admin_private_share_description')
+            'autotest_admin_private_share_description'
+        )
 
         self.soft_name = data_utils.rand_name('soft_delete_share_name')
 
@@ -133,39 +137,48 @@ class SharesListReadWriteTest(base.BaseTestCase):
             description=self.admin_private_description,
             public=False,
             client=None,
-            wait_for_creation=False)
+            wait_for_creation=False,
+        )
 
         self.private_share = self.create_share(
             name=self.private_name,
             description=self.private_description,
             public=False,
             client=self.get_user_client(),
-            wait_for_creation=False)
+            wait_for_creation=False,
+        )
 
         self.public_share = self.create_share(
             name=self.public_name,
             description=self.public_description,
             public=True,
-            client=self.admin_client)
+            client=self.admin_client,
+        )
 
         self.wait_soft_delete_share = self.create_share(
             name=self.soft_name,
             public=False,
             client=self.get_user_client(),
-            wait_for_creation=False)
+            wait_for_creation=False,
+        )
 
-        self.shares_created = (self.private_share['id'],
-                               self.public_share['id'],
-                               self.admin_private_share['id'],
-                               self.wait_soft_delete_share['id'])
+        self.shares_created = (
+            self.private_share['id'],
+            self.public_share['id'],
+            self.admin_private_share['id'],
+            self.wait_soft_delete_share['id'],
+        )
 
         for share_id in self.shares_created:
             self.admin_client.wait_for_resource_status(
-                share_id, constants.STATUS_AVAILABLE)
+                share_id, constants.STATUS_AVAILABLE
+            )
 
-        self.soft_delete_share([self.wait_soft_delete_share['id']],
-                               client=self.get_user_client(),
-                               microversion='2.69')
+        self.soft_delete_share(
+            [self.wait_soft_delete_share['id']],
+            client=self.get_user_client(),
+            microversion='2.69',
+        )
 
     def _list_shares(self, filters=None):
         filters = filters or dict()
@@ -195,12 +208,15 @@ class SharesListReadWriteTest(base.BaseTestCase):
                             # elapsed between the 'list' and 'get' requests.
                             # If this isn't one of the shares created in
                             # this class, don't worry about such mismatches
-                            self.assertNotIn(share_get['id'],
-                                             self.shares_created)
+                            self.assertNotIn(
+                                share_get['id'], self.shares_created
+                            )
                             continue
 
-                    if (expected_value != 'deleting' and
-                            share_get[filter_key] == 'deleting'):
+                    if (
+                        expected_value != 'deleting'
+                        and share_get[filter_key] == 'deleting'
+                    ):
                         continue
                     self.assertEqual(expected_value, share_get[filter_key])
 
@@ -214,17 +230,25 @@ class SharesListReadWriteTest(base.BaseTestCase):
 
         if all_tenants:
             self.assertTrue(all('Project ID' in s for s in shares))
-            for s_id in (self.private_share['id'], self.public_share['id'],
-                         self.admin_private_share['id']):
+            for s_id in (
+                self.private_share['id'],
+                self.public_share['id'],
+                self.admin_private_share['id'],
+            ):
                 self.assertTrue(any(s_id == s['ID'] for s in shares))
         else:
             self.assertTrue(all('Project ID' not in s for s in shares))
-            self.assertTrue(any(self.admin_private_share['id'] == s['ID']
-                                for s in shares))
-            if self.private_share['project_id'] != (
-                    self.admin_private_share['project_id']):
+            self.assertTrue(
+                any(self.admin_private_share['id'] == s['ID'] for s in shares)
+            )
+            if (
+                self.private_share['project_id']
+                != (self.admin_private_share['project_id'])
+            ):
                 for s_id in (
-                        self.private_share['id'], self.public_share['id']):
+                    self.private_share['id'],
+                    self.public_share['id'],
+                ):
                     self.assertFalse(any(s_id == s['ID'] for s in shares))
 
     @ddt.data(True, False)
@@ -238,18 +262,21 @@ class SharesListReadWriteTest(base.BaseTestCase):
 
     def test_list_shares_by_name(self):
         shares = self.user_client.list_shares(
-            filters={'name': self.private_name})
+            filters={'name': self.private_name}
+        )
 
         self.assertEqual(1, len(shares))
         self.assertTrue(
-            any(self.private_share['id'] == s['ID'] for s in shares))
+            any(self.private_share['id'] == s['ID'] for s in shares)
+        )
         for share in shares:
             get = self.user_client.get_share(share['ID'])
             self.assertEqual(self.private_name, get['name'])
 
     def test_list_shares_by_share_type(self):
         share_type_id = self.user_client.get_share_type(
-            self.private_share['share_type'])['ID']
+            self.private_share['share_type']
+        )['ID']
         # NOTE(vponomaryov): this is API 2.6+ specific
         self._list_shares({'share_type': share_type_id})
 
@@ -258,14 +285,17 @@ class SharesListReadWriteTest(base.BaseTestCase):
 
     def test_list_shares_by_project_id(self):
         project_id = self.user_client.get_project_id(
-            self.user_client.tenant_name)
+            self.user_client.tenant_name
+        )
         self._list_shares({'project_id': project_id})
 
     @testtools.skipUnless(
-        CONF.share_network, "Usage of Share networks is disabled")
+        CONF.share_network, "Usage of Share networks is disabled"
+    )
     def test_list_shares_by_share_network(self):
         share_network_id = self.user_client.get_share_network(
-            CONF.share_network)['id']
+            CONF.share_network
+        )['id']
         self._list_shares({'share_network': share_network_id})
 
     @ddt.data(
@@ -287,13 +317,16 @@ class SharesListReadWriteTest(base.BaseTestCase):
     @ddt.data('ID', 'Path')
     def test_list_shares_by_export_location(self, option):
         export_locations = self.admin_client.list_share_export_locations(
-            self.public_share['id'])
+            self.public_share['id']
+        )
         shares = self.admin_client.list_shares(
-            filters={'export_location': export_locations[0][option]})
+            filters={'export_location': export_locations[0][option]}
+        )
 
         self.assertEqual(1, len(shares))
         self.assertTrue(
-            any(self.public_share['id'] == s['ID'] for s in shares))
+            any(self.public_share['id'] == s['ID'] for s in shares)
+        )
         for share in shares:
             get = self.admin_client.get_share(share['ID'])
             self.assertEqual(self.public_name, get['name'])
@@ -301,70 +334,81 @@ class SharesListReadWriteTest(base.BaseTestCase):
     @ddt.data('ID', 'Path')
     def test_list_share_instances_by_export_location(self, option):
         export_locations = self.admin_client.list_share_export_locations(
-            self.public_share['id'])
+            self.public_share['id']
+        )
         share_instances = self.admin_client.list_share_instances(
-            filters={'export_location': export_locations[0][option]})
+            filters={'export_location': export_locations[0][option]}
+        )
 
         self.assertEqual(1, len(share_instances))
 
         share_instance_id = share_instances[0]['ID']
         except_export_locations = (
             self.admin_client.list_share_instance_export_locations(
-                share_instance_id))
+                share_instance_id
+            )
+        )
         self.assertGreater(len(except_export_locations), 0)
         self.assertTrue(
-            any(export_locations[0][option] == e[option] for e in
-                except_export_locations))
+            any(
+                export_locations[0][option] == e[option]
+                for e in except_export_locations
+            )
+        )
 
     def test_list_share_by_export_location_with_invalid_version(self):
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.list_shares,
             filters={'export_location': 'fake'},
-            microversion='2.34')
+            microversion='2.34',
+        )
 
     def test_list_share_instance_by_export_location_invalid_version(self):
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.list_share_instances,
             filters={'export_location': 'fake'},
-            microversion='2.34')
+            microversion='2.34',
+        )
 
     @ddt.data('name', 'description')
     def test_list_shares_by_inexact_option(self, option):
-        shares = self.user_client.list_shares(
-            filters={option + '~': option})
+        shares = self.user_client.list_shares(filters={option + '~': option})
 
         # We know we have to have atleast three shares.
         # Due to test concurrency, there can be
         # more than three shares (some created by other tests).
         self.assertGreaterEqual(len(shares), 3)
         self.assertTrue(
-            any(self.private_share['id'] == s['ID'] for s in shares))
+            any(self.private_share['id'] == s['ID'] for s in shares)
+        )
 
     def test_list_shares_by_inexact_unicode_option(self):
         self.create_share(
-            name=u'共享名称',
-            description=u'共享描述',
-            client=self.user_client)
-        filters = {'name~': u'名称'}
+            name='共享名称', description='共享描述', client=self.user_client
+        )
+        filters = {'name~': '名称'}
         shares = self.user_client.list_shares(filters=filters)
         self.assertGreater(len(shares), 0)
 
-        filters = {'description~': u'描述'}
+        filters = {'description~': '描述'}
         shares = self.user_client.list_shares(filters=filters)
         self.assertGreater(len(shares), 0)
 
     def test_list_shares_by_description(self):
         shares = self.user_client.list_shares(
-            filters={'description': self.private_description})
+            filters={'description': self.private_description}
+        )
 
         self.assertEqual(1, len(shares))
         self.assertTrue(
-            any(self.private_share['id'] == s['ID'] for s in shares))
+            any(self.private_share['id'] == s['ID'] for s in shares)
+        )
 
     def test_list_shares_in_recycle_bin(self):
         shares = self.user_client.list_shares(is_soft_deleted=True)
 
         self.assertTrue(
-            any(self.wait_soft_delete_share['id'] == s['ID'] for s in shares))
+            any(self.wait_soft_delete_share['id'] == s['ID'] for s in shares)
+        )

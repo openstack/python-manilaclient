@@ -23,11 +23,12 @@ RESOURCE_PATH_ACTION = '/share-backups/%s/action'
 
 class ShareBackup(base.Resource):
     def __repr__(self):
-        return "<Share Backup: %s>" % self.id
+        return f"<Share Backup: {self.id}>"
 
 
 class ShareBackupManager(base.ManagerWithFind):
     """Manage :class:`ShareBackup` resources."""
+
     resource_class = ShareBackup
 
     @api_versions.wraps("2.80")
@@ -43,8 +44,9 @@ class ShareBackupManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.80")
     @api_versions.experimental_api
-    def list(self, detailed=True, search_opts=None, sort_key=None,
-             sort_dir=None):
+    def list(
+        self, detailed=True, search_opts=None, sort_key=None, sort_dir=None
+    ):
         """List all share backups or list backups belonging to a share.
 
         :param detailed: list backups with detailed fields.
@@ -61,22 +63,26 @@ class ShareBackupManager(base.ManagerWithFind):
                 search_opts['sort_key'] = sort_key
             else:
                 raise ValueError(
-                    'sort_key must be one of the following: %s.'
-                    % ', '.join(constants.BACKUP_SORT_KEY_VALUES))
+                    'sort_key must be one of the following: {}.'.format(
+                        ', '.join(constants.BACKUP_SORT_KEY_VALUES)
+                    )
+                )
 
         if sort_dir is not None:
             if sort_dir in constants.SORT_DIR_VALUES:
                 search_opts['sort_dir'] = sort_dir
             else:
                 raise ValueError(
-                    'sort_dir must be one of the following: %s.'
-                    % ', '.join(constants.SORT_DIR_VALUES))
+                    'sort_dir must be one of the following: {}.'.format(
+                        ', '.join(constants.SORT_DIR_VALUES)
+                    )
+                )
 
         query_string = self._build_query_string(search_opts)
         if detailed:
-            path = "/share-backups/detail%s" % (query_string,)
+            path = f"/share-backups/detail{query_string}"
         else:
-            path = "/share-backups%s" % (query_string,)
+            path = f"/share-backups{query_string}"
 
         return self._list(path, 'share_backups')
 
@@ -99,9 +105,9 @@ class ShareBackupManager(base.ManagerWithFind):
             'name': name,
         }
 
-        return self._create(RESOURCES_PATH,
-                            {RESOURCE_NAME: body},
-                            RESOURCE_NAME)
+        return self._create(
+            RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME
+        )
 
     @api_versions.wraps("2.80")
     @api_versions.experimental_api
@@ -117,7 +123,7 @@ class ShareBackupManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.91")
     @api_versions.experimental_api
-    def restore(self, backup_id, target_share_id=None): # noqa F811
+    def restore(self, backup_id, target_share_id=None):  # noqa F811
         return self._action('restore', backup_id, info=target_share_id)
 
     @api_versions.wraps("2.80")

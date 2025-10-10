@@ -19,14 +19,25 @@
 SORT_DIR_VALUES = ('asc', 'desc')
 
 SHARE_SORT_KEY_VALUES = (
-    'id', 'status', 'size', 'host', 'share_proto',
-    'availability_zone_id', 'availability_zone',
-    'user_id', 'project_id',
-    'created_at', 'updated_at',
-    'display_name', 'name',
-    'share_type_id', 'share_type',
-    'share_network_id', 'share_network',
-    'snapshot_id', 'snapshot',
+    'id',
+    'status',
+    'size',
+    'host',
+    'share_proto',
+    'availability_zone_id',
+    'availability_zone',
+    'user_id',
+    'project_id',
+    'created_at',
+    'updated_at',
+    'display_name',
+    'name',
+    'share_type_id',
+    'share_type',
+    'share_network_id',
+    'share_network',
+    'snapshot_id',
+    'snapshot',
 )
 
 SNAPSHOT_SORT_KEY_VALUES = (
@@ -85,8 +96,7 @@ RESOURCE_LOCK_SORT_KEY_VALUES = (
     'updated_at',
     'resource_id',
     'resource_type',
-    'resource_action'
-    'lock_reason',
+    'resource_actionlock_reason',
 )
 
 BACKUP_SORT_KEY_VALUES = (
@@ -119,9 +129,17 @@ SERVICE_TYPES = {'1': V1_SERVICE_TYPE, '2': V2_SERVICE_TYPE}
 
 EXTENSION_PLUGIN_NAMESPACE = 'manilaclient.common.apiclient.auth'
 MESSAGE_SORT_KEY_VALUES = (
-    'id', 'project_id', 'request_id', 'resource_type', 'action_id',
-    'detail_id', 'resource_id', 'message_level', 'expires_at',
-    'request_id', 'created_at'
+    'id',
+    'project_id',
+    'request_id',
+    'resource_type',
+    'action_id',
+    'detail_id',
+    'resource_id',
+    'message_level',
+    'expires_at',
+    'request_id',
+    'created_at',
 )
 
 STATUS_AVAILABLE = 'available'
@@ -147,9 +165,7 @@ BOOL_SPECS = (
 )
 
 # share group types
-GROUP_BOOL_SPECS = (
-    CONSISTENT_SNAPSHOT_SUPPORT,
-)
+GROUP_BOOL_SPECS = (CONSISTENT_SNAPSHOT_SUPPORT,)
 
 REPLICA_GRADUATION_VERSION = '2.56'
 REPLICA_PRE_GRADUATION_VERSION = '2.55'

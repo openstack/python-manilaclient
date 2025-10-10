@@ -24,15 +24,15 @@ from manilaclient.v2 import quota_classes
 
 @ddt.ddt
 class QuotaClassSetsTest(utils.TestCase):
-
     def _get_manager(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
         return quota_classes.QuotaClassSetManager(api=mock_microversion)
 
     def _get_resource_path(self, microversion):
-        if (api_versions.APIVersion(microversion) >
-                api_versions.APIVersion("2.6")):
+        if api_versions.APIVersion(microversion) > api_versions.APIVersion(
+            "2.6"
+        ):
             return quota_classes.RESOURCE_PATH
         return quota_classes.RESOURCE_PATH_LEGACY
 
@@ -41,20 +41,22 @@ class QuotaClassSetsTest(utils.TestCase):
         class_name = 'test'
         manager = self._get_manager(microversion)
         resource_path = self._get_resource_path(microversion)
-        expected_url = "%s/test" % resource_path
-        with mock.patch.object(manager, '_get',
-                               mock.Mock(return_value='fake_get')):
+        expected_url = f"{resource_path}/test"
+        with mock.patch.object(
+            manager, '_get', mock.Mock(return_value='fake_get')
+        ):
             manager.get(class_name)
 
             manager._get.assert_called_once_with(
-                expected_url, "quota_class_set")
+                expected_url, "quota_class_set"
+            )
 
     @ddt.data("2.6", "2.7")
     def test_update_quota(self, microversion):
         class_name = 'test'
         manager = self._get_manager(microversion)
         resource_path = self._get_resource_path(microversion)
-        expected_url = "%s/test" % resource_path
+        expected_url = f"{resource_path}/test"
         expected_body = {
             'quota_class_set': {
                 'class_name': class_name,
@@ -65,11 +67,18 @@ class QuotaClassSetsTest(utils.TestCase):
                 'share_networks': 5,
             },
         }
-        with mock.patch.object(manager, '_update',
-                               mock.Mock(return_value='fake_update')):
+        with mock.patch.object(
+            manager, '_update', mock.Mock(return_value='fake_update')
+        ):
             manager.update(
-                class_name, shares=1, snapshots=2, gigabytes=3,
-                snapshot_gigabytes=4, share_networks=5)
+                class_name,
+                shares=1,
+                snapshots=2,
+                gigabytes=3,
+                snapshot_gigabytes=4,
+                share_networks=5,
+            )
 
             manager._update.assert_called_once_with(
-                expected_url, expected_body)
+                expected_url, expected_body
+            )

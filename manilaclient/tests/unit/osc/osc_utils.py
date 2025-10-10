@@ -26,17 +26,20 @@ class ParserException(Exception):
 
 
 class TestCase(testtools.TestCase):
-
     def setUp(self):
         testtools.TestCase.setUp(self)
 
-        if (os.environ.get("OS_STDOUT_CAPTURE") == "True" or
-                os.environ.get("OS_STDOUT_CAPTURE") == "1"):
+        if (
+            os.environ.get("OS_STDOUT_CAPTURE") == "True"
+            or os.environ.get("OS_STDOUT_CAPTURE") == "1"
+        ):
             stdout = self.useFixture(fixtures.StringStream("stdout")).stream
             self.useFixture(fixtures.MonkeyPatch("sys.stdout", stdout))
 
-        if (os.environ.get("OS_STDERR_CAPTURE") == "True" or
-                os.environ.get("OS_STDERR_CAPTURE") == "1"):
+        if (
+            os.environ.get("OS_STDERR_CAPTURE") == "True"
+            or os.environ.get("OS_STDERR_CAPTURE") == "1"
+        ):
             stderr = self.useFixture(fixtures.StringStream("stderr")).stream
             self.useFixture(fixtures.MonkeyPatch("sys.stderr", stderr))
 
@@ -45,7 +48,7 @@ class TestCase(testtools.TestCase):
 
         if m.called:
             if not msg:
-                msg = 'method %s should not have been called' % m
+                msg = f'method {m} should not have been called'
             self.fail(msg)
 
 
@@ -53,7 +56,7 @@ class TestCommand(TestCase):
     """Test cliff command classes"""
 
     def setUp(self):
-        super(TestCommand, self).setUp()
+        super().setUp()
         # Build up a fake app
         self.fake_stdout = fakes.FakeStdout()
         self.fake_log = fakes.FakeLog()

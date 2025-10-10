@@ -29,63 +29,76 @@ LOG = logging.getLogger(__name__)
 
 class CreateShareNetworkSubnet(command.ShowOne):
     """Create a share network subnet."""
+
     _description = _("Create a share network subnet")
 
     def get_parser(self, prog_name):
-        parser = super(CreateShareNetworkSubnet, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share_network",
             metavar="<share-network>",
-            help=_("Share network name or ID.")
+            help=_("Share network name or ID."),
         )
         parser.add_argument(
             "--neutron-net-id",
             metavar="<neutron-net-id>",
             default=None,
-            help=_("Neutron network ID. Used to set up network for share "
-                   "servers (optional). Should be defined together with "
-                   "'--neutron-subnet-id'.")
+            help=_(
+                "Neutron network ID. Used to set up network for share "
+                "servers (optional). Should be defined together with "
+                "'--neutron-subnet-id'."
+            ),
         )
         parser.add_argument(
             "--neutron-subnet-id",
             metavar="<neutron-subnet-id>",
             default=None,
-            help=_("Neutron subnet ID. Used to set up network for share "
-                   "servers (optional). Should be defined together with "
-                   "'--neutron-net-id' to which this subnet belongs to. ")
+            help=_(
+                "Neutron subnet ID. Used to set up network for share "
+                "servers (optional). Should be defined together with "
+                "'--neutron-net-id' to which this subnet belongs to. "
+            ),
         )
         parser.add_argument(
             "--availability-zone",
             metavar="<availability-zone>",
             default=None,
-            help=_("Optional availability zone that the subnet is available "
-                   "within (Default=None). If None, the subnet will be "
-                   "considered as being available across all availability "
-                   "zones.")
+            help=_(
+                "Optional availability zone that the subnet is available "
+                "within (Default=None). If None, the subnet will be "
+                "considered as being available across all availability "
+                "zones."
+            ),
         )
         parser.add_argument(
             '--check-only',
             default=False,
             action='store_true',
-            help=_("Run a dry-run of a share network subnet create. "
-                   "Available only for microversion >= 2.70.")
+            help=_(
+                "Run a dry-run of a share network subnet create. "
+                "Available only for microversion >= 2.70."
+            ),
         )
         parser.add_argument(
             '--restart-check',
             default=False,
             action='store_true',
-            help=_("Restart a dry-run of a share network subnet create. "
-                   "Helpful when check results are stale. "
-                   "Available only for microversion >= 2.70.")
+            help=_(
+                "Restart a dry-run of a share network subnet create. "
+                "Helpful when check results are stale. "
+                "Available only for microversion >= 2.70."
+            ),
         )
         parser.add_argument(
             "--property",
             metavar="<key=value>",
             default={},
             action=parseractions.KeyValueAction,
-            help=_("Set a property to this share network subnet "
-                   "(repeat option to set multiple properties). "
-                   "Available only for microversion >= 2.78."),
+            help=_(
+                "Set a property to this share network subnet "
+                "(repeat option to set multiple properties). "
+                "Available only for microversion >= 2.78."
+            ),
         )
         return parser
 
@@ -93,63 +106,72 @@ class CreateShareNetworkSubnet(command.ShowOne):
         share_client = self.app.client_manager.share
 
         # check and restart check during create is only available from 2.70.
-        if (parsed_args.check_only and
-                share_client.api_version < api_versions.APIVersion("2.70")):
+        if (
+            parsed_args.check_only
+            and share_client.api_version < api_versions.APIVersion("2.70")
+        ):
             raise exceptions.CommandError(
                 "Check only can be specified only with manila API "
-                "version >= 2.70.")
-        if (parsed_args.restart_check and
-                share_client.api_version < api_versions.APIVersion("2.70")):
+                "version >= 2.70."
+            )
+        if (
+            parsed_args.restart_check
+            and share_client.api_version < api_versions.APIVersion("2.70")
+        ):
             raise exceptions.CommandError(
                 "Restart check can be specified only with manila API "
-                "version >= 2.70.")
+                "version >= 2.70."
+            )
 
-        if (parsed_args.property and
-                share_client.api_version < api_versions.APIVersion("2.78")):
+        if (
+            parsed_args.property
+            and share_client.api_version < api_versions.APIVersion("2.78")
+        ):
             raise exceptions.CommandError(
                 "Property can be specified only with manila API "
-                "version >= 2.78.")
+                "version >= 2.78."
+            )
 
         neutron_client = getattr(self.app.client_manager, 'network', None)
         neutron_net_id = parsed_args.neutron_net_id
         neutron_subnet_id = parsed_args.neutron_subnet_id
 
-        if xor(bool(neutron_net_id),
-               bool(neutron_subnet_id)):
+        if xor(bool(neutron_net_id), bool(neutron_subnet_id)):
             raise exceptions.CommandError(
                 "Both neutron_net_id and neutron_subnet_id should be "
                 "specified. Alternatively, neither of them should be "
-                "specified.")
+                "specified."
+            )
 
         if neutron_client and neutron_net_id:
             try:
                 neutron_net_id = neutron_client.find_network(
-                    neutron_net_id,
-                    ignore_missing=False).id
+                    neutron_net_id, ignore_missing=False
+                ).id
             except Exception:
                 raise exceptions.CommandError(
-                    f"Neutron network '{neutron_net_id}'"
-                    f" not found.")
+                    f"Neutron network '{neutron_net_id}' not found."
+                )
 
         if neutron_client and neutron_subnet_id:
             try:
                 neutron_subnet_id = neutron_client.find_subnet(
-                    neutron_subnet_id,
-                    ignore_missing=False).id
+                    neutron_subnet_id, ignore_missing=False
+                ).id
             except Exception:
                 raise exceptions.CommandError(
-                    f"Neutron subnet '{neutron_subnet_id}'"
-                    f" not found.")
+                    f"Neutron subnet '{neutron_subnet_id}' not found."
+                )
 
         share_network_id = oscutils.find_resource(
-            share_client.share_networks,
-            parsed_args.share_network).id
+            share_client.share_networks, parsed_args.share_network
+        ).id
 
         if parsed_args.check_only or parsed_args.restart_check:
-
             if parsed_args.property:
                 raise exceptions.CommandError(
-                    "Property cannot be specified with check operation.")
+                    "Property cannot be specified with check operation."
+                )
 
             subnet_create_check = (
                 share_client.share_networks.share_network_subnet_create_check(
@@ -157,7 +179,8 @@ class CreateShareNetworkSubnet(command.ShowOne):
                     neutron_subnet_id=neutron_subnet_id,
                     availability_zone=parsed_args.availability_zone,
                     reset_operation=parsed_args.restart_check,
-                    share_network_id=share_network_id)
+                    share_network_id=share_network_id,
+                )
             )
             subnet_data = subnet_create_check[1]
             if subnet_data:
@@ -175,7 +198,7 @@ class CreateShareNetworkSubnet(command.ShowOne):
                 neutron_subnet_id=neutron_subnet_id,
                 availability_zone=parsed_args.availability_zone,
                 share_network_id=share_network_id,
-                metadata=parsed_args.property
+                metadata=parsed_args.property,
             )
             subnet_data = share_network_subnet._info
 
@@ -184,20 +207,21 @@ class CreateShareNetworkSubnet(command.ShowOne):
 
 class DeleteShareNetworkSubnet(command.Command):
     """Delete a share network subnet."""
+
     _description = _("Delete a share network subnet")
 
     def get_parser(self, prog_name):
-        parser = super(DeleteShareNetworkSubnet, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share_network",
             metavar="<share-network>",
-            help=_("Share network name or ID.")
+            help=_("Share network name or ID."),
         )
         parser.add_argument(
             "share_network_subnet",
             metavar="<share-network-subnet>",
             nargs="+",
-            help=_("ID(s) of share network subnet(s) to be deleted.")
+            help=_("ID(s) of share network subnet(s) to be deleted."),
         )
         return parser
 
@@ -206,41 +230,45 @@ class DeleteShareNetworkSubnet(command.Command):
         result = 0
 
         share_network_id = oscutils.find_resource(
-            share_client.share_networks,
-            parsed_args.share_network).id
+            share_client.share_networks, parsed_args.share_network
+        ).id
 
         for subnet in parsed_args.share_network_subnet:
             try:
                 share_client.share_network_subnets.delete(
-                    share_network_id,
-                    subnet)
+                    share_network_id, subnet
+                )
 
             except Exception as e:
                 result += 1
-                LOG.error(f"Failed to delete share network subnet with "
-                          f"ID {subnet}: {e}")
+                LOG.error(
+                    f"Failed to delete share network subnet with "
+                    f"ID {subnet}: {e}"
+                )
         if result > 0:
             total = len(parsed_args.share_network_subnet)
             raise exceptions.CommandError(
                 f"{result} of {total} share network subnets failed to be "
-                f"deleted.")
+                f"deleted."
+            )
 
 
 class ShowShareNetworkSubnet(command.ShowOne):
     """Show share network subnet."""
+
     _description = _("Show share network subnet")
 
     def get_parser(self, prog_name):
-        parser = super(ShowShareNetworkSubnet, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share_network",
             metavar="<share-network>",
-            help=_("Share network name or ID.")
+            help=_("Share network name or ID."),
         )
         parser.add_argument(
             "share_network_subnet",
             metavar="<share-network-subnet>",
-            help=_("ID of share network subnet to show.")
+            help=_("ID of share network subnet to show."),
         )
         return parser
 
@@ -248,20 +276,21 @@ class ShowShareNetworkSubnet(command.ShowOne):
         share_client = self.app.client_manager.share
 
         share_network_id = oscutils.find_resource(
-            share_client.share_networks,
-            parsed_args.share_network).id
+            share_client.share_networks, parsed_args.share_network
+        ).id
 
         share_network_subnet = share_client.share_network_subnets.get(
-            share_network_id,
-            parsed_args.share_network_subnet)
+            share_network_id, parsed_args.share_network_subnet
+        )
         data = share_network_subnet._info
 
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
         data.update(
             {
-                'properties':
-                    format_columns.DictColumn(data.pop('metadata', {})),
+                'properties': format_columns.DictColumn(
+                    data.pop('metadata', {})
+                ),
             },
         )
 
@@ -270,107 +299,127 @@ class ShowShareNetworkSubnet(command.ShowOne):
 
 class SetShareNetworkSubnet(command.Command):
     """Set share network subnet properties."""
+
     _description = _("Set share network subnet properties")
 
     def get_parser(self, prog_name):
-        parser = super(SetShareNetworkSubnet, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share_network",
             metavar="<share-network>",
-            help=_("Share network name or ID.")
+            help=_("Share network name or ID."),
         )
         parser.add_argument(
             "share_network_subnet",
             metavar="<share-network-subnet>",
-            help=_("ID of share network subnet to set a property.")
+            help=_("ID of share network subnet to set a property."),
         )
         parser.add_argument(
             "--property",
             metavar="<key=value>",
             default={},
             action=parseractions.KeyValueAction,
-            help=_("Set a property to this share network subnet "
-                   "(repeat option to set multiple properties). "
-                   "Available only for microversion >= 2.78."),
+            help=_(
+                "Set a property to this share network subnet "
+                "(repeat option to set multiple properties). "
+                "Available only for microversion >= 2.78."
+            ),
         )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
 
-        if (parsed_args.property and
-                share_client.api_version < api_versions.APIVersion("2.78")):
+        if (
+            parsed_args.property
+            and share_client.api_version < api_versions.APIVersion("2.78")
+        ):
             raise exceptions.CommandError(
                 "Property can be specified only with manila API "
-                "version >= 2.78.")
+                "version >= 2.78."
+            )
 
         share_network_id = oscutils.find_resource(
-            share_client.share_networks,
-            parsed_args.share_network).id
+            share_client.share_networks, parsed_args.share_network
+        ).id
 
         if parsed_args.property:
             try:
                 share_client.share_network_subnets.set_metadata(
-                    share_network_id, parsed_args.property,
-                    subresource=parsed_args.share_network_subnet)
+                    share_network_id,
+                    parsed_args.property,
+                    subresource=parsed_args.share_network_subnet,
+                )
             except Exception as e:
-                raise exceptions.CommandError(_(
-                    "Failed to set subnet property '%(properties)s': %(e)s") %
-                    {'properties': parsed_args.property, 'e': e})
+                raise exceptions.CommandError(
+                    _("Failed to set subnet property '%(properties)s': %(e)s")
+                    % {'properties': parsed_args.property, 'e': e}
+                )
 
 
 class UnsetShareNetworkSubnet(command.Command):
     """Unset a share network subnet property."""
+
     _description = _("Unset a share network subnet property")
 
     def get_parser(self, prog_name):
-        parser = super(UnsetShareNetworkSubnet, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share_network",
             metavar="<share-network>",
-            help=_("Share network name or ID.")
+            help=_("Share network name or ID."),
         )
         parser.add_argument(
             "share_network_subnet",
             metavar="<share-network-subnet>",
-            help=_("ID of share network subnet to set a property.")
+            help=_("ID of share network subnet to set a property."),
         )
         parser.add_argument(
             '--property',
             metavar='<key>',
             action='append',
-            help=_("Remove a property from share network subnet "
-                   "(repeat option to remove multiple properties). "
-                   "Available only for microversion >= 2.78."),
+            help=_(
+                "Remove a property from share network subnet "
+                "(repeat option to remove multiple properties). "
+                "Available only for microversion >= 2.78."
+            ),
         )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
 
-        if (parsed_args.property and
-                share_client.api_version < api_versions.APIVersion("2.78")):
+        if (
+            parsed_args.property
+            and share_client.api_version < api_versions.APIVersion("2.78")
+        ):
             raise exceptions.CommandError(
                 "Property can be specified only with manila API "
-                "version >= 2.78.")
+                "version >= 2.78."
+            )
 
         share_network_id = oscutils.find_resource(
-            share_client.share_networks,
-            parsed_args.share_network).id
+            share_client.share_networks, parsed_args.share_network
+        ).id
 
         if parsed_args.property:
             result = 0
             for key in parsed_args.property:
                 try:
                     share_client.share_network_subnets.delete_metadata(
-                        share_network_id, [key],
-                        subresource=parsed_args.share_network_subnet)
+                        share_network_id,
+                        [key],
+                        subresource=parsed_args.share_network_subnet,
+                    )
                 except Exception as e:
                     result += 1
-                    LOG.error("Failed to unset subnet property "
-                              "'%(key)s': %(e)s", {'key': key, 'e': e})
+                    LOG.error(
+                        "Failed to unset subnet property '%(key)s': %(e)s",
+                        {'key': key, 'e': e},
+                    )
             if result > 0:
                 total = len(parsed_args.property)
                 raise exceptions.CommandError(
                     f"{result} of {total} subnet properties failed to be "
-                    f"unset.")
+                    f"unset."
+                )

@@ -26,12 +26,12 @@ from manilaclient.v2 import share_groups
 
 @ddt.ddt
 class ShareGroupTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareGroupTest, self).setUp()
+        super().setUp()
         self.manager = share_groups.ShareGroupManager(fake.FakeClient())
         self.share_group = share_groups.ShareGroup(
-            self.manager, {'id': 'fake_id'})
+            self.manager, {'id': 'fake_id'}
+        )
         self.fake_kwargs = {'key': 'value'}
 
     def test_repr(self):
@@ -45,7 +45,8 @@ class ShareGroupTest(utils.TestCase):
         self.share_group.update(**self.fake_kwargs)
 
         mock_manager_update.assert_called_once_with(
-            self.share_group, **self.fake_kwargs)
+            self.share_group, **self.fake_kwargs
+        )
 
     def test_delete(self):
         mock_manager_delete = self.mock_object(self.manager, 'delete')
@@ -53,7 +54,8 @@ class ShareGroupTest(utils.TestCase):
         self.share_group.delete()
 
         mock_manager_delete.assert_called_once_with(
-            self.share_group, force=False)
+            self.share_group, force=False
+        )
 
     @ddt.data(True, False)
     def test_delete_force(self, force):
@@ -62,29 +64,32 @@ class ShareGroupTest(utils.TestCase):
         self.share_group.delete(force=force)
 
         mock_manager_delete.assert_called_once_with(
-            self.share_group, force=force)
+            self.share_group, force=force
+        )
 
     def test_reset_state(self):
         mock_manager_reset_state = self.mock_object(
-            self.manager, 'reset_state')
+            self.manager, 'reset_state'
+        )
 
         self.share_group.reset_state('fake_state')
 
         mock_manager_reset_state.assert_called_once_with(
-            self.share_group, 'fake_state')
+            self.share_group, 'fake_state'
+        )
 
 
 @ddt.ddt
 class ShareGroupManagerTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareGroupManagerTest, self).setUp()
+        super().setUp()
         self.manager = share_groups.ShareGroupManager(fake.FakeClient())
 
     def test_create(self):
         fake_share_group = fake.ShareGroup()
         mock_create = self.mock_object(
-            self.manager, '_create', mock.Mock(return_value=fake_share_group))
+            self.manager, '_create', mock.Mock(return_value=fake_share_group)
+        )
         create_args = {
             'name': fake.ShareGroup.name,
             'description': fake.ShareGroup.description,
@@ -110,12 +115,14 @@ class ShareGroupManagerTest(utils.TestCase):
         mock_create.assert_called_once_with(
             share_groups.RESOURCES_PATH,
             expected_body,
-            share_groups.RESOURCE_NAME)
+            share_groups.RESOURCE_NAME,
+        )
 
     def test_create_default_type(self):
         fake_share_group = fake.ShareGroup()
         mock_create = self.mock_object(
-            self.manager, '_create', mock.Mock(return_value=fake_share_group))
+            self.manager, '_create', mock.Mock(return_value=fake_share_group)
+        )
         create_args = {
             'name': fake.ShareGroup.name,
             'description': fake.ShareGroup.description,
@@ -129,12 +136,14 @@ class ShareGroupManagerTest(utils.TestCase):
         mock_create.assert_called_once_with(
             share_groups.RESOURCES_PATH,
             expected_body,
-            share_groups.RESOURCE_NAME)
+            share_groups.RESOURCE_NAME,
+        )
 
     def test_create_from_snapshot(self):
         fake_share_group = fake.ShareGroup()
         mock_create = self.mock_object(
-            self.manager, '_create', mock.Mock(return_value=fake_share_group))
+            self.manager, '_create', mock.Mock(return_value=fake_share_group)
+        )
         create_args = {
             'name': fake.ShareGroup.name,
             'description': fake.ShareGroup.description,
@@ -156,7 +165,8 @@ class ShareGroupManagerTest(utils.TestCase):
         mock_create.assert_called_once_with(
             share_groups.RESOURCES_PATH,
             expected_body,
-            share_groups.RESOURCE_NAME)
+            share_groups.RESOURCE_NAME,
+        )
 
     def test_create_using_unsupported_microversion(self):
         self.manager.api.api_version = manilaclient.API_MIN_VERSION
@@ -176,50 +186,58 @@ class ShareGroupManagerTest(utils.TestCase):
     def test_get(self):
         fake_share_group = fake.ShareGroup()
         mock_get = self.mock_object(
-            self.manager, '_get', mock.Mock(return_value=fake_share_group))
+            self.manager, '_get', mock.Mock(return_value=fake_share_group)
+        )
 
         result = self.manager.get(fake.ShareGroup.id)
 
         self.assertIs(fake_share_group, result)
         mock_get.assert_called_once_with(
             share_groups.RESOURCE_PATH % fake.ShareGroup.id,
-            share_groups.RESOURCE_NAME)
+            share_groups.RESOURCE_NAME,
+        )
 
     def test_list(self):
         fake_share_group = fake.ShareGroup()
         mock_list = self.mock_object(
-            self.manager, '_list', mock.Mock(return_value=[fake_share_group]))
+            self.manager, '_list', mock.Mock(return_value=[fake_share_group])
+        )
 
         result = self.manager.list()
 
         self.assertEqual([fake_share_group], result)
         mock_list.assert_called_once_with(
             share_groups.RESOURCES_PATH + '/detail',
-            share_groups.RESOURCES_NAME)
+            share_groups.RESOURCES_NAME,
+        )
 
     def test_list_no_detail(self):
         fake_share_group = fake.ShareGroup()
         mock_list = self.mock_object(
-            self.manager, '_list', mock.Mock(return_value=[fake_share_group]))
+            self.manager, '_list', mock.Mock(return_value=[fake_share_group])
+        )
 
         result = self.manager.list(detailed=False)
 
         self.assertEqual([fake_share_group], result)
         mock_list.assert_called_once_with(
-            share_groups.RESOURCES_PATH, share_groups.RESOURCES_NAME)
+            share_groups.RESOURCES_PATH, share_groups.RESOURCES_NAME
+        )
 
     def test_list_with_filters(self):
         fake_share_group = fake.ShareGroup()
         mock_list = self.mock_object(
-            self.manager, '_list', mock.Mock(return_value=[fake_share_group]))
+            self.manager, '_list', mock.Mock(return_value=[fake_share_group])
+        )
         filters = {'all_tenants': 1}
 
         result = self.manager.list(detailed=False, search_opts=filters)
 
         self.assertEqual([fake_share_group], result)
-        expected_path = (share_groups.RESOURCES_PATH + '?all_tenants=1')
+        expected_path = share_groups.RESOURCES_PATH + '?all_tenants=1'
         mock_list.assert_called_once_with(
-            expected_path, share_groups.RESOURCES_NAME)
+            expected_path, share_groups.RESOURCES_NAME
+        )
 
     @ddt.data(
         ('name', 'name'),
@@ -230,17 +248,22 @@ class ShareGroupManagerTest(utils.TestCase):
     def test_list_with_sorting(self, key, expected_key):
         fake_share_group = fake.ShareGroup()
         mock_list = self.mock_object(
-            self.manager, '_list', mock.Mock(return_value=[fake_share_group]))
+            self.manager, '_list', mock.Mock(return_value=[fake_share_group])
+        )
 
         result = self.manager.list(
-            detailed=False, sort_dir='asc', sort_key=key)
+            detailed=False, sort_dir='asc', sort_key=key
+        )
 
         self.assertEqual([fake_share_group], result)
         expected_path = (
-            share_groups.RESOURCES_PATH + '?sort_dir=asc&sort_key=' +
-            expected_key)
+            share_groups.RESOURCES_PATH
+            + '?sort_dir=asc&sort_key='
+            + expected_key
+        )
         mock_list.assert_called_once_with(
-            expected_path, share_groups.RESOURCES_NAME)
+            expected_path, share_groups.RESOURCES_NAME
+        )
 
     @ddt.data(
         ('name', 'invalid'),
@@ -249,15 +272,17 @@ class ShareGroupManagerTest(utils.TestCase):
     @ddt.unpack
     def test_list_with_invalid_sorting(self, sort_key, sort_dir):
         self.assertRaises(
-            ValueError,
-            self.manager.list, sort_dir=sort_dir, sort_key=sort_key)
+            ValueError, self.manager.list, sort_dir=sort_dir, sort_key=sort_key
+        )
 
     def test_update(self):
         fake_share_group = fake.ShareGroup()
         mock_get = self.mock_object(
-            self.manager, '_get', mock.Mock(return_value=fake_share_group))
+            self.manager, '_get', mock.Mock(return_value=fake_share_group)
+        )
         mock_update = self.mock_object(
-            self.manager, '_update', mock.Mock(return_value=fake_share_group))
+            self.manager, '_update', mock.Mock(return_value=fake_share_group)
+        )
         update_args = {
             'name': fake.ShareGroup.name,
             'description': fake.ShareGroup.description,
@@ -270,14 +295,17 @@ class ShareGroupManagerTest(utils.TestCase):
         mock_update.assert_called_once_with(
             share_groups.RESOURCE_PATH % fake.ShareGroup.id,
             {share_groups.RESOURCE_NAME: update_args},
-            share_groups.RESOURCE_NAME)
+            share_groups.RESOURCE_NAME,
+        )
 
     def test_update_no_data(self):
         fake_share_group = fake.ShareGroup()
         mock_get = self.mock_object(
-            self.manager, '_get', mock.Mock(return_value=fake_share_group))
+            self.manager, '_get', mock.Mock(return_value=fake_share_group)
+        )
         mock_update = self.mock_object(
-            self.manager, '_update', mock.Mock(return_value=fake_share_group))
+            self.manager, '_update', mock.Mock(return_value=fake_share_group)
+        )
         update_args = {}
 
         result = self.manager.update(fake.ShareGroup(), **update_args)
@@ -285,7 +313,8 @@ class ShareGroupManagerTest(utils.TestCase):
         self.assertIs(fake_share_group, result)
         mock_get.assert_called_once_with(
             share_groups.RESOURCE_PATH % fake.ShareGroup.id,
-            share_groups.RESOURCE_NAME)
+            share_groups.RESOURCE_NAME,
+        )
         self.assertFalse(mock_update.called)
 
     def test_delete(self):
@@ -295,7 +324,8 @@ class ShareGroupManagerTest(utils.TestCase):
         self.manager.delete(fake.ShareGroup())
 
         mock_delete.assert_called_once_with(
-            share_groups.RESOURCE_PATH % fake.ShareGroup.id)
+            share_groups.RESOURCE_PATH % fake.ShareGroup.id
+        )
         self.assertFalse(mock_post.called)
 
     def test_delete_force(self):
@@ -307,7 +337,8 @@ class ShareGroupManagerTest(utils.TestCase):
         self.assertFalse(mock_delete.called)
         mock_post.assert_called_once_with(
             share_groups.RESOURCE_PATH_ACTION % fake.ShareGroup.id,
-            body={'force_delete': None})
+            body={'force_delete': None},
+        )
 
     def test_reset_state(self):
         mock_post = self.mock_object(self.manager.api.client, 'post')
@@ -316,4 +347,5 @@ class ShareGroupManagerTest(utils.TestCase):
 
         mock_post.assert_called_once_with(
             share_groups.RESOURCE_PATH_ACTION % fake.ShareGroup.id,
-            body={'reset_status': {'status': 'fake_state'}})
+            body={'reset_status': {'status': 'fake_state'}},
+        )

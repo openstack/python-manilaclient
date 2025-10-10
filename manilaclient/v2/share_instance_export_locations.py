@@ -21,7 +21,7 @@ class ShareInstanceExportLocation(base.Resource):
     """Resource class for a share export location."""
 
     def __repr__(self):
-        return "<ShareInstanceExportLocation: %s>" % self.id
+        return f"<ShareInstanceExportLocation: {self.id}>"
 
     def __getitem__(self, key):
         return self._info[key]
@@ -29,6 +29,7 @@ class ShareInstanceExportLocation(base.Resource):
 
 class ShareInstanceExportLocationManager(base.ManagerWithFind):
     """Manage :class:`ShareInstanceExportLocation` resources."""
+
     resource_class = ShareInstanceExportLocation
 
     @api_versions.wraps("2.9")
@@ -36,8 +37,9 @@ class ShareInstanceExportLocationManager(base.ManagerWithFind):
         """List all share export locations."""
         share_instance_id = base.getid(share_instance)
         return self._list(
-            "/share_instances/%s/export_locations" % share_instance_id,
-            "export_locations")
+            f"/share_instances/{share_instance_id}/export_locations",
+            "export_locations",
+        )
 
     @api_versions.wraps("2.9")
     def get(self, share_instance, export_location):
@@ -45,9 +47,9 @@ class ShareInstanceExportLocationManager(base.ManagerWithFind):
         share_instance_id = base.getid(share_instance)
         export_location_id = base.getid(export_location)
         return self._get(
-            ("/share_instances/%(share_instance_id)s/export_locations/"
-             "%(export_location_id)s") % {
-                 "share_instance_id": share_instance_id,
-                 "export_location_id": export_location_id,
-            },
-            "export_location")
+            (
+                f"/share_instances/{share_instance_id}/export_locations/"
+                f"{export_location_id}"
+            ),
+            "export_location",
+        )

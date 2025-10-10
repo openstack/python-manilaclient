@@ -54,6 +54,7 @@ class Manager(utils.HookableMixin):
     Managers interact with a particular type of API (shares, snapshots,
     etc.) and provide CRUD operations for them.
     """
+
     resource_class = None
 
     def __init__(self, api):
@@ -64,8 +65,9 @@ class Manager(utils.HookableMixin):
     def api_version(self):
         return self.api.api_version
 
-    def _list(self, url, response_key, manager=None, body=None,
-              return_raw=None):
+    def _list(
+        self, url, response_key, manager=None, body=None, return_raw=None
+    ):
         """List the collection.
 
         :param url: a partial URL, e.g., '/shares'
@@ -100,8 +102,9 @@ class Manager(utils.HookableMixin):
             with self.completion_cache('uuid', obj_class, mode="w"):
                 if return_raw:
                     return data
-                resource = [obj_class(manager, res, loaded=True)
-                            for res in data if res]
+                resource = [
+                    obj_class(manager, res, loaded=True) for res in data if res
+                ]
                 if 'count' in body:
                     return resource, body['count']
                 else:
@@ -121,16 +124,19 @@ class Manager(utils.HookableMixin):
         Delete is not handled because listings are assumed to be performed
         often enough to keep the cache reasonably up-to-date.
         """
-        base_dir = cliutils.env('manilaclient_UUID_CACHE_DIR',
-                                'MANILACLIENT_UUID_CACHE_DIR',
-                                default="~/.cache/manilaclient")
+        base_dir = cliutils.env(
+            'manilaclient_UUID_CACHE_DIR',
+            'MANILACLIENT_UUID_CACHE_DIR',
+            default="~/.cache/manilaclient",
+        )
 
         # NOTE(sirp): Keep separate UUID caches for each username + endpoint
         # pair
         username = cliutils.env('OS_USERNAME', 'MANILA_USERNAME')
         url = cliutils.env('OS_URL', 'MANILA_URL')
-        uniqifier = hashlib.sha256(username.encode('utf-8') +
-                                   url.encode('utf-8')).hexdigest()
+        uniqifier = hashlib.sha256(
+            username.encode('utf-8') + url.encode('utf-8')
+        ).hexdigest()
 
         cache_dir = os.path.expanduser(os.path.join(base_dir, uniqifier))
 
@@ -143,14 +149,14 @@ class Manager(utils.HookableMixin):
             pass
 
         resource = obj_class.__name__.lower()
-        filename = "%s-%s-cache" % (resource, cache_type.replace('_', '-'))
+        filename = "{}-{}-cache".format(resource, cache_type.replace('_', '-'))
         path = os.path.join(cache_dir, filename)
 
-        cache_attr = "_%s_cache" % cache_type
+        cache_attr = f"_{cache_type}_cache"
 
         try:
             setattr(self, cache_attr, open(path, mode))
-        except IOError:
+        except OSError:
             # NOTE(kiall): This is typically a permission denied while
             #              attempting to write the cache file.
             pass
@@ -164,10 +170,10 @@ class Manager(utils.HookableMixin):
                 delattr(self, cache_attr)
 
     def write_to_completion_cache(self, cache_type, val):
-        cache = getattr(self, "_%s_cache" % cache_type, None)
+        cache = getattr(self, f"_{cache_type}_cache", None)
         if cache:
             try:
-                cache.write("%s\n" % val)
+                cache.write(f"{val}\n")
             except UnicodeEncodeError:
                 pass
 
@@ -183,8 +189,11 @@ class Manager(utils.HookableMixin):
     def _get_with_base_url(self, url, response_key=None):
         resp, body = self.api.client.get_with_base_url(url)
         if response_key:
-            return [self.resource_class(self, res, loaded=True)
-                    for res in body[response_key] if res]
+            return [
+                self.resource_class(self, res, loaded=True)
+                for res in body[response_key]
+                if res
+            ]
         else:
             return self.resource_class(self, body, loaded=True)
 
@@ -215,14 +224,14 @@ class Manager(utils.HookableMixin):
 
     def _build_query_string(self, search_opts):
         search_opts = search_opts or {}
-        params = sorted(
-            [(k, v) for (k, v) in search_opts.items() if v])
-        query_string = "?%s" % utils.safe_urlencode(params) if params else ''
+        params = sorted([(k, v) for (k, v) in search_opts.items() if v])
+        query_string = f"?{utils.safe_urlencode(params)}" if params else ''
         return query_string
 
 
 class ManagerWithFind(Manager):
     """Like a `Manager`, but with additional `find()`/`findall()` methods."""
+
     def find(self, **kwargs):
         """Find a single item with attributes matching ``**kwargs``.
 
@@ -232,7 +241,7 @@ class ManagerWithFind(Manager):
         matches = self.findall(**kwargs)
         num_matches = len(matches)
         if num_matches == 0:
-            msg = "No %s matching %s." % (self.resource_class.__name__, kwargs)
+            msg = f"No {self.resource_class.__name__} matching {kwargs}."
             raise exceptions.NotFound(404, msg)
         elif num_matches > 1:
             raise exceptions.NoUniqueMatch
@@ -250,16 +259,17 @@ class ManagerWithFind(Manager):
 
         search_opts = {'all_tenants': 1}
         resources = self.list(search_opts=search_opts)
-        if ('v2.shares.ShareManager' in str(self.__class__) and
-                self.api_version >= api_versions.APIVersion("2.69")):
-            search_opts_2 = {'all_tenants': 1,
-                             'is_soft_deleted': True}
+        if 'v2.shares.ShareManager' in str(
+            self.__class__
+        ) and self.api_version >= api_versions.APIVersion("2.69"):
+            search_opts_2 = {'all_tenants': 1, 'is_soft_deleted': True}
             shares_soft_deleted = self.list(search_opts=search_opts_2)
             resources += shares_soft_deleted
         for obj in resources:
             try:
-                if all(getattr(obj, attr) == value
-                       for (attr, value) in searches):
+                if all(
+                    getattr(obj, attr) == value for (attr, value) in searches
+                ):
                     found.append(obj)
             except AttributeError:
                 continue
@@ -270,7 +280,7 @@ class ManagerWithFind(Manager):
         raise NotImplementedError
 
 
-class Resource(object):
+class Resource:
     """Base class for OpenStack resources (tenant, user, etc.).
 
     This is pretty much just a bag for attributes.
@@ -292,11 +302,11 @@ class Resource(object):
         self._loaded = loaded
 
     def __repr__(self):
-        reprkeys = sorted(k
-                          for k in self.__dict__.keys()
-                          if k[0] != '_' and k != 'manager')
-        info = ", ".join("%s=%s" % (k, getattr(self, k)) for k in reprkeys)
-        return "<%s %s>" % (self.__class__.__name__, info)
+        reprkeys = sorted(
+            k for k in self.__dict__.keys() if k[0] != '_' and k != 'manager'
+        )
+        info = ", ".join(f"{k}={getattr(self, k)}" for k in reprkeys)
+        return f"<{self.__class__.__name__} {info}>"
 
     @property
     def human_id(self):
@@ -308,7 +318,7 @@ class Resource(object):
         return None
 
     def _add_details(self, info):
-        for (k, v) in info.items():
+        for k, v in info.items():
             try:
                 setattr(self, k, v)
                 self._info[k] = v
@@ -366,7 +376,6 @@ class Resource(object):
 
 
 class MetadataCapableResource(Resource, metaclass=abc.ABCMeta):
-
     superresource = None
 
     def _get_subresource_and_resource(self, superresource):
@@ -388,7 +397,8 @@ class MetadataCapableResource(Resource, metaclass=abc.ABCMeta):
         """
 
         resource, subresource = self._get_subresource_and_resource(
-            superresource)
+            superresource
+        )
 
         return self.manager.get_metadata(resource, subresource=subresource)
 
@@ -403,10 +413,12 @@ class MetadataCapableResource(Resource, metaclass=abc.ABCMeta):
             by default
         """
         resource, subresource = self._get_subresource_and_resource(
-            superresource)
+            superresource
+        )
 
-        return self.manager.set_metadata(resource, metadata,
-                                         subresource=subresource)
+        return self.manager.set_metadata(
+            resource, metadata, subresource=subresource
+        )
 
     def delete_metadata(self, keys, superresource=None):
         """Delete specified keys from the given resource.
@@ -418,10 +430,12 @@ class MetadataCapableResource(Resource, metaclass=abc.ABCMeta):
             by default
         """
         resource, subresource = self._get_subresource_and_resource(
-            superresource)
+            superresource
+        )
 
-        return self.manager.delete_metadata(resource, keys,
-                                            subresource=subresource)
+        return self.manager.delete_metadata(
+            resource, keys, subresource=subresource
+        )
 
     def update_all_metadata(self, metadata, superresource=None):
         """Update all metadata for this resource.
@@ -434,11 +448,12 @@ class MetadataCapableResource(Resource, metaclass=abc.ABCMeta):
             by default
         """
         resource, subresource = self._get_subresource_and_resource(
-            superresource)
+            superresource
+        )
 
-        return self.manager.update_all_metadata(resource,
-                                                metadata,
-                                                subresource=subresource)
+        return self.manager.update_all_metadata(
+            resource, metadata, subresource=subresource
+        )
 
 
 class MetadataCapableManager(ManagerWithFind, metaclass=abc.ABCMeta):
@@ -458,8 +473,9 @@ class MetadataCapableManager(ManagerWithFind, metaclass=abc.ABCMeta):
             subresource = getid(subresource)
             resource = f"{resource}{self.subresource_path}/{subresource}"
 
-        return self._get(f"{self.resource_path}/{resource}/metadata",
-                         "metadata")
+        return self._get(
+            f"{self.resource_path}/{resource}/metadata", "metadata"
+        )
 
     def set_metadata(self, resource, metadata, subresource=None):
         """Set or update metadata for resource.
@@ -475,9 +491,9 @@ class MetadataCapableManager(ManagerWithFind, metaclass=abc.ABCMeta):
             subresource = getid(subresource)
             resource = f"{resource}{self.subresource_path}/{subresource}"
 
-        return self._create(f"{self.resource_path}/{resource}/metadata",
-                            body,
-                            "metadata")
+        return self._create(
+            f"{self.resource_path}/{resource}/metadata", body, "metadata"
+        )
 
     def delete_metadata(self, resource, keys, subresource=None):
         """Delete specified keys from resource metadata.
@@ -508,5 +524,4 @@ class MetadataCapableManager(ManagerWithFind, metaclass=abc.ABCMeta):
             subresource = getid(subresource)
             resource = f"{resource}{self.subresource_path}/{subresource}"
 
-        return self._update(f"{self.resource_path}/{resource}/metadata",
-                            body)
+        return self._update(f"{self.resource_path}/{resource}/metadata", body)

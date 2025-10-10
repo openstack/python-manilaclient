@@ -22,10 +22,11 @@ warnings.warn(
     "Module manilaclient.v1.contrib.list_extensions is deprecated "
     "(taken as a basis for manilaclient.v2.contrib.list_extensions). "
     "The preferable way to get a client class or object is to use "
-    "the manilaclient.client module.")
+    "the manilaclient.client module."
+)
 
 
-class MovedModule(object):
+class MovedModule:
     def __init__(self, new_module):
         self.new_module = new_module
 
@@ -34,4 +35,5 @@ class MovedModule(object):
 
 
 sys.modules["manilaclient.v1.contrib.list_extensions"] = MovedModule(
-    list_extensions)
+    list_extensions
+)

@@ -33,7 +33,7 @@ DEPRECATED_VERSION = '1.0'
 _VERSIONED_METHOD_MAP = {}
 
 
-class APIVersion(object):
+class APIVersion:
     """Top level object to support Manila API Versioning.
 
     This class represents an API Version with convenience
@@ -54,44 +54,57 @@ class APIVersion(object):
                 self.ver_major = int(match.group(1))
                 self.ver_minor = int(match.group(2))
             else:
-                msg = _("Invalid format of client version '%s'. "
+                msg = (
+                    _(
+                        "Invalid format of client version '%s'. "
                         "Expected format 'X.Y', where X is a major part and Y "
-                        "is a minor part of version.") % version_str
+                        "is a minor part of version."
+                    )
+                    % version_str
+                )
                 raise exceptions.UnsupportedVersion(msg)
 
     def __str__(self):
         """Debug/Logging representation of object."""
-        return ("API Version Major: %s, Minor: %s"
-                % (self.ver_major, self.ver_minor))
+        return f"API Version Major: {self.ver_major}, Minor: {self.ver_minor}"
 
     def __repr__(self):
         if self.is_null():
             return "<APIVersion: null>"
         else:
-            return "<APIVersion: %s>" % self.get_string()
+            return f"<APIVersion: {self.get_string()}>"
 
     def __lt__(self, other):
         if not isinstance(other, APIVersion):
-            raise TypeError(self.TYPE_ERROR_MSG % {"other": other,
-                                                   "cls": self.__class__})
+            raise TypeError(
+                self.TYPE_ERROR_MSG % {"other": other, "cls": self.__class__}
+            )
 
-        return ((self.ver_major, self.ver_minor) <
-                (other.ver_major, other.ver_minor))
+        return (self.ver_major, self.ver_minor) < (
+            other.ver_major,
+            other.ver_minor,
+        )
 
     def __eq__(self, other):
         if not isinstance(other, APIVersion):
-            raise TypeError(self.TYPE_ERROR_MSG % {"other": other,
-                                                   "cls": self.__class__})
+            raise TypeError(
+                self.TYPE_ERROR_MSG % {"other": other, "cls": self.__class__}
+            )
 
-        return ((self.ver_major, self.ver_minor) ==
-                (other.ver_major, other.ver_minor))
+        return (self.ver_major, self.ver_minor) == (
+            other.ver_major,
+            other.ver_minor,
+        )
 
     def __gt__(self, other):
         if not isinstance(other, APIVersion):
-            raise TypeError(self.TYPE_ERROR_MSG % {"other": other,
-                                                   "cls": self.__class__})
-        return ((self.ver_major, self.ver_minor) >
-                (other.ver_major, other.ver_minor))
+            raise TypeError(
+                self.TYPE_ERROR_MSG % {"other": other, "cls": self.__class__}
+            )
+        return (self.ver_major, self.ver_minor) > (
+            other.ver_major,
+            other.ver_minor,
+        )
 
     def __le__(self, other):
         return self < other or self == other
@@ -139,15 +152,15 @@ class APIVersion(object):
         """String representation of an APIVersion object."""
         if self.is_null():
             raise ValueError(
-                _("Null APIVersion cannot be converted to string."))
-        return "%s.%s" % (self.ver_major, self.ver_minor)
+                _("Null APIVersion cannot be converted to string.")
+            )
+        return f"{self.ver_major}.{self.ver_minor}"
 
     def get_major_version(self):
-        return "%s" % self.ver_major
+        return f"{self.ver_major}"
 
 
-class VersionedMethod(object):
-
+class VersionedMethod:
     def __init__(self, name, start_version, end_version, func):
         """Versioning information for a single method
 
@@ -164,11 +177,10 @@ class VersionedMethod(object):
         self.func = func
 
     def __str__(self):
-        return ("Version Method %s: min: %s, max: %s"
-                % (self.name, self.start_version, self.end_version))
+        return f"Version Method {self.name}: min: {self.start_version}, max: {self.end_version}"
 
     def __repr__(self):
-        return "<VersionedMethod %s>" % self.name
+        return f"<VersionedMethod {self.name}>"
 
 
 def check_version_supported(api_version):
@@ -176,23 +188,27 @@ def check_version_supported(api_version):
 
     :warn Sends warning if version is not supported.
     """
-    if (check_version_matches_min_max(api_version) or
-            check_version_deprecated(api_version)):
+    if check_version_matches_min_max(api_version) or check_version_deprecated(
+        api_version
+    ):
         return True
     return False
 
 
 def check_version_matches_min_max(api_version):
     """Returns True if the API version is within the supported range."""
-    if (not api_version.matches(
-            manilaclient.API_MIN_VERSION,
-            manilaclient.API_MAX_VERSION)):
-        msg = _("Invalid client version '%(version)s'. "
-                "Current version range is '%(min)s' through "
-                " '%(max)s'") % {
+    if not api_version.matches(
+        manilaclient.API_MIN_VERSION, manilaclient.API_MAX_VERSION
+    ):
+        msg = _(
+            "Invalid client version '%(version)s'. "
+            "Current version range is '%(min)s' through "
+            " '%(max)s'"
+        ) % {
             "version": api_version.get_string(),
             "min": manilaclient.API_MIN_VERSION.get_string(),
-            "max": manilaclient.API_MAX_VERSION.get_string()}
+            "max": manilaclient.API_MAX_VERSION.get_string(),
+        }
         warnings.warn(msg)
         return False
     return True
@@ -202,7 +218,8 @@ def check_version_deprecated(api_version):
     """Returns True if API version is deprecated."""
     if api_version == manilaclient.API_DEPRECATED_VERSION:
         msg = _("Client version '%(version)s' is deprecated.") % {
-            "version": api_version.get_string()}
+            "version": api_version.get_string()
+        }
         warnings.warn(msg)
         return True
     return False
@@ -249,27 +266,29 @@ def discover_version(client, requested_version):
     :returns: APIVersion
     """
     server_start_version, server_end_version = _get_server_version_range(
-        client)
+        client
+    )
 
     valid_version = requested_version
     if server_start_version.is_null() and server_end_version.is_null():
-        msg = ("Server does not support microversions. Changing server "
-               "version to %(min_version)s.")
+        msg = (
+            "Server does not support microversions. Changing server "
+            "version to %(min_version)s."
+        )
         LOG.debug(msg, {"min_version": DEPRECATED_VERSION})
         valid_version = APIVersion(DEPRECATED_VERSION)
     else:
         valid_version = _validate_requested_version(
-            requested_version,
-            server_start_version,
-            server_end_version)
+            requested_version, server_start_version, server_end_version
+        )
 
         _validate_server_version(server_start_version, server_end_version)
     return valid_version
 
 
-def _validate_requested_version(requested_version,
-                                server_start_version,
-                                server_end_version):
+def _validate_requested_version(
+    requested_version, server_start_version, server_end_version
+):
     """Validates the requested version.
 
     Checks 'requested_version' is within the min/max range supported by the
@@ -284,21 +303,34 @@ def _validate_requested_version(requested_version,
     valid_version = requested_version
     if not requested_version.matches(server_start_version, server_end_version):
         if server_end_version <= requested_version:
-            if (manilaclient.API_MIN_VERSION <= server_end_version and
-                    server_end_version <= manilaclient.API_MAX_VERSION):
-                msg = _("Requested version %(requested_version)s is "
-                        "not supported. Downgrading requested version "
-                        "to %(server_end_version)s.")
-                LOG.debug(msg, {
-                    "requested_version": requested_version,
-                    "server_end_version": server_end_version})
+            if (
+                manilaclient.API_MIN_VERSION <= server_end_version
+                and server_end_version <= manilaclient.API_MAX_VERSION
+            ):
+                msg = _(
+                    "Requested version %(requested_version)s is "
+                    "not supported. Downgrading requested version "
+                    "to %(server_end_version)s."
+                )
+                LOG.debug(
+                    msg,
+                    {
+                        "requested_version": requested_version,
+                        "server_end_version": server_end_version,
+                    },
+                )
             valid_version = server_end_version
         else:
             raise exceptions.UnsupportedVersion(
-                _("The specified version isn't supported by server. The valid "
-                  "version range is '%(min)s' to '%(max)s'") % {
+                _(
+                    "The specified version isn't supported by server. The valid "
+                    "version range is '%(min)s' to '%(max)s'"
+                )
+                % {
                     "min": server_start_version.get_string(),
-                    "max": server_end_version.get_string()})
+                    "max": server_end_version.get_string(),
+                }
+            )
 
     return valid_version
 
@@ -316,22 +348,32 @@ def _validate_server_version(server_start_version, server_end_version):
     """
     if manilaclient.API_MIN_VERSION > server_end_version:
         raise exceptions.UnsupportedVersion(
-            _("Server's version is too old. The client's valid version range "
-              "is '%(client_min)s' to '%(client_max)s'. The server valid "
-              "version range is '%(server_min)s' to '%(server_max)s'.") % {
-                  'client_min': manilaclient.API_MIN_VERSION.get_string(),
-                  'client_max': manilaclient.API_MAX_VERSION.get_string(),
-                  'server_min': server_start_version.get_string(),
-                  'server_max': server_end_version.get_string()})
+            _(
+                "Server's version is too old. The client's valid version range "
+                "is '%(client_min)s' to '%(client_max)s'. The server valid "
+                "version range is '%(server_min)s' to '%(server_max)s'."
+            )
+            % {
+                'client_min': manilaclient.API_MIN_VERSION.get_string(),
+                'client_max': manilaclient.API_MAX_VERSION.get_string(),
+                'server_min': server_start_version.get_string(),
+                'server_max': server_end_version.get_string(),
+            }
+        )
     elif manilaclient.API_MAX_VERSION < server_start_version:
         raise exceptions.UnsupportedVersion(
-            _("Server's version is too new. The client's valid version range "
-              "is '%(client_min)s' to '%(client_max)s'. The server valid "
-              "version range is '%(server_min)s' to '%(server_max)s'.") % {
-                  'client_min': manilaclient.API_MIN_VERSION.get_string(),
-                  'client_max': manilaclient.API_MAX_VERSION.get_string(),
-                  'server_min': server_start_version.get_string(),
-                  'server_max': server_end_version.get_string()})
+            _(
+                "Server's version is too new. The client's valid version range "
+                "is '%(client_min)s' to '%(client_max)s'. The server valid "
+                "version range is '%(server_min)s' to '%(server_max)s'."
+            )
+            % {
+                'client_min': manilaclient.API_MIN_VERSION.get_string(),
+                'client_max': manilaclient.API_MAX_VERSION.get_string(),
+                'server_min': server_start_version.get_string(),
+                'server_max': server_end_version.get_string(),
+            }
+        )
 
 
 def add_versioned_method(versioned_method):
@@ -342,8 +384,11 @@ def add_versioned_method(versioned_method):
 def get_versioned_methods(func_name, api_version=None):
     versioned_methods = _VERSIONED_METHOD_MAP.get(func_name, [])
     if api_version and not api_version.is_null():
-        return [m for m in versioned_methods
-                if api_version.matches(m.start_version, m.end_version)]
+        return [
+            m
+            for m in versioned_methods
+            if api_version.matches(m.start_version, m.end_version)
+        ]
     return versioned_methods
 
 
@@ -353,11 +398,13 @@ def experimental_api(f):
     @functools.wraps(f)
     def _wrapper(*args, **kwargs):
         client = args[0]
-        if (isinstance(client, manilaclient.v2.client.Client) or
-                hasattr(client, 'client')):
+        if isinstance(client, manilaclient.v2.client.Client) or hasattr(
+            client, 'client'
+        ):
             dh = client.client.default_headers
             dh[constants.EXPERIMENTAL_HTTP_HEADER] = 'true'
         return f(*args, **kwargs)
+
     return _wrapper
 
 
@@ -378,8 +425,9 @@ def wraps(start_version, end_version=MAX_VERSION):
     def decor(func):
         func.versioned = True
         name = utils.get_function_name(func)
-        versioned_method = VersionedMethod(name, start_version,
-                                           end_version, func)
+        versioned_method = VersionedMethod(
+            name, start_version, end_version, func
+        )
         add_versioned_method(versioned_method)
 
         @functools.wraps(func)
@@ -388,11 +436,15 @@ def wraps(start_version, end_version=MAX_VERSION):
 
             if not methods:
                 raise exceptions.UnsupportedVersion(
-                    _("API version '%(version)s' is not supported on "
-                      "'%(method)s' method.") % {
+                    _(
+                        "API version '%(version)s' is not supported on "
+                        "'%(method)s' method."
+                    )
+                    % {
                         "version": obj.api_version.get_string(),
                         "method": name,
-                    })
+                    }
+                )
 
             method = max(methods, key=lambda f: f.start_version)
 

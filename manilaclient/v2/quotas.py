@@ -22,7 +22,6 @@ REPLICA_QUOTAS_MICROVERSION = "2.53"
 
 
 class QuotaSet(base.Resource):
-
     @property
     def id(self):
         """Needed by Resource to self-refresh and be indexed."""
@@ -39,10 +38,17 @@ class QuotaSetManager(base.ManagerWithFind):
         if user_id and share_type:
             raise ValueError(
                 "'user_id' and 'share_type' values are mutually exclusive. "
-                "one or both should be unset.")
+                "one or both should be unset."
+            )
 
-    def _do_get(self, tenant_id, user_id=None, share_type=None, detail=False,
-                resource_path=RESOURCE_PATH):
+    def _do_get(
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        detail=False,
+        resource_path=RESOURCE_PATH,
+    ):
         self._check_user_id_and_share_type_args(user_id, share_type)
         if hasattr(tenant_id, 'tenant_id'):
             tenant_id = tenant_id.tenant_id
@@ -53,12 +59,11 @@ class QuotaSetManager(base.ManagerWithFind):
             query = ''
 
         if user_id and share_type:
-            query = '%s?user_id=%s&share_type=%s' % (
-                query, user_id, share_type)
+            query = f'{query}?user_id={user_id}&share_type={share_type}'
         elif user_id:
-            query = '%s?user_id=%s' % (query, user_id)
+            query = f'{query}?user_id={user_id}'
         elif share_type:
-            query = '%s?share_type=%s' % (query, share_type)
+            query = f'{query}?share_type={share_type}'
         data = {
             "resource_path": resource_path,
             "tenant_id": tenant_id,
@@ -69,33 +74,49 @@ class QuotaSetManager(base.ManagerWithFind):
 
     @api_versions.wraps("1.0", "2.6")
     def get(self, tenant_id, user_id=None, detail=False):
-        return self._do_get(tenant_id, user_id,
-                            resource_path=RESOURCE_PATH_LEGACY)
+        return self._do_get(
+            tenant_id, user_id, resource_path=RESOURCE_PATH_LEGACY
+        )
 
     @api_versions.wraps("2.7", "2.24")  # noqa
     def get(self, tenant_id, user_id=None, detail=False):  # noqa
-        return self._do_get(tenant_id, user_id,
-                            resource_path=RESOURCE_PATH)
+        return self._do_get(tenant_id, user_id, resource_path=RESOURCE_PATH)
 
     @api_versions.wraps("2.25", "2.38")  # noqa
     def get(self, tenant_id, user_id=None, detail=False):  # noqa
-        return self._do_get(tenant_id, user_id, detail=detail,
-                            resource_path=RESOURCE_PATH)
+        return self._do_get(
+            tenant_id, user_id, detail=detail, resource_path=RESOURCE_PATH
+        )
 
     @api_versions.wraps("2.39")  # noqa
-    def get(self, tenant_id, user_id=None, share_type=None, detail=False):   # noqa
+    def get(self, tenant_id, user_id=None, share_type=None, detail=False):  # noqa
         return self._do_get(
-            tenant_id, user_id, share_type=share_type, detail=detail,
-            resource_path=RESOURCE_PATH)
+            tenant_id,
+            user_id,
+            share_type=share_type,
+            detail=detail,
+            resource_path=RESOURCE_PATH,
+        )
 
-    def _do_update(self, tenant_id, shares=None, snapshots=None,
-                   gigabytes=None, snapshot_gigabytes=None,
-                   share_networks=None,
-                   force=None, user_id=None, share_type=None,
-                   share_groups=None, share_group_snapshots=None,
-                   share_replicas=None, replica_gigabytes=None,
-                   per_share_gigabytes=None, encryption_keys=None,
-                   resource_path=RESOURCE_PATH):
+    def _do_update(
+        self,
+        tenant_id,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        force=None,
+        user_id=None,
+        share_type=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+        per_share_gigabytes=None,
+        encryption_keys=None,
+        resource_path=RESOURCE_PATH,
+    ):
         self._check_user_id_and_share_type_args(user_id, share_type)
         body = {
             'quota_set': {
@@ -125,60 +146,123 @@ class QuotaSetManager(base.ManagerWithFind):
             "st": share_type,
         }
         if user_id:
-            url = '%(resource_path)s/%(tenant_id)s?user_id=%(user_id)s' % data
+            url = '{resource_path}/{tenant_id}?user_id={user_id}'.format(
+                **data
+            )
         elif share_type:
-            url = '%(resource_path)s/%(tenant_id)s?share_type=%(st)s' % data
+            url = '{resource_path}/{tenant_id}?share_type={st}'.format(**data)
         else:
-            url = "%(resource_path)s/%(tenant_id)s" % data
+            url = "{resource_path}/{tenant_id}".format(**data)
 
         return self._update(url, body, 'quota_set')
 
     @api_versions.wraps("1.0", "2.6")
-    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None, force=None,
-               user_id=None):
+    def update(
+        self,
+        tenant_id,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        force=None,
+        user_id=None,
+    ):
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id, resource_path=RESOURCE_PATH_LEGACY,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
+            resource_path=RESOURCE_PATH_LEGACY,
         )
 
     @api_versions.wraps("2.7", "2.38")  # noqa
-    def update(self, tenant_id, shares=None, snapshots=None, gigabytes=None,  # noqa
-               snapshot_gigabytes=None, share_networks=None, force=None,
-               user_id=None):
+    def update(  # noqa
+        self,
+        tenant_id,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        force=None,
+        user_id=None,
+    ):
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id, resource_path=RESOURCE_PATH,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
+            resource_path=RESOURCE_PATH,
         )
 
     def _validate_st_and_sn_in_same_request(self, share_type, share_networks):
         if share_type and share_networks:
             raise ValueError(
                 "'share_networks' quota can be set only for project or user, "
-                "not share type.")
+                "not share type."
+            )
 
     @api_versions.wraps("2.39", "2.39")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
-               shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None, force=None):
+    def update(  # noqa
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        force=None,
+    ):
         self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
             share_type=share_type,
             resource_path=RESOURCE_PATH,
         )
 
     @api_versions.wraps("2.40", "2.52")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
-               shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None,
-               force=None):
+    def update(  # noqa
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        force=None,
+    ):
         self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
             share_type=share_type,
             share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
@@ -186,54 +270,106 @@ class QuotaSetManager(base.ManagerWithFind):
         )
 
     @api_versions.wraps(REPLICA_QUOTAS_MICROVERSION, "2.61")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
-               shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None,
-               share_replicas=None, replica_gigabytes=None, force=None):
+    def update(  # noqa
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+        force=None,
+    ):
         self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
             share_type=share_type,
             share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
             share_replicas=share_replicas,
             replica_gigabytes=replica_gigabytes,
-            resource_path=RESOURCE_PATH
+            resource_path=RESOURCE_PATH,
         )
 
     @api_versions.wraps("2.62", "2.89")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
-               shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None,
-               share_replicas=None, replica_gigabytes=None, force=None,
-               per_share_gigabytes=None):
+    def update(  # noqa
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+        force=None,
+        per_share_gigabytes=None,
+    ):
         self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
             share_type=share_type,
             share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
             share_replicas=share_replicas,
             replica_gigabytes=replica_gigabytes,
             per_share_gigabytes=per_share_gigabytes,
-            resource_path=RESOURCE_PATH
+            resource_path=RESOURCE_PATH,
         )
 
     @api_versions.wraps("2.90")  # noqa
-    def update(self, tenant_id, user_id=None, share_type=None,  # noqa
-               shares=None, snapshots=None, gigabytes=None,
-               snapshot_gigabytes=None, share_networks=None,
-               share_groups=None, share_group_snapshots=None,
-               share_replicas=None, replica_gigabytes=None, force=None,
-               per_share_gigabytes=None, encryption_keys=None):
+    def update(  # noqa
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        shares=None,
+        snapshots=None,
+        gigabytes=None,
+        snapshot_gigabytes=None,
+        share_networks=None,
+        share_groups=None,
+        share_group_snapshots=None,
+        share_replicas=None,
+        replica_gigabytes=None,
+        force=None,
+        per_share_gigabytes=None,
+        encryption_keys=None,
+    ):
         self._validate_st_and_sn_in_same_request(share_type, share_networks)
         return self._do_update(
-            tenant_id, shares, snapshots, gigabytes, snapshot_gigabytes,
-            share_networks, force, user_id,
+            tenant_id,
+            shares,
+            snapshots,
+            gigabytes,
+            snapshot_gigabytes,
+            share_networks,
+            force,
+            user_id,
             share_type=share_type,
             share_groups=share_groups,
             share_group_snapshots=share_group_snapshots,
@@ -241,25 +377,26 @@ class QuotaSetManager(base.ManagerWithFind):
             replica_gigabytes=replica_gigabytes,
             per_share_gigabytes=per_share_gigabytes,
             encryption_keys=encryption_keys,
-            resource_path=RESOURCE_PATH
+            resource_path=RESOURCE_PATH,
         )
 
     @api_versions.wraps("1.0", "2.6")
     def defaults(self, tenant_id):
         return self._get(
-            "%(resource_path)s/%(tenant_id)s/defaults" % {
-                "resource_path": RESOURCE_PATH_LEGACY, "tenant_id": tenant_id},
-            "quota_set")
+            f"{RESOURCE_PATH_LEGACY}/{tenant_id}/defaults", "quota_set"
+        )
 
     @api_versions.wraps("2.7")  # noqa
     def defaults(self, tenant_id):  # noqa
-        return self._get(
-            "%(resource_path)s/%(tenant_id)s/defaults" % {
-                "resource_path": RESOURCE_PATH, "tenant_id": tenant_id},
-            "quota_set")
+        return self._get(f"{RESOURCE_PATH}/{tenant_id}/defaults", "quota_set")
 
-    def _do_delete(self, tenant_id, user_id=None, share_type=None,
-                   resource_path=RESOURCE_PATH):
+    def _do_delete(
+        self,
+        tenant_id,
+        user_id=None,
+        share_type=None,
+        resource_path=RESOURCE_PATH,
+    ):
         self._check_user_id_and_share_type_args(user_id, share_type)
         data = {
             "resource_path": resource_path,
@@ -268,23 +405,27 @@ class QuotaSetManager(base.ManagerWithFind):
             "st": share_type,
         }
         if user_id:
-            url = '%(resource_path)s/%(tenant_id)s?user_id=%(user_id)s' % data
+            url = '{resource_path}/{tenant_id}?user_id={user_id}'.format(
+                **data
+            )
         elif share_type:
-            url = '%(resource_path)s/%(tenant_id)s?share_type=%(st)s' % data
+            url = '{resource_path}/{tenant_id}?share_type={st}'.format(**data)
         else:
-            url = '%(resource_path)s/%(tenant_id)s' % data
+            url = '{resource_path}/{tenant_id}'.format(**data)
         self._delete(url)
 
     @api_versions.wraps("1.0", "2.6")
     def delete(self, tenant_id, user_id=None):
         return self._do_delete(
-            tenant_id, user_id, resource_path=RESOURCE_PATH_LEGACY)
+            tenant_id, user_id, resource_path=RESOURCE_PATH_LEGACY
+        )
 
     @api_versions.wraps("2.7", "2.38")  # noqa
     def delete(self, tenant_id, user_id=None):  # noqa
         return self._do_delete(tenant_id, user_id, resource_path=RESOURCE_PATH)
 
     @api_versions.wraps("2.39")  # noqa
-    def delete(self, tenant_id, user_id=None, share_type=None):   # noqa
+    def delete(self, tenant_id, user_id=None, share_type=None):  # noqa
         return self._do_delete(
-            tenant_id, user_id, share_type, resource_path=RESOURCE_PATH)
+            tenant_id, user_id, share_type, resource_path=RESOURCE_PATH
+        )

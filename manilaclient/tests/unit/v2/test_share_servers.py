@@ -24,7 +24,7 @@ from manilaclient.tests.unit.v2 import fakes
 from manilaclient.v2 import share_servers
 
 
-class FakeShareServer(object):
+class FakeShareServer:
     _info = {
         "backend_details": {
             "fake_key1": "fake_value1",
@@ -34,9 +34,8 @@ class FakeShareServer(object):
 
 
 class ShareServerTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareServerTest, self).setUp()
+        super().setUp()
         self.share_server_id = 'foo'
         self.share_network = 'bar'
         info = {
@@ -44,11 +43,12 @@ class ShareServerTest(utils.TestCase):
             'share_network_name': self.share_network,
         }
         self.resource_class = share_servers.ShareServer(
-            manager=self, info=info)
+            manager=self, info=info
+        )
 
     def test_get_repr_of_share_server(self):
         self.assertIn(
-            'ShareServer: %s' % self.share_server_id,
+            f'ShareServer: {self.share_server_id}',
             repr(self.resource_class),
         )
 
@@ -65,24 +65,25 @@ class ShareServerTest(utils.TestCase):
         except AttributeError:
             pass
         else:
-            raise Exception("Expected exception 'AttributeError' "
-                            "has not been raised.")
+            raise Exception(
+                "Expected exception 'AttributeError' has not been raised."
+            )
 
 
 @ddt.ddt
 class ShareServerManagerTest(utils.TestCase):
-
     def setUp(self):
-        super(ShareServerManagerTest, self).setUp()
+        super().setUp()
         self.manager = share_servers.ShareServerManager(api=fakes.FakeClient())
 
     def test_list(self):
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list()
             self.manager._list.assert_called_once_with(
-                share_servers.RESOURCES_PATH,
-                share_servers.RESOURCES_NAME)
+                share_servers.RESOURCES_PATH, share_servers.RESOURCES_NAME
+            )
 
     @ddt.data(None, {}, {'opt1': 'fake_opt1', 'opt12': 'fake_opt2'})
     def test_manage(self, driver_options):
@@ -99,52 +100,65 @@ class ShareServerManagerTest(utils.TestCase):
             'driver_options': driver_options,
             'share_network_subnet_id': share_network_subnet_id,
         }
-        with mock.patch.object(self.manager, '_create',
-                               mock.Mock(return_value='fake')):
+        with mock.patch.object(
+            self.manager, '_create', mock.Mock(return_value='fake')
+        ):
             result = self.manager.manage(
-                host, share_network_id, identifier,
+                host,
+                share_network_id,
+                identifier,
                 driver_options=driver_options,
-                share_network_subnet_id=share_network_subnet_id)
+                share_network_subnet_id=share_network_subnet_id,
+            )
             self.manager._create.assert_called_once_with(
                 share_servers.RESOURCES_PATH + '/manage',
-                {'share_server': expected_body}, 'share_server'
+                {'share_server': expected_body},
+                'share_server',
             )
             self.assertEqual('fake', result)
 
     @ddt.data(True, False)
     def test_unmanage(self, force):
         share_server = {'id': 'fake'}
-        with mock.patch.object(self.manager, '_action',
-                               mock.Mock(return_value='fake')):
+        with mock.patch.object(
+            self.manager, '_action', mock.Mock(return_value='fake')
+        ):
             result = self.manager.unmanage(share_server, force)
             self.manager._action.assert_called_once_with(
-                "unmanage", share_server, {'force': force})
+                "unmanage", share_server, {'force': force}
+            )
 
             self.assertEqual('fake', result)
 
     def test_reset_state(self):
         share_server = {'id': 'fake'}
         state = constants.STATUS_AVAILABLE
-        with mock.patch.object(self.manager, '_action',
-                               mock.Mock(return_value='fake')):
+        with mock.patch.object(
+            self.manager, '_action', mock.Mock(return_value='fake')
+        ):
             result = self.manager.reset_state(share_server, state)
             self.manager._action.assert_called_once_with(
-                "reset_status", share_server, {"status": state})
+                "reset_status", share_server, {"status": state}
+            )
             self.assertEqual('fake', result)
 
-    @ddt.data(("reset_status", {"status": constants.STATUS_AVAILABLE}),
-              ("unmanage", {"id": "fake_id"}))
+    @ddt.data(
+        ("reset_status", {"status": constants.STATUS_AVAILABLE}),
+        ("unmanage", {"id": "fake_id"}),
+    )
     @ddt.unpack
     def test__action(self, action, info):
         action = ""
         share_server = {"id": 'fake_id'}
-        expected_url = '/share-servers/%s/action' % share_server['id']
+        expected_url = '/share-servers/{}/action'.format(share_server['id'])
         expected_body = {action: info}
 
-        with mock.patch.object(self.manager.api.client, 'post',
-                               mock.Mock(return_value='fake')):
-            self.mock_object(base, 'getid',
-                             mock.Mock(return_value=share_server['id']))
+        with mock.patch.object(
+            self.manager.api.client, 'post', mock.Mock(return_value='fake')
+        ):
+            self.mock_object(
+                base, 'getid', mock.Mock(return_value=share_server['id'])
+            )
             result = self.manager._action(action, share_server, info)
             self.manager.api.client.post.assert_called_once_with(
                 expected_url, body=expected_body
@@ -153,9 +167,10 @@ class ShareServerManagerTest(utils.TestCase):
 
     def test_list_with_one_search_opt(self):
         host = 'fake_host'
-        query_string = "?host=%s" % host
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        query_string = f"?host={host}"
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list({'host': host})
             self.manager._list.assert_called_once_with(
                 share_servers.RESOURCES_PATH + query_string,
@@ -165,9 +180,10 @@ class ShareServerManagerTest(utils.TestCase):
     def test_list_with_two_search_opts(self):
         host = 'fake_host'
         status = 'fake_status'
-        query_string = "?host=%s&status=%s" % (host, status)
-        with mock.patch.object(self.manager, '_list',
-                               mock.Mock(return_value=None)):
+        query_string = f"?host={host}&status={status}"
+        with mock.patch.object(
+            self.manager, '_list', mock.Mock(return_value=None)
+        ):
             self.manager.list({'host': host, 'status': status})
             self.manager._list.assert_called_once_with(
                 share_servers.RESOURCES_PATH + query_string,
@@ -179,28 +195,33 @@ class ShareServerManagerTest(utils.TestCase):
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(share_server_id)
             self.manager._delete.assert_called_once_with(
-                share_servers.RESOURCE_PATH % share_server_id)
+                share_servers.RESOURCE_PATH % share_server_id
+            )
 
     def test_get(self):
         server = FakeShareServer()
-        with mock.patch.object(self.manager, '_get',
-                               mock.Mock(return_value=server)):
+        with mock.patch.object(
+            self.manager, '_get', mock.Mock(return_value=server)
+        ):
             share_server_id = 'fake_share_server_id'
             self.manager.get(share_server_id)
             self.manager._get.assert_called_once_with(
-                "%s/%s" % (share_servers.RESOURCES_PATH, share_server_id),
-                share_servers.RESOURCE_NAME)
+                f"{share_servers.RESOURCES_PATH}/{share_server_id}",
+                share_servers.RESOURCE_NAME,
+            )
             for key in ["details:fake_key1", "details:fake_key2"]:
                 self.assertIn(key, list(server._info))
 
     def test_details(self):
-        with mock.patch.object(self.manager, '_get',
-                               mock.Mock(return_value=None)):
+        with mock.patch.object(
+            self.manager, '_get', mock.Mock(return_value=None)
+        ):
             share_server_id = 'fake_share_server_id'
             self.manager.details(share_server_id)
             self.manager._get.assert_called_once_with(
-                "%s/%s/details" % (share_servers.RESOURCES_PATH,
-                                   share_server_id), 'details')
+                f"{share_servers.RESOURCES_PATH}/{share_server_id}/details",
+                'details',
+            )
 
     def test_migration_check(self):
         share_server = "fake_share_server"
@@ -214,19 +235,27 @@ class ShareServerManagerTest(utils.TestCase):
             'preserve_snapshots': True,
         }
 
-        with mock.patch.object(self.manager, "_action",
-                               mock.Mock(return_value=['200', returned])):
+        with mock.patch.object(
+            self.manager, "_action", mock.Mock(return_value=['200', returned])
+        ):
             result = self.manager.migration_check(
-                share_server, host, writable=True, nondisruptive=True,
-                preserve_snapshots=True)
+                share_server,
+                host,
+                writable=True,
+                nondisruptive=True,
+                preserve_snapshots=True,
+            )
             self.manager._action.assert_called_once_with(
-                'migration_check', share_server, {
+                'migration_check',
+                share_server,
+                {
                     "host": host,
                     "writable": True,
                     "nondisruptive": True,
                     "preserve_snapshots": True,
                     "new_share_network_id": None,
-                })
+                },
+            )
 
             self.assertEqual(returned, result)
 
@@ -235,19 +264,27 @@ class ShareServerManagerTest(utils.TestCase):
         host = "fake_host"
         returned = "fake"
 
-        with mock.patch.object(self.manager, "_action",
-                               mock.Mock(return_value=returned)):
+        with mock.patch.object(
+            self.manager, "_action", mock.Mock(return_value=returned)
+        ):
             result = self.manager.migration_start(
-                share_server, host, writable=True, nondisruptive=True,
-                preserve_snapshots=True)
+                share_server,
+                host,
+                writable=True,
+                nondisruptive=True,
+                preserve_snapshots=True,
+            )
             self.manager._action.assert_called_once_with(
-                'migration_start', share_server, {
+                'migration_start',
+                share_server,
+                {
                     "host": host,
                     "writable": True,
                     "nondisruptive": True,
                     "preserve_snapshots": True,
                     "new_share_network_id": None,
-                })
+                },
+            )
 
             self.assertEqual(returned, result)
 
@@ -255,24 +292,28 @@ class ShareServerManagerTest(utils.TestCase):
         share_server = "fake_share_server"
         returned = "fake"
 
-        with mock.patch.object(self.manager, "_action",
-                               mock.Mock(return_value=['200', returned])):
+        with mock.patch.object(
+            self.manager, "_action", mock.Mock(return_value=['200', returned])
+        ):
             result = self.manager.migration_complete(share_server)
 
             self.manager._action.assert_called_once_with(
-                "migration_complete", share_server)
+                "migration_complete", share_server
+            )
             self.assertEqual(returned, result)
 
     def test_migration_get_progress(self):
         share_server = "fake_share_server"
         returned = "fake"
 
-        with mock.patch.object(self.manager, "_action",
-                               mock.Mock(return_value=['200', returned])):
+        with mock.patch.object(
+            self.manager, "_action", mock.Mock(return_value=['200', returned])
+        ):
             result = self.manager.migration_get_progress(share_server)
 
             self.manager._action.assert_called_once_with(
-                "migration_get_progress", share_server)
+                "migration_get_progress", share_server
+            )
             self.assertEqual(returned, result)
 
     def test_reset_task_state(self):
@@ -280,22 +321,26 @@ class ShareServerManagerTest(utils.TestCase):
         state = "fake_state"
         returned = "fake"
 
-        with mock.patch.object(self.manager, "_action",
-                               mock.Mock(return_value=returned)):
+        with mock.patch.object(
+            self.manager, "_action", mock.Mock(return_value=returned)
+        ):
             result = self.manager.reset_task_state(share_server, state)
 
             self.manager._action.assert_called_once_with(
-                "reset_task_state", share_server, {'task_state': state})
+                "reset_task_state", share_server, {'task_state': state}
+            )
             self.assertEqual(returned, result)
 
     def test_migration_cancel(self):
         share_server = "fake_share_server"
         returned = "fake"
 
-        with mock.patch.object(self.manager, "_action",
-                               mock.Mock(return_value=returned)):
+        with mock.patch.object(
+            self.manager, "_action", mock.Mock(return_value=returned)
+        ):
             result = self.manager.migration_cancel(share_server)
 
             self.manager._action.assert_called_once_with(
-                "migration_cancel", share_server)
+                "migration_cancel", share_server
+            )
             self.assertEqual(returned, result)

@@ -31,7 +31,7 @@ class ShareGroup(base.Resource):
     """A share group is a logical grouping of shares on a single backend."""
 
     def __repr__(self):
-        return "<Share Group: %s>" % self.id
+        return f"<Share Group: {self.id}>"
 
     def update(self, **kwargs):
         """Update this share group."""
@@ -48,12 +48,19 @@ class ShareGroup(base.Resource):
 
 class ShareGroupManager(base.ManagerWithFind):
     """Manage :class:`ShareGroup` resources."""
+
     resource_class = ShareGroup
 
     def _create_share_group(
-            self, share_group_type=None, share_types=None, share_network=None,
-            name=None, description=None, source_share_group_snapshot=None,
-            availability_zone=None):
+        self,
+        share_group_type=None,
+        share_types=None,
+        share_network=None,
+        name=None,
+        description=None,
+        source_share_group_snapshot=None,
+        availability_zone=None,
+    ):
         """Create a Share Group.
 
         :param share_group_type: either instance of ShareGroupType or text
@@ -75,8 +82,10 @@ class ShareGroupManager(base.ManagerWithFind):
         """
 
         if share_types and source_share_group_snapshot:
-            raise ValueError('Cannot specify a share group with both'
-                             'share_types and source_share_group_snapshot.')
+            raise ValueError(
+                'Cannot specify a share group with both'
+                'share_types and source_share_group_snapshot.'
+            )
 
         body = {}
 
@@ -93,34 +102,59 @@ class ShareGroupManager(base.ManagerWithFind):
 
         if source_share_group_snapshot:
             body['source_share_group_snapshot_id'] = base.getid(
-                source_share_group_snapshot)
+                source_share_group_snapshot
+            )
         elif share_types:
-            body['share_types'] = [base.getid(share_type)
-                                   for share_type in share_types]
+            body['share_types'] = [
+                base.getid(share_type) for share_type in share_types
+            ]
 
         return self._create(
-            RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME)
+            RESOURCES_PATH, {RESOURCE_NAME: body}, RESOURCE_NAME
+        )
 
     @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def create(self, share_group_type=None, share_types=None,
-               share_network=None, name=None, description=None,
-               source_share_group_snapshot=None, availability_zone=None):
+    def create(
+        self,
+        share_group_type=None,
+        share_types=None,
+        share_network=None,
+        name=None,
+        description=None,
+        source_share_group_snapshot=None,
+        availability_zone=None,
+    ):
         return self._create_share_group(
-            share_group_type=share_group_type, share_types=share_types,
-            share_network=share_network, name=name, description=description,
+            share_group_type=share_group_type,
+            share_types=share_types,
+            share_network=share_network,
+            name=name,
+            description=description,
             source_share_group_snapshot=source_share_group_snapshot,
-            availability_zone=availability_zone)
+            availability_zone=availability_zone,
+        )
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def create(self, share_group_type=None, share_types=None,  # noqa
-               share_network=None, name=None, description=None,
-               source_share_group_snapshot=None, availability_zone=None):
+    def create(  # noqa
+        self,
+        share_group_type=None,
+        share_types=None,
+        share_network=None,
+        name=None,
+        description=None,
+        source_share_group_snapshot=None,
+        availability_zone=None,
+    ):
         return self._create_share_group(
-            share_group_type=share_group_type, share_types=share_types,
-            share_network=share_network, name=name, description=description,
+            share_group_type=share_group_type,
+            share_types=share_types,
+            share_network=share_network,
+            name=name,
+            description=description,
             source_share_group_snapshot=source_share_group_snapshot,
-            availability_zone=availability_zone)
+            availability_zone=availability_zone,
+        )
 
     def _get_share_group(self, share_group):
         """Get a share group.
@@ -141,8 +175,9 @@ class ShareGroupManager(base.ManagerWithFind):
     def get(self, share_group):  # noqa
         return self._get_share_group(share_group)
 
-    def _list_share_groups(self, detailed=True, search_opts=None,
-                           sort_key=None, sort_dir=None):
+    def _list_share_groups(
+        self, detailed=True, search_opts=None, sort_key=None, sort_dir=None
+    ):
         """Get a list of all share groups.
 
         :param detailed: Whether to return detailed share group info or not.
@@ -183,8 +218,11 @@ class ShareGroupManager(base.ManagerWithFind):
             if sort_dir in constants.SORT_DIR_VALUES:
                 search_opts['sort_dir'] = sort_dir
             else:
-                raise ValueError('sort_dir must be one of the following: %s.'
-                                 % ', '.join(constants.SORT_DIR_VALUES))
+                raise ValueError(
+                    'sort_dir must be one of the following: {}.'.format(
+                        ', '.join(constants.SORT_DIR_VALUES)
+                    )
+                )
 
         query_string = self._build_query_string(search_opts)
 
@@ -197,18 +235,30 @@ class ShareGroupManager(base.ManagerWithFind):
 
     @api_versions.wraps("2.31", "2.54")
     @api_versions.experimental_api
-    def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None):
+    def list(
+        self, detailed=True, search_opts=None, sort_key=None, sort_dir=None
+    ):
         return self._list_share_groups(
-            detailed=detailed, search_opts=search_opts,
-            sort_key=sort_key, sort_dir=sort_dir)
+            detailed=detailed,
+            search_opts=search_opts,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
     @api_versions.wraps(SG_GRADUATION_VERSION)  # noqa
-    def list(self, detailed=True, search_opts=None,  # noqa
-             sort_key=None, sort_dir=None):
+    def list(  # noqa
+        self,
+        detailed=True,
+        search_opts=None,
+        sort_key=None,
+        sort_dir=None,
+    ):
         return self._list_share_groups(
-            detailed=detailed, search_opts=search_opts, sort_key=sort_key,
-            sort_dir=sort_dir)
+            detailed=detailed,
+            search_opts=search_opts,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
     def _update_share_group(self, share_group, **kwargs):
         """Updates a share group.

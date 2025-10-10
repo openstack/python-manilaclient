@@ -22,7 +22,7 @@ class ShareTransfer(base.Resource):
     """Transfer a share from one tenant to another"""
 
     def __repr__(self):
-        return "<ShareTransfer: %s>" % self.id
+        return f"<ShareTransfer: {self.id}>"
 
     def delete(self):
         """Delete this share transfer."""
@@ -31,6 +31,7 @@ class ShareTransfer(base.Resource):
 
 class ShareTransferManager(base.ManagerWithFind):
     """Manage :class:`ShareTransfer` resources."""
+
     resource_class = ShareTransfer
 
     @api_versions.wraps(constants.SHARE_TRANSFER_VERSION)
@@ -41,8 +42,7 @@ class ShareTransferManager(base.ManagerWithFind):
         :param name: The name of the transfer.
         :rtype: :class:`ShareTransfer`
         """
-        body = {'transfer': {'share_id': share_id,
-                             'name': name}}
+        body = {'transfer': {'share_id': share_id, 'name': name}}
 
         return self._create('/share-transfers', body, 'transfer')
 
@@ -56,10 +56,14 @@ class ShareTransferManager(base.ManagerWithFind):
         :rtype: :class:`ShareTransfer`
         """
         transfer_id = base.getid(transfer)
-        body = {'accept': {'auth_key': auth_key,
-                           'clear_access_rules': clear_access_rules}}
+        body = {
+            'accept': {
+                'auth_key': auth_key,
+                'clear_access_rules': clear_access_rules,
+            }
+        }
 
-        self._accept('/share-transfers/%s/accept' % transfer_id, body)
+        self._accept(f'/share-transfers/{transfer_id}/accept', body)
 
     @api_versions.wraps(constants.SHARE_TRANSFER_VERSION)
     def get(self, transfer_id):
@@ -68,11 +72,12 @@ class ShareTransferManager(base.ManagerWithFind):
         :param transfer_id: The ID of the share transfer to display.
         :rtype: :class:`ShareTransfer`
         """
-        return self._get("/share-transfers/%s" % transfer_id, "transfer")
+        return self._get(f"/share-transfers/{transfer_id}", "transfer")
 
     @api_versions.wraps(constants.SHARE_TRANSFER_VERSION)
-    def list(self, detailed=True, search_opts=None,
-             sort_key=None, sort_dir=None):
+    def list(
+        self, detailed=True, search_opts=None, sort_key=None, sort_dir=None
+    ):
         """Get a list of all share transfer.
 
         :param detailed: Get detailed object information.
@@ -92,22 +97,27 @@ class ShareTransferManager(base.ManagerWithFind):
                     search_opts['sort_key'] = 'display_name'
             else:
                 raise ValueError(
-                    'sort_key must be one of the following: %s.'
-                    % ', '.join(constants.SHARE_TRANSFER_SORT_KEY_VALUES))
+                    'sort_key must be one of the following: {}.'.format(
+                        ', '.join(constants.SHARE_TRANSFER_SORT_KEY_VALUES)
+                    )
+                )
 
         if sort_dir is not None:
             if sort_dir in constants.SORT_DIR_VALUES:
                 search_opts['sort_dir'] = sort_dir
             else:
-                raise ValueError('sort_dir must be one of the following: %s.'
-                                 % ', '.join(constants.SORT_DIR_VALUES))
+                raise ValueError(
+                    'sort_dir must be one of the following: {}.'.format(
+                        ', '.join(constants.SORT_DIR_VALUES)
+                    )
+                )
 
         query_string = self._build_query_string(search_opts)
 
         if detailed:
-            path = "/share-transfers/detail%s" % (query_string,)
+            path = f"/share-transfers/detail{query_string}"
         else:
-            path = "/share-transfers%s" % (query_string,)
+            path = f"/share-transfers{query_string}"
 
         return self._list(path, 'transfers')
 
@@ -118,4 +128,4 @@ class ShareTransferManager(base.ManagerWithFind):
         :param transfer_id: The :class:`ShareTransfer` to delete.
         """
 
-        return self._delete("/share-transfers/%s" % base.getid(transfer_id))
+        return self._delete(f"/share-transfers/{base.getid(transfer_id)}")

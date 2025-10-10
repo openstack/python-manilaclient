@@ -21,22 +21,24 @@ CONF = config.CONF
 
 @utils.skip_if_microversion_not_supported('2.72')
 class ShareReplicasTest(base.BaseTestCase):
-
     def _create_share_and_replica(self):
         replication_type = CONF.replication_type
         share_type = self.create_share_type(
             driver_handles_share_servers=True,
-            extra_specs={'replication_type': replication_type})
+            extra_specs={'replication_type': replication_type},
+        )
         share_network = self.create_share_network()
         share = self.create_share(
             share_type=share_type['ID'],
             share_network=share_network['id'],
-            client=self.get_user_client())
+            client=self.get_user_client(),
+        )
         share_replica = self.create_share_replica(
             share['id'],
             share_network=share_network['id'],
             wait_for_creation=True,
-            client=self.get_user_client())
+            client=self.get_user_client(),
+        )
         return share, share_replica
 
     def test_share_replica_create(self):

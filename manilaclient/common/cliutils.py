@@ -31,10 +31,11 @@ from manilaclient.common._i18n import _
 
 class MissingArgs(Exception):
     """Supplied arguments are not sufficient for calling a function."""
+
     def __init__(self, missing):
         self.missing = missing
         msg = _("Missing arguments: %s") % ", ".join(missing)
-        super(MissingArgs, self).__init__(msg)
+        super().__init__(msg)
 
 
 def validate_args(fn, *args, **kwargs):
@@ -56,7 +57,7 @@ def validate_args(fn, *args, **kwargs):
     argspec = inspect.getfullargspec(fn)
 
     num_defaults = len(argspec.defaults or [])
-    required_args = argspec.args[:len(argspec.args) - num_defaults]
+    required_args = argspec.args[: len(argspec.args) - num_defaults]
 
     def isbound(method):
         return getattr(method, '__self__', None) is not None
@@ -65,7 +66,7 @@ def validate_args(fn, *args, **kwargs):
         required_args.pop(0)
 
     missing = [arg for arg in required_args if arg not in kwargs]
-    missing = missing[len(args):]
+    missing = missing[len(args) :]
     if missing:
         raise MissingArgs(missing)
 
@@ -79,9 +80,11 @@ def arg(*args, **kwargs):
     ... def entity_create(args):
     ...     pass
     """
+
     def _decorator(func):
         add_arg(func, *args, **kwargs)
         return func
+
     return _decorator
 
 
@@ -134,8 +137,14 @@ def isunauthenticated(func):
     return getattr(func, 'unauthenticated', False)
 
 
-def print_list(objs, fields, formatters=None, sortby_index=0,
-               mixed_case_fields=None, field_labels=None):
+def print_list(
+    objs,
+    fields,
+    formatters=None,
+    sortby_index=0,
+    mixed_case_fields=None,
+    field_labels=None,
+):
     """Print a list or objects as a table, one row per object.
 
     :param objs: iterable of :class:`Resource`
@@ -151,9 +160,13 @@ def print_list(objs, fields, formatters=None, sortby_index=0,
     mixed_case_fields = mixed_case_fields or []
     field_labels = field_labels or fields
     if len(field_labels) != len(fields):
-        raise ValueError(_("Field labels list %(labels)s has different number "
-                           "of elements than fields list %(fields)s"),
-                         {'labels': field_labels, 'fields': fields})
+        raise ValueError(
+            _(
+                "Field labels list %(labels)s has different number "
+                "of elements than fields list %(fields)s"
+            ),
+            {'labels': field_labels, 'fields': fields},
+        )
 
     if sortby_index is None:
         kwargs = {}
@@ -240,9 +253,11 @@ def service_type(stype):
        def mymethod(f):
        ...
     """
+
     def inner(f):
         f.service_type = stype
         return f
+
     return inner
 
 
@@ -252,7 +267,7 @@ def get_service_type(f):
 
 
 def pretty_choice_list(choices):
-    return ', '.join("'%s'" % choice for choice in choices)
+    return ', '.join(f"'{choice}'" for choice in choices)
 
 
 def exit(msg=''):
@@ -273,6 +288,5 @@ def convert_dict_list_to_string(data, ignored_keys=None):
             datum_dict = datum
         for k, v in datum_dict.items():
             if k not in ignored_keys:
-                data_string += '\n%(k)s = %(v)s' % {
-                    'k': k, 'v': v}
+                data_string += f'\n{k} = {v}'
     return data_string

@@ -36,4 +36,4 @@ class Extension(utils.HookableMixin):
                 self.manager_class = attr_value
 
     def __repr__(self):
-        return "<Extension '%s'>" % self.name
+        return f"<Extension '{self.name}'>"

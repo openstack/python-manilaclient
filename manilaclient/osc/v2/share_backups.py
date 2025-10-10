@@ -31,46 +31,49 @@ LOG = logging.getLogger(__name__)
 
 class CreateShareBackup(command.ShowOne):
     """Create a share backup."""
+
     _description = _("Create a backup of the given share")
 
     def get_parser(self, prog_name):
-        parser = super(CreateShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share",
             metavar="<share>",
-            help=_("Name or ID of the share to backup.")
+            help=_("Name or ID of the share to backup."),
         )
         parser.add_argument(
             '--name',
             metavar='<name>',
             default=None,
-            help=_('Optional share backup name. (Default=None).')
+            help=_('Optional share backup name. (Default=None).'),
         )
         parser.add_argument(
             '--description',
             metavar='<description>',
             default=None,
-            help=_('Optional share backup description. (Default=None).')
+            help=_('Optional share backup description. (Default=None).'),
         )
         parser.add_argument(
             "--backup-options",
             metavar="<key=value>",
             default={},
             action=parseractions.KeyValueAction,
-            help=_("Backup driver option key=value pairs (Optional, "
-                   "Default=None)."),
+            help=_(
+                "Backup driver option key=value pairs (Optional, "
+                "Default=None)."
+            ),
         )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
-        share = osc_utils.find_resource(
-            share_client.shares, parsed_args.share)
+        share = osc_utils.find_resource(share_client.shares, parsed_args.share)
 
         body = {}
         if parsed_args.backup_options:
             body['backup_options'] = utils.extract_key_value_options(
-                parsed_args.backup_options)
+                parsed_args.backup_options
+            )
         if parsed_args.description:
             body['description'] = parsed_args.description
         if parsed_args.name:
@@ -83,21 +86,22 @@ class CreateShareBackup(command.ShowOne):
 
 class DeleteShareBackup(command.Command):
     """Delete one or more share backups."""
+
     _description = _("Delete one or more share backups")
 
     def get_parser(self, prog_name):
-        parser = super(DeleteShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "backup",
             metavar="<backup>",
             nargs="+",
-            help=_("Name or ID of the backup(s) to delete")
+            help=_("Name or ID of the backup(s) to delete"),
         )
         parser.add_argument(
             "--wait",
             action='store_true',
             default=False,
-            help=_("Wait for share backup deletion")
+            help=_("Wait for share backup deletion"),
         )
         return parser
 
@@ -108,70 +112,78 @@ class DeleteShareBackup(command.Command):
         for backup in parsed_args.backup:
             try:
                 share_backup_obj = osc_utils.find_resource(
-                    share_client.share_backups, backup)
+                    share_client.share_backups, backup
+                )
                 share_client.share_backups.delete(share_backup_obj)
 
                 if parsed_args.wait:
                     if not osc_utils.wait_for_delete(
-                            manager=share_client.share_backups,
-                            res_id=share_backup_obj.id):
+                        manager=share_client.share_backups,
+                        res_id=share_backup_obj.id,
+                    ):
                         result += 1
 
             except Exception as e:
                 result += 1
-                LOG.error(_(
-                    "Failed to delete a share backup with "
-                    "name or ID '%(backup)s': %(e)s"),
-                    {'backup': backup, 'e': e})
+                LOG.error(
+                    _(
+                        "Failed to delete a share backup with "
+                        "name or ID '%(backup)s': %(e)s"
+                    ),
+                    {'backup': backup, 'e': e},
+                )
 
         if result > 0:
             total = len(parsed_args.backup)
-            msg = (_("%(result)s of %(total)s backups failed "
-                   "to delete.") % {'result': result, 'total': total})
+            msg = _("%(result)s of %(total)s backups failed to delete.") % {
+                'result': result,
+                'total': total,
+            }
             raise exceptions.CommandError(msg)
 
 
 class ListShareBackup(command.Lister):
     """List share backups."""
+
     _description = _("List share backups")
 
     def get_parser(self, prog_name):
-        parser = super(ListShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "--share",
             metavar="<share>",
             default=None,
-            help=_("Name or ID of the share to list backups for.")
+            help=_("Name or ID of the share to list backups for."),
         )
         parser.add_argument(
             "--name",
             metavar="<name>",
             default=None,
-            help=_("Filter results by name. Default=None.")
+            help=_("Filter results by name. Default=None."),
         )
         parser.add_argument(
             '--description',
             metavar="<description>",
             default=None,
-            help=_("Filter results by description. Default=None.")
+            help=_("Filter results by description. Default=None."),
         )
         parser.add_argument(
             "--name~",
             metavar="<name~>",
             default=None,
-            help=_("Filter results matching a share backup name pattern. ")
+            help=_("Filter results matching a share backup name pattern. "),
         )
         parser.add_argument(
             '--description~',
             metavar="<description~>",
             default=None,
-            help=_("Filter results matching a share backup description ")
+            help=_("Filter results matching a share backup description "),
         )
         parser.add_argument(
             '--status',
             metavar="<status>",
             default=None,
-            help=_('Filter results by status. Default=None.')
+            help=_('Filter results by status. Default=None.'),
         )
         parser.add_argument(
             "--limit",
@@ -179,29 +191,32 @@ class ListShareBackup(command.Lister):
             type=int,
             default=None,
             action=parseractions.NonNegativeAction,
-            help=_("Limit the number of backups returned. Default=None.")
+            help=_("Limit the number of backups returned. Default=None."),
         )
         parser.add_argument(
             '--offset',
             metavar="<offset>",
             default=None,
-            help='Start position of backup records listing.')
+            help='Start position of backup records listing.',
+        )
         parser.add_argument(
-            '--sort-key', '--sort_key',
+            '--sort-key',
+            '--sort_key',
             metavar='<sort_key>',
             type=str,
             default=None,
-            help='Key to be sorted, available keys are %(keys)s. '
-                 'Default=None.'
-                 % {'keys': constants.BACKUP_SORT_KEY_VALUES})
+            help=f'Key to be sorted, available keys are {constants.BACKUP_SORT_KEY_VALUES}. '
+            'Default=None.',
+        )
         parser.add_argument(
-            '--sort-dir', '--sort_dir',
+            '--sort-dir',
+            '--sort_dir',
             metavar='<sort_dir>',
             type=str,
             default=None,
-            help='Sort direction, available values are %(values)s. '
-                 'OPTIONAL: Default=None.' % {
-                     'values': constants.SORT_DIR_VALUES})
+            help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+            'OPTIONAL: Default=None.',
+        )
         parser.add_argument(
             '--detail',
             dest='detail',
@@ -210,7 +225,8 @@ class ListShareBackup(command.Lister):
             type=int,
             const=1,
             default=0,
-            help="Show detailed information about share backups.")
+            help="Show detailed information about share backups.",
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -218,19 +234,25 @@ class ListShareBackup(command.Lister):
 
         share_id = None
         if parsed_args.share:
-            share_id = osc_utils.find_resource(share_client.shares,
-                                               parsed_args.share).id
-        columns = [
-            'ID',
-            'Name',
-            'Share ID',
-            'Status'
-        ]
+            share_id = osc_utils.find_resource(
+                share_client.shares, parsed_args.share
+            ).id
+        columns = ['ID', 'Name', 'Share ID', 'Status']
 
         if parsed_args.detail:
-            columns.extend(['Description', 'Size', 'Created At',
-                            'Updated At', 'Availability Zone', 'Progress',
-                            'Restore Progress', 'Host', 'Topic'])
+            columns.extend(
+                [
+                    'Description',
+                    'Size',
+                    'Created At',
+                    'Updated At',
+                    'Availability Zone',
+                    'Progress',
+                    'Restore Progress',
+                    'Host',
+                    'Topic',
+                ]
+            )
 
         search_opts = {
             'limit': parsed_args.limit,
@@ -245,56 +267,62 @@ class ListShareBackup(command.Lister):
         search_opts['description~'] = getattr(parsed_args, 'description~')
 
         backups = share_client.share_backups.list(
-            detailed=parsed_args.detail, search_opts=search_opts,
-            sort_key=parsed_args.sort_key, sort_dir=parsed_args.sort_dir)
+            detailed=parsed_args.detail,
+            search_opts=search_opts,
+            sort_key=parsed_args.sort_key,
+            sort_dir=parsed_args.sort_dir,
+        )
 
-        return (columns,
-                (osc_utils.get_item_properties(b, columns) for b in backups))
+        return (
+            columns,
+            (osc_utils.get_item_properties(b, columns) for b in backups),
+        )
 
 
 class ShowShareBackup(command.ShowOne):
     """Show share backup."""
+
     _description = _("Show details of a backup")
 
     def get_parser(self, prog_name):
-        parser = super(ShowShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
-            "backup",
-            metavar="<backup>",
-            help=_("ID of the share backup. ")
+            "backup", metavar="<backup>", help=_("ID of the share backup. ")
         )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
-        backup = osc_utils.find_resource(share_client.share_backups,
-                                         parsed_args.backup)
+        backup = osc_utils.find_resource(
+            share_client.share_backups, parsed_args.backup
+        )
         backup._info.pop('links', None)
         return self.dict2columns(backup._info)
 
 
 class RestoreShareBackup(command.Command):
     """Restore share backup to share"""
+
     _description = _("Attempt to restore share backup")
 
     def get_parser(self, prog_name):
-        parser = super(RestoreShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
-            "backup",
-            metavar="<backup>",
-            help=_('ID of backup to restore.')
+            "backup", metavar="<backup>", help=_('ID of backup to restore.')
         )
         parser.add_argument(
             "--target-share",
             metavar="<target-share>",
             default=None,
-            help=_('share to restore backup to. Source share if none supplied')
+            help=_(
+                'share to restore backup to. Source share if none supplied'
+            ),
         )
         parser.add_argument(
             '--wait',
             action='store_true',
             default=False,
-            help=_('Wait for restore conclusion')
+            help=_('Wait for restore conclusion'),
         )
         return parser
 
@@ -303,19 +331,18 @@ class RestoreShareBackup(command.Command):
         kwargs = {}
 
         share_backup = osc_utils.find_resource(
-            share_client.share_backups,
-            parsed_args.backup
+            share_client.share_backups, parsed_args.backup
         )
         target_share_id = None
         if parsed_args.target_share is not None:
             if share_client.api_version < api_versions.APIVersion('2.91'):
                 raise exceptions.CommandError(
                     'performing targeted restores is only available '
-                    'for API microversion >= 2.91')
+                    'for API microversion >= 2.91'
+                )
             else:
                 target_share_id = osc_utils.find_resource(
-                    share_client.shares,
-                    parsed_args.target_share
+                    share_client.shares, parsed_args.target_share
                 ).id
                 kwargs['target_share_id'] = target_share_id
 
@@ -326,42 +353,50 @@ class RestoreShareBackup(command.Command):
                 status_f=share_client.shares.get,
                 res_id=(target_share_id or share_backup.share_id),
                 success_status=['available'],
-                error_status=['error', 'backup_restoring_error']
+                error_status=['error', 'backup_restoring_error'],
             ):
                 LOG.error(_("ERROR: share is in error state."))
 
 
 class SetShareBackup(command.Command):
     """Set share backup properties."""
+
     _description = _("Set share backup properties")
 
     def get_parser(self, prog_name):
-        parser = super(SetShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "backup",
             metavar="<backup>",
-            help=_('Name or ID of the backup to set a property for')
+            help=_('Name or ID of the backup to set a property for'),
         )
         parser.add_argument(
             "--name",
             metavar="<name>",
             default=None,
-            help=_("Set a name to the backup.")
+            help=_("Set a name to the backup."),
         )
         parser.add_argument(
             "--description",
             metavar="<description>",
             default=None,
-            help=_("Set a description to the backup.")
+            help=_("Set a description to the backup."),
         )
         parser.add_argument(
             "--status",
             metavar="<status>",
-            choices=['available', 'error', 'creating', 'deleting',
-                     'restoring'],
-            help=_("Assign a status to the backup(Admin only). "
-                   "Options include : available, error, creating, "
-                   "deleting, restoring.")
+            choices=[
+                'available',
+                'error',
+                'creating',
+                'deleting',
+                'restoring',
+            ],
+            help=_(
+                "Assign a status to the backup(Admin only). "
+                "Options include : available, error, creating, "
+                "deleting, restoring."
+            ),
         )
         return parser
 
@@ -370,8 +405,8 @@ class SetShareBackup(command.Command):
         result = 0
 
         share_backup = osc_utils.find_resource(
-            share_client.share_backups,
-            parsed_args.backup)
+            share_client.share_backups, parsed_args.backup
+        )
 
         kwargs = {}
 
@@ -384,57 +419,60 @@ class SetShareBackup(command.Command):
             share_client.share_backups.update(share_backup, **kwargs)
         except Exception as e:
             result += 1
-            LOG.error(_(
-                "Failed to set share backup properties "
-                "'%(properties)s': %(exception)s"),
-                {'properties': kwargs,
-                 'exception': e})
+            LOG.error(
+                _(
+                    "Failed to set share backup properties "
+                    "'%(properties)s': %(exception)s"
+                ),
+                {'properties': kwargs, 'exception': e},
+            )
 
         if parsed_args.status:
             try:
                 share_client.share_backups.reset_status(
-                    share_backup,
-                    parsed_args.status
+                    share_backup, parsed_args.status
                 )
             except Exception as e:
                 result += 1
-                LOG.error(_(
-                    "Failed to update backup status to "
-                    "'%(status)s': %(e)s"),
-                    {'status': parsed_args.status, 'e': e})
+                LOG.error(
+                    _("Failed to update backup status to '%(status)s': %(e)s"),
+                    {'status': parsed_args.status, 'e': e},
+                )
         if result > 0:
-            raise exceptions.CommandError(_("One or more of the "
-                                          "set operations failed"))
+            raise exceptions.CommandError(
+                _("One or more of the set operations failed")
+            )
 
 
 class UnsetShareBackup(command.Command):
     """Unset share backup properties."""
+
     _description = _("Unset share backup properties")
 
     def get_parser(self, prog_name):
-        parser = super(UnsetShareBackup, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "backup",
             metavar="<backup>",
-            help=_('Name or ID of the backup to unset a property for')
+            help=_('Name or ID of the backup to unset a property for'),
         )
         parser.add_argument(
             "--name",
             action='store_true',
-            help=_("Unset a name to the backup.")
+            help=_("Unset a name to the backup."),
         )
         parser.add_argument(
             "--description",
             action='store_true',
-            help=_("Unset a description to the backup.")
+            help=_("Unset a description to the backup."),
         )
         return parser
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
         share_backup = osc_utils.find_resource(
-            share_client.share_backups,
-            parsed_args.backup)
+            share_client.share_backups, parsed_args.backup
+        )
 
         kwargs = {}
         if parsed_args.name:
@@ -448,8 +486,10 @@ class UnsetShareBackup(command.Command):
         try:
             share_client.share_backups.update(share_backup, **kwargs)
         except Exception as e:
-            LOG.error(_(
-                "Failed to unset share backup properties "
-                "'%(properties)s': %(exception)s"),
-                {'properties': kwargs,
-                 'exception': e})
+            LOG.error(
+                _(
+                    "Failed to unset share backup properties "
+                    "'%(properties)s': %(exception)s"
+                ),
+                {'properties': kwargs, 'exception': e},
+            )

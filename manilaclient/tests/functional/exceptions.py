@@ -45,8 +45,9 @@ class ShareBuildErrorException(exceptions.TempestException):
 
 
 class ShareReplicaBuildErrorException(exceptions.TempestException):
-    message = ("Share replica %(replica)s failed to build and is in ERROR "
-               "status.")
+    message = (
+        "Share replica %(replica)s failed to build and is in ERROR status."
+    )
 
 
 class SnapshotBuildErrorException(exceptions.TempestException):
@@ -62,9 +63,11 @@ class AccessRuleDeleteErrorException(exceptions.TempestException):
 
 
 class ShareMigrationException(exceptions.TempestException):
-    message = ("Share %(share_id)s failed to migrate from "
-               "host %(src)s to host %(dest)s.")
+    message = (
+        "Share %(share_id)s failed to migrate from "
+        "host %(src)s to host %(dest)s."
+    )
 
 
 class ShareServerMigrationException(exceptions.TempestException):
-    message = ("Share server %(server_id)s failed to migrate.")
+    message = "Share server %(server_id)s failed to migrate."

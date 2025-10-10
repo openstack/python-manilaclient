@@ -22,9 +22,8 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         share = self.create_share()
 
         snapshot = self.create_snapshot(
-            share=share['id'],
-            name='Snap',
-            description='Description')
+            share=share['id'], name='Snap', description='Description'
+        )
 
         self.assertEqual(share["id"], snapshot["share_id"])
         self.assertEqual('Snap', snapshot["name"])
@@ -32,33 +31,31 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         self.assertEqual('available', snapshot["status"])
 
         snapshots_list = self.listing_result('share snapshot', 'list')
-        self.assertIn(snapshot['id'],
-                      [item['ID'] for item in snapshots_list])
+        self.assertIn(snapshot['id'], [item['ID'] for item in snapshots_list])
 
     def test_share_snapshot_delete(self):
         share = self.create_share()
 
-        snapshot_1 = self.create_snapshot(
-            share=share['id'], add_cleanup=False)
-        snapshot_2 = self.create_snapshot(
-            share=share['id'], add_cleanup=False)
+        snapshot_1 = self.create_snapshot(share=share['id'], add_cleanup=False)
+        snapshot_2 = self.create_snapshot(share=share['id'], add_cleanup=False)
 
         self.openstack(
             f'share snapshot delete {snapshot_1["id"]} {snapshot_2["id"]} '
-            '--wait')
+            '--wait'
+        )
 
         self.check_object_deleted('share snapshot', snapshot_1["id"])
         self.check_object_deleted('share snapshot', snapshot_2["id"])
 
-        snapshot_3 = self.create_snapshot(
-            share=share['id'], add_cleanup=False)
+        snapshot_3 = self.create_snapshot(share=share['id'], add_cleanup=False)
 
         self.openstack(
-            f'share snapshot set {snapshot_3["id"]} '
-            '--status creating')
+            f'share snapshot set {snapshot_3["id"]} --status creating'
+        )
 
         self.openstack(
-            f'share snapshot delete {snapshot_3["id"]} --wait --force')
+            f'share snapshot delete {snapshot_3["id"]} --wait --force'
+        )
 
         self.check_object_deleted('share snapshot', snapshot_3["id"])
 
@@ -66,12 +63,12 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         share = self.create_share()
 
         snapshot = self.create_snapshot(
-            share=share['id'],
-            name='Snap',
-            description='Description')
+            share=share['id'], name='Snap', description='Description'
+        )
 
         show_result = self.dict_result(
-            'share snapshot', f'show {snapshot["id"]}')
+            'share snapshot', f'show {snapshot["id"]}'
+        )
 
         self.assertEqual(snapshot["id"], show_result["id"])
         self.assertEqual('Snap', show_result["name"])
@@ -84,10 +81,12 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
 
         self.openstack(
             f'share snapshot set {snapshot["id"]} '
-            f'--name Snap --description Description')
+            f'--name Snap --description Description'
+        )
 
         show_result = self.dict_result(
-            'share snapshot ', f'show {snapshot["id"]}')
+            'share snapshot ', f'show {snapshot["id"]}'
+        )
 
         self.assertEqual(snapshot['id'], show_result["id"])
         self.assertEqual('Snap', show_result["name"])
@@ -97,15 +96,16 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         share = self.create_share()
 
         snapshot = self.create_snapshot(
-            share=share['id'],
-            name='Snap',
-            description='Description')
+            share=share['id'], name='Snap', description='Description'
+        )
 
         self.openstack(
-            f'share snapshot unset {snapshot["id"]} --name --description')
+            f'share snapshot unset {snapshot["id"]} --name --description'
+        )
 
-        show_result = json.loads(self.openstack(
-            f'share snapshot show -f json {snapshot["id"]}'))
+        show_result = json.loads(
+            self.openstack(f'share snapshot show -f json {snapshot["id"]}')
+        )
 
         self.assertEqual(snapshot['id'], show_result["id"])
         self.assertIsNone(show_result["name"])
@@ -116,31 +116,27 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
 
         snapshot_1 = self.create_snapshot(share=share['id'])
         snapshot_2 = self.create_snapshot(
-            share=share['id'],
-            description='Description')
-
-        snapshots_list = self.listing_result(
-            'share snapshot', f'list --name {snapshot_2["name"]} '
-            f'--description {snapshot_2["description"]} --all-projects'
+            share=share['id'], description='Description'
         )
 
-        self.assertTableStruct(snapshots_list, [
-            'ID',
-            'Name',
-            'Project ID'
-        ])
+        snapshots_list = self.listing_result(
+            'share snapshot',
+            f'list --name {snapshot_2["name"]} '
+            f'--description {snapshot_2["description"]} --all-projects',
+        )
 
-        self.assertIn(snapshot_2["name"],
-                      [snap["Name"] for snap in snapshots_list])
+        self.assertTableStruct(snapshots_list, ['ID', 'Name', 'Project ID'])
+
+        self.assertIn(
+            snapshot_2["name"], [snap["Name"] for snap in snapshots_list]
+        )
         self.assertEqual(1, len(snapshots_list))
 
         snapshots_list = self.listing_result(
-            'share snapshot', f'list --share {share["name"]}')
+            'share snapshot', f'list --share {share["name"]}'
+        )
 
-        self.assertTableStruct(snapshots_list, [
-            'ID',
-            'Name'
-        ])
+        self.assertTableStruct(snapshots_list, ['ID', 'Name'])
 
         id_list = [snap["ID"] for snap in snapshots_list]
         self.assertIn(snapshot_1["id"], id_list)
@@ -149,25 +145,31 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         snapshots_list = self.listing_result(
             'share snapshot',
             f'list --name~ {snapshot_2["name"][-3:]} '
-            '--description~ Des --detail')
+            '--description~ Des --detail',
+        )
 
-        self.assertTableStruct(snapshots_list, [
-            'ID',
-            'Name',
-            'Status',
-            'Description',
-            'Created At',
-            'Size',
-            'Share ID',
-            'Share Proto',
-            'Share Size',
-            'User ID'
-        ])
+        self.assertTableStruct(
+            snapshots_list,
+            [
+                'ID',
+                'Name',
+                'Status',
+                'Description',
+                'Created At',
+                'Size',
+                'Share ID',
+                'Share Proto',
+                'Share Size',
+                'User ID',
+            ],
+        )
 
-        self.assertIn(snapshot_2["name"],
-                      [snap["Name"] for snap in snapshots_list])
+        self.assertIn(
+            snapshot_2["name"], [snap["Name"] for snap in snapshots_list]
+        )
         self.assertEqual(
-            snapshot_2["description"], snapshots_list[0]['Description'])
+            snapshot_2["description"], snapshots_list[0]['Description']
+        )
         self.assertEqual(1, len(snapshots_list))
 
     def test_share_snapshot_export_location_list(self):
@@ -176,12 +178,10 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         snapshot = self.create_snapshot(share=share['id'])
 
         export_location_list = self.listing_result(
-            'share snapshot export location', f' list {snapshot["id"]}')
+            'share snapshot export location', f' list {snapshot["id"]}'
+        )
 
-        self.assertTableStruct(export_location_list, [
-            'ID',
-            'Path'
-        ])
+        self.assertTableStruct(export_location_list, ['ID', 'Path'])
 
     def test_share_snapshot_export_location_show(self):
         share = self.create_share()
@@ -189,11 +189,13 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
         snapshot = self.create_snapshot(share=share['id'])
 
         export_location_list = self.listing_result(
-            'share snapshot export location', f'list {snapshot["id"]}')
+            'share snapshot export location', f'list {snapshot["id"]}'
+        )
 
         export_location = self.dict_result(
             'share snapshot export location',
-            f'show {snapshot["id"]} {export_location_list[0]["ID"]}')
+            f'show {snapshot["id"]} {export_location_list[0]["ID"]}',
+        )
 
         self.assertIn('id', export_location)
         self.assertIn('created_at', export_location)
@@ -205,25 +207,25 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
     def test_share_snapshot_abandon_adopt(self):
         share = self.create_share()
 
-        snapshot = self.create_snapshot(
-            share=share['id'], add_cleanup=False)
+        snapshot = self.create_snapshot(share=share['id'], add_cleanup=False)
 
-        self.openstack(
-            f'share snapshot abandon {snapshot["id"]} --wait')
+        self.openstack(f'share snapshot abandon {snapshot["id"]} --wait')
 
         snapshots_list = self.listing_result('share snapshot', 'list')
-        self.assertNotIn(snapshot['id'],
-                         [item['ID'] for item in snapshots_list])
+        self.assertNotIn(
+            snapshot['id'], [item['ID'] for item in snapshots_list]
+        )
 
         snapshot = self.dict_result(
             'share snapshot',
             f'adopt {share["id"]} 10.0.0.1:/foo/path '
-            f'--name Snap --description Zorilla --wait')
+            f'--name Snap --description Zorilla --wait',
+        )
 
         snapshots_list = self.listing_result('share snapshot', 'list')
-        self.assertIn(snapshot['id'],
-                      [item['ID'] for item in snapshots_list])
+        self.assertIn(snapshot['id'], [item['ID'] for item in snapshots_list])
 
         self.addCleanup(
             self.openstack,
-            f'share snapshot delete {snapshot["id"]} --force --wait')
+            f'share snapshot delete {snapshot["id"]} --force --wait',
+        )

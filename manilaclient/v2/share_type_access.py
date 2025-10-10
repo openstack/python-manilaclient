@@ -20,7 +20,7 @@ from manilaclient import base
 
 class ShareTypeAccess(base.Resource):
     def __repr__(self):
-        return "<ShareTypeAccess: %s>" % self.id
+        return f"<ShareTypeAccess: {self.id}>"
 
 
 class ShareTypeAccessManager(base.ManagerWithFind):
@@ -33,10 +33,9 @@ class ShareTypeAccessManager(base.ManagerWithFind):
             return None
 
         return self._list(
-            "/types/%(st_id)s/%(action_name)s" % {
-                "st_id": base.getid(share_type),
-                "action_name": action_name},
-            "share_type_access")
+            f"/types/{base.getid(share_type)}/{action_name}",
+            "share_type_access",
+        )
 
     @api_versions.wraps("1.0", "2.6")
     def list(self, share_type, search_opts=None):
@@ -60,5 +59,5 @@ class ShareTypeAccessManager(base.ManagerWithFind):
         """Perform a share type action."""
         body = {action: info}
         self.run_hooks('modify_body_for_action', body, **kwargs)
-        url = '/types/%s/action' % base.getid(share_type)
+        url = f'/types/{base.getid(share_type)}/action'
         return self.api.client.post(url, body=body)
