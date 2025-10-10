@@ -317,10 +317,6 @@ class SetShareGroupType(command.Command):
                 msg
                 % {'share_group_type': parsed_args.share_group_type, 'e': e}
             )
-        kwargs = {}
-
-        if kwargs:
-            share_group_type_obj.set_keys(**kwargs)
 
         if parsed_args.group_specs:
             group_specs = utils.extract_group_specs(
