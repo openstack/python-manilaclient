@@ -393,24 +393,20 @@ class UnsetShareSnapshot(command.Command):
             try:
                 share_client.share_snapshots.update(share_snapshot, **kwargs)
             except Exception as e:
-                raise exceptions.CommandError(
-                    _(
-                        "Failed to unset snapshot display name "
-                        f"or display description : {e}"
-                    )
+                msg = _(
+                    "Failed to unset snapshot display name or display "
+                    "description: %(e)s"
                 )
+                raise exceptions.CommandError(msg % {'e': e})
         if parsed_args.property:
             for key in parsed_args.property:
                 try:
                     share_snapshot.delete_metadata([key])
                 except Exception as e:
-                    raise exceptions.CommandError(
-                        _(
-                            "Failed to unset snapshot property "
-                            "'%(key)s': %(e)s"
-                        ),
-                        {'key': key, 'e': e},
+                    msg = _(
+                        "Failed to unset snapshot property '%(key)s': %(e)s"
                     )
+                    raise exceptions.CommandError(msg % {'key': key, 'e': e})
 
 
 class ListShareSnapshot(command.Lister):

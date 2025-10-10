@@ -577,6 +577,7 @@ class UnsetShareGroup(command.Command):
             try:
                 share_client.share_groups.update(share_group, **kwargs)
             except Exception as e:
-                raise exceptions.CommandError(
-                    _(f"Failed to unset share_group name or description : {e}")
+                msg = _(
+                    "Failed to unset share_group name or description: %(e)s"
                 )
+                raise exceptions.CommandError(msg % {'e': e})

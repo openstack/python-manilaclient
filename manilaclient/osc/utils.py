@@ -89,7 +89,7 @@ def extract_extra_specs(
             else:
                 extra_specs[key] = value
     except ValueError:
-        msg = LOG.error(_("Wrong format: specs should be key=value pairs."))
+        msg = _("Wrong format: specs should be key=value pairs.")
         raise exceptions.CommandError(msg)
     return extra_specs
 

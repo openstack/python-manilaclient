@@ -439,9 +439,8 @@ class PromoteShareReplica(command.Command):
                     LOG.error(_("ERROR: Share replica is in error state."))
 
         except Exception as e:
-            raise exceptions.CommandError(
-                _(f"Failed to promote replica to 'active': {e}")
-            )
+            msg = "Failed to promote replica to 'active': %(e)s"
+            raise exceptions.CommandError(msg % {'e': e})
 
 
 class ResyncShareReplica(command.Command):
@@ -470,6 +469,5 @@ class ResyncShareReplica(command.Command):
         try:
             share_client.share_replicas.resync(replica)
         except Exception as e:
-            raise exceptions.CommandError(
-                _(f"Failed to resync share replica: {e}")
-            )
+            msg = "Failed to resync share replica: %(e)s"
+            raise exceptions.CommandError(msg % {'e': e})

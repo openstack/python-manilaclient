@@ -160,5 +160,5 @@ class SetShareSnapshotInstance(command.Command):
                 parsed_args.snapshot_instance, parsed_args.status
             )
         except Exception as e:
-            msg = _(f"Failed to update share snapshot instance status: {e}")
-            raise exceptions.CommandError(msg)
+            msg = _("Failed to update share snapshot instance status: %(e)s")
+            raise exceptions.CommandError(msg % {'e': e})
