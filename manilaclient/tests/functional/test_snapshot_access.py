@@ -46,9 +46,9 @@ class SnapshotAccessReadBase(base.BaseTestCase):
         int_range = range(0, 10)
 
         self.access_to = {
-            'ip': ['99.88.77.%d' % i for i in int_range],
-            'user': ['foo_user_%d' % i for i in int_range],
-            'cert': ['tenant_%d.example.com' % i for i in int_range],
+            'ip': [f'99.88.77.{i}' for i in int_range],
+            'user': [f'foo_user_{i}' for i in int_range],
+            'cert': [f'tenant_{i}.example.com' for i in int_range],
         }
 
     def _test_create_list_access_rule_for_snapshot(self, snapshot_id):

@@ -32,7 +32,7 @@ from time import sleep  # noqa
 
 try:
     osprofiler_web = importutils.try_import("osprofiler.web")
-except Exception:
+except ImportError:
     pass
 
 
@@ -136,7 +136,7 @@ class HTTPClient:
             options['data'] = jsonutils.dumps(kwargs['body'])
 
         self.log_request(method, url, headers, options.get('data', None))
-        resp = requests.request(method, url, headers=headers, **options)
+        resp = requests.request(method, url, headers=headers, **options)  # noqa: S113
         self.log_response(resp)
 
         body = None

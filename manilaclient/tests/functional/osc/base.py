@@ -101,8 +101,8 @@ class OSCClientTestBase(base.ClientTestBase):
             time.sleep(interval)
         else:
             self.fail(
-                "%s %s did not reach status %s after %d seconds."
-                % (object_name, object_id, status, timeout)
+                f"{object_name} {object_id} did not reach status {status} "
+                f"after {timeout} seconds."
             )
 
     def check_object_deleted(
@@ -122,8 +122,8 @@ class OSCClientTestBase(base.ClientTestBase):
             time.sleep(interval)
         else:
             self.fail(
-                "%s %s not deleted after %d seconds."
-                % (object_name, object_id, timeout)
+                f"{object_name} {object_id} not deleted after {timeout} "
+                f"seconds."
             )
 
     def openstack(

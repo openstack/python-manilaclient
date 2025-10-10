@@ -25,6 +25,8 @@ import copy
 import hashlib
 import os
 
+from oslo_utils import strutils
+
 from manilaclient import api_versions
 from manilaclient.common import cliutils
 from manilaclient import exceptions

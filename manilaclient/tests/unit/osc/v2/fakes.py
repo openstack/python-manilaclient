@@ -18,6 +18,7 @@ from unittest import mock
 import uuid
 
 from openstackclient.tests.unit.identity.v3 import fakes as identity_fakes
+from osc_lib.cli import format_columns
 
 from manilaclient.tests.unit.osc import osc_fakes
 from manilaclient.tests.unit.osc import osc_utils

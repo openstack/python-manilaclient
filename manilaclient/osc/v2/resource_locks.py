@@ -279,6 +279,7 @@ class ListResourceLock(command.Lister):
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
+        identity_client = self.app.client_manager.identity
 
         columns = (
             LOCK_SUMMARY_ATTRIBUTES
