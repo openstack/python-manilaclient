@@ -1766,12 +1766,22 @@ def do_unmanage(cs, args):
     default=False,
     help="Enforces the unmanage share server operation, even if the back-end "
          "driver does not support it.")
+@cliutils.arg(
+    '--wait',
+    action='store_true',
+    default=False,
+    help='Wait for share server(s) to be unmanaged')
 def do_share_server_unmanage(cs, args):
     """Unmanage share server (Admin only)."""
     failure_count = 0
     for server in args.share_server:
         try:
             cs.share_servers.unmanage(server, args.force)
+            if args.wait:
+                share_server_ref = _find_share_server(cs, server)
+                _wait_for_resource_status(
+                    cs, share_server_ref, resource_type='share_server',
+                    expected_status='unmanaged')
         except Exception as e:
             failure_count += 1
             print("Unmanage for share server %s failed: %s" % (server, e),

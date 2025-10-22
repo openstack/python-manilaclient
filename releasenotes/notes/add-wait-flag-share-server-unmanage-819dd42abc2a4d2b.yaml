@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    The command "manila share-server-unmanage" now accepts an optional
+    "--wait" flag that allows users to let the client poll for the
+    completion of the operation.

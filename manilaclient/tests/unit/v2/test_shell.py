@@ -1027,6 +1027,30 @@ class ShellTest(test_utils.TestCase):
         self.assert_called('POST', '/share-servers/1234/action',
                            body={'unmanage': {'force': True}})
 
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_server_unmanage_wait(self):
+        self.run_command('share-server-unmanage 1234 --wait')
+
+        self.assert_called('POST', '/share-servers/1234/action',
+                           body={'unmanage': {'force': False}}, pos=-2)
+        expected_share_server = shell_v2._find_share_server(
+            self.shell.cs, '1234')
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, expected_share_server,
+            resource_type='share_server', expected_status='unmanaged')
+
+    @mock.patch.object(shell_v2, '_wait_for_resource_status', mock.Mock())
+    def test_share_server_unmanage_wait_with_force(self):
+        self.run_command('share-server-unmanage 1234 --force --wait')
+
+        self.assert_called('POST', '/share-servers/1234/action',
+                           body={'unmanage': {'force': True}}, pos=-2)
+        expected_share_server = shell_v2._find_share_server(
+            self.shell.cs, '1234')
+        shell_v2._wait_for_resource_status.assert_called_once_with(
+            self.shell.cs, expected_share_server,
+            resource_type='share_server', expected_status='unmanaged')
+
     @ddt.data({'cmd_args': '--driver_options opt1=opt1 opt2=opt2',
                'valid_params': {
                    'driver_options': {'opt1': 'opt1', 'opt2': 'opt2'},
