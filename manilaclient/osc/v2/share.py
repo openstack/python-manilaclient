@@ -796,6 +796,7 @@ class SetShare(command.Command):
             metavar="<task-state>",
             required=False,
             default=None,
+            nargs='?',
             help=_("Indicate which task state to assign the share. Options "
                    "include migration_starting, migration_in_progress, "
                    "migration_completing, migration_success, migration_error, "
@@ -844,9 +845,12 @@ class SetShare(command.Command):
                 LOG.error(_(
                     "Failed to set status for the share: %s"), e)
                 result += 1
-        if parsed_args.task_state:
+        if hasattr(parsed_args, 'task_state'):
+            task_state = parsed_args.task_state
+            if task_state and task_state.lower() == "none":
+                task_state = None
             try:
-                share_obj.reset_task_state(parsed_args.task_state)
+                share_obj.reset_task_state(task_state)
             except Exception as e:
                 LOG.error(_("Failed to update share task state "
                           "%s"), e)

@@ -564,6 +564,44 @@ class TestSetShareServer(TestShareServer):
             parsed_args.task_state)
         self.assertIsNone(result)
 
+    def test_share_server_set_task_state_none(self):
+        arglist = [
+            self.share_server.id,
+            '--task-state',
+        ]
+        verifylist = [
+            ('share_server', self.share_server.id),
+            ('task_state', None)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.servers_mock.reset_task_state.assert_called_with(
+            self.share_server,
+            None)
+        self.assertIsNone(result)
+
+    def test_share_server_set_task_state_string_none(self):
+        arglist = [
+            self.share_server.id,
+            '--task-state', 'None'
+        ]
+        verifylist = [
+            ('share_server', self.share_server.id),
+            ('task_state', 'None')
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.servers_mock.reset_task_state.assert_called_with(
+            self.share_server,
+            None)
+        self.assertIsNone(result)
+
     def test_share_server_set_status_exception(self):
         arglist = [
             self.share_server.id,

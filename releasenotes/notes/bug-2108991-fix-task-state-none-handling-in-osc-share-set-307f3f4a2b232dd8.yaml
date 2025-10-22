@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    The `openstack share set` and `openstack share server set` commands now
+    properly handle the `--task-state` argument when given no value or "None",
+    sending a proper null value to the API. For more details, please refer to
+    `Launchpad bug #2108991 <https://bugs.launchpad.net/python-manilaclient/+bug/2108991>`_.
