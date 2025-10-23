@@ -159,7 +159,7 @@ class Client(object):
         if session and not service_catalog_url:
             service_catalog_url = self.keystone_client.session.get_endpoint(
                 auth, interface=endpoint_type,
-                service_type=service_type)
+                service_type=service_type, region_name=region_name)
         elif not service_catalog_url:
             catalog = self.keystone_client.service_catalog.get_endpoints(
                 service_type)
