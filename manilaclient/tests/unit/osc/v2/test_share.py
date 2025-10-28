@@ -1406,6 +1406,34 @@ class TestShareSet(TestShare):
         self._share.reset_task_state.assert_called_with(new_task_state)
         self.assertIsNone(result)
 
+    def test_share_set_task_state_none(self):
+        arglist = [
+            self._share.id,
+            '--task-state'
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('task_state', None)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        self._share.reset_task_state.assert_called_with(None)
+        self.assertIsNone(result)
+
+    def test_share_set_task_state_string_none(self):
+        arglist = [
+            self._share.id,
+            '--task-state', 'None'
+        ]
+        verifylist = [
+            ('share', self._share.id),
+            ('task_state', 'None')
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        self._share.reset_task_state.assert_called_with(None)
+        self.assertIsNone(result)
+
 
 class TestShareUnset(TestShare):
 
