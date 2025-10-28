@@ -1,0 +1,9 @@
+fixes:
+  - |
+    Fixed Bug #2057951: The manila python client previously
+    ignored the "region_name" parameter when initializing a
+    client session. This caused the client to use wrong API
+    endpoint in multi-region deployments. The client now
+    correctly respects the "region_name" value ensuring
+    requests are routed to the intended region
+
