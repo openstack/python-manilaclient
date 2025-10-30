@@ -110,12 +110,36 @@ class CreateShareNetworkSubnet(command.ShowOne):
                 "Property can be specified only with manila API "
                 "version >= 2.78.")
 
-        if xor(bool(parsed_args.neutron_net_id),
-               bool(parsed_args.neutron_subnet_id)):
+        neutron_client = getattr(self.app.client_manager, 'network', None)
+        neutron_net_id = parsed_args.neutron_net_id
+        neutron_subnet_id = parsed_args.neutron_subnet_id
+
+        if xor(bool(neutron_net_id),
+               bool(neutron_subnet_id)):
             raise exceptions.CommandError(
                 "Both neutron_net_id and neutron_subnet_id should be "
                 "specified. Alternatively, neither of them should be "
                 "specified.")
+
+        if neutron_client and neutron_net_id:
+            try:
+                neutron_net_id = neutron_client.find_network(
+                    neutron_net_id,
+                    ignore_missing=False).id
+            except Exception:
+                raise exceptions.CommandError(
+                    f"Neutron network '{neutron_net_id}'"
+                    f" not found.")
+
+        if neutron_client and neutron_subnet_id:
+            try:
+                neutron_subnet_id = neutron_client.find_subnet(
+                    neutron_subnet_id,
+                    ignore_missing=False).id
+            except Exception:
+                raise exceptions.CommandError(
+                    f"Neutron subnet '{neutron_subnet_id}'"
+                    f" not found.")
 
         share_network_id = oscutils.find_resource(
             share_client.share_networks,
@@ -129,8 +153,8 @@ class CreateShareNetworkSubnet(command.ShowOne):
 
             subnet_create_check = (
                 share_client.share_networks.share_network_subnet_create_check(
-                    neutron_net_id=parsed_args.neutron_net_id,
-                    neutron_subnet_id=parsed_args.neutron_subnet_id,
+                    neutron_net_id=neutron_net_id,
+                    neutron_subnet_id=neutron_subnet_id,
                     availability_zone=parsed_args.availability_zone,
                     reset_operation=parsed_args.restart_check,
                     share_network_id=share_network_id)
@@ -147,8 +171,8 @@ class CreateShareNetworkSubnet(command.ShowOne):
                             subnet_data[k] = dict_values
         else:
             share_network_subnet = share_client.share_network_subnets.create(
-                neutron_net_id=parsed_args.neutron_net_id,
-                neutron_subnet_id=parsed_args.neutron_subnet_id,
+                neutron_net_id=neutron_net_id,
+                neutron_subnet_id=neutron_subnet_id,
                 availability_zone=parsed_args.availability_zone,
                 share_network_id=share_network_id,
                 metadata=parsed_args.property

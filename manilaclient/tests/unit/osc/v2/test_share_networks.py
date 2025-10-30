@@ -122,6 +122,96 @@ class TestShareNetworkCreate(TestShareNetwork):
         self.assertCountEqual(self.columns, columns)
         self.assertCountEqual(self.data, data)
 
+    def test_share_network_create_with_valid_neutron_info(self):
+        fake_neutron_net_id = str(uuid.uuid4())
+        fake_neutron_subnet_id = str(uuid.uuid4())
+
+        neutron_client = mock.Mock()
+        self.app.client_manager.network = neutron_client
+
+        neutron_client.find_network.return_value = mock.Mock(
+            id=fake_neutron_net_id)
+        neutron_client.find_subnet.return_value = mock.Mock(
+            id=fake_neutron_subnet_id)
+
+        arglist = [
+            '--neutron-net-id', fake_neutron_net_id,
+            '--neutron-subnet-id', fake_neutron_subnet_id,
+        ]
+        verifylist = [
+            ('neutron_net_id', fake_neutron_net_id),
+            ('neutron_subnet_id', fake_neutron_subnet_id),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+
+        neutron_client.find_network.assert_called_once_with(
+            fake_neutron_net_id, ignore_missing=False)
+        neutron_client.find_subnet.assert_called_once_with(
+            fake_neutron_subnet_id, ignore_missing=False)
+        self.share_networks_mock.create.assert_called_once_with(
+            name=None,
+            description=None,
+            neutron_net_id=fake_neutron_net_id,
+            neutron_subnet_id=fake_neutron_subnet_id
+        )
+        self.assertCountEqual(self.columns, columns)
+        self.assertCountEqual(self.data, data)
+
+    def test_share_network_create_with_invalid_neutron_network(self):
+        fake_neutron_net_id = str(uuid.uuid4())
+
+        neutron_client = mock.Mock()
+        self.app.client_manager.network = neutron_client
+
+        neutron_client.find_network.side_effect = Exception(
+            "Network not found")
+
+        arglist = [
+            '--neutron-net-id', fake_neutron_net_id
+        ]
+        verifylist = [
+            ('neutron_net_id', fake_neutron_net_id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args
+        )
+
+        neutron_client.find_network.assert_called_once_with(
+            fake_neutron_net_id, ignore_missing=False)
+        self.share_networks_mock.create.assert_not_called()
+
+    def test_share_network_create_with_invalid_neutron_subnet(self):
+        fake_neutron_subnet_id = str(uuid.uuid4())
+
+        neutron_client = mock.Mock()
+        self.app.client_manager.network = neutron_client
+
+        neutron_client.find_subnet.side_effect = Exception(
+            "Subnet not found")
+
+        arglist = [
+            '--neutron-subnet-id', fake_neutron_subnet_id
+        ]
+        verifylist = [
+            ('neutron_subnet_id', fake_neutron_subnet_id)
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            exceptions.CommandError,
+            self.cmd.take_action,
+            parsed_args
+        )
+
+        neutron_client.find_subnet.assert_called_once_with(
+            fake_neutron_subnet_id, ignore_missing=False)
+        self.share_networks_mock.create.assert_not_called()
+
 
 @ddt.ddt
 class TestShareNetworkDelete(TestShareNetwork):

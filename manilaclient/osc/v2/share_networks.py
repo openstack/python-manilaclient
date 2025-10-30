@@ -300,6 +300,28 @@ class CreateShareNetwork(command.ShowOne):
 
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
+        neutron_client = getattr(self.app.client_manager, 'network', None)
+        neutron_net_id = parsed_args.neutron_net_id
+        neutron_subnet_id = parsed_args.neutron_subnet_id
+
+        if neutron_client and neutron_net_id:
+            try:
+                neutron_net_id = neutron_client.find_network(
+                    neutron_net_id,
+                    ignore_missing=False).id
+            except Exception:
+                raise exceptions.CommandError(
+                    f"Neutron network '{parsed_args.neutron_net_id}'"
+                    f" not found.")
+        if neutron_client and neutron_subnet_id:
+            try:
+                neutron_subnet_id = neutron_client.find_subnet(
+                    neutron_subnet_id,
+                    ignore_missing=False).id
+            except Exception:
+                raise exceptions.CommandError(
+                    f"Neutron subnet '{parsed_args.neutron_subnet_id}'"
+                    f" not found.")
 
         availability_zone = None
         if (parsed_args.availability_zone and
@@ -313,8 +335,8 @@ class CreateShareNetwork(command.ShowOne):
         kwargs = {
             "name": parsed_args.name,
             "description": parsed_args.description,
-            "neutron_net_id": parsed_args.neutron_net_id,
-            "neutron_subnet_id": parsed_args.neutron_subnet_id,
+            "neutron_net_id": neutron_net_id,
+            "neutron_subnet_id": neutron_subnet_id,
         }
         if availability_zone:
             kwargs['availability_zone'] = availability_zone
