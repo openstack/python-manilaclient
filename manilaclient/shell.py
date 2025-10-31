@@ -95,8 +95,9 @@ class ManilaClientArgumentParser(argparse.ArgumentParser):
         progparts = self.prog.partition(' ')
         self.exit(
             2,
-            f"error: {message.split(choose_from)[0]}\nTry '{progparts[0]} help {progparts[2]}'"
-            " for more information.\n",
+            f"error: {message.split(choose_from)[0]}\n"
+            f"Try '{progparts[0]} help {progparts[2]}' "
+            f"for more information.\n",
         )
 
     def _get_option_tuples(self, option_string):

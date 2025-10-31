@@ -58,7 +58,10 @@ class QuotasReadWriteTest(base.BaseTestCase):
 
     def _verify_current_st_quotas_equal_to(self, quotas, microversion):
         # Read share type quotas
-        cmd = f'quota-show --tenant-id {self.project_id} --share-type {self.st_id}'
+        cmd = (
+            f'quota-show --tenant-id {self.project_id} '
+            f'--share-type {self.st_id}'
+        )
         st_quotas_raw = self.admin_client.manila(
             cmd, microversion=microversion
         )
@@ -143,7 +146,10 @@ class QuotasReadWriteTest(base.BaseTestCase):
         self._verify_current_quotas_equal_to(p_custom_quotas, microversion)
 
         # Reset quotas
-        cmd = f'quota-delete --tenant-id {self.project_id} --share-type {self.st_id}'
+        cmd = (
+            f'quota-delete --tenant-id {self.project_id} '
+            f'--share-type {self.st_id}'
+        )
         self.admin_client.manila(cmd, microversion=microversion)
 
         # Verify quotas after reset
@@ -191,7 +197,10 @@ class QuotasReadWriteTest(base.BaseTestCase):
     @ddt.data('--share-groups', '--share-group-snapshots')
     @utils.skip_if_microversion_not_supported("2.40")
     def test_update_share_type_quotas_for_share_groups(self, arg):
-        cmd = f'quota-update {self.project_id} --share-type {self.st_id} {arg} 13'
+        cmd = (
+            f'quota-update {self.project_id} --share-type {self.st_id} '
+            f'{arg} 13'
+        )
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
@@ -268,7 +277,10 @@ class QuotasReadWriteTest(base.BaseTestCase):
         self._verify_current_st_quotas_equal_to(st_custom_quotas, microversion)
 
         # Reset share type quotas
-        cmd = f'quota-delete --tenant-id {self.project_id} --share-type {self.st_id}'
+        cmd = (
+            f'quota-delete --tenant-id {self.project_id} '
+            f'--share-type {self.st_id}'
+        )
         self.admin_client.manila(cmd, microversion=microversion)
 
         # Verify share type quotas after reset
@@ -276,7 +288,10 @@ class QuotasReadWriteTest(base.BaseTestCase):
 
     @utils.skip_if_microversion_not_supported("2.38")
     def test_read_share_type_quotas_with_too_old_microversion(self):
-        cmd = f'quota-show --tenant-id {self.project_id} --share-type {self.st_id}'
+        cmd = (
+            f'quota-show --tenant-id {self.project_id} '
+            f'--share-type {self.st_id}'
+        )
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,
@@ -298,7 +313,10 @@ class QuotasReadWriteTest(base.BaseTestCase):
 
     @utils.skip_if_microversion_not_supported("2.38")
     def test_delete_share_type_quotas_with_too_old_microversion(self):
-        cmd = f'quota-delete --tenant-id {self.project_id} --share-type {self.st_id}'
+        cmd = (
+            f'quota-delete --tenant-id {self.project_id} '
+            f'--share-type {self.st_id}'
+        )
         self.assertRaises(
             exceptions.CommandFailed,
             self.admin_client.manila,

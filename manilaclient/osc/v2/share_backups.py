@@ -205,8 +205,10 @@ class ListShareBackup(command.Lister):
             metavar='<sort_key>',
             type=str,
             default=None,
-            help=f'Key to be sorted, available keys are {constants.BACKUP_SORT_KEY_VALUES}. '
-            'Default=None.',
+            help=(
+                f'Key to be sorted, available keys are '
+                f'{constants.BACKUP_SORT_KEY_VALUES}. Default=None.'
+            ),
         )
         parser.add_argument(
             '--sort-dir',
@@ -214,8 +216,10 @@ class ListShareBackup(command.Lister):
             metavar='<sort_dir>',
             type=str,
             default=None,
-            help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
-            'OPTIONAL: Default=None.',
+            help=(
+                f'Sort direction, available values are '
+                f'{constants.SORT_DIR_VALUES}. OPTIONAL: Default=None.'
+            ),
         )
         parser.add_argument(
             '--detail',

@@ -26,7 +26,7 @@ class TestAvailabilityZones(manila_fakes.TestShare):
 
 
 class TestShareAvailabilityZoneList(TestAvailabilityZones):
-    availability_zones = manila_fakes.FakeShareAvailabilityZones.create_share_availability_zones()
+    availability_zones = manila_fakes.FakeShareAvailabilityZones.create_share_availability_zones()  # noqa: E501
     COLUMNS = ("Id", "Name", "Created At", "Updated At")
 
     def setUp(self):

@@ -252,8 +252,10 @@ class ListResourceLock(command.Lister):
             type=str,
             default=None,
             choices=constants.RESOURCE_LOCK_SORT_KEY_VALUES,
-            help=f'Key to be sorted, available keys are {constants.RESOURCE_LOCK_SORT_KEY_VALUES}. '
-            'Default=None.',
+            help=(
+                f'Key to be sorted, available keys are '
+                f'{constants.RESOURCE_LOCK_SORT_KEY_VALUES}. Default=None.'
+            ),
         )
         parser.add_argument(
             '--sort-dir',
@@ -262,8 +264,10 @@ class ListResourceLock(command.Lister):
             type=str,
             default=None,
             choices=constants.SORT_DIR_VALUES,
-            help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
-            'OPTIONAL: Default=None.',
+            help=(
+                f'Sort direction, available values are '
+                f'{constants.SORT_DIR_VALUES}. OPTIONAL: Default=None.'
+            ),
         )
         parser.add_argument(
             '--detailed',

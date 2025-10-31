@@ -587,7 +587,7 @@ class ShareServerMigrationCancel(command.Command):
 
 
 class ShareServerMigrationComplete(command.Command):
-    """Completes migration for a given share server (Admin only, Experimental)."""
+    """Completes migration for a share server (Admin only, Experimental)."""
 
     _description = _("Completes migration for a given share server")
 

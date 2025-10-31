@@ -677,7 +677,7 @@ class SetShareNetwork(command.Command):
         if new_security_service and current_security_service:
             try:
                 if parsed_args.check_only:
-                    check_result = share_client.share_networks.update_share_network_security_service_check(
+                    check_result = share_client.share_networks.update_share_network_security_service_check(  # noqa: E501
                         share_network,
                         current_security_service,
                         new_security_service,

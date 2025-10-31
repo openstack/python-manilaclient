@@ -53,7 +53,7 @@ class TestCreateShareGroupSnapshot(TestShareGroupSnapshot):
         self.share_group = manila_fakes.FakeShareGroup.create_one_share_group()
         self.groups_mock.get.return_value = self.share_group
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()  # noqa: E501
         self.group_snapshot_mocks.create.return_value = (
             self.share_group_snapshot
         )
@@ -171,7 +171,7 @@ class TestDeleteShareGroupSnapshot(TestShareGroupSnapshot):
     def setUp(self):
         super().setUp()
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()  # noqa: E501
         self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.DeleteShareGroupSnapshot(
@@ -294,7 +294,7 @@ class TestShowShareGroupSnapshot(TestShareGroupSnapshot):
     def setUp(self):
         super().setUp()
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()  # noqa: E501
         self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.ShowShareGroupSnapshot(
@@ -336,7 +336,7 @@ class TestSetShareGroupSnapshot(TestShareGroupSnapshot):
     def setUp(self):
         super().setUp()
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()  # noqa: E501
         self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.SetShareGroupSnapshot(
@@ -408,7 +408,7 @@ class TestUnsetShareGroupSnapshot(TestShareGroupSnapshot):
     def setUp(self):
         super().setUp()
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot()  # noqa: E501
         self.group_snapshot_mocks.get.return_value = self.share_group_snapshot
 
         self.cmd = osc_share_group_snapshots.UnsetShareGroupSnapshot(
@@ -463,7 +463,7 @@ class TestListShareGroupSnapshot(TestShareGroupSnapshot):
         self.share_group = manila_fakes.FakeShareGroup.create_one_share_group()
         self.groups_mock.get.return_value = self.share_group
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot(
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot(  # noqa: E501
             {'share_group_id': self.share_group.id}
         )
 
@@ -593,7 +593,7 @@ class TestListShareGroupSnapshotMembers(TestShareGroupSnapshot):
 
         self.share = manila_fakes.FakeShare.create_one_share()
 
-        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot(
+        self.share_group_snapshot = manila_fakes.FakeShareGroupSnapshot.create_one_share_group_snapshot(  # noqa: E501
             {'members': [{'share_id': self.share.id, 'size': self.share.size}]}
         )
 

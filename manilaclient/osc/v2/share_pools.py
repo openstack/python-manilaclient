@@ -83,8 +83,8 @@ class ListSharePools(command.Lister):
             else:
                 raise exceptions.CommandError(
                     _(
-                        "Filtering results by share type is only available with "
-                        "manila API version >= 2.23"
+                        "Filtering results by share type is only "
+                        "available with manila API version >= 2.23"
                     )
                 )
 

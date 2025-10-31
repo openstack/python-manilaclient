@@ -177,7 +177,10 @@ class VersionedMethod:
         self.func = func
 
     def __str__(self):
-        return f"Version Method {self.name}: min: {self.start_version}, max: {self.end_version}"
+        return (
+            f"Version Method {self.name}: min: {self.start_version}, "
+            f"max: {self.end_version}"
+        )
 
     def __repr__(self):
         return f"<VersionedMethod {self.name}>"
@@ -323,8 +326,8 @@ def _validate_requested_version(
         else:
             raise exceptions.UnsupportedVersion(
                 _(
-                    "The specified version isn't supported by server. The valid "
-                    "version range is '%(min)s' to '%(max)s'"
+                    "The specified version isn't supported by server. "
+                    "The valid version range is '%(min)s' to '%(max)s'"
                 )
                 % {
                     "min": server_start_version.get_string(),
@@ -349,7 +352,8 @@ def _validate_server_version(server_start_version, server_end_version):
     if manilaclient.API_MIN_VERSION > server_end_version:
         raise exceptions.UnsupportedVersion(
             _(
-                "Server's version is too old. The client's valid version range "
+                "Server's version is too old. "
+                "The client's valid version range "
                 "is '%(client_min)s' to '%(client_max)s'. The server valid "
                 "version range is '%(server_min)s' to '%(server_max)s'."
             )
@@ -363,7 +367,8 @@ def _validate_server_version(server_start_version, server_end_version):
     elif manilaclient.API_MAX_VERSION < server_start_version:
         raise exceptions.UnsupportedVersion(
             _(
-                "Server's version is too new. The client's valid version range "
+                "Server's version is too new. "
+                "The client's valid version range "
                 "is '%(client_min)s' to '%(client_max)s'. The server valid "
                 "version range is '%(server_min)s' to '%(server_max)s'."
             )

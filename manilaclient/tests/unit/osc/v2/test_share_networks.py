@@ -860,7 +860,7 @@ class TestShareNetworkSet(TestShareNetwork):
     def test_set_share_network_update_security_service_check_reset(
         self, check_only, restart_check
     ):
-        self.share_networks_mock.update_share_network_security_service_check = mock.Mock(
+        self.share_networks_mock.update_share_network_security_service_check = mock.Mock(  # noqa: E501
             return_value=(200, {'compatible': True})
         )
 

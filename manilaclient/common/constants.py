@@ -96,7 +96,8 @@ RESOURCE_LOCK_SORT_KEY_VALUES = (
     'updated_at',
     'resource_id',
     'resource_type',
-    'resource_actionlock_reason',
+    'resource_action',
+    'lock_reason',
 )
 
 BACKUP_SORT_KEY_VALUES = (

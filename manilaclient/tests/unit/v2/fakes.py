@@ -1243,7 +1243,9 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
             {
                 'share_type_access': [
                     {
-                        'share_type_id': '11111111-1111-1111-1111-111111111111',
+                        'share_type_id': (
+                            '11111111-1111-1111-1111-111111111111'
+                        ),
                         'project_id': '00000000-0000-0000-0000-000000000000',
                     }
                 ]

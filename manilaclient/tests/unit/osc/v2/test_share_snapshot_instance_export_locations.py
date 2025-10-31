@@ -15,9 +15,7 @@
 
 from osc_lib import utils as osc_lib_utils
 
-from manilaclient.osc.v2 import (
-    share_snapshot_instance_export_locations as osc_snapshot_instance_locations,
-)
+from manilaclient.osc.v2 import share_snapshot_instance_export_locations
 from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
 
@@ -33,7 +31,9 @@ class TestShareSnapshotInstanceExportLocation(manila_fakes.TestShare):
         )
         self.share_snapshot_instances_mock.reset_mock()
 
-        self.share_snapshot_instances_el_mock = self.app.client_manager.share.share_snapshot_instance_export_locations
+        self.share_snapshot_instances_el_mock = (
+            self.app.client_manager.share.share_snapshot_instance_export_locations  # noqa: E501
+        )
         self.share_snapshot_instances_el_mock.reset_mock()
 
 
@@ -43,9 +43,9 @@ class TestShareSnapshotInstanceExportLocationList(
     def setUp(self):
         super().setUp()
 
-        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()
+        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()  # noqa: E501
 
-        self.share_snapshot_instances_export_locations = manila_fakes.FakeShareSnapshotInstancesExportLocations.create_share_snapshot_instances(
+        self.share_snapshot_instances_export_locations = manila_fakes.FakeShareSnapshotInstancesExportLocations.create_share_snapshot_instances(  # noqa: E501
             count=2
         )
 
@@ -57,7 +57,7 @@ class TestShareSnapshotInstanceExportLocationList(
             self.share_snapshot_instances_export_locations
         )
 
-        self.cmd = osc_snapshot_instance_locations.ShareSnapshotInstanceExportLocationList(
+        self.cmd = share_snapshot_instance_export_locations.ShareSnapshotInstanceExportLocationList(  # noqa: E501
             self.app, None
         )
 
@@ -94,9 +94,11 @@ class TestShareSnapshotInstanceExportLocationShow(
     def setUp(self):
         super().setUp()
 
-        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()
+        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()  # noqa: E501
 
-        self.share_snapshot_instances_export_location = manila_fakes.FakeShareSnapshotInstancesExportLocations.create_one_snapshot_instance()
+        self.share_snapshot_instances_export_location = (
+            manila_fakes.FakeShareSnapshotInstancesExportLocations.create_one_snapshot_instance()  # noqa: E501
+        )
 
         self.share_snapshot_instances_mock.get.return_value = (
             self.share_snapshot_instance
@@ -106,7 +108,7 @@ class TestShareSnapshotInstanceExportLocationShow(
             self.share_snapshot_instances_export_location
         )
 
-        self.cmd = osc_snapshot_instance_locations.ShareSnapshotInstanceExportLocationShow(
+        self.cmd = share_snapshot_instance_export_locations.ShareSnapshotInstanceExportLocationShow(  # noqa: E501
             self.app, None
         )
 

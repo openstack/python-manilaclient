@@ -81,8 +81,8 @@ class CreateShareReplica(command.ShowOne):
             if share_client.api_version < api_versions.APIVersion("2.67"):
                 raise exceptions.CommandError(
                     _(
-                        "arg '--scheduler_hint' is available only starting with "
-                        "API microversion '2.67'."
+                        "arg '--scheduler_hint' is available only starting "
+                        "with API microversion '2.67'."
                     )
                 )
 

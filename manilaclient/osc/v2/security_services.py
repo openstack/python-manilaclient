@@ -616,8 +616,8 @@ class ListShareSecurityService(command.Lister):
         elif parsed_args.ou:
             raise exceptions.CommandError(
                 _(
-                    "Filtering results by security service Organizational Unit is "
-                    "available only for microversion >= 2.44"
+                    "Filtering results by security service Organizational "
+                    "Unit is available only for microversion >= 2.44"
                 )
             )
 
