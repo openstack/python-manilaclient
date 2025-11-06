@@ -372,7 +372,7 @@ def _quota_set_pretty_show(quotas):
     for quota_k, quota_v in sorted(quotas.to_dict().items()):
         if isinstance(quota_v, dict):
             quota_v = '\n'.join(
-                ['%s = %s' % (k, v) for k, v in sorted(quota_v.items())]
+                [f'{k} = {v}' for k, v in sorted(quota_v.items())]
             )
         new_quotas[quota_k] = quota_v
 
@@ -452,7 +452,7 @@ def _extract_key_value_options(args, option_name, allow_empty_key=True):
 
         if len(duplicate_options) > 0:
             duplicate_str = ', '.join(duplicate_options)
-            msg = "Following options were duplicated: %s" % duplicate_str
+            msg = f"Following options were duplicated: {duplicate_str}"
             raise exceptions.CommandError(msg)
     return result_dict
 
@@ -1974,7 +1974,7 @@ def do_share_server_unmanage(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Unmanage for share server %s failed: %s" % (server, e),
+                f"Unmanage for share server {server} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -2011,7 +2011,7 @@ def do_snapshot_unmanage(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Unmanage for share snapshot %s failed: %s" % (snapshot, e),
+                f"Unmanage for share snapshot {snapshot} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -2073,9 +2073,7 @@ def do_delete(cs, args):
                 cs.shares.delete(share_ref)
         except Exception as e:
             failure_count += 1
-            print(
-                "Delete for share %s failed: %s" % (share, e), file=sys.stderr
-            )
+            print(f"Delete for share {share} failed: {e}", file=sys.stderr)
 
     if failure_count == len(args.share):
         raise exceptions.CommandError(
@@ -2109,9 +2107,7 @@ def do_force_delete(cs, args):
             share_ref.force_delete()
         except Exception as e:
             failure_count += 1
-            print(
-                "Delete for share %s failed: %s" % (share, e), file=sys.stderr
-            )
+            print(f"Delete for share {share} failed: {e}", file=sys.stderr)
     if failure_count == len(args.share):
         raise exceptions.CommandError(
             "Unable to force delete any of specified shares."
@@ -2140,7 +2136,7 @@ def do_soft_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Soft deletion of share %s failed: %s" % (share, e),
+                f"Soft deletion of share {share} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -2166,7 +2162,7 @@ def do_restore(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Restoration of share %s failed: %s" % (share, e),
+                f"Restoration of share {share} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -2369,8 +2365,7 @@ def do_snapshot_access_deny(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Failed to remove rule %(access)s: %(reason)s."
-                % {'access': access_id, 'reason': e},
+                f"Failed to remove rule {access_id}: {e}.",
                 file=sys.stderr,
             )
 
@@ -2633,8 +2628,8 @@ def do_snapshot_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Key to be sorted, available keys are %(keys)s. '
-    'OPTIONAL: Default=None.' % {'keys': constants.SHARE_SORT_KEY_VALUES},
+    help=f'Key to be sorted, available keys are {constants.SHARE_SORT_KEY_VALUES}. '
+    'OPTIONAL: Default=None.',
 )
 @cliutils.arg(
     '--sort-dir',
@@ -2643,8 +2638,8 @@ def do_snapshot_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Sort direction, available values are %(values)s. '
-    'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES},
+    help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+    'OPTIONAL: Default=None.',
 )
 @cliutils.arg(
     '--snapshot',
@@ -2871,7 +2866,7 @@ def do_list(cs, args):
             setattr(share, 'export_location', els[0] if els else None)
     cliutils.print_list(shares, list_of_keys, sortby_index=None)
     if args.count:
-        print("Shares in total: %s" % total_count)
+        print(f"Shares in total: {total_count}")
 
     with cs.shares.completion_cache(
         'uuid', manilaclient.v2.shares.Share, mode="w"
@@ -2995,7 +2990,7 @@ def do_share_instance_force_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share instance %s failed: %s" % (instance, e),
+                f"Delete for share instance {instance} failed: {e}",
                 file=sys.stderr,
             )
     if failure_count == len(args.instance):
@@ -3163,8 +3158,8 @@ def do_share_instance_export_location_show(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Key to be sorted, available keys are %(keys)s. '
-    'Default=None.' % {'keys': constants.SNAPSHOT_SORT_KEY_VALUES},
+    help=f'Key to be sorted, available keys are {constants.SNAPSHOT_SORT_KEY_VALUES}. '
+    'Default=None.',
 )
 @cliutils.arg(
     '--sort-dir',
@@ -3173,8 +3168,8 @@ def do_share_instance_export_location_show(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Sort direction, available values are %(values)s. '
-    'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES},
+    help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+    'OPTIONAL: Default=None.',
 )
 @cliutils.arg(
     '--columns',
@@ -3291,7 +3286,7 @@ def do_snapshot_list(cs, args):
 
     cliutils.print_list(snapshots, list_of_keys, sortby_index=None)
     if args.count:
-        print("Share snapshots in total: %s" % total_count)
+        print(f"Share snapshots in total: {total_count}")
 
 
 @cliutils.arg(
@@ -3546,7 +3541,7 @@ def do_snapshot_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for snapshot %s failed: %s" % (snapshot, e),
+                f"Delete for snapshot {snapshot} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -3582,7 +3577,7 @@ def do_snapshot_force_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for snapshot %s failed: %s" % (snapshot, e),
+                f"Delete for snapshot {snapshot} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -4666,7 +4661,7 @@ def do_share_network_subnet_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Deletion of share network subnet %s failed: %s" % (subnet, e),
+                f"Deletion of share network subnet {subnet} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -4713,7 +4708,7 @@ def do_share_network_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share network %s failed: %s" % (share_network, e),
+                f"Delete for share network {share_network} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -5115,8 +5110,7 @@ def do_security_service_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for security service %s failed: %s"
-                % (security_service, e),
+                f"Delete for security service {security_service} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -5252,7 +5246,7 @@ def do_share_server_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share server %s failed: %s" % (server_id, e),
+                f"Delete for share server {server_id} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -5378,7 +5372,7 @@ def _print_dict(data_dict):
     formatted_data = []
 
     for date in data_dict:
-        formatted_data.append("%s : %s" % (date, data_dict[date]))
+        formatted_data.append(f"{date} : {data_dict[date]}")
 
     return "\n".join(formatted_data)
 
@@ -5805,7 +5799,7 @@ def do_type_create(cs, args):
     except ValueError as e:
         msg = (
             "Argument spec_driver_handles_share_servers "
-            "argument is not valid: %s" % str(e)
+            f"argument is not valid: {str(e)}"
         )
         raise exceptions.CommandError(msg)
 
@@ -5840,7 +5834,7 @@ def do_type_create(cs, args):
         value = getattr(args, key)
 
         if value is not None and key in kwargs['extra_specs']:
-            msg = "Argument '%s' value specified twice." % key
+            msg = f"Argument '{key}' value specified twice."
             raise exceptions.CommandError(msg)
 
         try:
@@ -5854,8 +5848,8 @@ def do_type_create(cs, args):
                 )
         except ValueError as e:
             msg = (
-                "Argument '%s' is of boolean "
-                "type and has invalid value: %s" % (key, str(e))
+                f"Argument '{key}' is of boolean "
+                f"type and has invalid value: {str(e)}"
             )
             raise exceptions.CommandError(msg)
 
@@ -5933,7 +5927,7 @@ def do_type_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share type %s failed: %s" % (name_or_id, e),
+                f"Delete for share type {name_or_id} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -6503,8 +6497,7 @@ def do_share_group_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Key to be sorted, available keys are %(keys)s. Default=None.'
-    % {'keys': constants.SHARE_GROUP_SORT_KEY_VALUES},
+    help=f'Key to be sorted, available keys are {constants.SHARE_GROUP_SORT_KEY_VALUES}. Default=None.',
 )
 @cliutils.arg(
     '--sort-dir',
@@ -6513,8 +6506,8 @@ def do_share_group_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Sort direction, available values are %(values)s. '
-    'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES},
+    help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+    'OPTIONAL: Default=None.',
 )
 @cliutils.arg(
     '--columns',
@@ -6683,7 +6676,7 @@ def do_share_group_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share group %s failed: %s" % (share_group, e),
+                f"Delete for share group {share_group} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -6826,8 +6819,7 @@ def do_share_group_snapshot_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Key to be sorted, available keys are %(keys)s. Default=None.'
-    % {'keys': constants.SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES},
+    help=f'Key to be sorted, available keys are {constants.SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES}. Default=None.',
 )
 @cliutils.arg(
     '--sort-dir',
@@ -6836,8 +6828,8 @@ def do_share_group_snapshot_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Sort direction, available values are %(values)s. '
-    'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES},
+    help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+    'OPTIONAL: Default=None.',
 )
 @cliutils.arg(
     '--detailed',
@@ -7030,8 +7022,7 @@ def do_share_group_snapshot_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share group snapshot %s failed: %s"
-                % (sg_snapshot, e),
+                f"Delete for share group snapshot {sg_snapshot} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -7298,7 +7289,7 @@ def do_share_replica_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share replica %s failed: %s" % (replica, e),
+                f"Delete for share replica {replica} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -7496,7 +7487,7 @@ def do_share_transfer_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for share transfer %s failed: %s" % (transfer, e),
+                f"Delete for share transfer {transfer} failed: {e}",
                 file=sys.stderr,
             )
 
@@ -7602,8 +7593,7 @@ def do_share_transfer_accept(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Key to be sorted, available keys are %(keys)s. Default=None.'
-    % {'keys': constants.SHARE_TRANSFER_SORT_KEY_VALUES},
+    help=f'Key to be sorted, available keys are {constants.SHARE_TRANSFER_SORT_KEY_VALUES}. Default=None.',
 )
 @cliutils.arg(
     '--sort-dir',
@@ -7612,8 +7602,8 @@ def do_share_transfer_accept(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Sort direction, available values are %(values)s. '
-    'Optional: Default=None.' % {'values': constants.SORT_DIR_VALUES},
+    help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+    'Optional: Default=None.',
 )
 @cliutils.arg(
     '--detailed',
@@ -7771,8 +7761,7 @@ def do_share_transfer_show(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Key to be sorted, available keys are %(keys)s. Default=desc.'
-    % {'keys': constants.MESSAGE_SORT_KEY_VALUES},
+    help=f'Key to be sorted, available keys are {constants.MESSAGE_SORT_KEY_VALUES}. Default=desc.',
 )
 @cliutils.arg(
     '--sort-dir',
@@ -7781,8 +7770,8 @@ def do_share_transfer_show(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help='Sort direction, available values are %(values)s. '
-    'OPTIONAL: Default=None.' % {'values': constants.SORT_DIR_VALUES},
+    help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
+    'OPTIONAL: Default=None.',
 )
 @cliutils.arg(
     '--columns',
@@ -7874,7 +7863,7 @@ def do_message_delete(cs, args):
         except Exception as e:
             failure_count += 1
             print(
-                "Delete for message %s failed: %s" % (message, e),
+                f"Delete for message {message} failed: {e}",
                 file=sys.stderr,
             )
 

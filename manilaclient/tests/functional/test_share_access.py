@@ -63,13 +63,13 @@ class ShareAccessReadWriteBase(base.BaseTestCase):
             # NOTE(vponomaryov): list of unique values is required for ability
             # to create lots of access rules for one share using different
             # API microversions.
-            'ip': ['99.88.77.%d' % i for i in int_range],
+            'ip': [f'99.88.77.{i}' for i in int_range],
             # NOTE(vponomaryov): following users are fakes and access rules
             # that use it are expected to fail, but they are used only for
             # API testing.
-            'user': ['foo_user_%d' % i for i in int_range],
-            'cert': ['tenant_%d.example.com' % i for i in int_range],
-            'ipv6': ['2001:db8::%d' % i for i in int_range],
+            'user': [f'foo_user_{i}' for i in int_range],
+            'cert': [f'tenant_{i}.example.com' for i in int_range],
+            'ipv6': [f'2001:db8::{i}' for i in int_range],
         }
 
     def _test_create_list_access_rule_for_share(

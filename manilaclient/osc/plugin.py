@@ -32,9 +32,8 @@ CLIENT_CLASS = 'manilaclient.v2.client.Client'
 LATEST_VERSION = api_versions.MAX_VERSION
 LATEST_MINOR_VERSION = api_versions.MAX_VERSION.split('.')[-1]
 
-
 API_VERSIONS = {
-    '2.%d' % i: CLIENT_CLASS for i in range(0, int(LATEST_MINOR_VERSION) + 1)
+    f'2.{i}': CLIENT_CLASS for i in range(0, int(LATEST_MINOR_VERSION) + 1)
 }
 
 

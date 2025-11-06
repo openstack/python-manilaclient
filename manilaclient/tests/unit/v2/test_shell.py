@@ -667,8 +667,9 @@ class ShellTest(test_utils.TestCase):
             ),
         )
         self.run_command(
-            'share-instance-force-delete %s --wait'
-            % ' '.join(instances_to_delete)
+            'share-instance-force-delete {} --wait'.format(
+                ' '.join(instances_to_delete)
+            )
         )
         shell_v2._find_share_instance.assert_has_calls(
             [
@@ -754,7 +755,7 @@ class ShellTest(test_utils.TestCase):
             }
         }
         self.run_command(
-            'type-create test-type-3 false --is-public %s' % str(public)
+            f'type-create test-type-3 false --is-public {str(public)}'
         )
         self.assert_called('POST', '/types', body=expected)
 
@@ -1068,18 +1069,17 @@ class ShellTest(test_utils.TestCase):
         self.mock_object(shell_v2, '_wait_for_resource_status', mock.Mock())
         command = (
             'share-server-manage '
-            '%(host)s '
-            '%(share_network_id)s '
-            '%(identifier)s '
-            '%(driver_args)s '
-            % {
-                'host': 'fake_host',
-                'share_network_id': fake_share_network.id,
-                'identifier': '88-as-23-f3-45',
-                'driver_args': driver_args,
-            }
+            '{host} '
+            '{share_network_id} '
+            '{identifier} '
+            '{driver_args} '.format(
+                host='fake_host',
+                share_network_id=fake_share_network.id,
+                identifier='88-as-23-f3-45',
+                driver_args=driver_args,
+            )
         )
-        command += '--share-network-subnet %s' % subnet_id if subnet_id else ''
+        command += f'--share-network-subnet {subnet_id}' if subnet_id else ''
 
         self.run_command(command, version=version)
 
@@ -1117,7 +1117,7 @@ class ShellTest(test_utils.TestCase):
         constants.STATUS_CREATING,
     )
     def test_share_server_reset_state(self, status):
-        self.run_command('share-server-reset-state 1234 --state %s ' % status)
+        self.run_command(f'share-server-reset-state 1234 --state {status} ')
         expected = {'reset_status': {'status': status}}
         self.assert_called('POST', '/share-servers/1234/action', body=expected)
 
@@ -1153,14 +1153,14 @@ class ShellTest(test_utils.TestCase):
             shares.ShareManager, 'get', mock.Mock(return_value=fake_share)
         )
 
-        self.run_command('unmanage %s xyzzyspoon' % wait_option)
+        self.run_command(f'unmanage {wait_option} xyzzyspoon')
 
         expected_get_share_calls = 4 if wait_option else 1
         shell_v2._find_share.assert_has_calls(
             [mock.call(self.shell.cs, fake_share.id)]
             * expected_get_share_calls
         )
-        uri = '/shares/%s/action' % fake_share.id
+        uri = f'/shares/{fake_share.id}/action'
         api.client.post.assert_called_once_with(uri, body={'unmanage': None})
 
     def test_share_server_unmanage(self):
@@ -1372,7 +1372,7 @@ class ShellTest(test_utils.TestCase):
         fake_sg = type('FakeShareGroup', (object,), {'id': sg_cmd.split()[-1]})
         shell_v2._find_share_group.return_value = fake_sg
 
-        self.run_command('delete 1234 %s' % sg_cmd)
+        self.run_command(f'delete 1234 {sg_cmd}')
 
         self.assert_called('DELETE', '/shares/1234?share_group_id=sg1313')
         self.assertTrue(shell_v2._find_share_group.called)
@@ -1401,13 +1401,13 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=(fake_shares + shares_are_not_found_errors)),
         )
 
-        self.run_command('delete %s --wait' % ' '.join(shares_to_delete))
+        self.run_command('delete {} --wait'.format(' '.join(shares_to_delete)))
 
         shell_v2._find_share.assert_has_calls(
             [mock.call(self.shell.cs, share) for share in shares_to_delete]
         )
         for share in fake_shares:
-            uri = '/shares/%s' % share.id
+            uri = f'/shares/{share.id}'
             self.assert_called_anytime('DELETE', uri, clear_callstack=False)
 
     @ddt.data(('share_xyz',), ('share_abc', 'share_xyz'))
@@ -1430,7 +1430,9 @@ class ShellTest(test_utils.TestCase):
             '_find_share',
             mock.Mock(side_effect=(fake_shares + shares_are_not_found_errors)),
         )
-        self.run_command('force-delete %s --wait' % ' '.join(shares_to_delete))
+        self.run_command(
+            'force-delete {} --wait'.format(' '.join(shares_to_delete))
+        )
         shell_v2._find_share.assert_has_calls(
             [mock.call(self.shell.cs, share) for share in shares_to_delete]
         )
@@ -1658,8 +1660,8 @@ class ShellTest(test_utils.TestCase):
     @ddt.unpack
     def test_type_create_duplicate_switch_and_extra_spec(self, key, value):
         cmd = (
-            'type-create test True --%(key)s %(value)s --extra-specs '
-            '%(key)s=%(value)s' % {'key': key, 'value': value}
+            f'type-create test True --{key} {value} --extra-specs '
+            f'{key}={value}'
         )
 
         self.assertRaises(exceptions.CommandError, self.run_command, cmd)
@@ -1826,7 +1828,7 @@ class ShellTest(test_utils.TestCase):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            'type-create test false --%s fake' % value,
+            f'type-create test false --{value} fake',
         )
 
     @ddt.data('snapshot_support', 'create_share_from_snapshot_support')
@@ -1834,7 +1836,7 @@ class ShellTest(test_utils.TestCase):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            'type-create test false --extra-specs %s=fake' % value,
+            f'type-create test false --extra-specs {value}=fake',
         )
 
     @ddt.unpack
@@ -1938,10 +1940,7 @@ class ShellTest(test_utils.TestCase):
         # update is_public attr
         valid_is_public_values = strutils.TRUE_STRINGS + strutils.FALSE_STRINGS
         for is_public in valid_is_public_values:
-            self.run_command(
-                'update 1234 %(alias)s %(value)s'
-                % {'alias': alias, 'value': is_public}
-            )
+            self.run_command(f'update 1234 {alias} {is_public}')
             expected = {
                 'share': {
                     'is_public': strutils.bool_from_string(
@@ -1954,14 +1953,13 @@ class ShellTest(test_utils.TestCase):
             self.assertRaises(
                 ValueError,
                 self.run_command,
-                'update 1234 %(alias)s %(value)s'
-                % {'alias': alias, 'value': invalid_val},
+                f'update 1234 {alias} {invalid_val}',
             )
         # update all attributes
         self.run_command(
             'update 1234 --name new-name '
             '--description=new-description '
-            '%s True' % alias
+            f'{alias} True'
         )
         expected = {
             'share': {
@@ -2066,7 +2064,7 @@ class ShellTest(test_utils.TestCase):
             shell_v2, '_find_share', mock.Mock(side_effect=fake_shares)
         )
         expected_extend_body = {'extend': {'new_size': 77}}
-        self.run_command('extend 1234 77 %s' % wait_option)
+        self.run_command(f'extend 1234 77 {wait_option}')
         self.assert_called_anytime(
             'POST',
             '/shares/1234/action',
@@ -2105,7 +2103,7 @@ class ShellTest(test_utils.TestCase):
             shell_v2, '_find_share', mock.Mock(side_effect=fake_shares)
         )
         expected_shrink_body = {'shrink': {'new_size': 77}}
-        self.run_command('shrink 1234 77 %s' % wait_option)
+        self.run_command(f'shrink 1234 77 {wait_option}')
         self.assert_called_anytime(
             'POST',
             '/shares/1234/action',
@@ -2247,13 +2245,10 @@ class ShellTest(test_utils.TestCase):
         ss = type('FakeSecurityService', (object,), {'id': 'fake-ss-id'})
         shell_v2._find_security_service.return_value = ss
         for command in ['--security_service', '--security-service']:
-            self.run_command(
-                'share-network-list %(command)s %(ss_id)s'
-                % {'command': command, 'ss_id': ss.id}
-            )
+            self.run_command(f'share-network-list {command} {ss.id}')
             self.assert_called(
                 'GET',
-                '/share-networks/detail?security_service_id=%s' % ss.id,
+                f'/share-networks/detail?security_service_id={ss.id}',
             )
             shell_v2._find_security_service.assert_called_with(mock.ANY, ss.id)
             cliutils.print_list.assert_called_with(
@@ -2263,7 +2258,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_project_id_aliases(self):
         for command in ['--project-id', '--project_id']:
-            self.run_command('share-network-list %s 1234' % command)
+            self.run_command(f'share-network-list {command} 1234')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?project_id=1234',
@@ -2275,7 +2270,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_created_before_aliases(self):
         for command in ['--created-before', '--created_before']:
-            self.run_command('share-network-list %s 2001-01-01' % command)
+            self.run_command(f'share-network-list {command} 2001-01-01')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?created_before=2001-01-01',
@@ -2287,7 +2282,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_created_since_aliases(self):
         for command in ['--created-since', '--created_since']:
-            self.run_command('share-network-list %s 2001-01-01' % command)
+            self.run_command(f'share-network-list {command} 2001-01-01')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?created_since=2001-01-01',
@@ -2304,7 +2299,7 @@ class ShellTest(test_utils.TestCase):
             '--neutron_net-id',
             '--neutron_net_id',
         ]:
-            self.run_command('share-network-list %s fake-id' % command)
+            self.run_command(f'share-network-list {command} fake-id')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?neutron_net_id=fake-id',
@@ -2321,7 +2316,7 @@ class ShellTest(test_utils.TestCase):
             '--neutron_subnet-id',
             '--neutron_subnet_id',
         ]:
-            self.run_command('share-network-list %s fake-id' % command)
+            self.run_command(f'share-network-list {command} fake-id')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?neutron_subnet_id=fake-id',
@@ -2333,7 +2328,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_network_type_aliases(self):
         for command in ['--network_type', '--network-type']:
-            self.run_command('share-network-list %s local' % command)
+            self.run_command(f'share-network-list {command} local')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?network_type=local',
@@ -2345,7 +2340,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_segmentation_id_aliases(self):
         for command in ['--segmentation-id', '--segmentation_id']:
-            self.run_command('share-network-list %s 1234' % command)
+            self.run_command(f'share-network-list {command} 1234')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?segmentation_id=1234',
@@ -2357,7 +2352,7 @@ class ShellTest(test_utils.TestCase):
     @mock.patch.object(cliutils, 'print_list', mock.Mock())
     def test_share_network_list_ip_version_aliases(self):
         for command in ['--ip-version', '--ip_version']:
-            self.run_command('share-network-list %s 4' % command)
+            self.run_command(f'share-network-list {command} 4')
             self.assert_called(
                 'GET',
                 '/share-networks/detail?ip_version=4',
@@ -2384,17 +2379,14 @@ class ShellTest(test_utils.TestCase):
         }
         command_str = 'share-network-list'
         for key, value in filters.items():
-            command_str += ' --%(key)s=%(value)s' % {
-                'key': key,
-                'value': value,
-            }
+            command_str += f' --{key}={value}'
         self.run_command(command_str)
         query = utils.safe_urlencode(
             sorted([(k.replace('-', '_'), v) for (k, v) in filters.items()])
         )
         self.assert_called(
             'GET',
-            '/share-networks/detail?%s' % query,
+            f'/share-networks/detail?{query}',
         )
         cliutils.print_list.assert_called_once_with(
             mock.ANY, fields=['id', 'name']
@@ -2573,11 +2565,10 @@ class ShellTest(test_utils.TestCase):
         ]
 
         self.run_command(
-            'share-network-subnet-delete %(network_id)s %(subnet_ids)s'
-            % {
-                'network_id': fake_share_network.id,
-                'subnet_ids': ' '.join(subnet_ids),
-            }
+            'share-network-subnet-delete {network_id} {subnet_ids}'.format(
+                network_id=fake_share_network.id,
+                subnet_ids=' '.join(subnet_ids),
+            )
         )
 
         shell_v2._find_share_network.assert_called_once_with(
@@ -2586,15 +2577,15 @@ class ShellTest(test_utils.TestCase):
         for subnet in fake_share_network_subnets:
             self.assert_called_anytime(
                 'DELETE',
-                '/share-networks/1234/subnets/%s' % subnet.id,
+                f'/share-networks/1234/subnets/{subnet.id}',
                 clear_callstack=False,
             )
 
     def test_share_network_subnet_delete_invalid_share_network(self):
-        command = 'share-network-subnet-delete %(net_id)s %(subnet_id)s' % {
-            'net_id': 'not-found-id',
-            'subnet_id': '1234',
-        }
+        command = 'share-network-subnet-delete {net_id} {subnet_id}'.format(
+            net_id='not-found-id',
+            subnet_id='1234',
+        )
 
         self.assertRaises(exceptions.CommandError, self.run_command, command)
 
@@ -2607,10 +2598,10 @@ class ShellTest(test_utils.TestCase):
             '_find_share_network',
             mock.Mock(return_value=fake_share_network),
         )
-        command = 'share-network-subnet-delete %(net_id)s %(subnet_id)s' % {
-            'net_id': fake_share_network.id,
-            'subnet_id': 'not-found-id',
-        }
+        command = 'share-network-subnet-delete {net_id} {subnet_id}'.format(
+            net_id=fake_share_network.id,
+            subnet_id='not-found-id',
+        )
 
         self.assertRaises(exceptions.CommandError, self.run_command, command)
 
@@ -2630,20 +2621,24 @@ class ShellTest(test_utils.TestCase):
         }
 
         self.run_command(
-            'share-network-subnet-show %(share_net_id)s %(subnet_id)s' % args
+            'share-network-subnet-show {share_net_id} {subnet_id}'.format(
+                **args
+            )
         )
 
         self.assert_called(
             'GET',
-            '/share-networks/%(share_net_id)s/subnets/%(subnet_id)s' % args,
+            '/share-networks/{share_net_id}/subnets/{subnet_id}'.format(
+                **args
+            ),
         )
         cliutils.print_dict.assert_called_once_with(mock.ANY)
 
     def test_share_network_subnet_show_invalid_share_network(self):
-        command = 'share-network-subnet-show %(net_id)s %(subnet_id)s' % {
-            'net_id': 'not-found-id',
-            'subnet_id': 1234,
-        }
+        command = 'share-network-subnet-show {net_id} {subnet_id}'.format(
+            net_id='not-found-id',
+            subnet_id=1234,
+        )
 
         self.assertRaises(exceptions.CommandError, self.run_command, command)
 
@@ -2676,7 +2671,7 @@ class ShellTest(test_utils.TestCase):
             shell_v2, "_find_share_network", mock.Mock(return_value=sn)
         ):
             self.run_command(
-                "create nfs 1 --share-type test_type --share-network %s" % sn
+                f"create nfs 1 --share-type test_type --share-network {sn}"
             )
             expected = self.create_share_body.copy()
             expected['share']['share_network_id'] = sn
@@ -2714,7 +2709,7 @@ class ShellTest(test_utils.TestCase):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            "create nfs 1 --name %s --share-type test_type" % name,
+            f"create nfs 1 --name {name} --share-type test_type",
         )
 
     def test_allow_access_cert(self):
@@ -2733,7 +2728,7 @@ class ShellTest(test_utils.TestCase):
         self.assertRaises(
             exceptions.CommandError,
             self.run_command,
-            ("access-allow 1234 cert %s" % common_name),
+            (f"access-allow 1234 cert {common_name}"),
         )
 
     def test_allow_access_cert_error_zero(self):
@@ -2999,13 +2994,10 @@ class ShellTest(test_utils.TestCase):
         sn = FakeShareNetwork()
         shell_v2._find_share_network.return_value = sn
         for command in ['--share-network', '--share_network']:
-            self.run_command(
-                'security-service-list %(command)s %(sn_id)s'
-                % {'command': command, 'sn_id': sn.id}
-            )
+            self.run_command(f'security-service-list {command} {sn.id}')
             self.assert_called(
                 'GET',
-                '/security-services?share_network_id=%s' % sn.id,
+                f'/security-services?share_network_id={sn.id}',
             )
             shell_v2._find_share_network.assert_called_with(mock.ANY, sn.id)
             cliutils.print_list.assert_called_with(
@@ -3050,10 +3042,7 @@ class ShellTest(test_utils.TestCase):
         }
         command_str = 'security-service-list'
         for key, value in filters.items():
-            command_str += ' --%(key)s=%(value)s' % {
-                'key': key,
-                'value': value,
-            }
+            command_str += f' --{key}={value}'
         self.run_command(command_str)
         self.assert_called(
             'GET',
@@ -3179,12 +3168,12 @@ class ShellTest(test_utils.TestCase):
     @mock.patch('manilaclient.common.cliutils.print_dict')
     def test_quota_show_with_share_type(self, share_type_id, mock_print_dict):
         self.run_command(
-            'quota-show --tenant 1234 --share_type %s' % share_type_id
+            f'quota-show --tenant 1234 --share_type {share_type_id}'
         )
 
         self.assert_called(
             'GET',
-            '/quota-sets/1234?share_type=%s' % share_type_id,
+            f'/quota-sets/1234?share_type={share_type_id}',
         )
         mock_print_dict.assert_called_once_with(mock.ANY)
 
@@ -3204,7 +3193,7 @@ class ShellTest(test_utils.TestCase):
     )
     @ddt.unpack
     def test_quota_update(self, cmd, expected_body):
-        self.run_command('quota-update 1234 %s' % cmd)
+        self.run_command(f'quota-update 1234 {cmd}')
 
         expected = {'quota_set': dict(expected_body, tenant_id='1234')}
         self.assert_called('PUT', '/quota-sets/1234', body=expected)
@@ -3293,7 +3282,7 @@ class ShellTest(test_utils.TestCase):
         self.assert_called(
             'GET',
             '/scheduler-stats/pools?backend=backend1&host=host1&'
-            'pool=pool1&share_type=%s' % param.split()[-1],
+            f'pool=pool1&share_type={param.split()[-1]}',
         )
         cliutils.print_list.assert_called_with(
             mock.ANY, fields=["Name", "Host", "Backend", "Pool"]
@@ -3532,7 +3521,7 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=[fake_share_group]),
         )
 
-        self.run_command('share-group-update 1234 %s' % cmd)
+        self.run_command(f'share-group-update 1234 {cmd}')
 
         shell_v2._find_share_group.assert_has_calls(
             [mock.call(self.shell.cs, '1234')]
@@ -3576,7 +3565,9 @@ class ShellTest(test_utils.TestCase):
         )
         self.mock_object(shell_v2, '_wait_for_resource_status', mock.Mock())
         self.run_command(
-            'share-group-delete %s --wait' % ' '.join(share_group_to_delete)
+            'share-group-delete {} --wait'.format(
+                ' '.join(share_group_to_delete)
+            )
         )
         shell_v2._find_share_group.assert_has_calls(
             [
@@ -3784,7 +3775,7 @@ class ShellTest(test_utils.TestCase):
     )
     @ddt.unpack
     def test_share_group_snapshot_update(self, cmd, expected_body):
-        self.run_command('share-group-snapshot-update 1234 %s' % cmd)
+        self.run_command(f'share-group-snapshot-update 1234 {cmd}')
 
         expected = {'share_group_snapshot': expected_body}
         self.assert_called('PUT', '/share-group-snapshots/1234', body=expected)
@@ -3937,8 +3928,8 @@ class ShellTest(test_utils.TestCase):
 
         self.run_command(
             'share-group-type-create test-group-type-1 '
-            'type1,type2 --is-public %s --group-specs '
-            'spec1=value1' % str(public)
+            f'type1,type2 --is-public {str(public)} --group-specs '
+            'spec1=value1'
         )
 
         self.assert_called_anytime('POST', '/share-group-types', body=expected)
@@ -4092,7 +4083,7 @@ class ShellTest(test_utils.TestCase):
         cmd = 'quota-class-update test'
         expected = dict()
         for k, v in data.items():
-            cmd += ' %(arg)s %(val)s' % {'arg': k, 'val': v}
+            cmd += f' {k} {v}'
             expected[k[2:].replace('-', '_')] = v
         expected['class_name'] = 'test'
         expected = dict(quota_class_set=expected)
@@ -4159,7 +4150,7 @@ class ShellTest(test_utils.TestCase):
         all_replicas = []
         existing_replicas = []
         for counter in range(replica_count):
-            replica = 'fake-replica-%d' % counter
+            replica = f'fake-replica-{counter}'
             if counter >= replica_errors:
                 existing_replicas.append(replica)
             all_replicas.append(replica)
@@ -4167,7 +4158,7 @@ class ShellTest(test_utils.TestCase):
         shell_v2._find_share_replica.side_effect = StubbedFindWithErrors(
             existing_replicas
         )
-        cmd = 'share-replica-delete %s' % ' '.join(all_replicas)
+        cmd = 'share-replica-delete {}'.format(' '.join(all_replicas))
 
         if replica_count == replica_errors:
             self.assertRaises(exceptions.CommandError, self.run_command, cmd)
@@ -4308,7 +4299,7 @@ class ShellTest(test_utils.TestCase):
         shell_v2._find_share_replica.return_value = fake_replica
         cmd = 'share-replica-export-location-list ' + fake_replica.id
         if columns is not None:
-            cmd = cmd + ' --columns=%s' % columns
+            cmd = cmd + f' --columns={columns}'
             expected_columns = list(
                 map(lambda x: x.strip().title(), columns.split(","))
             )
@@ -4454,7 +4445,7 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=fake_security_services),
         )
 
-        self.run_command('security-service-delete %s' % ' '.join(ss_ids))
+        self.run_command('security-service-delete {}'.format(' '.join(ss_ids)))
 
         shell_v2._find_security_service.assert_has_calls(
             [mock.call(self.shell.cs, ss_id) for ss_id in ss_ids]
@@ -4462,7 +4453,7 @@ class ShellTest(test_utils.TestCase):
         for ss in fake_security_services:
             self.assert_called_anytime(
                 'DELETE',
-                '/security-services/%s' % ss.id,
+                f'/security-services/{ss.id}',
                 clear_callstack=False,
             )
 
@@ -4481,14 +4472,14 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=fake_share_networks),
         )
 
-        self.run_command('share-network-delete %s' % ' '.join(sn_ids))
+        self.run_command('share-network-delete {}'.format(' '.join(sn_ids)))
 
         shell_v2._find_share_network.assert_has_calls(
             [mock.call(self.shell.cs, sn_id) for sn_id in sn_ids]
         )
         for sn in fake_share_networks:
             self.assert_called_anytime(
-                'DELETE', '/share-networks/%s' % sn.id, clear_callstack=False
+                'DELETE', f'/share-networks/{sn.id}', clear_callstack=False
             )
 
     @mock.patch.object(shell_v2, '_find_share', mock.Mock())
@@ -4539,14 +4530,14 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=fake_snapshots),
         )
 
-        self.run_command('snapshot-delete %s' % ' '.join(snapshot_ids))
+        self.run_command('snapshot-delete {}'.format(' '.join(snapshot_ids)))
 
         shell_v2._find_share_snapshot.assert_has_calls(
             [mock.call(self.shell.cs, s_id) for s_id in snapshot_ids]
         )
         for snapshot in fake_snapshots:
             self.assert_called_anytime(
-                'DELETE', '/snapshots/%s' % snapshot.id, clear_callstack=False
+                'DELETE', f'/snapshots/{snapshot.id}', clear_callstack=False
             )
 
     @mock.patch.object(shell_v2, '_find_share_snapshot', mock.Mock())
@@ -4596,7 +4587,9 @@ class ShellTest(test_utils.TestCase):
             ),
         )
         self.run_command(
-            'snapshot-force-delete %s --wait' % ' '.join(snapshots_to_delete)
+            'snapshot-force-delete {} --wait'.format(
+                ' '.join(snapshots_to_delete)
+            )
         )
         shell_v2._find_share_snapshot.assert_has_calls(
             [
@@ -4623,7 +4616,7 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=fake_share_types),
         )
 
-        self.run_command('type-delete %s' % ' '.join(type_ids))
+        self.run_command('type-delete {}'.format(' '.join(type_ids)))
 
         shell_v2._find_share_type.assert_has_calls(
             [mock.call(self.shell.cs, t_id) for t_id in type_ids]
@@ -4631,7 +4624,7 @@ class ShellTest(test_utils.TestCase):
         for fake_share_type in fake_share_types:
             self.assert_called_anytime(
                 'DELETE',
-                '/types/%s' % fake_share_type.id,
+                f'/types/{fake_share_type.id}',
                 clear_callstack=False,
             )
 
@@ -4666,7 +4659,9 @@ class ShellTest(test_utils.TestCase):
         self.mock_object(shell_v2, '_wait_for_resource_status', mock.Mock())
 
         self.run_command(
-            'share-server-delete %s --wait' % ' '.join(share_servers_to_delete)
+            'share-server-delete {} --wait'.format(
+                ' '.join(share_servers_to_delete)
+            )
         )
 
         shell_v2._find_share_server.assert_has_calls(
@@ -4772,7 +4767,7 @@ class ShellTest(test_utils.TestCase):
             mock.Mock(side_effect=_find_message_with_errors),
         )
 
-        cmd = 'message-delete %s' % ' '.join(ids)
+        cmd = 'message-delete {}'.format(' '.join(ids))
 
         if len(fake_messages) == 0:
             self.assertRaises(exceptions.CommandError, self.run_command, cmd)
@@ -4785,7 +4780,7 @@ class ShellTest(test_utils.TestCase):
         for fake_message in fake_messages.values():
             self.assert_called_anytime(
                 'DELETE',
-                '/messages/%s' % fake_message.id,
+                f'/messages/{fake_message.id}',
                 clear_callstack=False,
             )
 
@@ -4827,10 +4822,10 @@ class ShellTest(test_utils.TestCase):
     @ddt.data('migration-start', 'migration-check')
     def test_share_server_migration_start_and_check(self, method):
         command = (
-            "share-server-%s "
+            f"share-server-{method} "
             "1234 host@backend --new-share-network 1111 "
             "--writable False --nondisruptive True "
-            "--preserve-snapshots True" % method
+            "--preserve-snapshots True"
         )
         self.run_command(command)
         method = method.replace('-', '_')

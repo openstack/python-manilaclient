@@ -46,7 +46,7 @@ V2_MAJOR_VERSION = '2'
 
 try:
     osprofiler_profiler = importutils.try_import("osprofiler.profiler")
-except Exception:
+except ImportError:
     pass
 
 

@@ -368,7 +368,7 @@ class ListShareGroup(command.Lister):
 
         snapshot = None
         if parsed_args.snapshot:
-            snapshot = apiutils.find_resource(
+            snapshot = osc_utils.find_resource(
                 share_client.share_snapshots, parsed_args.snapshot
             ).id
 
