@@ -77,9 +77,11 @@ class DeleteShareServer(command.Command):
                 )
 
         if result > 0:
-            total = len(parsed_args.share_servers)
-            msg = f'Failed to delete {result} servers out of {total}.'
-            raise exceptions.CommandError(_(msg))
+            msg = "Failed to delete %(result)d servers out %(total)d"
+            raise exceptions.CommandError(
+                msg
+                % {'result': result, 'total': len(parsed_args.share_servers)},
+            )
 
 
 class ShowShareServer(command.ShowOne):
@@ -433,9 +435,11 @@ class AbandonShareServer(command.Command):
                 )
 
         if result > 0:
-            total = len(parsed_args.share_server)
-            msg = f'Failed to abandon {result} of {total} servers.'
-            raise exceptions.CommandError(_(msg))
+            msg = _('Failed to abandon %(result)s of %(total)s servers.')
+            raise exceptions.CommandError(
+                msg
+                % {'result': result, 'total': len(parsed_args.share_server)}
+            )
 
 
 class SetShareServer(command.Command):
@@ -444,7 +448,6 @@ class SetShareServer(command.Command):
     _description = _("Set share server properties (Admin only).")
 
     def get_parser(self, prog_name):
-        parser = super().get_parser(prog_name)
         allowed_update_choices = [
             'unmanage_starting',
             'server_migrating_to',
@@ -459,6 +462,8 @@ class SetShareServer(command.Command):
             'network_change',
         ]
         allowed_update_choices_str = ', '.join(allowed_update_choices)
+
+        parser = super().get_parser(prog_name)
         parser.add_argument(
             "share_server",
             metavar="<share-server>",

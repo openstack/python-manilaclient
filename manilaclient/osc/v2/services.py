@@ -74,9 +74,8 @@ class SetShareService(command.Command):
                     parsed_args.host, parsed_args.binary
                 )
             except Exception as e:
-                raise exceptions.CommandError(
-                    _(f"Failed to enable service: {e}")
-                )
+                msg = _("Failed to enable service: %(e)s")
+                raise exceptions.CommandError(msg % {'e': e})
 
         if parsed_args.disable:
             if parsed_args.disable_reason:
@@ -97,9 +96,8 @@ class SetShareService(command.Command):
                         parsed_args.host, parsed_args.binary
                     )
             except Exception as e:
-                raise exceptions.CommandError(
-                    _(f"Failed to disable service: {e}")
-                )
+                msg = _("Failed to disable service: %(e)s")
+                raise exceptions.CommandError(msg % {'e': e})
 
 
 class ListShareService(command.Lister):
@@ -205,6 +203,5 @@ class EnsureShareService(command.Command):
         try:
             share_client.services.ensure_shares(parsed_args.host)
         except Exception as e:
-            raise exceptions.CommandError(
-                _(f"Failed to run ensure shares: {e}")
-            )
+            msg = _("Failed to ensure shares: %(e)s")
+            raise exceptions.CommandError(msg % {'e': e})

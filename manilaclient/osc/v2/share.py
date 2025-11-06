@@ -1065,7 +1065,8 @@ class ResizeShare(command.Command):
             try:
                 share_client.shares.shrink(share, new_size)
             except Exception as e:
-                raise exceptions.CommandError(_("Share resize failed: %s") % e)
+                msg = _("Share resize failed: %(e)s")
+                raise exceptions.CommandError(msg % {'e': e})
         elif share_size < new_size:
             force = False
             if parsed_args.force:
@@ -1081,11 +1082,11 @@ class ResizeShare(command.Command):
                 else:
                     share_client.shares.extend(share, new_size)
             except Exception as e:
-                raise exceptions.CommandError(_("Share resize failed: %s") % e)
+                msg = _("Share resize failed: %(e)s")
+                raise exceptions.CommandError(msg % {'e': e})
         else:
-            raise exceptions.CommandError(
-                _("Share size is already at %s GiBs") % new_size
-            )
+            msg = _("Share size is already at %(new_size)s GiBs")
+            raise exceptions.CommandError(msg % {'new_size': new_size})
         if parsed_args.wait:
             if not oscutils.wait_for_status(
                 status_f=share_client.shares.get,
@@ -1544,9 +1545,8 @@ class RevertShare(command.Command):
         try:
             share.revert_to_snapshot(snapshot)
         except Exception as e:
-            raise exceptions.CommandError(
-                _("Failed to revert share to snapshot: %s") % e
-            )
+            msg = _("Failed to revert share to snapshot: %(e)s")
+            raise exceptions.CommandError(msg % {'e': e})
         if parsed_args.wait:
             if not oscutils.wait_for_status(
                 status_f=share_client.shares.get,
@@ -1784,12 +1784,17 @@ class RestoreShare(command.Command):
                         {'share': share, 'e': e},
                     )
             if failure_count > 0:
-                total = len(parsed_args.share)
-                msg = (
-                    f"Failed to restore {failure_count} out of {total} shares."
+                msg = _(
+                    "Failed to restore %(failure_count)s out of %(total)s "
+                    "shares."
                 )
-                msg = _(msg)
-                raise exceptions.CommandError(msg)
+                raise exceptions.CommandError(
+                    msg
+                    % {
+                        'failure_count': failure_count,
+                        'total': len(parsed_args.share),
+                    },
+                )
         else:
             raise exceptions.CommandError(
                 "Restoring a share from the recycle bin is only "

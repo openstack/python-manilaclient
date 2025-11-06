@@ -92,14 +92,13 @@ class CreateShareGroupType(command.ShowOne):
 
                 share_types_list.append(share_type_obj.name)
             except Exception as e:
-                msg = LOG.error(
-                    _(
-                        "Failed to find the share type with "
-                        "name or ID '%(share_type)s': %(e)s"
-                    ),
-                    {'share_type': share_type, 'e': e},
+                msg = _(
+                    "Failed to find the share type with name or ID "
+                    "'%(share_type)s': %(e)s"
                 )
-                raise exceptions.CommandError(msg)
+                raise exceptions.CommandError(
+                    msg % {'share_type': share_type, 'e': e}
+                )
 
         kwargs['share_types'] = share_types_list
 
@@ -310,14 +309,14 @@ class SetShareGroupType(command.Command):
                 share_client.share_group_types, parsed_args.share_group_type
             )
         except Exception as e:
-            msg = LOG.error(
-                _(
-                    "Failed to find the share group type with "
-                    "name or ID '%(share_group_type)s': %(e)s"
-                ),
-                {'share_group_type': parsed_args.share_group_type, 'e': e},
+            msg = _(
+                "Failed to find the share group type with "
+                "name or ID '%(share_group_type)s': %(e)s"
             )
-            raise exceptions.CommandError(msg)
+            raise exceptions.CommandError(
+                msg
+                % {'share_group_type': parsed_args.share_group_type, 'e': e}
+            )
         kwargs = {}
 
         if kwargs:
@@ -365,14 +364,14 @@ class UnsetShareGroupType(command.Command):
                 share_client.share_group_types, parsed_args.share_group_type
             )
         except Exception as e:
-            msg = LOG.error(
-                _(
-                    "Failed to find the share group type with "
-                    "name or ID '%(share_group_type)s': %(e)s"
-                ),
-                {'share_group_type': parsed_args.share_group_type, 'e': e},
+            msg = _(
+                "Failed to find the share group type with "
+                "name or ID '%(share_group_type)s': %(e)s"
             )
-            raise exceptions.CommandError(msg)
+            raise exceptions.CommandError(
+                msg
+                % {'share_group_type': parsed_args.share_group_type, 'e': e}
+            )
 
         if parsed_args.group_specs:
             try:

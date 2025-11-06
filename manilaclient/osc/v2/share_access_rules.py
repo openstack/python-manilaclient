@@ -246,7 +246,6 @@ class ShareAccessDeny(command.Command):
                 )
             kwargs['unrestrict'] = True
 
-        error = None
         try:
             share.deny(parsed_args.id, **kwargs)
             if parsed_args.wait:
@@ -254,17 +253,15 @@ class ShareAccessDeny(command.Command):
                     manager=share_client.share_access_rules,
                     res_id=parsed_args.id,
                 ):
-                    error = _(
-                        f"Failed to delete share access rule with ID: {parsed_args.id}"
-                    )
+                    raise Exception('timed out while waiting for deletion')
         except Exception as e:
-            error = e
-        if error:
+            msg = _(
+                "Failed to delete share access rule %(id)s for share "
+                "%(share)s: %(e)s"
+            )
             raise exceptions.CommandError(
-                _(
-                    "Failed to delete share access rule for share "
-                    f"'{share}': {error}"
-                )
+                msg
+                % {'id': parsed_args.id, 'share': parsed_args.share, 'e': e}
             )
 
 

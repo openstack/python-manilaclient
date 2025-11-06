@@ -275,9 +275,11 @@ class QuotaSet(command.Command):
             try:
                 share_client.quota_classes.update(**kwargs)
             except Exception as e:
+                msg = _(
+                    "Failed to set quotas for class '%(project)s': '%(e)s'"
+                )
                 raise exceptions.CommandError(
-                    _("Failed to set quotas for %s class: '%s'")
-                    % (parsed_args.project, e)
+                    msg % {'project': parsed_args.project, 'e': e}
                 )
         else:
             project_id = utils.find_resource(
@@ -295,9 +297,11 @@ class QuotaSet(command.Command):
             try:
                 share_client.quotas.update(**kwargs)
             except Exception as e:
+                msg = _(
+                    "Failed to set quotas for project '%(project)s': '%(e)s'"
+                )
                 raise exceptions.CommandError(
-                    _("Failed to set quotas for project '%s' : '%s'")
-                    % (parsed_args.project, e)
+                    msg % {'project': parsed_args.project, 'e': e}
                 )
 
 
