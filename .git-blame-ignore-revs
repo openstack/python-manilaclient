@@ -1,0 +1,12 @@
+# Git blame ignore revisions
+# This file contains commit hashes that should be ignored by git blame
+# to avoid showing formatting/style changes in blame output.
+#
+# To use this file, run:
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Ruff formatting commits to ignore
+0ef57c0f49b9c0a6be358a87fff67869c0dc95b4
+95bd3aca64ddec062b884521349914866ddb4672
+16aaa8e7439bb8441c7a9ceff8d398fda276c553
+3e3b385c8c20b94b57255a3f34b39a249ba0a3ae
