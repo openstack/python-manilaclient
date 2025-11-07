@@ -178,8 +178,11 @@ class ListShareTransfer(command.Lister):
             metavar='<sort_key>',
             type=str,
             default=None,
-            help=f'Key to be sorted, available keys are {constants.SHARE_TRANSFER_SORT_KEY_VALUES}. '
-            'Default=None.',
+            help=(
+                f'Key to be sorted, available keys are '
+                f'{constants.SHARE_TRANSFER_SORT_KEY_VALUES}. '
+                f'Default=None.'
+            ),
         )
         parser.add_argument(
             '--sort-dir',
@@ -187,8 +190,11 @@ class ListShareTransfer(command.Lister):
             metavar='<sort_dir>',
             type=str,
             default=None,
-            help=f'Sort direction, available values are {constants.SORT_DIR_VALUES}. '
-            'OPTIONAL: Default=None.',
+            help=(
+                f'Sort direction, available values are '
+                f'{constants.SORT_DIR_VALUES}. '
+                f'OPTIONAL: Default=None.'
+            ),
         )
         parser.add_argument(
             '--detailed',

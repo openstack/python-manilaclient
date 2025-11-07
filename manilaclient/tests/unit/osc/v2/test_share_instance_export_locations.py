@@ -53,7 +53,7 @@ class TestShareInstanceExportLocationList(TestShareInstanceExportLocation):
         )
         self.instances_mock.get.return_value = self.instance
 
-        self.instance_export_locations = manila_fakes.FakeShareExportLocation.create_share_export_locations()
+        self.instance_export_locations = manila_fakes.FakeShareExportLocation.create_share_export_locations()  # noqa: E501
         self.instance_export_locations_mock.list.return_value = (
             self.instance_export_locations
         )
@@ -63,7 +63,7 @@ class TestShareInstanceExportLocationList(TestShareInstanceExportLocation):
             for i in self.instance_export_locations
         )
 
-        self.cmd = osc_share_instance_export_locations.ShareInstanceListExportLocation(
+        self.cmd = osc_share_instance_export_locations.ShareInstanceListExportLocation(  # noqa: E501
             self.app, None
         )
 
@@ -114,7 +114,7 @@ class TestShareInstanceExportLocationShow(TestShareInstanceExportLocation):
         )
         self.instances_mock.get.return_value = self.instance
 
-        self.cmd = osc_share_instance_export_locations.ShareInstanceShowExportLocation(
+        self.cmd = osc_share_instance_export_locations.ShareInstanceShowExportLocation(  # noqa: E501
             self.app, None
         )
 

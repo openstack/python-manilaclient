@@ -42,7 +42,7 @@ class TestShareSecurityServiceCreate(TestShareSecurityService):
     def setUp(self):
         super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()
+        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()  # noqa: E501
         self.security_services_mock.create.return_value = self.security_service
         self.cmd = osc_security_services.CreateShareSecurityService(
             self.app, None
@@ -154,10 +154,10 @@ class TestShareSecurityServiceDelete(TestShareSecurityService):
     def setUp(self):
         super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()
+        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()  # noqa: E501
         self.security_services_mock.get.return_value = self.security_service
 
-        self.security_services = manila_fakes.FakeShareSecurityService.create_fake_security_services()
+        self.security_services = manila_fakes.FakeShareSecurityService.create_fake_security_services()  # noqa: E501
 
         self.cmd = osc_security_services.DeleteShareSecurityService(
             self.app, None
@@ -218,7 +218,7 @@ class TestShareSecurityServiceShow(TestShareSecurityService):
     def setUp(self):
         super().setUp()
 
-        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()
+        self.security_service = manila_fakes.FakeShareSecurityService.create_fake_security_service()  # noqa: E501
         self.security_services_mock.get.return_value = self.security_service
 
         self.cmd = osc_security_services.ShowShareSecurityService(
@@ -510,7 +510,7 @@ class TestShareSecurityServiceList(TestShareSecurityService):
             manila_fakes.FakeShareNetwork.create_one_share_network()
         )
         self.share_networks_mock.get.return_value = self.share_network
-        self.services_list = manila_fakes.FakeShareSecurityService.create_fake_security_services()
+        self.services_list = manila_fakes.FakeShareSecurityService.create_fake_security_services()  # noqa: E501
         self.security_services_mock.list.return_value = self.services_list
         self.values = (
             oscutils.get_dict_properties(i._info, self.columns)

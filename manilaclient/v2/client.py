@@ -263,7 +263,7 @@ class Client:
                 self
             )
         )
-        self.share_snapshot_instance_export_locations = share_snapshot_instance_export_locations.ShareSnapshotInstanceExportLocationManager(
+        self.share_snapshot_instance_export_locations = share_snapshot_instance_export_locations.ShareSnapshotInstanceExportLocationManager(  # noqa: E501
             self
         )
 

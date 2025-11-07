@@ -53,7 +53,9 @@ class TestShareSnapshotInstance(manila_fakes.TestShare):
         )
         self.share_snapshot_instances_mock.reset_mock()
 
-        self.share_snapshot_instances_el_mock = self.app.client_manager.share.share_snapshot_instance_export_locations
+        self.share_snapshot_instances_el_mock = (
+            self.app.client_manager.share.share_snapshot_instance_export_locations  # noqa: E501
+        )
         self.share_snapshot_instances_el_mock.reset_mock()
 
 
@@ -61,7 +63,7 @@ class TestShareSnapshotInstanceList(TestShareSnapshotInstance):
     def setUp(self):
         super().setUp()
 
-        self.share_snapshot_instances = manila_fakes.FakeShareSnapshotIntances.create_share_snapshot_instances(
+        self.share_snapshot_instances = manila_fakes.FakeShareSnapshotIntances.create_share_snapshot_instances(  # noqa: E501
             count=2
         )
 
@@ -136,13 +138,13 @@ class TestShareSnapshotInstanceShow(TestShareSnapshotInstance):
     def setUp(self):
         super().setUp()
 
-        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()
+        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()  # noqa: E501
 
         self.share_snapshot_instances_mock.get.return_value = (
             self.share_snapshot_instance
         )
 
-        self.share_snapshot_instances_el_list = manila_fakes.FakeShareSnapshotInstancesExportLocations.create_share_snapshot_instances(
+        self.share_snapshot_instances_el_list = manila_fakes.FakeShareSnapshotInstancesExportLocations.create_share_snapshot_instances(  # noqa: E501
             count=2
         )
 
@@ -192,7 +194,7 @@ class TestShareSnapshotInstanceSet(TestShareSnapshotInstance):
     def setUp(self):
         super().setUp()
 
-        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()
+        self.share_snapshot_instance = manila_fakes.FakeShareSnapshotIntances.create_one_snapshot_instance()  # noqa: E501
 
         self.snapshot_instance_status = 'available'
 

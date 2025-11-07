@@ -124,9 +124,8 @@ class TestShareInstanceList(TestShareInstance):
         fake_export_location = '10.1.1.0:/fake_share_el'
         argslist = ['--export-location', fake_export_location]
         verifylist = [('export_location', fake_export_location)]
-        self.app.client_manager.share.api_version = api_versions.APIVersion(
-            '2.34'
-        )
+        api_version = api_versions.APIVersion('2.34')
+        self.app.client_manager.share.api_version = api_version
 
         parsed_args = self.check_parser(self.cmd, argslist, verifylist)
 

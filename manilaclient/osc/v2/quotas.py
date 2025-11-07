@@ -148,8 +148,8 @@ class QuotaSet(command.Command):
             type=int,
             default=None,
             help=_(
-                "New value for the 'per-share-gigabytes' quota."
-                "Available only for microversion >= 2.62"
+                'New value for the "per-share-gigabytes" quota. '
+                'Available only for microversion >= 2.62'
             ),
         )
         parser.add_argument(
@@ -158,8 +158,8 @@ class QuotaSet(command.Command):
             type=int,
             default=None,
             help=_(
-                "New value for the 'encryption-keys' quota."
-                "Available only for microversion >= 2.90"
+                'New value for the "encryption-keys" quota. '
+                'Available only for microversion >= 2.90'
             ),
         )
         parser.add_argument(
@@ -202,8 +202,8 @@ class QuotaSet(command.Command):
             if share_client.api_version < api_versions.APIVersion('2.40'):
                 raise exceptions.CommandError(
                     _(
-                        "'share group' quotas are available only starting with "
-                        "'2.40' API microversion."
+                        "'share group' quotas are available only "
+                        "starting with '2.40' API microversion."
                     )
                 )
             kwargs["share_groups"] = parsed_args.share_groups
@@ -220,8 +220,8 @@ class QuotaSet(command.Command):
             if share_client.api_version < api_versions.APIVersion('2.53'):
                 raise exceptions.CommandError(
                     _(
-                        "setting the number of 'share replicas' is available only "
-                        "starting with API microversion '2.53'."
+                        "setting the number of 'share replicas' is available "
+                        "only starting with API microversion '2.53'."
                     )
                 )
             kwargs["share_replicas"] = parsed_args.share_replicas
@@ -230,7 +230,8 @@ class QuotaSet(command.Command):
                 raise exceptions.CommandError(
                     _(
                         "setting the capacity of share replicas in total "
-                        "is available only starting with API microversion '2.53'."
+                        "is available only starting with API microversion "
+                        "'2.53'."
                     )
                 )
             kwargs["replica_gigabytes"] = parsed_args.replica_gigabytes
@@ -257,12 +258,12 @@ class QuotaSet(command.Command):
             raise exceptions.CommandError(
                 _(
                     "Nothing to set. "
-                    "New quota must be specified to at least one of the following "
-                    "resources: 'shares', 'snapshots', 'gigabytes', "
+                    "New quota must be specified to at least one of the "
+                    "following resources: 'shares', 'snapshots', 'gigabytes', "
                     "'snapshot-gigabytes', 'share-networks', 'share-type', "
-                    "'share-groups', 'share-group-snapshots', 'share-replicas', "
-                    "'replica-gigabytes', 'per-share-gigabytes', "
-                    "'encryption_keys'"
+                    "'share-groups', 'share-group-snapshots', "
+                    "'share-replicas', 'replica-gigabytes', "
+                    "'per-share-gigabytes', 'encryption_keys'"
                 )
             )
 
@@ -383,8 +384,8 @@ class QuotaShow(command.ShowOne):
                 if share_client.api_version < api_versions.APIVersion("2.39"):
                     raise exceptions.CommandError(
                         _(
-                            "'share type' quotas are available only starting with "
-                            "'2.39' API microversion."
+                            "'share type' quotas are available only "
+                            "starting with '2.39' API microversion."
                         )
                     )
                 kwargs["share_type"] = parsed_args.share_type

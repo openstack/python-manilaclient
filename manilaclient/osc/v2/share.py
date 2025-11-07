@@ -195,7 +195,7 @@ class CreateShare(command.ShowOne):
             action=parseractions.KeyValueAction,
             help=_(
                 "Set Scheduler hints for the share as key=value pairs, "
-                "possible keys are same_host, different_host."
+                "possible keys are same_host, different_host. "
                 "(repeat option to set multiple hints)"
             ),
         )
@@ -1595,7 +1595,7 @@ class ShareMigrationStart(command.Command):
             choices=['True', 'False'],
             help=_(
                 "Enforces migration to preserve all file metadata when "
-                "moving its contents. If set to True, host-assisted"
+                "moving its contents. If set to True, host-assisted "
                 "migration will not be attempted."
             ),
         )
@@ -1606,7 +1606,7 @@ class ShareMigrationStart(command.Command):
             choices=['True', 'False'],
             help=_(
                 "Enforces migration of the share snapshots to the "
-                "destination. If set to True, host-assisted migration"
+                "destination. If set to True, host-assisted migration "
                 "will not be attempted."
             ),
         )
@@ -1617,7 +1617,7 @@ class ShareMigrationStart(command.Command):
             choices=['True', 'False'],
             help=_(
                 "Enforces migration to keep the share writable while "
-                "contents are being moved. If set to True, host-assisted"
+                "contents are being moved. If set to True, host-assisted "
                 "migration will not be attempted."
             ),
         )
@@ -1637,7 +1637,7 @@ class ShareMigrationStart(command.Command):
             default=None,
             help=_(
                 "Specify the new share network for the share. Do not "
-                "specify this parameter if the migrating share has to be"
+                "specify this parameter if the migrating share has to be "
                 "retained within its current share network."
             ),
         )

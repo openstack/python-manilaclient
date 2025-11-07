@@ -67,7 +67,8 @@ class FakeClient:
                 break
 
         assert found, (
-            f'Expected {expected[0]} {expected[1]}; got {self.client.callstack}'
+            f'Expected {expected[0]} {expected[1]}; '
+            f'got {self.client.callstack}'
         )
 
         if body is not None:

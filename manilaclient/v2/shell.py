@@ -2628,8 +2628,11 @@ def do_snapshot_access_list(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help=f'Key to be sorted, available keys are {constants.SHARE_SORT_KEY_VALUES}. '
-    'OPTIONAL: Default=None.',
+    help=(
+        f'Key to be sorted, available keys are '
+        f'{constants.SHARE_SORT_KEY_VALUES}. '
+        'OPTIONAL: Default=None.'
+    ),
 )
 @cliutils.arg(
     '--sort-dir',
@@ -3158,8 +3161,11 @@ def do_share_instance_export_location_show(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help=f'Key to be sorted, available keys are {constants.SNAPSHOT_SORT_KEY_VALUES}. '
-    'Default=None.',
+    help=(
+        f'Key to be sorted, available keys are '
+        f'{constants.SNAPSHOT_SORT_KEY_VALUES}. '
+        'Default=None.'
+    ),
 )
 @cliutils.arg(
     '--sort-dir',
@@ -6497,7 +6503,10 @@ def do_share_group_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help=f'Key to be sorted, available keys are {constants.SHARE_GROUP_SORT_KEY_VALUES}. Default=None.',
+    help=(
+        f'Key to be sorted, available keys are '
+        f'{constants.SHARE_GROUP_SORT_KEY_VALUES}. Default=None.'
+    ),
 )
 @cliutils.arg(
     '--sort-dir',
@@ -6819,7 +6828,10 @@ def do_share_group_snapshot_create(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help=f'Key to be sorted, available keys are {constants.SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES}. Default=None.',
+    help=(
+        f'Key to be sorted, available keys are '
+        f'{constants.SHARE_GROUP_SNAPSHOT_SORT_KEY_VALUES}. Default=None.'
+    ),
 )
 @cliutils.arg(
     '--sort-dir',
@@ -7593,7 +7605,10 @@ def do_share_transfer_accept(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help=f'Key to be sorted, available keys are {constants.SHARE_TRANSFER_SORT_KEY_VALUES}. Default=None.',
+    help=(
+        f'Key to be sorted, available keys are '
+        f'{constants.SHARE_TRANSFER_SORT_KEY_VALUES}. Default=None.'
+    ),
 )
 @cliutils.arg(
     '--sort-dir',
@@ -7761,7 +7776,10 @@ def do_share_transfer_show(cs, args):
     type=str,
     default=None,
     action='single_alias',
-    help=f'Key to be sorted, available keys are {constants.MESSAGE_SORT_KEY_VALUES}. Default=desc.',
+    help=(
+        f'Key to be sorted, available keys are '
+        f'{constants.MESSAGE_SORT_KEY_VALUES}. Default=desc.'
+    ),
 )
 @cliutils.arg(
     '--sort-dir',

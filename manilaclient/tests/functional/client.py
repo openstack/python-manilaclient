@@ -394,7 +394,10 @@ class ManilaCLIClient(base.CLIClient):
 
         if identity_api_version == "3":
             if CONF.admin_project_domain_name:
-                flags += f"--os-project-domain-name {CONF.admin_project_domain_name} "
+                flags += (
+                    f"--os-project-domain-name "
+                    f"{CONF.admin_project_domain_name} "
+                )
             elif CONF.admin_project_domain_id:
                 flags += (
                     f"--os-project-domain-id {CONF.admin_project_domain_id} "
@@ -840,7 +843,8 @@ class ManilaCLIClient(base.CLIClient):
     ):
         """Delete a share_network."""
         self.manila(
-            f'share-network-subnet-delete {share_network} {share_network_subnet}',
+            f'share-network-subnet-delete {share_network} '
+            f'{share_network_subnet}',
             microversion=microversion,
         )
 
@@ -1513,7 +1517,8 @@ class ManilaCLIClient(base.CLIClient):
             if int(time.time()) - start >= self.build_timeout:
                 message = (
                     f"Snapshot {snapshot_name} failed to reach {status} "
-                    f"status within the required time ({self.build_timeout} s)."
+                    f"status within the required time "
+                    f"({self.build_timeout} s)."
                 )
                 raise tempest_lib_exc.TimeoutException(message)
 
@@ -1619,8 +1624,8 @@ class ManilaCLIClient(base.CLIClient):
         microversion=None,
     ):
         cmd = (
-            f'access-allow  --access-level {access_level} {share_id} {access_type} '
-            f'{access_to}'
+            f'access-allow  --access-level {access_level} {share_id} '
+            f'{access_type} {access_to}'
         )
         if metadata:
             metadata_cli = ''
@@ -1739,7 +1744,10 @@ class ManilaCLIClient(base.CLIClient):
             f'--preserve-snapshots {preserve_snapshots}'
         )
         if force_host_assisted_migration:
-            cmd += f' --force-host-assisted-migration {force_host_assisted_migration}'
+            cmd += (
+                f' --force-host-assisted-migration '
+                f'{force_host_assisted_migration}'
+            )
         if new_share_network:
             cmd += f' --new-share-network {new_share_network}'
         if new_share_type:
@@ -1918,7 +1926,8 @@ class ManilaCLIClient(base.CLIClient):
         :param microversion: API microversion to be used for request.
         """
         snapshot_raw = self.manila(
-            f'snapshot-instance-export-location-show {snapshot} {export_location_uuid}',
+            f'snapshot-instance-export-location-show {snapshot} '
+            f'{export_location_uuid}',
             microversion=microversion,
         )
         snapshot = output_parser.details(snapshot_raw)
@@ -2056,7 +2065,10 @@ class ManilaCLIClient(base.CLIClient):
         self, host, share_network, identifier, driver_options=None
     ):
         if driver_options:
-            command = f'share-server-manage {host} {share_network} {identifier} {driver_options}'
+            command = (
+                f'share-server-manage {host} {share_network} {identifier} '
+                f'{driver_options}'
+            )
         else:
             command = (
                 f'share-server-manage {host} {share_network} {identifier}'
@@ -2067,7 +2079,8 @@ class ManilaCLIClient(base.CLIClient):
 
     def manage_share(self, host, protocol, export_location, share_server):
         managed_share_raw = self.manila(
-            f'manage {host} {protocol} {export_location} --share-server-id {share_server}'
+            f'manage {host} {protocol} {export_location} '
+            f'--share-server-id {share_server}'
         )
         managed_share = output_parser.details(managed_share_raw)
         return managed_share['id']
@@ -2175,8 +2188,8 @@ class ManilaCLIClient(base.CLIClient):
 
             if int(time.time()) - start >= self.build_timeout:
                 message = (
-                    f'No message for resource with id {resource_id} was created in'
-                    f' the required time ({self.build_timeout} s).'
+                    f'No message for resource with id {resource_id} was '
+                    f'created in the required time ({self.build_timeout} s).'
                 )
                 raise tempest_lib_exc.TimeoutException(message)
 
