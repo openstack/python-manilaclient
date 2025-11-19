@@ -349,6 +349,7 @@ class OSCClientTestBase(base.ClientTestBase):
         share,
         name=None,
         description=None,
+        properties=None,
         wait=True,
         force=None,
         add_cleanup=True,
@@ -360,6 +361,9 @@ class OSCClientTestBase(base.ClientTestBase):
 
         if description:
             cmd += f' --description {description}'
+        if properties:
+            for key, value in properties.items():
+                cmd += f' --property {key}={value}'
         if wait:
             cmd += ' --wait'
         if force:
