@@ -236,6 +236,7 @@ class SharesTest(utils.TestCase):
         ("2.8", "/shares/manage", True),
         ("2.8", "/shares/manage", False),
         ("2.49", "/shares/manage", False, '1234'),
+        ("2.92", "/shares/manage", False, None, 'fake_mount_pt1'),
     )
     @ddt.unpack
     def test_manage_share(
@@ -244,6 +245,7 @@ class SharesTest(utils.TestCase):
         resource_path,
         is_public=False,
         share_server_id=None,
+        mount_point_name=None,
     ):
         service_host = "fake_service_host"
         protocol = "fake_protocol"
@@ -265,6 +267,9 @@ class SharesTest(utils.TestCase):
         version = api_versions.APIVersion(microversion)
         if version >= api_versions.APIVersion('2.8'):
             expected_body["is_public"] = is_public
+
+        if version >= api_versions.APIVersion('2.92'):
+            expected_body["mount_point_name"] = mount_point_name
 
         mock_microversion = mock.Mock(api_version=version)
         manager = shares.ShareManager(api=mock_microversion)
@@ -297,6 +302,22 @@ class SharesTest(utils.TestCase):
                     description,
                     is_public,
                 )
+            elif (
+                api_versions.APIVersion('2.49')
+                <= version
+                < api_versions.APIVersion('2.92')
+            ):
+                result = manager.manage(
+                    service_host,
+                    protocol,
+                    export_path,
+                    driver_options,
+                    share_type,
+                    name,
+                    description,
+                    is_public,
+                    share_server_id,
+                )
             else:
                 result = manager.manage(
                     service_host,
@@ -308,6 +329,7 @@ class SharesTest(utils.TestCase):
                     description,
                     is_public,
                     share_server_id,
+                    mount_point_name,
                 )
 
             self.assertEqual(manager._create.return_value, result)

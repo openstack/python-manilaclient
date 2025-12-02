@@ -287,6 +287,7 @@ class ShareManager(base.MetadataCapableManager):
         description=None,
         is_public=None,
         share_server_id=None,
+        mount_point_name=None,
         resource_path="/shares/manage",
     ):
         """Manage some existing share.
@@ -300,6 +301,7 @@ class ShareManager(base.MetadataCapableManager):
         :param description: - description for new share
         :param is_public: - visibility for new share
         :param share_server_id: text - id of share server associated with share
+        :param mount_point_name: text - mount point name of share
         """
         driver_options = driver_options if driver_options else dict()
         body = {
@@ -315,6 +317,9 @@ class ShareManager(base.MetadataCapableManager):
 
         if is_public is not None:
             body['is_public'] = is_public
+
+        if mount_point_name is not None:
+            body['mount_point_name'] = mount_point_name
 
         return self._create(resource_path, {'share': body}, 'share')
 
@@ -386,7 +391,7 @@ class ShareManager(base.MetadataCapableManager):
             resource_path="/shares/manage",
         )
 
-    @api_versions.wraps("2.49")  # noqa
+    @api_versions.wraps("2.49", "2.91")  # noqa
     def manage(  # noqa
         self,
         service_host,
@@ -409,6 +414,34 @@ class ShareManager(base.MetadataCapableManager):
             description=description,
             is_public=is_public,
             share_server_id=share_server_id,
+            resource_path="/shares/manage",
+        )
+
+    @api_versions.wraps("2.92")  # noqa
+    def manage(  # noqa
+        self,
+        service_host,
+        protocol,
+        export_path,
+        driver_options=None,
+        share_type=None,
+        name=None,
+        description=None,
+        is_public=False,
+        share_server_id=None,
+        mount_point_name=None,
+    ):
+        return self._do_manage(
+            service_host,
+            protocol,
+            export_path,
+            driver_options=driver_options,
+            share_type=share_type,
+            name=name,
+            description=description,
+            is_public=is_public,
+            share_server_id=share_server_id,
+            mount_point_name=mount_point_name,
             resource_path="/shares/manage",
         )
 
