@@ -113,6 +113,14 @@ BACKUP_SORT_KEY_VALUES = (
     'project_id',
 )
 
+QOS_TYPE_SORT_KEY_VALUES = (
+    'id',
+    'name',
+    'created_at',
+    'updated_at',
+)
+
+
 TASK_STATE_MIGRATION_SUCCESS = 'migration_success'
 TASK_STATE_MIGRATION_ERROR = 'migration_error'
 TASK_STATE_MIGRATION_CANCELLED = 'migration_cancelled'
@@ -172,3 +180,4 @@ REPLICA_GRADUATION_VERSION = '2.56'
 REPLICA_PRE_GRADUATION_VERSION = '2.55'
 SHARE_TRANSFER_VERSION = '2.77'
 RESOURCE_LOCK_VERSION = '2.81'
+QOS_TYPE_VERSION = '2.94'

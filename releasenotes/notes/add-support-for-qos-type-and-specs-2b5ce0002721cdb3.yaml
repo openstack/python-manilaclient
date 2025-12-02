@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Added support for QoS types and specs via the Python SDK and the
+    ``openstack share qos type`` CLI commands (create, delete, list, show,
+    set, unset). Available from microversion 2.94 and above.

@@ -187,6 +187,12 @@ share_lock_show = "manilaclient.osc.v2.resource_locks:ShowResourceLock"
 share_lock_set = " manilaclient.osc.v2.resource_locks:SetResourceLock"
 share_lock_unset = "manilaclient.osc.v2.resource_locks:UnsetResourceLock"
 share_lock_delete = "manilaclient.osc.v2.resource_locks:DeleteResourceLock"
+share_qos_type_create = "manilaclient.osc.v2.qos_types:CreateQosType"
+share_qos_type_list = "manilaclient.osc.v2.qos_types:ListQosType"
+share_qos_type_show = "manilaclient.osc.v2.qos_types:ShowQosType"
+share_qos_type_set = "manilaclient.osc.v2.qos_types:SetQosType"
+share_qos_type_unset = "manilaclient.osc.v2.qos_types:UnsetQosType"
+share_qos_type_delete = "manilaclient.osc.v2.qos_types:DeleteQosType"
 
 [tool.setuptools]
 packages = [

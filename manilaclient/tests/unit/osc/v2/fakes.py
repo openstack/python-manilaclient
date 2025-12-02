@@ -64,6 +64,7 @@ class FakeShareClient:
         self.share_group_type_access = mock.Mock()
         self.share_servers = mock.Mock()
         self.resource_locks = mock.Mock()
+        self.qos_types = mock.Mock()
 
 
 class TestShare(osc_utils.TestCommand):
@@ -1626,3 +1627,77 @@ class FakeShareBackup:
         for n in range(0, count):
             share_backups.append(FakeShareBackup.create_one_backup(attrs))
         return share_backups
+
+
+class FakeQosType:
+    """Fake one or more qos types"""
+
+    @staticmethod
+    def create_one_qostype(attrs=None, methods=None):
+        """Create a fake qos type
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with project_id, resource and so on
+        """
+
+        attrs = attrs or {}
+        methods = methods or {}
+
+        qos_type_info = {
+            "id": 'qos-type-id-' + uuid.uuid4().hex,
+            "name": 'qos-type-name-' + uuid.uuid4().hex,
+            "description": 'qos-type-description-' + uuid.uuid4().hex,
+            "specs": {
+                "expected_iops": "2000",
+                "peak_iops": "5000",
+            },
+            "created_at": 'time-' + uuid.uuid4().hex,
+            "updated_at": 'time-' + uuid.uuid4().hex,
+        }
+
+        qos_type_info.update(attrs)
+        qos_type = osc_fakes.FakeResource(
+            info=copy.deepcopy(qos_type_info), methods=methods, loaded=True
+        )
+        return qos_type
+
+    @staticmethod
+    def create_qos_types(attrs=None, count=2):
+        """Create multiple fake qos types.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param Integer count:
+            The number of qos types to be faked
+        :return:
+            A list of FakeResource objects
+        """
+
+        qos_types = []
+        for n in range(0, count):
+            qos_types.append(FakeQosType.create_one_qostype(attrs))
+
+        return qos_types
+
+    @staticmethod
+    def get_qos_types(qos_types=None, count=2):
+        """Get an iterable MagicMock object with a list of faked types.
+
+        If types list is provided, then initialize the Mock object with the
+        list. Otherwise create one.
+
+        :param List types:
+            A list of FakeResource objects faking types
+        :param Integer count:
+            The number of types to be faked
+        :return
+            An iterable Mock object with side_effect set to a list of faked
+            types
+        """
+
+        if qos_types is None:
+            qos_types = FakeQosType.create_qos_types(count)
+
+        return mock.Mock(side_effect=qos_types)

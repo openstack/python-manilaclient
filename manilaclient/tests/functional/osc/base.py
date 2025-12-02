@@ -563,3 +563,36 @@ class OSCClientTestBase(base.ClientTestBase):
             )
 
         return backup_object
+
+    def create_qos_type(
+        self,
+        name=None,
+        description=None,
+        specs=None,
+        add_cleanup=True,
+        client=None,
+        formatter=None,
+    ):
+        name = name or data_utils.rand_name('autotest_qos_type_name')
+        specs = specs or {}
+
+        cmd = f'create {name} '
+        if description:
+            cmd += f' --description {description}'
+        if specs:
+            q_specs = ''
+            for key, value in specs.items():
+                q_specs += f' --spec {key}={value}'
+            cmd += q_specs
+
+        if formatter == 'json':
+            cmd = f'share qos type {cmd} -f {formatter} '
+            qos_type = json.loads(self.openstack(cmd, client=client))
+        else:
+            qos_type = self.dict_result('share qos type', cmd, client=client)
+
+        if add_cleanup:
+            self.addCleanup(
+                self.openstack, f'share qos type delete {qos_type["id"]}'
+            )
+        return qos_type
