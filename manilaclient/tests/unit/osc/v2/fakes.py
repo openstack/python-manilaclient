@@ -66,17 +66,6 @@ class FakeShareClient:
         self.resource_locks = mock.Mock()
 
 
-class ManilaParseException(Exception):
-    """The base exception class for all exceptions this library raises."""
-
-    def __init__(self, message=None, details=None):
-        self.message = message or "Argument parse exception"
-        self.details = details or None
-
-    def __str__(self):
-        return self.message
-
-
 class TestShare(osc_utils.TestCommand):
     def setUp(self):
         super().setUp()
