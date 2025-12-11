@@ -275,6 +275,7 @@ class ShareGroupManager(base.ManagerWithFind):
             return self._update(url, body, RESOURCE_NAME)
 
     @api_versions.wraps("2.31", "2.54")
+    @api_versions.experimental_api
     def update(self, share_group, **kwargs):
         return self._update_share_group(share_group, **kwargs)
 

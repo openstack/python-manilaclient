@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Fixed an issue where the ``share group update`` command (and the
+    underlying ``share_groups.update()`` python binding) was missing
+    the experimental API flag. The client now correctly treats this
+    action as experimental and sends the required headers. (Bug `2132937
+    <https://bugs.launchpad.net/python-manilaclient/+bug/2132937>`_)
