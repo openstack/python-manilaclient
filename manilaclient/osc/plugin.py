@@ -121,7 +121,7 @@ def build_option_parser(parser):
         ),
         help='Shared File System API version, default='
         + default_api_version
-        + 'version supported by both the client and the server). '
+        + ' (version supported by both the client and the server) '
         '(Env: OS_SHARE_API_VERSION)',
     )
     parser.add_argument(
