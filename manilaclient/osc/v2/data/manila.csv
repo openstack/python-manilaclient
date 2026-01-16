@@ -1,3 +1,5 @@
+# NOTE: The legacy "manila" CLI has been removed. This file is maintained
+# for historical reference and migration purposes.
 manila command,openstack command,command description
 --version,module list,List the client software version
 absolute-limits,share limits show --absolute,Print a list of absolute limits for a user
