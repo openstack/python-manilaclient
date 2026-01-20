@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Adds support to create/update/delete replica metadata (properties)
+    with set and unset command.

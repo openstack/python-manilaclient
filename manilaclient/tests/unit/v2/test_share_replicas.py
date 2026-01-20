@@ -84,6 +84,29 @@ class ShareReplicasTest(utils.TestCase):
             self.assertEqual(share_replicas.RESOURCE_NAME, result['resp_key'])
             self.assertEqual(body_expected, result['body'])
 
+    @ddt.data("2.95")
+    def test_create_with_metadata(self, microversion):
+        api_version = api_versions.APIVersion(microversion)
+        values = {
+            'availability_zone': 'az1',
+            'share': 's1',
+            'share_network': 'sn1',
+            'metadata': {"fake_key": "fake_value"},
+        }
+
+        manager = share_replicas.ShareReplicaManager(
+            fakes.FakeClient(api_version=api_version)
+        )
+        with mock.patch.object(manager, '_create', fakes.fake_create):
+            result = manager.create(**values)
+
+            values['share_id'] = values.pop('share')
+            values['share_network_id'] = values.pop('share_network')
+            body_expected = {share_replicas.RESOURCE_NAME: values}
+            self.assertEqual(share_replicas.RESOURCES_PATH, result['url'])
+            self.assertEqual(share_replicas.RESOURCE_NAME, result['resp_key'])
+            self.assertEqual(body_expected, result['body'])
+
     def test_delete_str(self):
         with mock.patch.object(self.manager, '_delete', mock.Mock()):
             self.manager.delete(FAKE_REPLICA)
