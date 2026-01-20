@@ -1,0 +1,12 @@
+---
+deprecations:
+  - |
+    Legacy keystoneclient options "use_keyring", "force_new_token"
+    and "cached_token_lifetime" were dropped. Using these options
+    will have no effect with this release and will cause an error
+    in a future release.
+security:
+  - |
+    The use of the keystoneclient library has been replaced with keystoneauth.
+    The latter library is better maintained and has more auth options that are
+    now usable with manilaclient.

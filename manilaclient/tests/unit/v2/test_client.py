@@ -82,22 +82,32 @@ class ClientTest(utils.TestCase):
         self.assertIsNotNone(c.client)
         self.assertIsNone(c.keystone_client)
 
-    @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
-    def test_valid_region_name_v1(self):
+    @mock.patch.object(client.Client, '_get_keystone_auth_and_session')
+    def test_valid_region_name_v1(self, mock_get_auth):
         self.mock_object(client.httpclient, 'HTTPClient')
-        kc = client.Client._get_keystone_client.return_value
-        kc.service_catalog = mock.Mock()
-        kc.service_catalog.get_endpoints = mock.Mock(return_value=self.catalog)
+        self.mock_object(client.adapter, 'LegacyJsonAdapter')
+
+        # Mock the auth and session returned by _get_keystone_auth_and_session
+        mock_auth = mock.Mock()
+        mock_session = mock.Mock()
+        mock_get_auth.return_value = (mock_auth, mock_session)
+
+        # Mock the adapter to return token and endpoint
+        mocked_adapter = client.adapter.LegacyJsonAdapter.return_value
+        mocked_adapter.session.get_token.return_value = 'fake_token'
+        mocked_adapter.session.get_endpoint.return_value = 'http://1.2.3.4'
+        mocked_adapter.auth = mock_auth
+
         c = client.Client(
             api_version=manilaclient.API_DEPRECATED_VERSION,
             service_type="share",
             region_name='TestRegion',
         )
-        self.assertTrue(client.Client._get_keystone_client.called)
-        kc.service_catalog.get_endpoints.assert_called_with('share')
+
+        self.assertTrue(mock_get_auth.called)
         client.httpclient.HTTPClient.assert_called_with(
             'http://1.2.3.4',
-            mock.ANY,
+            'fake_token',
             'python-manilaclient',
             insecure=False,
             cacert=None,
@@ -109,43 +119,67 @@ class ClientTest(utils.TestCase):
         )
         self.assertIsNotNone(c.client)
 
-    @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
-    def test_nonexistent_region_name(self):
-        kc = client.Client._get_keystone_client.return_value
-        kc.service_catalog = mock.Mock()
-        kc.service_catalog.get_endpoints = mock.Mock(return_value=self.catalog)
+    @mock.patch.object(client.Client, '_get_keystone_auth_and_session')
+    def test_nonexistent_region_name(self, mock_get_auth):
+        self.mock_object(client.adapter, 'LegacyJsonAdapter')
+
+        # Mock the auth and session returned by _get_keystone_auth_and_session
+        mock_auth = mock.Mock()
+        mock_session = mock.Mock()
+        mock_get_auth.return_value = (mock_auth, mock_session)
+
+        # Mock the adapter to return token but no endpoint (None)
+        mocked_adapter = client.adapter.LegacyJsonAdapter.return_value
+        mocked_adapter.session.get_token.return_value = 'fake_token'
+        mocked_adapter.session.get_endpoint.return_value = None
+        mocked_adapter.auth = mock_auth
+
         self.assertRaises(
             RuntimeError,
             client.Client,
             api_version=manilaclient.API_MAX_VERSION,
             region_name='FakeRegion',
         )
-        self.assertTrue(client.Client._get_keystone_client.called)
-        kc.service_catalog.get_endpoints.assert_called_with('sharev2')
+        self.assertTrue(mock_get_auth.called)
+        mocked_adapter.session.get_endpoint.assert_called_with(
+            mock_auth,
+            interface='publicURL',
+            service_type='sharev2',
+            region_name='FakeRegion',
+        )
 
-    @mock.patch.object(client.Client, '_get_keystone_client', mock.Mock())
-    def test_regions_with_same_name(self):
+    @mock.patch.object(client.Client, '_get_keystone_auth_and_session')
+    def test_regions_with_same_name(self, mock_get_auth):
         self.mock_object(client.httpclient, 'HTTPClient')
-        catalog = {
-            'sharev2': [
-                {'region': 'FirstRegion', 'publicURL': 'http://1.2.3.4'},
-                {'region': 'secondregion', 'publicURL': 'http://1.1.1.1'},
-                {'region': 'SecondRegion', 'publicURL': 'http://2.2.2.2'},
-            ],
-        }
-        kc = client.Client._get_keystone_client.return_value
-        kc.service_catalog = mock.Mock()
-        kc.service_catalog.get_endpoints = mock.Mock(return_value=catalog)
+        self.mock_object(client.adapter, 'LegacyJsonAdapter')
+
+        # Mock the auth and session returned by _get_keystone_auth_and_session
+        mock_auth = mock.Mock()
+        mock_session = mock.Mock()
+        mock_get_auth.return_value = (mock_auth, mock_session)
+
+        # Mock the adapter to return token and endpoint
+        mocked_adapter = client.adapter.LegacyJsonAdapter.return_value
+        mocked_adapter.session.get_token.return_value = 'fake_token'
+        mocked_adapter.session.get_endpoint.return_value = 'http://2.2.2.2'
+        mocked_adapter.auth = mock_auth
+
         c = client.Client(
             api_version=manilaclient.API_MIN_VERSION,
             service_type='sharev2',
             region_name='SecondRegion',
         )
-        self.assertTrue(client.Client._get_keystone_client.called)
-        kc.service_catalog.get_endpoints.assert_called_with('sharev2')
+
+        self.assertTrue(mock_get_auth.called)
+        mocked_adapter.session.get_endpoint.assert_called_with(
+            mock_auth,
+            interface='publicURL',
+            service_type='sharev2',
+            region_name='SecondRegion',
+        )
         client.httpclient.HTTPClient.assert_called_with(
             'http://2.2.2.2',
-            mock.ANY,
+            'fake_token',
             'python-manilaclient',
             insecure=False,
             cacert=None,
@@ -219,68 +253,29 @@ class ClientTest(utils.TestCase):
                 return None
 
         self.mock_object(client.httpclient, 'HTTPClient')
-        self.mock_object(client.ks_client, 'Client')
+        self.mock_object(client.identity.v3, 'Password')
+        self.mock_object(client.adapter, 'LegacyJsonAdapter')
         self.mock_object(client.session.discover, 'Discover')
         self.mock_object(client.session, 'Session')
         client_args = self._get_client_args(**kwargs)
         client_args['api_version'] = manilaclient.API_MIN_VERSION
         self.auth_url = client_args['auth_url']
-        catalog = {
-            'share': [
-                {
-                    'region': 'SecondRegion',
-                    'region_id': 'SecondRegion',
-                    'url': 'http://4.4.4.4',
-                    'interface': 'public',
-                },
-            ],
-            'sharev2': [
-                {
-                    'region': 'FirstRegion',
-                    'interface': 'public',
-                    'region_id': 'SecondRegion',
-                    'url': 'http://1.1.1.1',
-                },
-                {
-                    'region': 'secondregion',
-                    'interface': 'public',
-                    'region_id': 'SecondRegion',
-                    'url': 'http://2.2.2.2',
-                },
-                {
-                    'region': 'SecondRegion',
-                    'interface': 'internal',
-                    'region_id': 'SecondRegion',
-                    'url': 'http://3.3.3.1',
-                },
-                {
-                    'region': 'SecondRegion',
-                    'interface': 'public',
-                    'region_id': 'SecondRegion',
-                    'url': 'http://3.3.3.3',
-                },
-                {
-                    'region': 'SecondRegion',
-                    'interface': 'admin',
-                    'region_id': 'SecondRegion',
-                    'url': 'http://3.3.3.2',
-                },
-            ],
-        }
+
         client.session.discover.Discover.return_value.url_for.side_effect = (
             fake_url_for
         )
-        client.ks_client.Client.return_value.auth_token.return_value = (
-            'fake_token'
-        )
-        mocked_ks_client = client.ks_client.Client.return_value
-        mocked_ks_client.service_catalog.get_endpoints.return_value = catalog
+
+        # Mock the adapter to return token and endpoint
+        mocked_adapter = client.adapter.LegacyJsonAdapter.return_value
+        mocked_adapter.session.get_token.return_value = 'fake_token'
+        mocked_adapter.session.get_endpoint.return_value = 'http://3.3.3.3'
+        mocked_adapter.auth = client.identity.v3.Password.return_value
 
         client.Client(**client_args)
 
         client.httpclient.HTTPClient.assert_called_with(
             'http://3.3.3.3',
-            mock.ANY,
+            'fake_token',
             'python-manilaclient',
             insecure=False,
             cacert=None,
@@ -291,9 +286,8 @@ class ClientTest(utils.TestCase):
             api_version=manilaclient.API_MIN_VERSION,
         )
 
-        client.ks_client.Client.assert_called_with(
-            session=mock.ANY,
-            version=(3, 0),
+        # Verify identity.v3.Password was called with correct credentials
+        client.identity.v3.Password.assert_called_with(
             auth_url='url_v3.0',
             username=client_args['username'],
             password=client_args.get('password'),
@@ -306,18 +300,35 @@ class ClientTest(utils.TestCase):
             project_name=client_args['project_name'],
             project_domain_name=client_args['project_domain_name'],
             project_domain_id=client_args['project_domain_id'],
+        )
+
+        # Verify LegacyJsonAdapter was created
+        client.adapter.LegacyJsonAdapter.assert_called_with(
+            session=mock.ANY,
+            auth=mock.ANY,
+            interface=client_args['endpoint_type'],
+            service_type=client_args['service_type'],
+            service_name=None,
             region_name=client_args['region_name'],
         )
-        mocked_ks_client.service_catalog.get_endpoints.assert_called_with(
-            client_args['service_type']
-        )
-        mocked_ks_client.authenticate.assert_called_with()
 
-    @mock.patch.object(client.ks_client, 'Client', mock.Mock())
+        # Verify session.get_token() was called
+        mocked_adapter.session.get_token.assert_called_with(mock.ANY)
+
+        # Verify session.get_endpoint() was called
+        mocked_adapter.session.get_endpoint.assert_called_with(
+            mock.ANY,
+            interface=client_args['endpoint_type'],
+            service_type=client_args['service_type'],
+            region_name=client_args['region_name'],
+        )
+
     @mock.patch.object(client.session.discover, 'Discover', mock.Mock())
     @mock.patch.object(client.session, 'Session', mock.Mock())
     def test_client_init_no_session_no_auth_token_endpoint_not_found(self):
         self.mock_object(client.httpclient, 'HTTPClient')
+        self.mock_object(client.identity.v3, 'Password')
+        self.mock_object(client.adapter, 'LegacyJsonAdapter')
         client_args = self._get_client_args(
             auth_urli='fake_url',
             password='foo_password',
@@ -325,7 +336,6 @@ class ClientTest(utils.TestCase):
         )
         discover = client.session.discover.Discover
         discover.return_value.url_for.return_value = None
-        mocked_ks_client = client.ks_client.Client.return_value
 
         self.assertRaises(
             exceptions.CommandError, client.Client, **client_args
@@ -334,6 +344,5 @@ class ClientTest(utils.TestCase):
         self.assertTrue(client.session.Session.called)
         self.assertTrue(client.session.discover.Discover.called)
         self.assertFalse(client.httpclient.HTTPClient.called)
-        self.assertFalse(client.ks_client.Client.called)
-        self.assertFalse(mocked_ks_client.service_catalog.get_endpoints.called)
-        self.assertFalse(mocked_ks_client.authenticate.called)
+        self.assertFalse(client.identity.v3.Password.called)
+        self.assertFalse(client.adapter.LegacyJsonAdapter.called)
