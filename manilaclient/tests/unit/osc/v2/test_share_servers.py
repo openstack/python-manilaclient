@@ -651,6 +651,11 @@ class TestShareServerMigrationShow(TestShareServer):
         )
         self.share_networks_mock.get.return_value = self.new_share_network
 
+        migration_dict = {
+            'total_progress': 'fake',
+            'task_state': 'migration_in_progress',
+            'destination_share_server_id': 'fake_id',
+        }
         self.share_server = manila_fakes.FakeShareServer.create_one_server(
             attrs={
                 'status': 'migrating',
@@ -659,6 +664,10 @@ class TestShareServerMigrationShow(TestShareServer):
             methods={'migration_get_progress': None},
         )
         self.servers_mock.get.return_value = self.share_server
+        share_client = self.app.client_manager.share
+        share_client.share_servers.migration_get_progress.return_value = (
+            migration_dict
+        )
 
         # Get the command objects to test
         self.cmd = osc_share_servers.ShareServerMigrationShow(self.app, None)

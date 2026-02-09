@@ -639,10 +639,9 @@ class ShareServerMigrationShow(command.ShowOne):
     def take_action(self, parsed_args):
         share_client = self.app.client_manager.share
         if share_client.api_version >= api_versions.APIVersion("2.57"):
-            share_server = osc_utils.find_resource(
-                share_client.share_servers, parsed_args.share_server
+            result = share_client.share_servers.migration_get_progress(
+                parsed_args.share_server
             )
-            result = share_server.migration_get_progress()
             return self.dict2columns(result)
         else:
             raise exceptions.CommandError(

@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixed an issue while getting share server migration progress for source
+    share server after migration is completed.
