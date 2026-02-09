@@ -1,0 +1,5 @@
+---
+upgrade:
+    The "manila" CLI utility has been removed in this release. The
+    mapping/decoder documentation still exists to provide transition
+    to users that are unfamiliar with the "openstack" CLI.

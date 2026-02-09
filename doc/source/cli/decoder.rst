@@ -2,9 +2,13 @@
 OpenStackClient Mapping Guide
 =============================
 
+.. note::
+
+   The legacy ``manila`` CLI has been removed. This guide is maintained for
+   historical reference to help users upgrading from older versions.
+
 The following is a mapping between the legacy ``manila`` CLI client and
 OpenStackClient. Command options are only shown when necessary.
-
 
 .. only:: html
 

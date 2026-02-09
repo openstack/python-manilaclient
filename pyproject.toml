@@ -30,9 +30,6 @@ classifiers = [
 Homepage = "https://docs.openstack.org/python-manilaclient/"
 Repository = "https://opendev.org/openstack/python-manilaclient/"
 
-[project.scripts]
-manila = "manilaclient.shell:main"
-
 [project.entry-points."oslo.config.opts"]
 "manilaclient.config" = "manilaclient.config:list_opts"
 
