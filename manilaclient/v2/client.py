@@ -10,9 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from debtcollector import removals
 from keystoneauth1 import adapter
+from keystoneauth1 import identity
 from keystoneauth1 import session
-from keystoneclient import client as ks_client
 
 import manilaclient
 from manilaclient.common import constants
@@ -64,7 +65,7 @@ class Client:
     Or, alternatively, you can create a client instance using the
     keystoneauth1.session API::
 
-        >>> from keystoneclient.auth.identity import v3
+        >>> from keystoneauth1.identity import v3
         >>> from keystoneauth1 import session
         >>> from manilaclient import client
         >>> auth = v3.Password(auth_url=AUTH_URL,
@@ -82,6 +83,24 @@ class Client:
         ...
     """
 
+    @removals.removed_kwarg(
+        'use_keyring',
+        message='This parameter is no longer supported and has no effect.',
+        version='5.8.0',
+        removal_version='6.0.0',
+    )
+    @removals.removed_kwarg(
+        'force_new_token',
+        message='This parameter is no longer supported and has no effect.',
+        version='5.8.0',
+        removal_version='6.0.0',
+    )
+    @removals.removed_kwarg(
+        'cached_token_lifetime',
+        message='This parameter is no longer supported and has no effect.',
+        version='5.8.0',
+        removal_version='6.0.0',
+    )
     def __init__(
         self,
         username=None,
@@ -138,10 +157,6 @@ class Client:
         self.cert = cert
         self.insecure = insecure
 
-        self.use_keyring = use_keyring
-        self.force_new_token = force_new_token
-        self.cached_token_lifetime = cached_token_lifetime
-
         if input_auth_token and not service_catalog_url:
             msg = (
                 "For token-based authentication you should "
@@ -158,6 +173,7 @@ class Client:
         # if token is provided.
         if not input_auth_token:
             if session:
+                # Modern path - session provided by caller (e.g., OSC plugin)
                 self.keystone_client = adapter.LegacyJsonAdapter(
                     session=session,
                     auth=auth,
@@ -167,39 +183,30 @@ class Client:
                     region_name=region_name,
                 )
                 input_auth_token = self.keystone_client.session.get_token(auth)
-
             else:
-                self.keystone_client = self._get_keystone_client()
-                input_auth_token = self.keystone_client.auth_token
+                # Legacy path - create auth plugin and session ourselves
+                auth, ks_session = self._get_keystone_auth_and_session()
+                self.keystone_client = adapter.LegacyJsonAdapter(
+                    session=ks_session,
+                    auth=auth,
+                    interface=endpoint_type,
+                    service_type=service_type,
+                    service_name=service_name,
+                    region_name=region_name,
+                )
+                input_auth_token = self.keystone_client.session.get_token(auth)
 
         if not input_auth_token:
             raise RuntimeError("Not Authorized")
 
-        if session and not service_catalog_url:
+        if not service_catalog_url:
+            # Use keystoneauth1 session endpoint discovery
             service_catalog_url = self.keystone_client.session.get_endpoint(
-                auth,
+                self.keystone_client.auth,
                 interface=endpoint_type,
                 service_type=service_type,
                 region_name=region_name,
             )
-        elif not service_catalog_url:
-            catalog = self.keystone_client.service_catalog.get_endpoints(
-                service_type
-            )
-            for catalog_entry in catalog.get(service_type, []):
-                if catalog_entry.get("interface") == (
-                    endpoint_type.lower().split("url")[0]
-                ) or catalog_entry.get(endpoint_type):
-                    if region_name and not region_name == (
-                        catalog_entry.get(
-                            "region", catalog_entry.get("region_id")
-                        )
-                    ):
-                        continue
-                    service_catalog_url = catalog_entry.get(
-                        "url", catalog_entry.get(endpoint_type)
-                    )
-                    break
 
         if not service_catalog_url:
             raise RuntimeError("Could not find Manila endpoint in catalog")
@@ -292,17 +299,21 @@ class Client:
             if extension.manager_class:
                 setattr(self, extension.name, extension.manager_class(self))
 
-    def _get_keystone_client(self):
-        # First create a Keystone session
+    def _get_keystone_auth_and_session(self):
+        """Create keystoneauth1 auth plugin and session for authentication.
+
+        Returns:
+            tuple: (auth_plugin, session) for use with keystoneauth1
+        """
+        # Create session with SSL settings
         if self.insecure:
             verify = False
         else:
             verify = self.cacert or True
         ks_session = session.Session(verify=verify, cert=self.cert)
 
-        # Discover the supported keystone versions using the given url
+        # Discover Keystone v3 endpoint
         ks_discover = session.discover.Discover(ks_session, self.auth_url)
-
         auth_url = ks_discover.url_for('v3.0')
         if not auth_url:
             raise exceptions.CommandError(
@@ -310,9 +321,8 @@ class Client:
                 'with using the given auth_url.'
             )
 
-        keystone_client = ks_client.Client(
-            session=ks_session,
-            version=(3, 0),
+        # Create v3 Password auth plugin
+        auth = identity.v3.Password(
             auth_url=auth_url,
             username=self.username,
             password=self.password,
@@ -323,8 +333,6 @@ class Client:
             project_name=self.project_name,
             project_domain_name=self.project_domain_name,
             project_domain_id=self.project_domain_id,
-            region_name=self.region_name,
         )
 
-        keystone_client.authenticate()
-        return keystone_client
+        return auth, ks_session
