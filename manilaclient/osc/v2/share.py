@@ -1172,6 +1172,15 @@ class AdoptShare(command.ShowOne):
             ),
         )
         parser.add_argument(
+            '--mount-point-name',
+            metavar="<mount_point_name>",
+            default=None,
+            help=_(
+                'Optional custom export location. Available only for '
+                'microversion >= 2.92. (Default=None)'
+            ),
+        )
+        parser.add_argument(
             "--wait",
             action='store_true',
             help=_("Wait until share is adopted"),
@@ -1219,6 +1228,15 @@ class AdoptShare(command.ShowOne):
                 raise exceptions.CommandError(
                     'Selecting a share server ID is available only for '
                     'API microversion >= 2.49'
+                )
+
+        if parsed_args.mount_point_name:
+            if share_client.api_version >= api_versions.APIVersion("2.92"):
+                kwargs['mount_point_name'] = parsed_args.mount_point_name
+            else:
+                raise exceptions.CommandError(
+                    'Setting share mount point name is available only for '
+                    'API microversion >= 2.92'
                 )
 
         share = share_client.shares.manage(**kwargs)
