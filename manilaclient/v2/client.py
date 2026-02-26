@@ -22,6 +22,7 @@ from manilaclient import exceptions
 from manilaclient.v2 import availability_zones
 from manilaclient.v2 import limits
 from manilaclient.v2 import messages
+from manilaclient.v2 import qos_types
 from manilaclient.v2 import quota_classes
 from manilaclient.v2 import quotas
 from manilaclient.v2 import resource_locks
@@ -231,6 +232,7 @@ class Client:
         self.limits = limits.LimitsManager(self)
         self.transfers = share_transfers.ShareTransferManager(self)
         self.messages = messages.MessageManager(self)
+        self.qos_types = qos_types.QosTypeManager(self)
         self.services = services.ServiceManager(self)
         self.security_services = security_services.SecurityServiceManager(self)
         self.share_networks = share_networks.ShareNetworkManager(self)

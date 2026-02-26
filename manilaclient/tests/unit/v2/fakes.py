@@ -1236,6 +1236,62 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def delete_types_1(self, **kw):
         return (202, {}, None)
 
+    def get_qos_types(self, **kw):
+        response_body = {
+            'qos_types': [
+                {
+                    'id': 1,
+                    'name': 'test-type-1',
+                    'specs': {'test1': 'test1'},
+                },
+                {
+                    'id': 2,
+                    'name': 'test-type-2',
+                    'specs': {'test1': 'test1'},
+                },
+            ]
+        }
+
+        return 200, {}, response_body
+
+    def get_qos_types_1(self, **kw):
+        return (
+            200,
+            {},
+            {
+                'qos_type': {
+                    'id': 1,
+                    'name': 'test-qos-type-1',
+                    'specs': {'test1': 'test1'},
+                }
+            },
+        )
+
+    def post_qos_types(self, body, **kw):
+        qos_type = body['qos_type']
+        return (
+            202,
+            {},
+            {
+                'qos_type': {
+                    'id': 3,
+                    'name': 'test-qos-type-3',
+                    'description': 'test description',
+                    'specs': qos_type['specs'],
+                }
+            },
+        )
+
+    def post_qos_types_1_specs(self, body, **kw):
+        assert list(body) == ['specs']
+        return (200, {}, {'specs': {'k': 'v'}})
+
+    def delete_qos_types_1_specs_k(self, **kw):
+        return (204, {}, None)
+
+    def delete_qos_types_1(self, **kw):
+        return (202, {}, None)
+
     def get_types_3_os_share_type_access(self, **kw):
         return (
             200,

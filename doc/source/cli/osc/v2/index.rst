@@ -221,3 +221,10 @@ resource locks
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share lock *
+
+=========
+qos types
+=========
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share qos type *
