@@ -18,6 +18,8 @@ import logging
 import re
 import warnings
 
+from oslo_utils import strutils
+
 import manilaclient
 from manilaclient.common._i18n import _
 from manilaclient.common import cliutils
@@ -231,6 +233,8 @@ def check_version_deprecated(api_version):
 def get_api_version(version_string):
     """Returns checked APIVersion object."""
     version_string = str(version_string)
+    if strutils.is_int_like(version_string):
+        version_string = f"{version_string}.0"
 
     api_version = APIVersion(version_string)
     check_version_supported(api_version)

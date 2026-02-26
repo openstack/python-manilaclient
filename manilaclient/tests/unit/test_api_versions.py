@@ -144,11 +144,6 @@ class GetAPIVersionTestCase(utils.TestCase):
             "something_wrong",
         )
 
-    def test_wrong_major_version(self):
-        self.assertRaises(
-            exceptions.UnsupportedVersion, api_versions.get_api_version, "1"
-        )
-
     @mock.patch("manilaclient.api_versions.APIVersion")
     def test_major_and_minor_parts_is_presented(self, mock_apiversion):
         version = "2.7"
