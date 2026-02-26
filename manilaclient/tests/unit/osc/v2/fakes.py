@@ -821,6 +821,7 @@ class FakeShareReplica:
             'share_server_id': None,
             'status': None,
             'updated_at': None,
+            "properties": format_columns.DictColumn({}),
         }
 
         share_replica.update(attrs)
