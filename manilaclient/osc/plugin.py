@@ -64,9 +64,17 @@ def make_client(instance):
     """Returns a shared file system service client."""
     requested_api_version = instance._api_version[API_NAME]
 
-    service_type, manila_endpoint_url = _get_manila_url_from_service_catalog(
-        instance
+    endpoint_override = getattr(
+        instance._cli_options, 'os_endpoint_override', None
     )
+    if endpoint_override:
+        manila_endpoint_url = endpoint_override
+        service_type = constants.SFS_SERVICE_TYPE
+    else:
+        service_type, manila_endpoint_url = (
+            _get_manila_url_from_service_catalog(instance)
+        )
+
     instance.setup_auth()
     debugging_enabled = instance._cli_options.debug
 
@@ -128,13 +136,14 @@ def build_option_parser(parser):
         "--os-endpoint-override",
         metavar="<endpoint-override>",
         default=utils.env(
+            "OS_SHARED_FILE_SYSTEM_ENDPOINT_OVERRIDE",
             "OS_ENDPOINT_OVERRIDE",
             "OS_MANILA_BYPASS_URL",
             "MANILACLIENT_BYPASS_URL",
         ),
         help=(
             "Use this API endpoint instead of the Service Catalog. "
-            "Defaults to env[OS_ENDPOINT_OVERRIDE]."
+            "Defaults to env[OS_SHARED_FILE_SYSTEM_ENDPOINT_OVERRIDE]."
         ),
     )
     return parser

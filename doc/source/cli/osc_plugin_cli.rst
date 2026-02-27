@@ -36,7 +36,7 @@ Client. In this case, you can use configuration option
 ``--os-endpoint-override`` or set the corresponding environment
 variable::
 
-    export OS_ENDPOINT_OVERRIDE=http://...
+    export OS_SHARED_FILE_SYSTEM_ENDPOINT_OVERRIDE=http://...
 
 
 Getting help
