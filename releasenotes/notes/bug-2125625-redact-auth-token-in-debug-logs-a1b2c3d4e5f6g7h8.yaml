@@ -1,0 +1,6 @@
+---
+security:
+  - |
+    Auth tokens are now redacted (SHA256 hashed) in debug log output
+    to prevent credential exposure
+    (`bug 2125625 <https://bugs.launchpad.net/python-manilaclient/+bug/2125625>`_).
