@@ -15,9 +15,13 @@ import re
 from unittest import mock
 
 import ddt
+from keystoneauth1 import exceptions as ks_exceptions
+from keystoneauth1 import session as ks_session
+from oslo_serialization import jsonutils
 import requests
 
 import manilaclient
+from manilaclient.common import constants
 from manilaclient.common import httpclient
 from manilaclient import exceptions
 from manilaclient.tests.unit import utils
@@ -281,3 +285,195 @@ class ClientTest(utils.TestCase):
             'Content-Type', 'application/json'
         )
         self.assertEqual('application/json', value)
+
+
+@ddt.ddt
+class SessionClientTest(utils.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.max_version = manilaclient.API_MAX_VERSION
+        self.endpoint = 'http://192.0.2.10/share/v2/fake_project'
+
+    def _fake_response(self, status_code=200, text='{"hi": "there"}'):
+        resp = mock.Mock()
+        resp.status_code = status_code
+        resp.text = text
+        resp.headers = {}
+        resp.json.return_value = jsonutils.loads(text) if text else None
+        return resp
+
+    def _get_client(
+        self, retries=0, http_log_debug=False, timeout=None, response=None
+    ):
+        # Build a SessionClient backed by a real keystoneauth Session whose
+        # transport-level request() is mocked, so the real adapter code path
+        # (URL handling, body->json mapping, microversion) is exercised.
+        session = ks_session.Session()
+        self.session_request = mock.Mock(
+            return_value=response or self._fake_response()
+        )
+        session.request = self.session_request
+        return httpclient.SessionClient(
+            session=session,
+            auth=mock.Mock(),
+            interface='public',
+            service_type='sharev2',
+            api_version=self.max_version,
+            user_agent=fake_user_agent,
+            endpoint_override=self.endpoint,
+            retries=retries,
+            http_log_debug=http_log_debug,
+            timeout=timeout,
+        )
+
+    def test_init_sets_default_microversion_and_headers(self):
+        cl = self._get_client()
+        self.assertEqual({}, cl.default_headers)
+        self.assertEqual(
+            self.max_version.get_string(), cl.default_microversion
+        )
+
+    def test_get_returns_parsed_body(self):
+        cl = self._get_client()
+
+        resp, body = cl.get('/shares')
+
+        self.assertEqual({'hi': 'there'}, body)
+        args, kwargs = self.session_request.call_args
+        self.assertEqual('GET', args[1])
+        self.assertTrue(kwargs['authenticated'])
+
+    def test_post_maps_body_to_json(self):
+        cl = self._get_client(
+            response=self._fake_response(
+                status_code=202, text='{"share": {"id": "x"}}'
+            )
+        )
+
+        resp, body = cl.post('/shares', body={'share': {'name': 'test'}})
+
+        self.assertEqual({'share': {'id': 'x'}}, body)
+        args, kwargs = self.session_request.call_args
+        self.assertEqual('POST', args[1])
+        # LegacyJsonAdapter maps the legacy ``body`` kwarg onto ``json``.
+        self.assertEqual({'share': {'name': 'test'}}, kwargs['json'])
+
+    @ddt.data('put', 'delete')
+    def test_put_and_delete_dispatch(self, method):
+        cl = self._get_client(
+            response=self._fake_response(status_code=202, text='')
+        )
+
+        getattr(cl, method)('/shares/1')
+
+        args, kwargs = self.session_request.call_args
+        self.assertEqual(method.upper(), args[1])
+
+    def test_request_raises_manila_exception_on_error_status(self):
+        cl = self._get_client(
+            response=self._fake_response(
+                status_code=400,
+                text='{"badRequest": {"message": "nope"}}',
+            )
+        )
+
+        self.assertRaises(exceptions.BadRequest, cl.get, '/shares')
+
+    def test_default_headers_are_merged_into_requests(self):
+        # Regression test: the experimental_api decorator toggles a sticky
+        # header via client.default_headers; it must reach the wire.
+        cl = self._get_client()
+        cl.default_headers[constants.EXPERIMENTAL_HTTP_HEADER] = 'true'
+
+        cl.get('/shares')
+
+        args, kwargs = self.session_request.call_args
+        self.assertEqual(
+            'true', kwargs['headers'][constants.EXPERIMENTAL_HTTP_HEADER]
+        )
+
+    def test_per_request_headers_override_default_headers(self):
+        cl = self._get_client()
+        cl.default_headers['X-Test'] = 'default'
+
+        cl.get('/shares', headers={'X-Test': 'override'})
+
+        args, kwargs = self.session_request.call_args
+        self.assertEqual('override', kwargs['headers']['X-Test'])
+
+    @ddt.data(
+        (
+            'http://192.0.2.10/share/v2/fake_project',
+            'http://192.0.2.10/share/',
+        ),
+        ('http://192.0.2.10/share/v2.22/', 'http://192.0.2.10/share/'),
+        ('http://192.0.2.10:8786/v2/fake', 'http://192.0.2.10:8786/'),
+        ('http://192.0.2.10/share/v1', 'http://192.0.2.10/share/'),
+    )
+    @ddt.unpack
+    def test_get_base_url(self, endpoint, expected):
+        self.assertEqual(
+            expected, httpclient.SessionClient._get_base_url(endpoint)
+        )
+
+    def test_get_with_base_url_strips_version_path(self):
+        cl = self._get_client()
+
+        cl.get_with_base_url('')
+
+        args, kwargs = self.session_request.call_args
+        self.assertEqual('http://192.0.2.10/share/', args[0])
+        self.assertEqual('GET', args[1])
+
+    @mock.patch.object(httpclient, 'sleep', mock.Mock())
+    def test_cs_request_retries_client_exception(self):
+        cl = self._get_client(retries=1)
+        ok = (mock.Mock(status_code=200), {'hi': 'there'})
+        with mock.patch.object(
+            cl,
+            'request',
+            side_effect=[exceptions.ClientException('boom'), ok],
+        ) as mock_request:
+            resp, body = cl.get('/shares')
+
+        self.assertEqual({'hi': 'there'}, body)
+        self.assertEqual(2, mock_request.call_count)
+
+    @mock.patch.object(httpclient, 'sleep', mock.Mock())
+    def test_cs_request_retries_connection_failure(self):
+        # Regression test: transient keystoneauth connection failures are
+        # not manila ClientExceptions and must still be retried.
+        cl = self._get_client(retries=1)
+        ok = (mock.Mock(status_code=200), {'hi': 'there'})
+        with mock.patch.object(
+            cl,
+            'request',
+            side_effect=[ks_exceptions.ConnectTimeout(), ok],
+        ) as mock_request:
+            resp, body = cl.get('/shares')
+
+        self.assertEqual({'hi': 'there'}, body)
+        self.assertEqual(2, mock_request.call_count)
+
+    @mock.patch.object(httpclient, 'sleep', mock.Mock())
+    def test_cs_request_raises_after_retry_limit(self):
+        cl = self._get_client(retries=1)
+        with mock.patch.object(
+            cl,
+            'request',
+            side_effect=exceptions.ClientException('boom'),
+        ) as mock_request:
+            self.assertRaises(exceptions.ClientException, cl.get, '/shares')
+
+        self.assertEqual(2, mock_request.call_count)
+
+    def test_cs_request_no_retry_by_default(self):
+        cl = self._get_client(retries=0)
+        with mock.patch.object(
+            cl,
+            'request',
+            side_effect=exceptions.BadRequest('boom'),
+        ) as mock_request:
+            self.assertRaises(exceptions.BadRequest, cl.get, '/shares')
+
+        self.assertEqual(1, mock_request.call_count)

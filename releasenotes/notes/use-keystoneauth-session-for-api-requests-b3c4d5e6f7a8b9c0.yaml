@@ -1,0 +1,12 @@
+---
+features:
+  - |
+    API requests to the Manila service now use the keystoneauth1 session
+    instead of a custom HTTP client when a session is available. This
+    provides automatic token renewal, standardized logging, and
+    consistent behavior with other OpenStack clients.
+security:
+  - |
+    Auth tokens are automatically redacted in debug logs by
+    keystoneauth1 session-based request handling, preventing
+    credential exposure when ``--debug`` is enabled.

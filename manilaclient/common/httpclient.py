@@ -21,6 +21,8 @@ import hashlib
 import logging
 from urllib import parse
 
+from keystoneauth1 import adapter
+from keystoneauth1 import exceptions as ks_exceptions
 from oslo_serialization import jsonutils
 from oslo_utils import importutils
 from oslo_utils import strutils
@@ -35,6 +37,113 @@ try:
     osprofiler_web = importutils.try_import("osprofiler.web")
 except ImportError:
     pass
+
+
+class SessionClient(adapter.LegacyJsonAdapter):
+    """HTTP client based on keystoneauth1 session.
+
+    Uses the keystoneauth1 session for making API requests, which
+    provides automatic token management, renewal, and safe logging
+    (token redaction).
+    """
+
+    def __init__(
+        self,
+        api_version,
+        retries=0,
+        http_log_debug=False,
+        timeout=None,
+        **kwargs,
+    ):
+        self.retries = int(retries or 0)
+        self.http_log_debug = http_log_debug
+        self.timeout = timeout
+        # NOTE: default_headers is merged into every request. It exists for
+        # compatibility with callers (e.g. the experimental_api decorator)
+        # that toggle sticky headers such as the experimental API header.
+        self.default_headers = {}
+        kwargs['default_microversion'] = api_version.get_string()
+        self._logger = logging.getLogger(__name__)
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def _get_base_url(url):
+        """Truncates url and returns base endpoint."""
+        service_endpoint = parse.urlparse(url)
+        service_endpoint_base_path = re.search(
+            r'(.+?)/v([0-9]+|[0-9]+\.[0-9]+)(/.*|$)',
+            service_endpoint.path,
+        )
+        base_path = (
+            service_endpoint_base_path.group(1)
+            if service_endpoint_base_path
+            else ''
+        )
+        base_url = service_endpoint._replace(path=base_path)
+        return parse.urlunparse(base_url) + '/'
+
+    def request(self, url, method, **kwargs):
+        kwargs.setdefault('authenticated', True)
+        if self.default_headers:
+            # Per-request headers take precedence over the sticky defaults.
+            headers = dict(self.default_headers)
+            headers.update(kwargs.get('headers') or {})
+            kwargs['headers'] = headers
+        if self.http_log_debug:
+            kwargs.setdefault('logger', self._logger)
+        if self.timeout:
+            kwargs.setdefault('timeout', self.timeout)
+        raise_exc = kwargs.pop('raise_exc', True)
+        resp, body = super().request(url, method, raise_exc=False, **kwargs)
+        if raise_exc and resp.status_code >= 400:
+            raise exceptions.from_response(resp, method, url)
+        return resp, body
+
+    def _cs_request(self, url, method, **kwargs):
+        attempts = 0
+        timeout = 1
+        while True:
+            attempts += 1
+            try:
+                return self.request(url, method, **kwargs)
+            except (
+                exceptions.ClientException,
+                ks_exceptions.RetriableConnectionFailure,
+            ) as e:
+                # BadRequest is a ClientException subclass; keystoneauth
+                # raises RetriableConnectionFailure for transient network
+                # errors, which are not manila ClientExceptions.
+                if attempts > self.retries:
+                    raise
+                self._logger.debug("Request error: %s", str(e))
+            self._logger.debug(
+                "Failed attempt(%(current)s of %(total)s), "
+                " retrying in %(sec)s seconds",
+                {'current': attempts, 'total': self.retries, 'sec': timeout},
+            )
+            sleep(timeout)
+            timeout *= 2
+
+    def get(self, url, **kwargs):
+        return self._cs_request(url, 'GET', **kwargs)
+
+    def post(self, url, **kwargs):
+        return self._cs_request(url, 'POST', **kwargs)
+
+    def put(self, url, **kwargs):
+        return self._cs_request(url, 'PUT', **kwargs)
+
+    def delete(self, url, **kwargs):
+        return self._cs_request(url, 'DELETE', **kwargs)
+
+    def get_with_base_url(self, url, **kwargs):
+        base_url = self._get_base_url(self.endpoint_override)
+        return self._cs_request(
+            base_url + url,
+            'GET',
+            endpoint_override=base_url,
+            **kwargs,
+        )
 
 
 class HTTPClient:
