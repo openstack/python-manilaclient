@@ -246,11 +246,12 @@ class ShowShareNetwork(command.ShowOne):
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
         for ss in data['share_network_subnets']:
+            metadata = ss.pop('metadata', {})
             ss.update(
                 {
-                    'properties': format_columns.DictColumn(
-                        ss.pop('metadata', {})
-                    ),
+                    'properties': format_columns.DictColumn(metadata)
+                    if parsed_args.formatter == 'table'
+                    else metadata,
                 },
             )
 
