@@ -24,7 +24,7 @@ from manilaclient.common.apiclient.exceptions import *  # noqa
 class ManilaclientException(Exception):
     """A generic client error."""
 
-    message = _("An unexpected error occured.")
+    message = _("An unexpected error occurred.")
 
     def __init__(self, message):
         self.message = message or self.message

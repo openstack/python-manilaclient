@@ -5,7 +5,7 @@ fixes:
     now validate Neutron network information provided
     before sending the request.
 
-    Previously, validation only occured in the Manila service
+    Previously, validation only occurred in the Manila service
     which could result in client-side errors when invalid network
     or subnet IDs were supplied. The client now performs
     proper validation and handles missing or invalid
