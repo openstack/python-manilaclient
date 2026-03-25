@@ -28,7 +28,7 @@ class ShareReplicaExportLocation(base.Resource):
 
 
 class ShareReplicaExportLocationManager(base.ManagerWithFind):
-    """Manage :class:`ShareInstanceExportLocation` resources."""
+    """Manage :class:`ShareReplicaExportLocation` resources."""
 
     resource_class = ShareReplicaExportLocation
 

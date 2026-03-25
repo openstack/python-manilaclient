@@ -35,7 +35,7 @@ class ShareInstance(base.Resource):
 
 
 class ShareInstanceManager(base.ManagerWithFind):
-    """Manage :class:`ShareInstances` resources."""
+    """Manage :class:`ShareInstance` resources."""
 
     resource_class = ShareInstance
 

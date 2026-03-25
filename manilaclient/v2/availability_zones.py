@@ -27,7 +27,7 @@ class AvailabilityZone(base.Resource):
 
 
 class AvailabilityZoneManager(base.Manager):
-    """Manage :class:`Service` resources."""
+    """Manage :class:`AvailabilityZone` resources."""
 
     resource_class = AvailabilityZone
 
