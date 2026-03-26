@@ -14,7 +14,7 @@ token and identify which endpoint you wish to speak to. Once you have
 done so, you can use the API like so::
 
     >>> from manilaclient import client
-    >>> manila = client.Client('1', $OS_USER_NAME, $OS_PASSWORD, $OS_TENANT_NAME, $OS_AUTH_URL)
+    >>> manila = client.Client('2', $OS_USER_NAME, $OS_PASSWORD, $OS_PROJECT_NAME, $OS_AUTH_URL)
     >>> manila.shares.list()
     []
     >>> share = manila.shares.create(share_proto="nfs", size=1, share_network_id="some_share_network_id")
@@ -26,7 +26,7 @@ done so, you can use the API like so::
 
 In addition to creating and deleting shares, the manilaclient can manage
 share-types, access controls, and more! Using CephFS with Ganesha for NFS
-support as an example (assuumes this continues from the above initialization)::
+support as an example (assumes this continues from the above initialization)::
 
     >>> share_type = client.share_types.create(
     >>>     name="cephfsnfstype", spec_driver_handles_share_servers=False,
