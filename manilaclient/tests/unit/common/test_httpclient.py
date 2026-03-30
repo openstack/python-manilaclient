@@ -104,6 +104,7 @@ class ClientTest(utils.TestCase):
         super().setUp()
         self.max_version = manilaclient.API_MAX_VERSION
         self.max_version_str = self.max_version.get_string()
+        self.mock_object(httpclient, 'sleep')
 
     @ddt.data(
         "http://manila.example.com/v2/b2d18606-2673-4965-885a-4f5a8b955b9b",
