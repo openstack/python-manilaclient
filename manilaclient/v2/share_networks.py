@@ -155,8 +155,8 @@ class ShareNetworkManager(base.ManagerWithFind):
     def get(self, share_network):
         """Get a share network.
 
-        :param policy: share network to get.
-        :rtype: :class:`NetworkInfo`
+        :param share_network: share network to get.
+        :rtype: :class:`ShareNetwork`
         """
         return self._get(
             RESOURCE_PATH % base.getid(share_network), RESOURCE_NAME
@@ -249,7 +249,7 @@ class ShareNetworkManager(base.ManagerWithFind):
     def list(self, detailed=True, search_opts=None):
         """Get a list of all share network.
 
-        :rtype: list of :class:`NetworkInfo`
+        :rtype: list of :class:`ShareNetwork`
         """
         query_string = self._build_query_string(search_opts)
 

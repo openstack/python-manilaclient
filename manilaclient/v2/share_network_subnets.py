@@ -108,8 +108,8 @@ class ShareNetworkSubnetManager(base.MetadataCapableManager):
     def get(self, share_network, share_network_subnet):
         """Get a share network subnet.
 
-        :param policy: share network subnet to get.
-        :rtype: :class:`NetworkSubnetInfo`
+        :param share_network_subnet: share network subnet to get.
+        :rtype: :class:`ShareNetworkSubnet`
         """
         share_network_id = base.getid(share_network)
         share_network_subnet_id = base.getid(share_network_subnet)
