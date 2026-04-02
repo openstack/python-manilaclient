@@ -52,20 +52,20 @@ Command-line API
 ----------------
 
 Installing this package gets you a shell command, ``manila``, that you
-can use to interact with any Rackspace compatible API (including OpenStack).
+can use to interact with the OpenStack Manila API.
 
 You'll need to provide your OpenStack username and password. You can do this
-with the ``--os-username``, ``--os-password`` and  ``--os-tenant-name``
+with the ``--os-username``, ``--os-password`` and  ``--os-project-name``
 params, but it's easier to just set them as environment variables::
 
     export OS_USERNAME=foouser
     export OS_PASSWORD=barpass
-    export OS_TENANT_NAME=fooproject
+    export OS_PROJECT_NAME=fooproject
 
 You will also need to define the authentication url either with param
 ``--os-auth-url`` or as an environment variable::
 
-    export OS_AUTH_URL=http://example.com:5000/v2.0/
+    export OS_AUTH_URL=http://example.com:5000/v3/
 
 Since Keystone can return multiple regions in the Service Catalog, you
 can specify the one you want with ``--os-region-name`` (or
@@ -81,9 +81,9 @@ There's also a complete Python API, but it has not yet been documented.
 
 Quick-start using keystone::
 
-    # use v2.0 auth with http://example.com:5000/v2.0/
-    >>> from manilaclient.v1 import client
-    >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="share")
+    # use v3 auth with http://example.com:5000/v3/
+    >>> from manilaclient.v2 import client
+    >>> nt = client.Client("2", USER, PASS, PROJECT, AUTH_URL, service_type="share")
     >>> nt.shares.list()
     [...]
 
