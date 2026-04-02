@@ -27,7 +27,7 @@ environment variables::
 
     export OS_USERNAME=foo
     export OS_PASSWORD=bar
-    export OS_TENANT_NAME=foobarproject
+    export OS_PROJECT_NAME=foobarproject
     export OS_AUTH_URL=http://...
     export OS_SHARE_API_VERSION=2.51
 
