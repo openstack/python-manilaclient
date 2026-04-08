@@ -455,6 +455,24 @@ class TestShareTypeUnset(TestShareType):
         self.share_type.unset_keys.assert_called_with(['snapshot_support'])
         self.assertIsNone(result)
 
+    def test_share_type_unset_single_spec_from_multiple(self):
+        self.share_type.extra_specs = {
+            'snapshot_support': 'True',
+            'mount_snapshot_support': 'False',
+        }
+
+        arglist = [self.share_type.id, 'snapshot_support']
+        verifylist = [
+            ('share_type', self.share_type.id),
+            ('extra_specs', ['snapshot_support']),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        result = self.cmd.take_action(parsed_args)
+
+        self.share_type.unset_keys.assert_called_with(['snapshot_support'])
+        self.assertIsNone(result)
+
     def test_share_type_unset_exception(self):
         arglist = [self.share_type.id, 'snapshot_support']
         verifylist = [
