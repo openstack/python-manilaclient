@@ -164,7 +164,9 @@ class CreateShare(command.ShowOne):
             help=_(
                 'The share type to create the share with. If not '
                 'specified, unless creating from a snapshot, the default '
-                'share type will be used.'
+                'share type will be used. Note that share creation will '
+                'fail if no share type is specified and no default share '
+                'type is configured by the administrator.'
             ),
         )
         parser.add_argument(
