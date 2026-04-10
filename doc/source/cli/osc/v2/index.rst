@@ -107,6 +107,13 @@ share types
 .. autoprogram-cliff:: openstack.share.v2
     :command: share type *
 
+================
+share transfers
+================
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share transfer *
+
 ============
 share quotas
 ============
@@ -148,6 +155,13 @@ share availability zones
 
 .. autoprogram-cliff:: openstack.share.v2
     :command: share availability zone list
+
+=============
+share backups
+=============
+
+.. autoprogram-cliff:: openstack.share.v2
+    :command: share backup *
 
 ==============
 share services
