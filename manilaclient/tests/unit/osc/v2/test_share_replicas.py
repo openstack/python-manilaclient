@@ -689,6 +689,33 @@ class TestShareReplicaUnset(TestShareReplica):
             parsed_args.property
         )
 
+    def test_share_replica_unset_multiple_properties(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            '2.95'
+        )
+        arglist = [
+            '--property',
+            'key1',
+            '--property',
+            'key2',
+            self.share_replica.id,
+        ]
+        verifylist = [
+            ('property', ['key1', 'key2']),
+            ('replica', self.share_replica.id),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        # Assert delete_metadata was called for each key
+        expected_calls = [mock.call(['key1']), mock.call(['key2'])]
+        self.share_replica.delete_metadata.assert_has_calls(
+            expected_calls, any_order=False
+        )
+        self.assertEqual(self.share_replica.delete_metadata.call_count, 2)
+
     def test_share_replica_unset_property_exception(self):
         self.app.client_manager.share.api_version = api_versions.APIVersion(
             '2.95'
@@ -704,12 +731,6 @@ class TestShareReplicaUnset(TestShareReplica):
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-
-        self.cmd.take_action(parsed_args)
-
-        self.share_replica.delete_metadata.assert_called_once_with(
-            parsed_args.property
-        )
 
         # 404 Not Found would be raised, if property 'test_key' doesn't exist.
         self.share_replica.delete_metadata.side_effect = exceptions.NotFound

@@ -417,6 +417,7 @@ class OSCClientTestBase(base.ClientTestBase):
         availability_zone=None,
         share_network=None,
         wait=None,
+        properties=None,
         add_cleanup=True,
     ):
         cmd = f'replica create {share}'
@@ -427,6 +428,9 @@ class OSCClientTestBase(base.ClientTestBase):
             cmd = cmd + ' --wait'
         if share_network:
             cmd = cmd + f' --share-network {share_network}'
+        if properties:
+            for key, value in properties.items():
+                cmd = cmd + f' --property {key}={value}'
 
         replica_object = self.dict_result('share', cmd)
         self._wait_for_object_status(
@@ -435,10 +439,21 @@ class OSCClientTestBase(base.ClientTestBase):
 
         if add_cleanup:
             self.addCleanup(
-                self.openstack,
-                f'share replica delete {replica_object["id"]} --wait',
+                self._delete_share_replica_and_wait, replica_object['id']
             )
         return replica_object
+
+    def _delete_share_replica_and_wait(self, replica_id):
+        """Delete a share replica and wait for it to be gone.
+
+        Uses check_object_deleted (respects CONF.build_timeout) instead of
+        the CLI --wait flag which is limited to osc_lib's hardcoded 300s.
+        """
+        self.openstack(
+            f'share replica delete {replica_id}',
+            fail_ok=True,
+        )
+        self.check_object_deleted('share replica', replica_id)
 
     def get_share_replica_export_locations(self, replica):
         cmd = f'replica export location list {replica}'

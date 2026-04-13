@@ -498,7 +498,7 @@ class UnsetShareReplica(command.Command):
         parser.add_argument(
             "replica",
             metavar="<replica>",
-            help=_("Unset a property for"),
+            help=_("ID of the share replica to unset property from"),
         )
         parser.add_argument(
             '--property',
@@ -526,14 +526,23 @@ class UnsetShareReplica(command.Command):
                         "with API microversion '2.95'."
                     )
                 )
+            result = 0
             for key in parsed_args.property:
                 try:
                     replica.delete_metadata([key])
                 except Exception as e:
-                    msg = _(
-                        "Failed to unset replica property '%(key)s': %(e)s"
+                    result += 1
+                    LOG.error(
+                        _(
+                            "Failed to unset replica property "
+                            "'%(key)s': %(exception)s"
+                        ),
+                        {'key': key, 'exception': e},
                     )
-                    raise exceptions.CommandError(msg % {'key': key, 'e': e})
+            if result > 0:
+                raise exceptions.CommandError(
+                    _("One or more of the unset operations failed")
+                )
         else:
             raise exceptions.CommandError(
                 "Please specify '--property <key>' to unset a property."
