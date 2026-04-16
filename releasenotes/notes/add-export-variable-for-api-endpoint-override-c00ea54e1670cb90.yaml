@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    In addition to existing "--os-endpoint-override" option to override API
+    endpoint, user can also use export variable. For example, use
+    "export OS_SHARED_FILE_SYSTEM_ENDPOINT_OVERRIDE=<endpoint_url>" and then
+    use "openstack share list" command to refer different Manila API endpoint.
