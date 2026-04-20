@@ -85,12 +85,16 @@ class ShareReplicaManager(base.MetadataCapableManager):
 
         :param share: either share object or its UUID.
         :param search_opts: dict of search options (e.g., metadata filters)
+
         :rtype: list of :class:`ShareReplica`
         """
         search_opts = search_opts or {}
 
         # This will turn {'metadata': {'foo': 'bar', 'baz': 'qux'}}
         # into ?metadata=foo:bar,baz:qux
+        # For nested search options like metadata,
+        # stringified inner dict is expected.
+        # e.g., {'metadata': 'foo:bar,baz:qux'}
         query_string = self._build_query_string(search_opts)
 
         if share:

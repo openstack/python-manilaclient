@@ -18,7 +18,7 @@ CONF = config.CONF
 
 
 class ShareReplicasCLITest(base.OSCClientTestBase):
-    def _create_share_and_replica(self, add_cleanup=True):
+    def _create_share_and_replica(self, add_cleanup=True, properties=None):
         replication_type = CONF.replication_type
         share_type = self.create_share_type(
             data_utils.rand_name('test_share_type'),
@@ -33,6 +33,7 @@ class ShareReplicasCLITest(base.OSCClientTestBase):
             share['id'],
             share_network=share_network['id'],
             wait=True,
+            properties=properties,
             add_cleanup=add_cleanup,
         )
         return replica
@@ -56,3 +57,71 @@ class ShareReplicasCLITest(base.OSCClientTestBase):
         share_replica = self._create_share_and_replica(add_cleanup=False)
         self.openstack(f'share replica delete {share_replica["id"]}')
         self.check_object_deleted('share replica', share_replica["id"])
+
+    def test_share_replica_create_with_metadata(self):
+        """Create a replica with --property and verify it appears in show."""
+        share_replica = self._create_share_and_replica(
+            properties={'test_key': 'test_value'}
+        )
+        show_result = self.dict_result(
+            'share', f'replica show {share_replica["id"]}'
+        )
+        self.assertEqual(share_replica['id'], show_result['id'])
+        self.assertIn('test_key', show_result['properties'])
+        self.assertIn('test_value', show_result['properties'])
+
+    def test_share_replica_set_property(self):
+        """Set a property on a replica and verify it appears in show."""
+        share_replica = self._create_share_and_replica()
+
+        self.openstack(
+            f'share replica set {share_replica["id"]}'
+            ' --property custom_role=secondary'
+        )
+
+        show_result = self.dict_result(
+            'share', f'replica show {share_replica["id"]}'
+        )
+        self.assertEqual(share_replica['id'], show_result['id'])
+        self.assertIn('custom_role', show_result['properties'])
+        self.assertIn('secondary', show_result['properties'])
+
+    def test_share_replica_unset_property(self):
+        """Unset a property from a replica and verify it is removed."""
+        share_replica = self._create_share_and_replica(
+            properties={
+                'custom_role': 'secondary',
+                'custom_policy': 'async',
+            }
+        )
+
+        self.openstack(
+            f'share replica unset {share_replica["id"]} --property custom_role'
+        )
+
+        show_result = self.dict_result(
+            'share', f'replica show {share_replica["id"]}'
+        )
+        self.assertEqual(share_replica['id'], show_result['id'])
+        self.assertNotIn('custom_role', show_result['properties'])
+        self.assertIn('custom_policy', show_result['properties'])
+        self.assertIn('async', show_result['properties'])
+
+    def test_share_replica_list_with_property_filter(self):
+        """List replicas filtered by property and verify correct results."""
+        share_replica = self._create_share_and_replica(
+            properties={'filter_key': 'filter_value'}
+        )
+        share_id = self.dict_result(
+            'share', f'replica show {share_replica["id"]}'
+        )['share_id']
+
+        # List filtered by property; the replica should appear
+        filtered_list = self.listing_result(
+            'share',
+            f'replica list --share {share_id}'
+            ' --property filter_key=filter_value',
+        )
+        filtered_ids = [item['ID'] for item in filtered_list]
+
+        self.assertIn(share_replica['id'], filtered_ids)
