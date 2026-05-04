@@ -80,7 +80,7 @@
         ovsdb-server: true
         # Neutron services
         q-svc: true
-        q-ovn-metadata-agent: true
+        q-ovn-agent: true
         # openstack-cli-server causes problem with credential switch in ansible
         # task
         openstack-cli-server: false
