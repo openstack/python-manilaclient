@@ -208,9 +208,60 @@ class ShareManager(base.MetadataCapableManager):
             '/shares', {'share': body}, 'share', return_raw=return_raw
         )
 
-    @api_versions.wraps("2.29")
+    @api_versions.wraps(
+        "2.29", constants.SHARE_MIGRATION_PRE_GRADUATION_VERSION
+    )
     @api_versions.experimental_api
     def migration_start(
+        self,
+        share,
+        host,
+        force_host_assisted_migration,
+        preserve_metadata,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+        new_share_type_id=None,
+    ):
+        return self._migration_start(
+            share,
+            host,
+            force_host_assisted_migration,
+            preserve_metadata,
+            writable,
+            nondisruptive,
+            preserve_snapshots,
+            new_share_network_id,
+            new_share_type_id,
+        )
+
+    @api_versions.wraps(constants.SHARE_MIGRATION_GRADUATION_VERSION)  # noqa
+    def migration_start(  # noqa F811
+        self,
+        share,
+        host,
+        force_host_assisted_migration,
+        preserve_metadata,
+        writable,
+        nondisruptive,
+        preserve_snapshots,
+        new_share_network_id=None,
+        new_share_type_id=None,
+    ):
+        return self._migration_start(
+            share,
+            host,
+            force_host_assisted_migration,
+            preserve_metadata,
+            writable,
+            nondisruptive,
+            preserve_snapshots,
+            new_share_network_id,
+            new_share_type_id,
+        )
+
+    def _migration_start(
         self,
         share,
         host,
@@ -237,7 +288,9 @@ class ShareManager(base.MetadataCapableManager):
             },
         )
 
-    @api_versions.wraps("2.22")
+    @api_versions.wraps(
+        "2.22", constants.SHARE_MIGRATION_PRE_GRADUATION_VERSION
+    )
     @api_versions.experimental_api
     def reset_task_state(self, share, task_state):
         """Update the provided share with the provided task state.
@@ -245,11 +298,25 @@ class ShareManager(base.MetadataCapableManager):
         :param share: either share object or text with its ID.
         :param task_state: text with new task state to set for share.
         """
+        return self._reset_task_state(share, task_state)
+
+    @api_versions.wraps(constants.SHARE_MIGRATION_GRADUATION_VERSION)  # noqa
+    def reset_task_state(self, share, task_state):  # noqa F811
+        """Update the provided share with the provided task state.
+
+        :param share: either share object or text with its ID.
+        :param task_state: text with new task state to set for share.
+        """
+        return self._reset_task_state(share, task_state)
+
+    def _reset_task_state(self, share, task_state):
         return self._action(
             'reset_task_state', share, {"task_state": task_state}
         )
 
-    @api_versions.wraps("2.22")
+    @api_versions.wraps(
+        "2.22", constants.SHARE_MIGRATION_PRE_GRADUATION_VERSION
+    )
     @api_versions.experimental_api
     def migration_complete(self, share):
         """Completes migration for a given share.
@@ -258,7 +325,17 @@ class ShareManager(base.MetadataCapableManager):
         """
         return self._action('migration_complete', share)
 
-    @api_versions.wraps("2.22")
+    @api_versions.wraps(constants.SHARE_MIGRATION_GRADUATION_VERSION)  # noqa
+    def migration_complete(self, share):  # noqa F811
+        """Completes migration for a given share.
+
+        :param share: The :class:'share' to complete migration
+        """
+        return self._action('migration_complete', share)
+
+    @api_versions.wraps(
+        "2.22", constants.SHARE_MIGRATION_PRE_GRADUATION_VERSION
+    )
     @api_versions.experimental_api
     def migration_cancel(self, share):
         """Attempts to cancel migration for a given share.
@@ -267,9 +344,27 @@ class ShareManager(base.MetadataCapableManager):
         """
         return self._action('migration_cancel', share)
 
-    @api_versions.wraps("2.22")
+    @api_versions.wraps(constants.SHARE_MIGRATION_GRADUATION_VERSION)  # noqa
+    def migration_cancel(self, share):  # noqa F811
+        """Attempts to cancel migration for a given share.
+
+        :param share: The :class:'share' to cancel migration
+        """
+        return self._action('migration_cancel', share)
+
+    @api_versions.wraps(
+        "2.22", constants.SHARE_MIGRATION_PRE_GRADUATION_VERSION
+    )
     @api_versions.experimental_api
     def migration_get_progress(self, share):
+        """Obtains progress of share migration for a given share.
+
+        :param share: The :class:'share' to obtain migration progress
+        """
+        return self._action('migration_get_progress', share)
+
+    @api_versions.wraps(constants.SHARE_MIGRATION_GRADUATION_VERSION)  # noqa
+    def migration_get_progress(self, share):  # noqa F811
         """Obtains progress of share migration for a given share.
 
         :param share: The :class:'share' to obtain migration progress
