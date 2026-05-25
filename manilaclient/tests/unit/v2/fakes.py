@@ -459,6 +459,13 @@ class FakeHTTPClient(fakes.FakeHTTPClient):
     def get_shares_fake_instances(self, **kw):
         return self._share_instances()
 
+    def get_shares_fake_share_migration_progress(self, **kw):
+        _body = {
+            'total_progress': 50,
+            'task_state': 'fake_task_state',
+        }
+        return (200, {}, _body)
+
     def get_shares_1234_instances(self, **kw):
         return self._share_instances()
 

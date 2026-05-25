@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Updated the ``migration_get_progress`` method to use the new GET endpoint
+    ``GET /v2/shares/{share_id}/migration-progress`` when called with
+    API microversion >= ``2.98``. For older microversions the prior POST
+    action is still used.
+    `Bug #2108851 <https://bugs.launchpad.net/manila/+bug/2108851>`_
