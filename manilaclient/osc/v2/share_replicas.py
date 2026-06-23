@@ -297,6 +297,19 @@ class ListShareReplica(command.Lister):
             'availability_zone',
             'updated_at',
         ]
+
+        if share_client.api_version >= api_versions.APIVersion("2.95"):
+            for replica in replicas:
+                replica._info.update(
+                    {
+                        'properties': format_columns.DictColumn(
+                            replica._info.pop('metadata', {})
+                        ),
+                    },
+                )
+
+            columns += ['properties']
+
         column_headers = utils.format_column_headers(columns)
         data = (
             osc_utils.get_dict_properties(replica._info, columns)

@@ -12,6 +12,7 @@
 #
 from unittest import mock
 
+from osc_lib.cli import format_columns
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
@@ -421,6 +422,7 @@ class TestShareReplicaList(TestShareReplica):
         'host',
         'availability_zone',
         'updated_at',
+        'properties',
     ]
 
     column_headers = utils.format_column_headers(columns)
@@ -470,6 +472,45 @@ class TestShareReplicaList(TestShareReplica):
 
         self.assertEqual(self.column_headers, columns)
         self.assertEqual(list(self.values), list(data))
+
+    def test_share_replica_list_with_properties_column(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.95"
+        )
+        metadata = {'replication_policy': 'Sync'}
+        self.replicas_list = (
+            manila_fakes.FakeShareReplica.create_share_replicas(
+                attrs={'metadata': metadata}, count=2
+            )
+        )
+        self.replicas_mock.list.return_value = self.replicas_list
+
+        arglist = []
+        verifylist = []
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.assertEqual(self.column_headers, columns)
+
+        data_list = list(data)
+        self.assertEqual(2, len(data_list))
+        for row in data_list:
+            props = row[-1]
+            self.assertIsInstance(props, format_columns.DictColumn)
+            self.assertEqual({'replication_policy': 'Sync'}, props._value)
+
+    def test_share_replica_list_without_properties_column(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.94"
+        )
+        arglist = []
+        verifylist = []
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        columns, data = self.cmd.take_action(parsed_args)
+
+        self.assertNotIn('Properties', columns)
 
 
 class TestShareReplicaShow(TestShareReplica):

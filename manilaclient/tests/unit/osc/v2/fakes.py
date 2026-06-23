@@ -75,7 +75,7 @@ class TestShare(osc_utils.TestCommand):
             endpoint=osc_fakes.AUTH_URL, token=osc_fakes.AUTH_TOKEN
         )
 
-        self.app.client_manager.identity = identity_fakes.FakeIdentityv3Client(
+        self.app.client_manager.identity = identity_fakes.FakeIdentityClient(
             endpoint=osc_fakes.AUTH_URL, token=osc_fakes.AUTH_TOKEN
         )
 

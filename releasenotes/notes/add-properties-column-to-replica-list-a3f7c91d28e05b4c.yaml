@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added a ``Properties`` column to the ``openstack share replica list``
+    command output when using Manila API version 2.95 or newer. The column
+    displays the metadata key/value pairs associated with each share replica,
+    for example ``replication_policy='Sync'``.
