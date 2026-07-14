@@ -27,11 +27,11 @@ command-line tool. You may also want to look at the
 .. _OpenStack CLI Guide: https://docs.openstack.org/python-openstackclient/latest/cli/
 .. _OpenStack API documentation: https://docs.openstack.org/api/
 
-The project is hosted on `Launchpad`_, where bugs can be filed. The code is
-hosted on `Github`_. Patches must be submitted using `Gerrit`_, *not* Github
-pull requests.
+Bugs for the project can be filed on `Launchpad`_. The code is
+hosted on `OpenDev`_, and is mirrored to GitHub. Patches must be submitted
+using `Gerrit`_, *not* Github pull requests.
 
-.. _Github: https://github.com/openstack/python-manilaclient
+.. _OpenDev: https://opendev.org/openstack/python-manilaclient
 .. _Launchpad: https://launchpad.net/python-manilaclient
 .. _Gerrit: https://docs.openstack.org/infra/manual/developers.html#development-workflow
 
@@ -42,7 +42,7 @@ API solely or the BSD license, you should use that repository.
 python-manilaclient is licensed under the Apache License like the rest of
 OpenStack.
 
-.. _Cinderclient: https://github.com/openstack/python-cinderclient
+.. _Cinderclient: https://opendev.org/openstack/python-cinderclient
 __ https://github.com/jacobian/python-cloudservers
 
 .. contents:: Contents:
