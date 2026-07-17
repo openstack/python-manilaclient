@@ -16,10 +16,12 @@ from unittest import mock
 import uuid
 
 import ddt
+from osc_lib.cli import format_columns
 from osc_lib import exceptions
 from osc_lib import utils as oscutils
 
 from manilaclient import api_versions
+from manilaclient.common import cliutils
 from manilaclient.osc.v2 import share_networks as osc_share_networks
 from manilaclient.tests.unit.osc import osc_utils
 from manilaclient.tests.unit.osc.v2 import fakes as manila_fakes
@@ -371,6 +373,51 @@ class TestShareNetworkShow(TestShareNetwork):
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
 
+        captured = []
+        original_convert = cliutils.convert_dict_list_to_string
+
+        def capture_subnets(d):
+            captured.append(d)
+            return original_convert(d)
+
+        with (
+            mock.patch(
+                'osc_lib.utils.find_resource', return_value=self.share_network
+            ) as find_resource,
+            mock.patch(
+                'manilaclient.common.cliutils.convert_dict_list_to_string',
+                side_effect=capture_subnets,
+            ),
+        ):
+            columns, data = self.cmd.take_action(parsed_args)
+
+            find_resource.assert_called_once_with(
+                self.share_networks_mock, network_to_show
+            )
+        properties = captured[0][0]['properties']
+        self.assertIsInstance(properties, format_columns.DictColumn)
+
+    def test_share_network_show_json_format(self):
+        network_to_show = self.share_network.id
+        fake_security_service = mock.Mock()
+        fake_security_service.id = str(uuid.uuid4())
+        fake_security_service.name = f'security-service-{uuid.uuid4().hex}'
+        self.security_services_mock.list = mock.Mock(
+            return_value=[fake_security_service]
+        )
+
+        arglist = [
+            network_to_show,
+            '-f',
+            'json',
+        ]
+        verifylist = [
+            ('share_network', network_to_show),
+            ('formatter', 'json'),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
         with mock.patch(
             'osc_lib.utils.find_resource', return_value=self.share_network
         ) as find_resource:
@@ -379,8 +426,13 @@ class TestShareNetworkShow(TestShareNetwork):
             find_resource.assert_called_once_with(
                 self.share_networks_mock, network_to_show
             )
-        self.assertCountEqual(self.columns, columns)
-        self.assertCountEqual(self.data, data)
+        subnet_index = list(columns).index('share_network_subnets')
+        subnets = data[subnet_index]
+        properties = subnets[0]['properties']
+
+        self.assertIsInstance(properties, dict)
+        self.assertNotIsInstance(properties, format_columns.DictColumn)
+        self.assertEqual(properties, {'key': 'value'})
 
 
 @ddt.ddt

@@ -216,10 +216,13 @@ class ShowShareSnapshot(command.ShowOne):
         data['export_locations'] = locations
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
+        metadata = data.pop('metadata', {})
         data.update(
             {
-                'properties': format_columns.DictColumn(
-                    data.pop('metadata', {})
+                'properties': (
+                    format_columns.DictColumn(metadata)
+                    if parsed_args.formatter == 'table'
+                    else metadata
                 ),
             },
         )

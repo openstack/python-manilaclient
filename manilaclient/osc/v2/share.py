@@ -804,10 +804,13 @@ class ShowShare(command.ShowOne):
         data['export_locations'] = export_locations
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
+        metadata = data.pop('metadata', {})
         data.update(
             {
-                'properties': format_columns.DictColumn(
-                    data.pop('metadata', {})
+                'properties': (
+                    format_columns.DictColumn(metadata)
+                    if parsed_args.formatter == 'table'
+                    else metadata
                 ),
             },
         )
@@ -1337,10 +1340,13 @@ class ShareExportLocationShow(command.ShowOne):
             share=share, export_location=parsed_args.export_location
         )
         data = export_location._info
+        metadata = data.pop('metadata', {})
         data.update(
             {
-                'properties': format_columns.DictColumn(
-                    data.pop('metadata', {})
+                'properties': (
+                    format_columns.DictColumn(metadata)
+                    if parsed_args.formatter == 'table'
+                    else metadata
                 ),
             },
         )

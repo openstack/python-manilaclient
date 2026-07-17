@@ -360,10 +360,13 @@ class ShowShareReplica(command.ShowOne):
             )
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
+        metadata = replica._info.pop('metadata', {})
         replica._info.update(
             {
-                'properties': format_columns.DictColumn(
-                    replica._info.pop('metadata', {})
+                'properties': (
+                    format_columns.DictColumn(metadata)
+                    if parsed_args.formatter == 'table'
+                    else metadata
                 ),
             },
         )

@@ -1184,6 +1184,7 @@ class FakeShareNetwork:
                     "network_type": "vlan",
                     "mtu": "1500",
                     "gateway": "10.0.0.1",
+                    "metadata": {"key": "value"},
                 },
             ],
         }
