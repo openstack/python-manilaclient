@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    The ``openstack share list`` command now accepts an
+    ``--availability-zone`` option to filter shares by their availability
+    zone. This filter is available with manila API version ``2.97`` and
+    beyond.

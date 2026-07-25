@@ -760,6 +760,7 @@ class TestShareList(TestShare):
             'name~': None,
             'description~': None,
             'encryption_key_ref': None,
+            'availability_zone': None,
         }
         return search_opts
 
@@ -1192,6 +1193,49 @@ class TestShareList(TestShare):
         ]
         verifylist = [
             ('encryption_key_ref', 'fake'),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.assertRaises(
+            osc_exceptions.CommandError, self.cmd.take_action, parsed_args
+        )
+
+    def test_share_list_availability_zone(self):
+        arglist = [
+            '--availability-zone',
+            'nova',
+        ]
+        verifylist = [
+            ('availability_zone', 'nova'),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        cmd_columns, cmd_data = self.cmd.take_action(parsed_args)
+
+        search_opts = self._get_search_opts()
+        search_opts['availability_zone'] = 'nova'
+
+        self.shares_mock.list.assert_called_once_with(
+            search_opts=search_opts,
+        )
+
+        self.assertEqual(self.columns, cmd_columns)
+
+        data = self._get_data()
+
+        self.assertEqual(data, tuple(cmd_data))
+
+    def test_list_share_availability_zone_api_version_exception(self):
+        self.app.client_manager.share.api_version = api_versions.APIVersion(
+            "2.96"
+        )
+        arglist = [
+            '--availability-zone',
+            'nova',
+        ]
+        verifylist = [
+            ('availability_zone', 'nova'),
         ]
 
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)

@@ -427,7 +427,7 @@ class SharesTest(utils.TestCase):
         cs.shares.list(detailed=False)
         cs.assert_called('GET', '/shares?is_public=True')
 
-    @ddt.data("1.0", "2.35", "2.69")
+    @ddt.data("1.0", "2.35", "2.69", "2.90", "2.97")
     def test_list_shares_index_diff_api_version(self, microversion):
         version = api_versions.APIVersion(microversion)
         mock_microversion = mock.Mock(api_version=version)
@@ -440,13 +440,26 @@ class SharesTest(utils.TestCase):
             'export_location': 'fake_export_id',
             'is_soft_deleted': 'True',
         }
+        search_opts4 = {
+            'export_location': 'fake_export_id',
+            'is_soft_deleted': 'True',
+            'availability_zone': 'fake_az',
+        }
 
         with mock.patch.object(
             manager, "do_list", mock.Mock(return_value="fake")
         ):
-            manager.list(detailed=False, search_opts=search_opts3)
+            manager.list(detailed=False, search_opts=dict(search_opts4))
 
-            if version >= api_versions.APIVersion('2.69'):
+            if version >= api_versions.APIVersion('2.97'):
+                manager.do_list.assert_called_once_with(
+                    detailed=False,
+                    search_opts=search_opts4,
+                    sort_key=None,
+                    sort_dir=None,
+                    return_raw=False,
+                )
+            elif version >= api_versions.APIVersion('2.69'):
                 manager.do_list.assert_called_once_with(
                     detailed=False,
                     search_opts=search_opts3,
@@ -536,6 +549,22 @@ class SharesTest(utils.TestCase):
         else:
             cs.assert_called(
                 'GET', ('/shares?is_public=True' + '&is_soft_deleted=True')
+            )
+
+    @ddt.data(True, False)
+    def test_list_shares_index_with_availability_zone(self, detailed):
+        search_opts = {
+            'availability_zone': 'fake_az',
+        }
+        cs.shares.list(detailed=detailed, search_opts=search_opts)
+        if detailed:
+            cs.assert_called(
+                'GET',
+                ('/shares/detail?availability_zone=fake_az&is_public=True'),
+            )
+        else:
+            cs.assert_called(
+                'GET', ('/shares?availability_zone=fake_az&is_public=True')
             )
 
     def test_list_shares_detailed(self):

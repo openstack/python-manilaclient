@@ -619,6 +619,14 @@ class ListShare(command.Lister):
                 'Available for microversion >= 2.90'
             ),
         )
+        parser.add_argument(
+            '--availability-zone',
+            metavar="<availability_zone>",
+            help=_(
+                'Filter shares by their availability zone. '
+                'Available for microversion >= 2.97'
+            ),
+        )
 
         return parser
 
@@ -742,6 +750,14 @@ class ListShare(command.Lister):
             raise exceptions.CommandError(
                 "Filtering shares by encryption key ref is only "
                 "available with manila API version >= 2.90"
+            )
+
+        if share_client.api_version >= api_versions.APIVersion('2.97'):
+            search_opts['availability_zone'] = parsed_args.availability_zone
+        elif getattr(parsed_args, 'availability_zone'):
+            raise exceptions.CommandError(
+                "Filtering shares by availability zone is only "
+                "available with manila API version >= 2.97"
             )
 
         # NOTE(vkmc) We implemented sorting and filtering in manilaclient
