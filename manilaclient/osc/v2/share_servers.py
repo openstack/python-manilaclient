@@ -435,6 +435,7 @@ class SetShareServer(command.Command):
             metavar="<task-state>",
             required=False,
             default=None,
+            nargs='?',
             help=_("Indicate which task state to assign the share server. "
                    "Options include migration_starting, migration_in_progress,"
                    " migration_completing, migration_success, migration_error,"
@@ -471,16 +472,19 @@ class SetShareServer(command.Command):
                 LOG.error(msg)
                 raise exceptions.CommandError(msg)
 
-        if parsed_args.task_state:
+        if hasattr(parsed_args, 'task_state'):
             if share_client.api_version < api_versions.APIVersion("2.57"):
                 raise exceptions.CommandError(
                     "Setting the state of a share server is only available "
                     "with manila API version >= 2.57")
             else:
+                task_state = parsed_args.task_state
+                if task_state and task_state.lower() == "none":
+                    task_state = None
                 result = 0
                 try:
                     share_client.share_servers.reset_task_state(
-                        share_server, parsed_args.task_state)
+                        share_server, task_state)
                 except Exception as e:
                     LOG.error(_("Failed to update share server task state "
                                 "%s"), e)
