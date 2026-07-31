@@ -137,6 +137,25 @@ class ClientTest(utils.TestCase):
             api_version=manilaclient.API_MIN_VERSION)
         self.assertIsNotNone(c.client)
 
+    def test_client_respects_region_name(self):
+        mock_session = mock.Mock()
+        mock_auth = mock.Mock()
+        region = 'region1'
+        mock_session.get_endpoint.return_value = 'http://fake-endpoint/'
+        client.Client(
+            session=mock_session,
+            auth=mock_auth,
+            service_type='sharev2',
+            endpoint_type='public',
+            region_name=region,
+        )
+        mock_session.get_endpoint.assert_called_once_with(
+            mock_auth,
+            service_type='sharev2',
+            interface='public',
+            region_name=region,
+        )
+
     def _get_client_args(self, **kwargs):
         client_args = {
             'auth_url': 'http://identity.example.com',
