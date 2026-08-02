@@ -51,3 +51,56 @@ class ShareExportLocationsTest(utils.TestCase):
         cs.assert_called(
             'GET', (f'/shares/{share_id}/export_locations/{el_uuid}')
         )
+
+    def test_get_metadata(self):
+        share_id = '1234'
+        el_uuid = 'fake_el_uuid'
+        cs.share_export_locations.get_metadata(share_id, el_uuid)
+        cs.assert_called(
+            'GET',
+            f'/shares/{share_id}/export_locations/{el_uuid}/metadata',
+        )
+
+    def test_set_metadata(self):
+        share_id = '1234'
+        el_uuid = 'fake_el_uuid'
+        cs.share_export_locations.set_metadata(
+            share_id, {'k1': 'v2'}, subresource=el_uuid
+        )
+        cs.assert_called(
+            'POST',
+            f'/shares/{share_id}/export_locations/{el_uuid}/metadata',
+            {'metadata': {'k1': 'v2'}},
+        )
+
+    @ddt.data(
+        type('ExportLocationUUID', (object,), {'uuid': 'fake_el_uuid'}),
+        type('ExportLocationID', (object,), {'id': 'fake_el_uuid'}),
+        'fake_el_uuid',
+    )
+    def test_delete_metadata(self, export_location):
+        share_id = '1234'
+        keys = ['key1']
+        cs.share_export_locations.delete_metadata(
+            share_id, keys, subresource=export_location
+        )
+        cs.assert_called(
+            'DELETE',
+            '/shares/1234/export_locations/fake_el_uuid/metadata/key1',
+        )
+
+    @ddt.data(
+        type('ExportLocationUUID', (object,), {'uuid': 'fake_el_uuid'}),
+        type('ExportLocationID', (object,), {'id': 'fake_el_uuid'}),
+        'fake_el_uuid',
+    )
+    def test_update_all_metadata(self, export_location):
+        share_id = '1234'
+        cs.share_export_locations.update_all_metadata(
+            share_id, {'k1': 'v1'}, subresource=export_location
+        )
+        cs.assert_called(
+            'PUT',
+            '/shares/1234/export_locations/fake_el_uuid/metadata',
+            {'metadata': {'k1': 'v1'}},
+        )
