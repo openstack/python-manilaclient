@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixed resource lock list filtering by project or user by adding the
+    missing domain options.

@@ -162,6 +162,7 @@ class ListResourceLock(command.Lister):
                 "combine with --all-projects (Admin only)."
             ),
         )
+        identity_common.add_project_domain_option_to_parser(parser)
         parser.add_argument(
             '--user',
             default=None,
@@ -171,6 +172,7 @@ class ListResourceLock(command.Lister):
                 "(Admin only)."
             ),
         )
+        identity_common.add_user_domain_option_to_parser(parser)
         parser.add_argument(
             '--id',
             metavar='<id>',
