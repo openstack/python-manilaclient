@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import hashlib
 import re
 from unittest import mock
 
@@ -260,3 +261,23 @@ class ClientTest(utils.TestCase):
             )
 
         test_post_call()
+
+    def test_log_request_redacts_token(self):
+        cl = get_authed_client()
+        token = "token"
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+        with mock.patch.object(cl._logger, 'debug') as mock_debug:
+            cl.log_request(
+                'GET', 'http://example.com/hi', {'X-Auth-Token': token}, None
+            )
+            logged = mock_debug.call_args[0][1]
+            self.assertNotIn(token_hash[:8], token[:8])
+            self.assertNotIn(f'"X-Auth-Token: {token}"', logged)
+            self.assertIn(f'"X-Auth-Token: {{SHA256}}{token_hash}"', logged)
+
+    def test_safe_header_non_sensitive(self):
+        value = httpclient.HTTPClient._safe_header(
+            'Content-Type', 'application/json'
+        )
+        self.assertEqual('application/json', value)

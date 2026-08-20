@@ -17,6 +17,7 @@
 # limitations under the License.
 
 import copy
+import hashlib
 import logging
 from urllib import parse
 
@@ -203,6 +204,13 @@ class HTTPClient:
     def delete(self, url, **kwargs):
         return self._cs_request(url, 'DELETE', **kwargs)
 
+    @staticmethod
+    def _safe_header(name, value):
+        if name.lower() in ('x-auth-token',):
+            token_hash = hashlib.sha256(value.encode('utf-8')).hexdigest()
+            value = '{SHA256}' + token_hash
+        return value
+
     def log_request(self, method, url, headers, data=None):
         if not self.http_log_debug:
             return
@@ -210,7 +218,8 @@ class HTTPClient:
         string_parts = ['curl -i', f' -X {method}', f' {url}']
 
         for element in headers:
-            header = f' -H "{element}: {headers[element]}"'
+            value = self._safe_header(element, headers[element])
+            header = f' -H "{element}: {value}"'
             string_parts.append(header)
 
         if data:
