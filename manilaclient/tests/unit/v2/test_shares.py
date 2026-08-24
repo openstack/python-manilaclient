@@ -998,7 +998,9 @@ class SharesTest(utils.TestCase):
 
     def test_migration_get_progress(self):
         share = "fake_share"
-        manager = shares.ShareManager(api=fakes.FakeClient())
+        manager = shares.ShareManager(
+            api=fakes.FakeClient(api_version=api_versions.APIVersion('2.96'))
+        )
 
         with mock.patch.object(
             manager, "_action", mock.Mock(return_value="fake")
@@ -1009,6 +1011,15 @@ class SharesTest(utils.TestCase):
                 "migration_get_progress", share
             )
             self.assertEqual("fake", result)
+
+    def test_migration_progress(self):
+        share = "fake_share"
+        manager = shares.ShareManager(api=fakes.FakeClient())
+
+        result = manager.migration_get_progress(share)
+
+        self.assertEqual(50, result[1]['total_progress'])
+        self.assertEqual('fake_task_state', result[1]['task_state'])
 
     def test_reset_task_state(self):
         share = "fake_share"
