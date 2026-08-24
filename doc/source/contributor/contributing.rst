@@ -29,11 +29,10 @@ see issues that are easier to get started with.
 Project Structure
 ~~~~~~~~~~~~~~~~~
 
-This project includes three distinct components:
+This project includes two distinct components:
 
 - manilaclient SDK: python bindings for Manila API `version V1`_ and
   `version V2`_
-- manilaclient shell: A `command line utility`_ (``manila``)
 - OpenStack client shell: A `plugin to support the OpenStack Client`_
   Command Line Interface.
 
@@ -45,12 +44,11 @@ releases of manilaclient may drop support for older versions of the API.
 If you're working on the OpenStack Client command line interface plugin that
 exists in this project, do read the `OpenStack Client Developer
 Documentation`_. This includes the Human Interface Guide and some design
-priciples including command structure and command specs that you will find
+principles including command structure and command specs that you will find
 helpful.
 
 .. _low-hanging-fruit: https://bugs.launchpad.net/python-manilaclient/+bugs?field.tag=low-hanging-fruit
 .. _version V1: https://opendev.org/openstack/python-manilaclient/src/branch/master/manilaclient/v1
 .. _version V2: https://opendev.org/openstack/python-manilaclient/src/branch/master/manilaclient/v2
-.. _command line utility: https://opendev.org/openstack/python-manilaclient/src/branch/master/manilaclient/shell.py
 .. _plugin to support the OpenStack Client: https://opendev.org/openstack/python-manilaclient/src/branch/master/manilaclient/osc
 .. _OpenStack Client Developer Documentation: https://docs.openstack.org/python-openstackclient/latest/contributor/index.html
