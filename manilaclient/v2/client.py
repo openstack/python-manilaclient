@@ -11,7 +11,6 @@
 # under the License.
 
 from debtcollector import removals
-from keystoneauth1 import adapter
 from keystoneauth1 import identity
 from keystoneauth1 import session
 
@@ -158,73 +157,72 @@ class Client:
         self.cert = cert
         self.insecure = insecure
 
-        if input_auth_token and not service_catalog_url:
-            msg = (
-                "For token-based authentication you should "
-                "provide 'input_auth_token' and 'service_catalog_url'."
-            )
-            raise exceptions.ClientException(msg)
-
         self.project_id = tenant_id if tenant_id is not None else project_id
         self.keystone_client = None
         self.session = session
 
+        self.api_version = api_version
+
         # NOTE(u_glide): token authorization has highest priority.
         # That's why session and/or password will be ignored
         # if token is provided.
-        if not input_auth_token:
-            if session:
-                # Modern path - session provided by caller (e.g., OSC plugin)
-                self.keystone_client = adapter.LegacyJsonAdapter(
-                    session=session,
-                    auth=auth,
-                    interface=endpoint_type,
-                    service_type=service_type,
-                    service_name=service_name,
-                    region_name=region_name,
+        if input_auth_token:
+            # Raw token path - no keystoneauth session available
+            if not service_catalog_url:
+                msg = (
+                    "For token-based authentication you should "
+                    "provide 'input_auth_token' and "
+                    "'service_catalog_url'."
                 )
-                input_auth_token = self.keystone_client.session.get_token(auth)
-            else:
+                raise exceptions.ClientException(msg)
+            self.client = httpclient.HTTPClient(
+                service_catalog_url,
+                input_auth_token,
+                user_agent,
+                insecure=insecure,
+                cacert=cacert,
+                cert=cert,
+                timeout=timeout,
+                retries=retries,
+                http_log_debug=http_log_debug,
+                api_version=self.api_version,
+            )
+        else:
+            if not session:
                 # Legacy path - create auth plugin and session ourselves
-                auth, ks_session = self._get_keystone_auth_and_session()
-                self.keystone_client = adapter.LegacyJsonAdapter(
-                    session=ks_session,
-                    auth=auth,
-                    interface=endpoint_type,
-                    service_type=service_type,
-                    service_name=service_name,
-                    region_name=region_name,
-                )
-                input_auth_token = self.keystone_client.session.get_token(auth)
+                auth, session = self._get_keystone_auth_and_session()
 
-        if not input_auth_token:
-            raise RuntimeError("Not Authorized")
-
-        if not service_catalog_url:
-            # Use keystoneauth1 session endpoint discovery
-            service_catalog_url = self.keystone_client.session.get_endpoint(
-                self.keystone_client.auth,
+            self.keystone_client = httpclient.SessionClient(
+                session=session,
+                auth=auth,
                 interface=endpoint_type,
                 service_type=service_type,
+                service_name=service_name,
                 region_name=region_name,
+                endpoint_override=service_catalog_url,
+                retries=retries,
+                http_log_debug=http_log_debug,
+                api_version=self.api_version,
+                user_agent=user_agent,
+                timeout=timeout,
             )
 
-        if not service_catalog_url:
-            raise RuntimeError("Could not find Manila endpoint in catalog")
+            if not service_catalog_url:
+                service_catalog_url = (
+                    self.keystone_client.session.get_endpoint(
+                        self.keystone_client.auth,
+                        interface=endpoint_type,
+                        service_type=service_type,
+                        region_name=region_name,
+                    )
+                )
+                if not service_catalog_url:
+                    raise RuntimeError(
+                        "Could not find Manila endpoint in catalog"
+                    )
+                self.keystone_client.endpoint_override = service_catalog_url
 
-        self.api_version = api_version
-        self.client = httpclient.HTTPClient(
-            service_catalog_url,
-            input_auth_token,
-            user_agent,
-            insecure=insecure,
-            cacert=cacert,
-            cert=cert,
-            timeout=timeout,
-            retries=retries,
-            http_log_debug=http_log_debug,
-            api_version=self.api_version,
-        )
+            self.client = self.keystone_client
 
         self.availability_zones = availability_zones.AvailabilityZoneManager(
             self
