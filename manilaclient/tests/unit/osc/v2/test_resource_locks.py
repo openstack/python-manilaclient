@@ -261,6 +261,44 @@ class TestResourceLockList(TestResourceLock):
         expected_data = [sorted(v) for v in self.values]
         self.assertEqual(actual_data, expected_data)
 
+    @mock.patch.object(osc_resource_locks.identity_common, 'find_project')
+    def test_share_lock_list_project(self, mock_find_project):
+        project = mock.Mock(id='project-id')
+        mock_find_project.return_value = project
+        arglist = ['--project', 'project-name']
+        verifylist = [
+            ('project', 'project-name'),
+            ('project_domain', None),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        mock_find_project.assert_called_once_with(
+            self.app.client_manager.identity, 'project-name', None
+        )
+        search_opts = self.locks_mock.list.call_args.kwargs['search_opts']
+        self.assertTrue(search_opts['all_projects'])
+        self.assertEqual(project.id, search_opts['project_id'])
+
+    @mock.patch.object(osc_resource_locks.identity_common, 'find_user')
+    def test_share_lock_list_user(self, mock_find_user):
+        user = mock.Mock(id='user-id')
+        mock_find_user.return_value = user
+        arglist = ['--user', 'user-name']
+        verifylist = [('user', 'user-name'), ('user_domain', None)]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        mock_find_user.assert_called_once_with(
+            self.app.client_manager.identity, 'user-name', None
+        )
+        search_opts = self.locks_mock.list.call_args.kwargs['search_opts']
+        self.assertEqual(user.id, search_opts['user_id'])
+
 
 class TestResourceLockSet(TestResourceLock):
     def setUp(self):
