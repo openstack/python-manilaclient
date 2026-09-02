@@ -13,6 +13,8 @@
 import json
 
 from manilaclient.tests.functional.osc import base
+from tempest.lib.common.utils import data_utils
+from tempest.lib import exceptions as tempest_exceptions
 
 
 class ShareSnapshotCLITest(base.OSCClientTestBase):
@@ -229,3 +231,136 @@ class ShareSnapshotCLITest(base.OSCClientTestBase):
             self.openstack,
             f'share snapshot delete {snapshot["id"]} --force --wait',
         )
+
+    def test_share_snapshot_create_with_metadata(self):
+        share = self.create_share()
+
+        snapshot_name = data_utils.rand_name("snapshot")
+
+        snapshot = self.create_snapshot(
+            share["id"],
+            name=snapshot_name,
+            properties={
+                "key1": "value1",
+                "key2": "value2",
+            },
+        )
+
+        self.assertEqual(share["id"], snapshot["share_id"])
+        self.assertEqual(snapshot_name, snapshot["name"])
+
+        show_result = self.dict_result(
+            'share snapshot', f'show {snapshot["id"]}'
+        )
+
+        self.assertNotIn(show_result['properties'], [{}, "", None])
+
+        self.assertEqual(
+            "key1='value1', key2='value2'", show_result['properties']
+        )
+
+    def test_share_snapshot_show_metadata(self):
+        share = self.create_share()
+
+        snapshot_name = data_utils.rand_name("snapshot")
+
+        snapshot = self.create_snapshot(
+            share["id"],
+            name=snapshot_name,
+        )
+
+        self.dict_result(
+            'share snapshot set',
+            f'{snapshot["id"]} --property key1=value1 --property key2=value2',
+        )
+
+        show_result = self.dict_result(
+            'share snapshot show', f'{snapshot["id"]}'
+        )
+
+        self.assertEqual(snapshot["id"], show_result["id"])
+        self.assertEqual(snapshot_name, show_result["name"])
+
+        self.assertNotIn(show_result['properties'], [{}, "", None])
+
+        show_properties = dict(
+            item.split('=') for item in show_result['properties'].split(', ')
+        )
+
+        self.assertIn('key1', show_properties)
+        self.assertIn('key2', show_properties)
+        self.assertEqual("'value1'", show_properties['key1'])
+        self.assertEqual("'value2'", show_properties['key2'])
+
+        self.assertRaises(
+            tempest_exceptions.CommandFailed,
+            self.dict_result,
+            'share snapshot show',
+            '00000000-0000-0000-0000-000000000000',
+        )
+
+    def test_share_snapshot_set_metadata(self):
+        share = self.create_share()
+
+        snapshot_name = data_utils.rand_name("snapshot")
+
+        snapshot = self.create_snapshot(
+            share["id"], name=snapshot_name, add_cleanup=True
+        )
+
+        self.dict_result(
+            'share snapshot set',
+            f'{snapshot["id"]} --property key1=value1 --property key2=value2',
+        )
+
+        show_result = self.dict_result(
+            'share snapshot show', f'{snapshot["id"]}'
+        )
+
+        self.assertNotIn(show_result['properties'], [{}, "", None])
+        show_properties = dict(
+            item.split('=') for item in show_result['properties'].split(', ')
+        )
+        self.assertIn('key1', show_properties)
+        self.assertIn('key2', show_properties)
+        self.assertEqual("'value1'", show_properties['key1'])
+        self.assertEqual("'value2'", show_properties['key2'])
+
+        self.assertRaises(
+            tempest_exceptions.CommandFailed,
+            self.openstack,
+            f'share snapshot set {snapshot["id"]} --property xyzzy',
+        )
+
+    def test_share_snapshot_unset_metadata(self):
+        share = self.create_share()
+
+        snapshot_name = data_utils.rand_name("snapshot")
+
+        snapshot = self.create_snapshot(
+            share["id"],
+            name=snapshot_name,
+        )
+
+        self.dict_result(
+            'share snapshot set',
+            f'{snapshot["id"]} --property key1=value1 --property key2=value2',
+        )
+
+        self.assertRaises(
+            tempest_exceptions.CommandFailed,
+            self.dict_result,
+            'share snapshot unset',
+            f'{snapshot["id"]} --property invalid_key',
+        )
+
+        self.dict_result(
+            'share snapshot unset',
+            f'{snapshot["id"]} --property key1 --property key2',
+        )
+
+        show_result = self.dict_result(
+            'share snapshot show', f'{snapshot["id"]}'
+        )
+
+        self.assertIn(show_result['properties'], [{}, "", None])
