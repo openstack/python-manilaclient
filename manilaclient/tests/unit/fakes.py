@@ -19,16 +19,16 @@ places where actual behavior differs from the spec.
 """
 
 
-def assert_has_keys(dictonary, required=None, optional=None):
+def assert_has_keys(dictionary, required=None, optional=None):
     if required is None:
         required = []
     if optional is None:
         optional = []
     for k in required:
         try:
-            assert k in dictonary
+            assert k in dictionary
         except AssertionError:
-            extra_keys = set(dictonary).difference(set(required + optional))
+            extra_keys = set(dictionary).difference(set(required + optional))
             raise AssertionError(f"found unexpected keys: {list(extra_keys)}")
 
 
