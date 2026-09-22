@@ -1,14 +1,8 @@
-========================
-Team and repository tags
-========================
-
-.. image:: https://governance.openstack.org/tc/badges/python-manilaclient.svg
-    :target: https://governance.openstack.org/tc/reference/tags/index.html
-
-.. Change things from this point on
-
+===========================================
 Python bindings to the OpenStack Manila API
 ===========================================
+
+.. image:: https://governance.openstack.org/tc/badges/python-manilaclient.svg
 
 .. only: html
 
