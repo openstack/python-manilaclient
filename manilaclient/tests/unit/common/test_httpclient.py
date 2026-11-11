@@ -334,6 +334,10 @@ class SessionClientTest(utils.TestCase):
             self.max_version.get_string(), cl.default_microversion
         )
 
+    def test_init_sets_default_connect_retries(self):
+        cl = self._get_client()
+        self.assertEqual(1, cl.connect_retries)
+
     def test_get_returns_parsed_body(self):
         cl = self._get_client()
 

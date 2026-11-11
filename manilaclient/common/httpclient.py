@@ -63,6 +63,7 @@ class SessionClient(adapter.LegacyJsonAdapter):
         # that toggle sticky headers such as the experimental API header.
         self.default_headers = {}
         kwargs['default_microversion'] = api_version.get_string()
+        kwargs.setdefault('connect_retries', 1)
         self._logger = logging.getLogger(__name__)
         super().__init__(**kwargs)
 

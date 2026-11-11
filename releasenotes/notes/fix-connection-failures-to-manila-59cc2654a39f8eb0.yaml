@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixed intermittent connection failures when making API requests to the
+    Manila service.
