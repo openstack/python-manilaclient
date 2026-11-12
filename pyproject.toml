@@ -9,21 +9,20 @@ authors = [
     {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
 ]
 readme = {file = "README.rst", content-type = "text/x-rst"}
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 dynamic = ["version", "dependencies"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
   "Environment :: OpenStack",
   "Intended Audience :: Information Technology",
   "Intended Audience :: System Administrators",
-  "License :: OSI Approved :: Apache Software License",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]
@@ -192,10 +191,8 @@ share_qos_type_set = "manilaclient.osc.v2.qos_types:SetQosType"
 share_qos_type_unset = "manilaclient.osc.v2.qos_types:UnsetQosType"
 share_qos_type_delete = "manilaclient.osc.v2.qos_types:DeleteQosType"
 
-[tool.setuptools]
-packages = [
-    "manilaclient"
-]
+[tool.setuptools.packages.find]
+include = ["manilaclient*"]
 
 [tool.coverage.run]
 omit = [
